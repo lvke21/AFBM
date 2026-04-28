@@ -1,0 +1,4651 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Game Engine Rating Analysis</title>
+  <style>
+    :root {
+      --bg: #f5f7f6;
+      --panel: #ffffff;
+      --panel-soft: #eef4f1;
+      --ink: #172124;
+      --muted: #5e6c70;
+      --line: #d6dfdc;
+      --accent: #1f6f78;
+      --accent-2: #6b4e9b;
+      --good: #17613d;
+      --warn: #9b6a19;
+      --bad: #9b2d25;
+      --table-head: #e7efeb;
+      --shadow: 0 14px 40px rgba(23, 33, 36, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.48;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 850px;
+      font-size: 34px;
+      line-height: 1.08;
+    }
+
+    h2 {
+      margin-top: 38px;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    h3 {
+      margin-top: 20px;
+      font-size: 17px;
+      line-height: 1.25;
+    }
+
+    p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: start;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 12px;
+      border: 1px solid rgba(23, 97, 61, 0.28);
+      border-radius: 8px;
+      background: #edf8f1;
+      color: var(--good);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .toc {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .toc h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px 14px;
+      margin-top: 10px;
+    }
+
+    .toc-grid a {
+      display: block;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfb;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .card,
+    .note,
+    .example-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .card {
+      padding: 14px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .value {
+      margin-top: 4px;
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .note {
+      margin-top: 14px;
+      padding: 16px;
+    }
+
+    .note strong {
+      color: var(--ink);
+    }
+
+    .good {
+      color: var(--good);
+    }
+
+    .warn {
+      color: var(--warn);
+    }
+
+    .bad {
+      color: var(--bad);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel-soft);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .table-scroll {
+      width: 100%;
+      margin-top: 12px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      background: var(--table-head);
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .method-grid .note {
+      margin-top: 0;
+    }
+
+    .example-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .example-card {
+      padding: 14px;
+    }
+
+    .example-card h3 {
+      margin-top: 0;
+      font-size: 15px;
+    }
+
+    .callout-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .subsection {
+      padding-top: 4px;
+    }
+
+    .series-games {
+      margin-top: 24px;
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 14px;
+      margin-top: 12px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .checklist li {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      font-weight: 750;
+    }
+
+    @media (max-width: 1000px) {
+      .cards,
+      .example-grid,
+      .toc-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .hero,
+      .method-grid,
+      .callout-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      main {
+        padding: 22px 14px 48px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .cards,
+      .example-grid,
+      .toc-grid,
+      .checklist {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <h1>Game Engine, Matchup-Tests und Spieler-Ratingsystem</h1>
+        <p>Verstaendlicher Bericht fuer Nicht-Programmierer auf Basis der vorhandenen QA-Analyse und der kontrollierten Matchup-Rohdaten.</p>
+      </div>
+      <div class="status">Status: GR&Uuml;N</div>
+    </header>
+
+    <nav class="toc" aria-label="Inhaltsverzeichnis">
+      <h2>Inhaltsverzeichnis</h2>
+      <div class="toc-grid">
+        <a href="#summary">1. Executive Summary</a>
+        <a href="#methodik">2. Testmethodik</a>
+        <a href="#teams">3. Teamuebersicht</a>
+        <a href="#matchups">4. Matchup-Ergebnisse</a>
+        <a href="#games">5. Alle Spiele</a>
+        <a href="#ratings">6. Spieler-Ratingsystem</a>
+        <a href="#impact">7. Impact-Beispiele</a>
+        <a href="#connection">8. Ratings & Ergebnisse</a>
+        <a href="#plausibility">9. Plausibilitaet</a>
+        <a href="#conclusion">10. Fazit</a>
+      </div>
+    </nav>
+
+    <section id="summary">
+      <h2>1. Executive Summary</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="label">Kontrollierte Spiele</div>
+          <div class="value">400</div>
+          <p>4 Serien mit je 100 Seeds.</p>
+        </div>
+        <div class="card">
+          <div class="label">Favoriten-Siege</div>
+          <div class="value">369/400</div>
+          <p>92.3% inklusive Unentschieden als Nicht-Sieg.</p>
+        </div>
+        <div class="card">
+          <div class="label">Lower-Rated Wins</div>
+          <div class="value">25</div>
+          <p>Davon 2 in grossen Rating-Abstaenden.</p>
+        </div>
+        <div class="card">
+          <div class="label">Unentschieden</div>
+          <div class="value">6</div>
+          <p>Alle in Mittel A vs Mittel B.</p>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Wichtigste Erkenntnis:</strong> Ja, staerkere Teams gewinnen deutlich haeufiger. In den kontrollierten Tests gewinnen die jeweils hoeher bewerteten Teams 369 von 400 Spielen. Upsets sind vorhanden, aber selten in grossen Rating-Luecken: 2 Upsets in 300 Spielen mit mindestens 15 Punkten Roster-Abstand. Das Rating-System zeigt also eine klare Wirkung.
+      </div>
+      <div class="note">
+        <strong>Gesamtbewertung:</strong> Das System ist fuer diese Testdaten plausibel. Extreme Rating-Unterschiede schlagen sehr hart durch, waehrend das engere Mittelklasse-Matchup mehr Varianz zeigt. Es gibt keinen Beleg, dass jetzt eine globale Balance-Aenderung noetig ist; fuer Produktionssicherheit fehlen aber noch Home/Away-Spiegel und breitere Matchup-Matrizen.
+      </div>
+    </section>
+
+    <section id="methodik">
+      <h2>2. Testmethodik</h2>
+      <div class="method-grid">
+        <div class="note">
+          <strong>Prompt 1: Analyse ohne Simulation</strong>
+          <p>Analysiert wurden vorhandene QA-Reports, Testskripte, Seeds, Teams und Teamratings. Die vorhandenen Production-Tests nutzten vor allem deterministische 8-Team-Rotationen und feste BOS-vs-NYT-Serien.</p>
+        </div>
+        <div class="note">
+          <strong>Prompt 2: Kontrollierte Matchup-Tests</strong>
+          <p>Vier Teams mit klar unterschiedlichen Ratings wurden in vier festen Serien getestet. Jede Serie hat 100 unterschiedliche Seeds und dieselben unveraenderten Teams.</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Testart</th>
+              <th>Anzahl</th>
+              <th>Matchups</th>
+              <th>Seeds</th>
+              <th>Zielmetriken</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Production Smoke</td>
+              <td>100 Spiele</td>
+              <td>Deterministische 8-Team-Rotation</td>
+              <td><code>production-smoke-1..100</code></td>
+              <td>Technische Stabilitaet, keine kritischen/major Issues, plausibler Ballbesitz</td>
+            </tr>
+            <tr>
+              <td>Production Stability</td>
+              <td>500 Spiele</td>
+              <td>Dieselbe 8-Team-Rotation</td>
+              <td><code>production-stability-1..500</code></td>
+              <td>Runtime, technische Gates, Standardabweichung, Time of Possession</td>
+            </tr>
+            <tr>
+              <td>Seed Regression</td>
+              <td>8 Szenarien</td>
+              <td>Fixe Regression-Faelle</td>
+              <td><code>production-regression-seed-001..008</code></td>
+              <td>Determinismus und Fingerprint-Stabilitaet</td>
+            </tr>
+            <tr>
+              <td>Edge Scan</td>
+              <td>160 Spiele plus Playoff-Fall</td>
+              <td>8-Team-Rotation, 20 Spiele je Paarung</td>
+              <td><code>production-edge-1..160</code></td>
+              <td>Edge Cases, Endgame, Blowout, technische Auffaelligkeiten</td>
+            </tr>
+            <tr>
+              <td>Kontrollierte Matchups</td>
+              <td>4 x 100 Spiele</td>
+              <td>Feste Paarungen: stark/schwach, stark/mittel, mittel/mittel, mittel/schwach</td>
+              <td><code>qa-matchup-...-001..100</code></td>
+              <td>Win Record, Score, Yards, TDs, Punts, FG, Turnovers, TOD</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        Dieser Bericht hat <strong>keine weitere Simulation</strong> ausgefuehrt. Er verwendet <code>reports/qa-test-analysis.html</code>, <code>reports/qa-matchup-summary.html</code>, <code>reports/qa-matchup-results.json</code> sowie die vorhandenen Rating-Definitionen aus der Codebasis.
+      </div>
+    </section>
+
+    <section id="teams">
+      <h2>3. Teamuebersicht</h2>
+      <p>Die vier kontrollierten Teams wurden absichtlich weit auseinander bewertet. Das macht sichtbar, ob Ratings tatsaechlich auf Ergebnisse wirken.</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>Kategorie</th>
+              <th>Overall</th>
+              <th>Roster</th>
+              <th>Offense</th>
+              <th>Defense</th>
+              <th>Special</th>
+              <th>Physical / Mental</th>
+              <th>Coaching</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td><strong>WEK Canton Anchors</strong></td>
+          <td><span class="tag">schwach</span></td>
+          <td>58</td>
+          <td>65.50</td>
+          <td>65.60</td>
+          <td>65.30</td>
+          <td>66.40</td>
+          <td>60.70 / 59.50</td>
+          <td>Dynamisch pro Drive, keine feste Team-Zuweisung</td>
+        </tr>
+        <tr>
+          <td><strong>MDA Portland Bridges</strong></td>
+          <td><span class="tag">mittel A</span></td>
+          <td>72</td>
+          <td>77.50</td>
+          <td>77.50</td>
+          <td>77.40</td>
+          <td>78.10</td>
+          <td>72.60 / 71.40</td>
+          <td>Dynamisch pro Drive, keine feste Team-Zuweisung</td>
+        </tr>
+        <tr>
+          <td><strong>MDB Memphis Pilots</strong></td>
+          <td><span class="tag">mittel B</span></td>
+          <td>76</td>
+          <td>82.70</td>
+          <td>82.70</td>
+          <td>82.40</td>
+          <td>83.30</td>
+          <td>77.70 / 76.30</td>
+          <td>Dynamisch pro Drive, keine feste Team-Zuweisung</td>
+        </tr>
+        <tr>
+          <td><strong>STR San Diego Sentinels</strong></td>
+          <td><span class="tag">stark</span></td>
+          <td>90</td>
+          <td>95.50</td>
+          <td>95.60</td>
+          <td>95.10</td>
+          <td>95.60</td>
+          <td>90.60 / 89.30</td>
+          <td>Dynamisch pro Drive, keine feste Team-Zuweisung</td>
+        </tr></tbody>
+        </table>
+      </div>
+      <div class="note">
+        Die Coaching-Profile sind in diesen Daten nicht als feste Team-Eigenschaft gespeichert. Die Engine leitet Coaching-/Entscheidungsprofile situativ pro Drive aus Kontext und Seed ab. Deshalb steht in der Tabelle kein fixer Coach-Typ pro Team.
+      </div>
+    </section>
+
+    <section id="matchups">
+      <h2>4. Matchup-Ergebnisse</h2>
+      <p>Alle Durchschnittswerte sind Home-Away notiert. Win Record bedeutet Home-Siege, Away-Siege, Unentschieden.</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Serie</th>
+              <th>Home</th>
+              <th>Away</th>
+              <th>Win Record</th>
+              <th>Home Win %</th>
+              <th>Favorit Win %</th>
+              <th>Score Ø</th>
+              <th>Diff H-A</th>
+              <th>Yards</th>
+              <th>TDs</th>
+              <th>Punts</th>
+              <th>FG</th>
+              <th>Turnovers</th>
+              <th>TOD</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td><strong>Stark vs Schwach</strong><br><span class="muted">qa-matchup-strong-vs-weak-001..100</span></td>
+          <td>STR San Diego Sentinels</td>
+          <td>WEK Canton Anchors</td>
+          <td>100-0-0</td>
+          <td>100.0%</td>
+          <td>100.0%</td>
+          <td>40.84-0.40</td>
+          <td>40.44</td>
+          <td>504.71-164.51</td>
+          <td>4.41-0.06</td>
+          <td>0.36-10.08</td>
+          <td>3.89-0.00</td>
+          <td>0.33-0.30</td>
+          <td>1.22-1.02</td>
+        </tr>
+        <tr>
+          <td><strong>Stark vs Mittel A</strong><br><span class="muted">qa-matchup-strong-vs-medium-a-001..100</span></td>
+          <td>STR San Diego Sentinels</td>
+          <td>MDA Portland Bridges</td>
+          <td>99-1-0</td>
+          <td>99.0%</td>
+          <td>99.0%</td>
+          <td>40.67-7.76</td>
+          <td>32.91</td>
+          <td>532.50-310.92</td>
+          <td>4.39-1.06</td>
+          <td>0.88-9.12</td>
+          <td>4.01-0.35</td>
+          <td>0.44-0.46</td>
+          <td>1.37-0.90</td>
+        </tr>
+        <tr>
+          <td><strong>Mittel A vs Mittel B</strong><br><span class="muted">qa-matchup-medium-a-vs-medium-b-001..100</span></td>
+          <td>MDA Portland Bridges</td>
+          <td>MDB Memphis Pilots</td>
+          <td>23-71-6</td>
+          <td>23.0%</td>
+          <td>71.0%</td>
+          <td>15.76-23.78</td>
+          <td>-8.02</td>
+          <td>379.09-419.26</td>
+          <td>2.05-2.93</td>
+          <td>6.26-3.82</td>
+          <td>1.13-2.16</td>
+          <td>0.44-0.47</td>
+          <td>1.01-0.98</td>
+        </tr>
+        <tr>
+          <td><strong>Mittel B vs Schwach</strong><br><span class="muted">qa-matchup-medium-b-vs-weak-001..100</span></td>
+          <td>MDB Memphis Pilots</td>
+          <td>WEK Canton Anchors</td>
+          <td>99-1-0</td>
+          <td>99.0%</td>
+          <td>99.0%</td>
+          <td>32.29-3.18</td>
+          <td>29.11</td>
+          <td>492.00-245.72</td>
+          <td>3.58-0.45</td>
+          <td>1.74-10.57</td>
+          <td>3.70-0.06</td>
+          <td>0.43-0.33</td>
+          <td>1.02-0.99</td>
+        </tr></tbody>
+        </table>
+      </div>
+      <div class="callout-row">
+        <div class="note">
+          <strong>Stark vs Schwach</strong>
+          <p>San Diego gewinnt 100 von 100. Das ist bei 30 Punkten Roster-Abstand erwartbar dominant.</p>
+        </div>
+        <div class="note">
+          <strong>Mittel gegen Mittel</strong>
+          <p>Memphis ist hoeher bewertet und gewinnt 71 von 100, aber Portland gewinnt 23 und 6 Spiele enden unentschieden.</p>
+        </div>
+        <div class="note">
+          <strong>Upsets</strong>
+          <p>Grosse Upsets gibt es 2-mal: Portland schlaegt San Diego 21-18, Canton schlaegt Memphis 7-6.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="games">
+      <h2>5. Alle Spiele</h2>
+      <p>Die folgenden Tabellen listen alle 400 gespeicherten Spiele aus <code>qa-matchup-results.json</code>.</p>
+      
+        <section class="series-games" id="games-strong-vs-weak">
+          <h3>Stark vs Schwach: alle 100 Spiele</h3>
+          <p>Notation: Home-Wert zuerst, Away-Wert danach. Home = STR San Diego Sentinels, Away = WEK Canton Anchors.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Spiel</th>
+                  <th>Seed</th>
+                  <th>Score</th>
+                  <th>Winner</th>
+                  <th>Yards</th>
+                  <th>Turnovers</th>
+                </tr>
+              </thead>
+              <tbody>
+            <tr>
+              <td>1</td>
+              <td><code>qa-matchup-strong-vs-weak-001</code></td>
+              <td>STR 37 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>452 - 149 (601)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><code>qa-matchup-strong-vs-weak-002</code></td>
+              <td>STR 40 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>414 - 145 (559)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><code>qa-matchup-strong-vs-weak-003</code></td>
+              <td>STR 33 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>490 - 193 (683)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><code>qa-matchup-strong-vs-weak-004</code></td>
+              <td>STR 51 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>507 - 133 (640)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><code>qa-matchup-strong-vs-weak-005</code></td>
+              <td>STR 62 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>527 - 180 (707)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><code>qa-matchup-strong-vs-weak-006</code></td>
+              <td>STR 30 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>447 - 154 (601)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><code>qa-matchup-strong-vs-weak-007</code></td>
+              <td>STR 32 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>547 - 151 (698)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><code>qa-matchup-strong-vs-weak-008</code></td>
+              <td>STR 38 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>362 - 114 (476)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><code>qa-matchup-strong-vs-weak-009</code></td>
+              <td>STR 54 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>520 - 187 (707)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><code>qa-matchup-strong-vs-weak-010</code></td>
+              <td>STR 31 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>558 - 194 (752)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><code>qa-matchup-strong-vs-weak-011</code></td>
+              <td>STR 26 - 7 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>474 - 147 (621)</td>
+              <td>2 - 1 (3)</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><code>qa-matchup-strong-vs-weak-012</code></td>
+              <td>STR 33 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>518 - 181 (699)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><code>qa-matchup-strong-vs-weak-013</code></td>
+              <td>STR 47 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>474 - 149 (623)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><code>qa-matchup-strong-vs-weak-014</code></td>
+              <td>STR 22 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>515 - 163 (678)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><code>qa-matchup-strong-vs-weak-015</code></td>
+              <td>STR 35 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>502 - 183 (685)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><code>qa-matchup-strong-vs-weak-016</code></td>
+              <td>STR 34 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>533 - 152 (685)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><code>qa-matchup-strong-vs-weak-017</code></td>
+              <td>STR 43 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>443 - 152 (595)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><code>qa-matchup-strong-vs-weak-018</code></td>
+              <td>STR 43 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>524 - 157 (681)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><code>qa-matchup-strong-vs-weak-019</code></td>
+              <td>STR 47 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>543 - 170 (713)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><code>qa-matchup-strong-vs-weak-020</code></td>
+              <td>STR 44 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>484 - 194 (678)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><code>qa-matchup-strong-vs-weak-021</code></td>
+              <td>STR 30 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>476 - 180 (656)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><code>qa-matchup-strong-vs-weak-022</code></td>
+              <td>STR 36 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>387 - 146 (533)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><code>qa-matchup-strong-vs-weak-023</code></td>
+              <td>STR 47 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>526 - 155 (681)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><code>qa-matchup-strong-vs-weak-024</code></td>
+              <td>STR 32 - 14 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>526 - 194 (720)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><code>qa-matchup-strong-vs-weak-025</code></td>
+              <td>STR 36 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>508 - 196 (704)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>26</td>
+              <td><code>qa-matchup-strong-vs-weak-026</code></td>
+              <td>STR 42 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>492 - 164 (656)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>27</td>
+              <td><code>qa-matchup-strong-vs-weak-027</code></td>
+              <td>STR 44 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>549 - 168 (717)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>28</td>
+              <td><code>qa-matchup-strong-vs-weak-028</code></td>
+              <td>STR 48 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>508 - 138 (646)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>29</td>
+              <td><code>qa-matchup-strong-vs-weak-029</code></td>
+              <td>STR 22 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>415 - 146 (561)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>30</td>
+              <td><code>qa-matchup-strong-vs-weak-030</code></td>
+              <td>STR 38 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>506 - 191 (697)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>31</td>
+              <td><code>qa-matchup-strong-vs-weak-031</code></td>
+              <td>STR 54 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>513 - 174 (687)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>32</td>
+              <td><code>qa-matchup-strong-vs-weak-032</code></td>
+              <td>STR 43 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>526 - 135 (661)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>33</td>
+              <td><code>qa-matchup-strong-vs-weak-033</code></td>
+              <td>STR 49 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>602 - 184 (786)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>34</td>
+              <td><code>qa-matchup-strong-vs-weak-034</code></td>
+              <td>STR 50 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>579 - 189 (768)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>35</td>
+              <td><code>qa-matchup-strong-vs-weak-035</code></td>
+              <td>STR 29 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>485 - 181 (666)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>36</td>
+              <td><code>qa-matchup-strong-vs-weak-036</code></td>
+              <td>STR 32 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>467 - 160 (627)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>37</td>
+              <td><code>qa-matchup-strong-vs-weak-037</code></td>
+              <td>STR 41 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>467 - 143 (610)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>38</td>
+              <td><code>qa-matchup-strong-vs-weak-038</code></td>
+              <td>STR 47 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>473 - 170 (643)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>39</td>
+              <td><code>qa-matchup-strong-vs-weak-039</code></td>
+              <td>STR 33 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>521 - 149 (670)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>40</td>
+              <td><code>qa-matchup-strong-vs-weak-040</code></td>
+              <td>STR 30 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>454 - 170 (624)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>41</td>
+              <td><code>qa-matchup-strong-vs-weak-041</code></td>
+              <td>STR 55 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>541 - 180 (721)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>42</td>
+              <td><code>qa-matchup-strong-vs-weak-042</code></td>
+              <td>STR 46 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>576 - 189 (765)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>43</td>
+              <td><code>qa-matchup-strong-vs-weak-043</code></td>
+              <td>STR 48 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>521 - 174 (695)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>44</td>
+              <td><code>qa-matchup-strong-vs-weak-044</code></td>
+              <td>STR 51 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>458 - 129 (587)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>45</td>
+              <td><code>qa-matchup-strong-vs-weak-045</code></td>
+              <td>STR 27 - 7 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>476 - 154 (630)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>46</td>
+              <td><code>qa-matchup-strong-vs-weak-046</code></td>
+              <td>STR 45 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>457 - 129 (586)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>47</td>
+              <td><code>qa-matchup-strong-vs-weak-047</code></td>
+              <td>STR 51 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>499 - 162 (661)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>48</td>
+              <td><code>qa-matchup-strong-vs-weak-048</code></td>
+              <td>STR 53 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>650 - 218 (868)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>49</td>
+              <td><code>qa-matchup-strong-vs-weak-049</code></td>
+              <td>STR 55 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>467 - 182 (649)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>50</td>
+              <td><code>qa-matchup-strong-vs-weak-050</code></td>
+              <td>STR 41 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>549 - 166 (715)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>51</td>
+              <td><code>qa-matchup-strong-vs-weak-051</code></td>
+              <td>STR 39 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>533 - 141 (674)</td>
+              <td>2 - 1 (3)</td>
+            </tr>
+            <tr>
+              <td>52</td>
+              <td><code>qa-matchup-strong-vs-weak-052</code></td>
+              <td>STR 33 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>490 - 150 (640)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>53</td>
+              <td><code>qa-matchup-strong-vs-weak-053</code></td>
+              <td>STR 40 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>541 - 158 (699)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>54</td>
+              <td><code>qa-matchup-strong-vs-weak-054</code></td>
+              <td>STR 44 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>475 - 134 (609)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>55</td>
+              <td><code>qa-matchup-strong-vs-weak-055</code></td>
+              <td>STR 41 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>508 - 166 (674)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>56</td>
+              <td><code>qa-matchup-strong-vs-weak-056</code></td>
+              <td>STR 24 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>525 - 158 (683)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>57</td>
+              <td><code>qa-matchup-strong-vs-weak-057</code></td>
+              <td>STR 58 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>539 - 160 (699)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>58</td>
+              <td><code>qa-matchup-strong-vs-weak-058</code></td>
+              <td>STR 38 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>463 - 159 (622)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>59</td>
+              <td><code>qa-matchup-strong-vs-weak-059</code></td>
+              <td>STR 50 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>571 - 217 (788)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>60</td>
+              <td><code>qa-matchup-strong-vs-weak-060</code></td>
+              <td>STR 41 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>459 - 124 (583)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>61</td>
+              <td><code>qa-matchup-strong-vs-weak-061</code></td>
+              <td>STR 40 - 6 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>489 - 134 (623)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>62</td>
+              <td><code>qa-matchup-strong-vs-weak-062</code></td>
+              <td>STR 48 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>515 - 160 (675)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>63</td>
+              <td><code>qa-matchup-strong-vs-weak-063</code></td>
+              <td>STR 42 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>528 - 166 (694)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>64</td>
+              <td><code>qa-matchup-strong-vs-weak-064</code></td>
+              <td>STR 51 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>528 - 155 (683)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>65</td>
+              <td><code>qa-matchup-strong-vs-weak-065</code></td>
+              <td>STR 50 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>557 - 160 (717)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>66</td>
+              <td><code>qa-matchup-strong-vs-weak-066</code></td>
+              <td>STR 43 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>485 - 163 (648)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>67</td>
+              <td><code>qa-matchup-strong-vs-weak-067</code></td>
+              <td>STR 51 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>501 - 140 (641)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>68</td>
+              <td><code>qa-matchup-strong-vs-weak-068</code></td>
+              <td>STR 42 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>464 - 172 (636)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>69</td>
+              <td><code>qa-matchup-strong-vs-weak-069</code></td>
+              <td>STR 48 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>527 - 164 (691)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>70</td>
+              <td><code>qa-matchup-strong-vs-weak-070</code></td>
+              <td>STR 36 - 6 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>520 - 192 (712)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>71</td>
+              <td><code>qa-matchup-strong-vs-weak-071</code></td>
+              <td>STR 41 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>393 - 124 (517)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>72</td>
+              <td><code>qa-matchup-strong-vs-weak-072</code></td>
+              <td>STR 43 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>446 - 155 (601)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>73</td>
+              <td><code>qa-matchup-strong-vs-weak-073</code></td>
+              <td>STR 39 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>448 - 149 (597)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>74</td>
+              <td><code>qa-matchup-strong-vs-weak-074</code></td>
+              <td>STR 36 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>515 - 154 (669)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>75</td>
+              <td><code>qa-matchup-strong-vs-weak-075</code></td>
+              <td>STR 40 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>593 - 151 (744)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>76</td>
+              <td><code>qa-matchup-strong-vs-weak-076</code></td>
+              <td>STR 47 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>576 - 176 (752)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>77</td>
+              <td><code>qa-matchup-strong-vs-weak-077</code></td>
+              <td>STR 43 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>572 - 177 (749)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>78</td>
+              <td><code>qa-matchup-strong-vs-weak-078</code></td>
+              <td>STR 33 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>521 - 188 (709)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>79</td>
+              <td><code>qa-matchup-strong-vs-weak-079</code></td>
+              <td>STR 37 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>482 - 143 (625)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>80</td>
+              <td><code>qa-matchup-strong-vs-weak-080</code></td>
+              <td>STR 57 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>593 - 183 (776)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>81</td>
+              <td><code>qa-matchup-strong-vs-weak-081</code></td>
+              <td>STR 38 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>483 - 181 (664)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>82</td>
+              <td><code>qa-matchup-strong-vs-weak-082</code></td>
+              <td>STR 22 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>411 - 133 (544)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>83</td>
+              <td><code>qa-matchup-strong-vs-weak-083</code></td>
+              <td>STR 55 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>660 - 191 (851)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>84</td>
+              <td><code>qa-matchup-strong-vs-weak-084</code></td>
+              <td>STR 31 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>486 - 153 (639)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>85</td>
+              <td><code>qa-matchup-strong-vs-weak-085</code></td>
+              <td>STR 69 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>602 - 186 (788)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>86</td>
+              <td><code>qa-matchup-strong-vs-weak-086</code></td>
+              <td>STR 29 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>480 - 181 (661)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>87</td>
+              <td><code>qa-matchup-strong-vs-weak-087</code></td>
+              <td>STR 51 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>539 - 191 (730)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>88</td>
+              <td><code>qa-matchup-strong-vs-weak-088</code></td>
+              <td>STR 37 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>487 - 152 (639)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>89</td>
+              <td><code>qa-matchup-strong-vs-weak-089</code></td>
+              <td>STR 54 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>534 - 165 (699)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>90</td>
+              <td><code>qa-matchup-strong-vs-weak-090</code></td>
+              <td>STR 40 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>469 - 207 (676)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>91</td>
+              <td><code>qa-matchup-strong-vs-weak-091</code></td>
+              <td>STR 35 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>475 - 173 (648)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>92</td>
+              <td><code>qa-matchup-strong-vs-weak-092</code></td>
+              <td>STR 36 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>528 - 155 (683)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>93</td>
+              <td><code>qa-matchup-strong-vs-weak-093</code></td>
+              <td>STR 16 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>408 - 155 (563)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>94</td>
+              <td><code>qa-matchup-strong-vs-weak-094</code></td>
+              <td>STR 48 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>531 - 207 (738)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>95</td>
+              <td><code>qa-matchup-strong-vs-weak-095</code></td>
+              <td>STR 27 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>505 - 157 (662)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>96</td>
+              <td><code>qa-matchup-strong-vs-weak-096</code></td>
+              <td>STR 35 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>475 - 158 (633)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>97</td>
+              <td><code>qa-matchup-strong-vs-weak-097</code></td>
+              <td>STR 43 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>544 - 146 (690)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>98</td>
+              <td><code>qa-matchup-strong-vs-weak-098</code></td>
+              <td>STR 41 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>550 - 196 (746)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>99</td>
+              <td><code>qa-matchup-strong-vs-weak-099</code></td>
+              <td>STR 31 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>494 - 161 (655)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>100</td>
+              <td><code>qa-matchup-strong-vs-weak-100</code></td>
+              <td>STR 34 - 0 WEK</td>
+              <td>STR San Diego Sentinels</td>
+              <td>445 - 166 (611)</td>
+              <td>0 - 0 (0)</td>
+            </tr></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="series-games" id="games-strong-vs-medium-a">
+          <h3>Stark vs Mittel A: alle 100 Spiele</h3>
+          <p>Notation: Home-Wert zuerst, Away-Wert danach. Home = STR San Diego Sentinels, Away = MDA Portland Bridges.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Spiel</th>
+                  <th>Seed</th>
+                  <th>Score</th>
+                  <th>Winner</th>
+                  <th>Yards</th>
+                  <th>Turnovers</th>
+                </tr>
+              </thead>
+              <tbody>
+            <tr>
+              <td>1</td>
+              <td><code>qa-matchup-strong-vs-medium-a-001</code></td>
+              <td>STR 29 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>544 - 298 (842)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><code>qa-matchup-strong-vs-medium-a-002</code></td>
+              <td>STR 35 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>583 - 343 (926)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><code>qa-matchup-strong-vs-medium-a-003</code></td>
+              <td>STR 16 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>435 - 299 (734)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><code>qa-matchup-strong-vs-medium-a-004</code></td>
+              <td>STR 44 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>596 - 325 (921)</td>
+              <td>1 - 2 (3)</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><code>qa-matchup-strong-vs-medium-a-005</code></td>
+              <td>STR 33 - 3 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>406 - 254 (660)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><code>qa-matchup-strong-vs-medium-a-006</code></td>
+              <td>STR 46 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>521 - 285 (806)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><code>qa-matchup-strong-vs-medium-a-007</code></td>
+              <td>STR 40 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>460 - 318 (778)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><code>qa-matchup-strong-vs-medium-a-008</code></td>
+              <td>STR 58 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>522 - 285 (807)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><code>qa-matchup-strong-vs-medium-a-009</code></td>
+              <td>STR 18 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>482 - 271 (753)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><code>qa-matchup-strong-vs-medium-a-010</code></td>
+              <td>STR 64 - 3 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>656 - 295 (951)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><code>qa-matchup-strong-vs-medium-a-011</code></td>
+              <td>STR 50 - 3 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>520 - 344 (864)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><code>qa-matchup-strong-vs-medium-a-012</code></td>
+              <td>STR 47 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>595 - 366 (961)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><code>qa-matchup-strong-vs-medium-a-013</code></td>
+              <td>STR 63 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>596 - 345 (941)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><code>qa-matchup-strong-vs-medium-a-014</code></td>
+              <td>STR 50 - 17 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>538 - 301 (839)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><code>qa-matchup-strong-vs-medium-a-015</code></td>
+              <td>STR 41 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>508 - 309 (817)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><code>qa-matchup-strong-vs-medium-a-016</code></td>
+              <td>STR 33 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>434 - 283 (717)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><code>qa-matchup-strong-vs-medium-a-017</code></td>
+              <td>STR 44 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>467 - 239 (706)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><code>qa-matchup-strong-vs-medium-a-018</code></td>
+              <td>STR 64 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>654 - 341 (995)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><code>qa-matchup-strong-vs-medium-a-019</code></td>
+              <td>STR 37 - 24 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>441 - 319 (760)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><code>qa-matchup-strong-vs-medium-a-020</code></td>
+              <td>STR 29 - 28 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>502 - 331 (833)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><code>qa-matchup-strong-vs-medium-a-021</code></td>
+              <td>STR 44 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>565 - 377 (942)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><code>qa-matchup-strong-vs-medium-a-022</code></td>
+              <td>STR 33 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>492 - 334 (826)</td>
+              <td>1 - 2 (3)</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><code>qa-matchup-strong-vs-medium-a-023</code></td>
+              <td>STR 40 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>574 - 324 (898)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><code>qa-matchup-strong-vs-medium-a-024</code></td>
+              <td>STR 40 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>480 - 285 (765)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><code>qa-matchup-strong-vs-medium-a-025</code></td>
+              <td>STR 50 - 10 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>572 - 324 (896)</td>
+              <td>1 - 2 (3)</td>
+            </tr>
+            <tr>
+              <td>26</td>
+              <td><code>qa-matchup-strong-vs-medium-a-026</code></td>
+              <td>STR 31 - 17 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>492 - 304 (796)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>27</td>
+              <td><code>qa-matchup-strong-vs-medium-a-027</code></td>
+              <td>STR 44 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>543 - 308 (851)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>28</td>
+              <td><code>qa-matchup-strong-vs-medium-a-028</code></td>
+              <td>STR 53 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>530 - 292 (822)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>29</td>
+              <td><code>qa-matchup-strong-vs-medium-a-029</code></td>
+              <td>STR 26 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>479 - 289 (768)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>30</td>
+              <td><code>qa-matchup-strong-vs-medium-a-030</code></td>
+              <td>STR 37 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>598 - 378 (976)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>31</td>
+              <td><code>qa-matchup-strong-vs-medium-a-031</code></td>
+              <td>STR 75 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>685 - 365 (1050)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>32</td>
+              <td><code>qa-matchup-strong-vs-medium-a-032</code></td>
+              <td>STR 32 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>472 - 309 (781)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>33</td>
+              <td><code>qa-matchup-strong-vs-medium-a-033</code></td>
+              <td>STR 38 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>525 - 347 (872)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>34</td>
+              <td><code>qa-matchup-strong-vs-medium-a-034</code></td>
+              <td>STR 41 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>550 - 284 (834)</td>
+              <td>2 - 1 (3)</td>
+            </tr>
+            <tr>
+              <td>35</td>
+              <td><code>qa-matchup-strong-vs-medium-a-035</code></td>
+              <td>STR 44 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>476 - 282 (758)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>36</td>
+              <td><code>qa-matchup-strong-vs-medium-a-036</code></td>
+              <td>STR 33 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>485 - 314 (799)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>37</td>
+              <td><code>qa-matchup-strong-vs-medium-a-037</code></td>
+              <td>STR 40 - 10 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>560 - 358 (918)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>38</td>
+              <td><code>qa-matchup-strong-vs-medium-a-038</code></td>
+              <td>STR 35 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>518 - 278 (796)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>39</td>
+              <td><code>qa-matchup-strong-vs-medium-a-039</code></td>
+              <td>STR 43 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>513 - 277 (790)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>40</td>
+              <td><code>qa-matchup-strong-vs-medium-a-040</code></td>
+              <td>STR 37 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>517 - 283 (800)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>41</td>
+              <td><code>qa-matchup-strong-vs-medium-a-041</code></td>
+              <td>STR 29 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>528 - 305 (833)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>42</td>
+              <td><code>qa-matchup-strong-vs-medium-a-042</code></td>
+              <td>STR 57 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>591 - 361 (952)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>43</td>
+              <td><code>qa-matchup-strong-vs-medium-a-043</code></td>
+              <td>STR 36 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>477 - 292 (769)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>44</td>
+              <td><code>qa-matchup-strong-vs-medium-a-044</code></td>
+              <td>STR 20 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>429 - 327 (756)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>45</td>
+              <td><code>qa-matchup-strong-vs-medium-a-045</code></td>
+              <td>STR 48 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>534 - 304 (838)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>46</td>
+              <td><code>qa-matchup-strong-vs-medium-a-046</code></td>
+              <td>STR 20 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>454 - 280 (734)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>47</td>
+              <td><code>qa-matchup-strong-vs-medium-a-047</code></td>
+              <td>STR 52 - 10 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>537 - 313 (850)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>48</td>
+              <td><code>qa-matchup-strong-vs-medium-a-048</code></td>
+              <td>STR 36 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>603 - 325 (928)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>49</td>
+              <td><code>qa-matchup-strong-vs-medium-a-049</code></td>
+              <td>STR 41 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>459 - 281 (740)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>50</td>
+              <td><code>qa-matchup-strong-vs-medium-a-050</code></td>
+              <td>STR 41 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>572 - 319 (891)</td>
+              <td>3 - 0 (3)</td>
+            </tr>
+            <tr>
+              <td>51</td>
+              <td><code>qa-matchup-strong-vs-medium-a-051</code></td>
+              <td>STR 34 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>513 - 321 (834)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>52</td>
+              <td><code>qa-matchup-strong-vs-medium-a-052</code></td>
+              <td>STR 45 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>547 - 351 (898)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>53</td>
+              <td><code>qa-matchup-strong-vs-medium-a-053</code></td>
+              <td>STR 41 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>552 - 284 (836)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>54</td>
+              <td><code>qa-matchup-strong-vs-medium-a-054</code></td>
+              <td>STR 30 - 13 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>514 - 277 (791)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>55</td>
+              <td><code>qa-matchup-strong-vs-medium-a-055</code></td>
+              <td>STR 50 - 21 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>541 - 313 (854)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>56</td>
+              <td><code>qa-matchup-strong-vs-medium-a-056</code></td>
+              <td>STR 25 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>536 - 342 (878)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>57</td>
+              <td><code>qa-matchup-strong-vs-medium-a-057</code></td>
+              <td>STR 41 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>547 - 297 (844)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>58</td>
+              <td><code>qa-matchup-strong-vs-medium-a-058</code></td>
+              <td>STR 40 - 21 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>554 - 349 (903)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>59</td>
+              <td><code>qa-matchup-strong-vs-medium-a-059</code></td>
+              <td>STR 48 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>533 - 309 (842)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>60</td>
+              <td><code>qa-matchup-strong-vs-medium-a-060</code></td>
+              <td>STR 29 - 6 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>634 - 366 (1000)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>61</td>
+              <td><code>qa-matchup-strong-vs-medium-a-061</code></td>
+              <td>STR 20 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>454 - 311 (765)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>62</td>
+              <td><code>qa-matchup-strong-vs-medium-a-062</code></td>
+              <td>STR 46 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>624 - 331 (955)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>63</td>
+              <td><code>qa-matchup-strong-vs-medium-a-063</code></td>
+              <td>STR 30 - 24 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>498 - 300 (798)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>64</td>
+              <td><code>qa-matchup-strong-vs-medium-a-064</code></td>
+              <td>STR 44 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>512 - 276 (788)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>65</td>
+              <td><code>qa-matchup-strong-vs-medium-a-065</code></td>
+              <td>STR 51 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>579 - 338 (917)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>66</td>
+              <td><code>qa-matchup-strong-vs-medium-a-066</code></td>
+              <td>STR 57 - 10 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>590 - 323 (913)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>67</td>
+              <td><code>qa-matchup-strong-vs-medium-a-067</code></td>
+              <td>STR 32 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>491 - 308 (799)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>68</td>
+              <td><code>qa-matchup-strong-vs-medium-a-068</code></td>
+              <td>STR 45 - 10 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>487 - 300 (787)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>69</td>
+              <td><code>qa-matchup-strong-vs-medium-a-069</code></td>
+              <td>STR 50 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>541 - 279 (820)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>70</td>
+              <td><code>qa-matchup-strong-vs-medium-a-070</code></td>
+              <td>STR 57 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>543 - 323 (866)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>71</td>
+              <td><code>qa-matchup-strong-vs-medium-a-071</code></td>
+              <td>STR 47 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>542 - 332 (874)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>72</td>
+              <td><code>qa-matchup-strong-vs-medium-a-072</code></td>
+              <td>STR 54 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>531 - 294 (825)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>73</td>
+              <td><code>qa-matchup-strong-vs-medium-a-073</code></td>
+              <td>STR 34 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>602 - 311 (913)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>74</td>
+              <td><code>qa-matchup-strong-vs-medium-a-074</code></td>
+              <td>STR 29 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>455 - 298 (753)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>75</td>
+              <td><code>qa-matchup-strong-vs-medium-a-075</code></td>
+              <td>STR 45 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>549 - 284 (833)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>76</td>
+              <td><code>qa-matchup-strong-vs-medium-a-076</code></td>
+              <td>STR 18 - 21 MDA</td>
+              <td>MDA Portland Bridges</td>
+              <td>496 - 353 (849)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>77</td>
+              <td><code>qa-matchup-strong-vs-medium-a-077</code></td>
+              <td>STR 37 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>547 - 357 (904)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>78</td>
+              <td><code>qa-matchup-strong-vs-medium-a-078</code></td>
+              <td>STR 43 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>503 - 251 (754)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>79</td>
+              <td><code>qa-matchup-strong-vs-medium-a-079</code></td>
+              <td>STR 37 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>552 - 302 (854)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>80</td>
+              <td><code>qa-matchup-strong-vs-medium-a-080</code></td>
+              <td>STR 57 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>596 - 323 (919)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>81</td>
+              <td><code>qa-matchup-strong-vs-medium-a-081</code></td>
+              <td>STR 33 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>573 - 325 (898)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>82</td>
+              <td><code>qa-matchup-strong-vs-medium-a-082</code></td>
+              <td>STR 47 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>582 - 362 (944)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>83</td>
+              <td><code>qa-matchup-strong-vs-medium-a-083</code></td>
+              <td>STR 27 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>512 - 318 (830)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>84</td>
+              <td><code>qa-matchup-strong-vs-medium-a-084</code></td>
+              <td>STR 55 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>542 - 279 (821)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>85</td>
+              <td><code>qa-matchup-strong-vs-medium-a-085</code></td>
+              <td>STR 51 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>468 - 272 (740)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>86</td>
+              <td><code>qa-matchup-strong-vs-medium-a-086</code></td>
+              <td>STR 40 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>573 - 303 (876)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>87</td>
+              <td><code>qa-matchup-strong-vs-medium-a-087</code></td>
+              <td>STR 35 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>524 - 300 (824)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>88</td>
+              <td><code>qa-matchup-strong-vs-medium-a-088</code></td>
+              <td>STR 54 - 35 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>566 - 377 (943)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>89</td>
+              <td><code>qa-matchup-strong-vs-medium-a-089</code></td>
+              <td>STR 65 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>557 - 274 (831)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>90</td>
+              <td><code>qa-matchup-strong-vs-medium-a-090</code></td>
+              <td>STR 47 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>561 - 314 (875)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>91</td>
+              <td><code>qa-matchup-strong-vs-medium-a-091</code></td>
+              <td>STR 42 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>497 - 257 (754)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>92</td>
+              <td><code>qa-matchup-strong-vs-medium-a-092</code></td>
+              <td>STR 24 - 14 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>480 - 269 (749)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>93</td>
+              <td><code>qa-matchup-strong-vs-medium-a-093</code></td>
+              <td>STR 36 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>591 - 311 (902)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>94</td>
+              <td><code>qa-matchup-strong-vs-medium-a-094</code></td>
+              <td>STR 50 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>591 - 284 (875)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>95</td>
+              <td><code>qa-matchup-strong-vs-medium-a-095</code></td>
+              <td>STR 41 - 0 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>591 - 335 (926)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>96</td>
+              <td><code>qa-matchup-strong-vs-medium-a-096</code></td>
+              <td>STR 32 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>498 - 329 (827)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>97</td>
+              <td><code>qa-matchup-strong-vs-medium-a-097</code></td>
+              <td>STR 33 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>519 - 302 (821)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>98</td>
+              <td><code>qa-matchup-strong-vs-medium-a-098</code></td>
+              <td>STR 29 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>513 - 288 (801)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>99</td>
+              <td><code>qa-matchup-strong-vs-medium-a-099</code></td>
+              <td>STR 37 - 35 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>551 - 328 (879)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>100</td>
+              <td><code>qa-matchup-strong-vs-medium-a-100</code></td>
+              <td>STR 36 - 7 MDA</td>
+              <td>STR San Diego Sentinels</td>
+              <td>528 - 292 (820)</td>
+              <td>1 - 1 (2)</td>
+            </tr></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="series-games" id="games-medium-a-vs-medium-b">
+          <h3>Mittel A vs Mittel B: alle 100 Spiele</h3>
+          <p>Notation: Home-Wert zuerst, Away-Wert danach. Home = MDA Portland Bridges, Away = MDB Memphis Pilots.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Spiel</th>
+                  <th>Seed</th>
+                  <th>Score</th>
+                  <th>Winner</th>
+                  <th>Yards</th>
+                  <th>Turnovers</th>
+                </tr>
+              </thead>
+              <tbody>
+            <tr>
+              <td>1</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-001</code></td>
+              <td>MDA 20 - 27 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>364 - 449 (813)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-002</code></td>
+              <td>MDA 7 - 16 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>382 - 408 (790)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-003</code></td>
+              <td>MDA 20 - 7 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>363 - 465 (828)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-004</code></td>
+              <td>MDA 20 - 20 MDB</td>
+              <td>Unentschieden</td>
+              <td>364 - 414 (778)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-005</code></td>
+              <td>MDA 10 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>403 - 430 (833)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-006</code></td>
+              <td>MDA 14 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>369 - 441 (810)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-007</code></td>
+              <td>MDA 14 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>320 - 382 (702)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-008</code></td>
+              <td>MDA 20 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>369 - 405 (774)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-009</code></td>
+              <td>MDA 7 - 27 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>369 - 404 (773)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-010</code></td>
+              <td>MDA 10 - 35 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>386 - 451 (837)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-011</code></td>
+              <td>MDA 17 - 22 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>363 - 419 (782)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-012</code></td>
+              <td>MDA 14 - 14 MDB</td>
+              <td>Unentschieden</td>
+              <td>393 - 433 (826)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-013</code></td>
+              <td>MDA 3 - 39 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>350 - 442 (792)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-014</code></td>
+              <td>MDA 14 - 21 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>354 - 349 (703)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-015</code></td>
+              <td>MDA 3 - 27 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>367 - 470 (837)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-016</code></td>
+              <td>MDA 14 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>366 - 390 (756)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-017</code></td>
+              <td>MDA 20 - 20 MDB</td>
+              <td>Unentschieden</td>
+              <td>356 - 431 (787)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-018</code></td>
+              <td>MDA 20 - 38 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>418 - 417 (835)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-019</code></td>
+              <td>MDA 21 - 14 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>305 - 317 (622)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-020</code></td>
+              <td>MDA 14 - 6 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>354 - 440 (794)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-021</code></td>
+              <td>MDA 7 - 27 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>353 - 440 (793)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-022</code></td>
+              <td>MDA 14 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>431 - 482 (913)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-023</code></td>
+              <td>MDA 14 - 17 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>349 - 405 (754)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-024</code></td>
+              <td>MDA 21 - 23 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>407 - 445 (852)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-025</code></td>
+              <td>MDA 24 - 34 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>409 - 439 (848)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>26</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-026</code></td>
+              <td>MDA 21 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>424 - 416 (840)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>27</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-027</code></td>
+              <td>MDA 17 - 13 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>397 - 484 (881)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>28</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-028</code></td>
+              <td>MDA 7 - 28 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>354 - 340 (694)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>29</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-029</code></td>
+              <td>MDA 24 - 27 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>405 - 471 (876)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>30</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-030</code></td>
+              <td>MDA 17 - 20 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>357 - 405 (762)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>31</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-031</code></td>
+              <td>MDA 21 - 20 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>332 - 380 (712)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>32</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-032</code></td>
+              <td>MDA 9 - 40 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>315 - 416 (731)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>33</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-033</code></td>
+              <td>MDA 14 - 27 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>414 - 459 (873)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>34</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-034</code></td>
+              <td>MDA 28 - 24 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>377 - 362 (739)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>35</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-035</code></td>
+              <td>MDA 20 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>438 - 479 (917)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>36</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-036</code></td>
+              <td>MDA 10 - 23 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>388 - 393 (781)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>37</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-037</code></td>
+              <td>MDA 17 - 16 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>387 - 402 (789)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>38</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-038</code></td>
+              <td>MDA 10 - 31 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>302 - 359 (661)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>39</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-039</code></td>
+              <td>MDA 16 - 28 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>389 - 381 (770)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>40</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-040</code></td>
+              <td>MDA 21 - 13 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>405 - 456 (861)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>41</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-041</code></td>
+              <td>MDA 10 - 10 MDB</td>
+              <td>Unentschieden</td>
+              <td>401 - 392 (793)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>42</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-042</code></td>
+              <td>MDA 6 - 31 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>388 - 404 (792)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>43</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-043</code></td>
+              <td>MDA 20 - 30 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>364 - 334 (698)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>44</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-044</code></td>
+              <td>MDA 3 - 14 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>428 - 418 (846)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>45</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-045</code></td>
+              <td>MDA 23 - 34 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>329 - 387 (716)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>46</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-046</code></td>
+              <td>MDA 21 - 41 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>406 - 499 (905)</td>
+              <td>1 - 3 (4)</td>
+            </tr>
+            <tr>
+              <td>47</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-047</code></td>
+              <td>MDA 14 - 27 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>375 - 377 (752)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>48</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-048</code></td>
+              <td>MDA 6 - 16 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>336 - 373 (709)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>49</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-049</code></td>
+              <td>MDA 14 - 27 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>350 - 362 (712)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>50</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-050</code></td>
+              <td>MDA 27 - 13 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>402 - 476 (878)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>51</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-051</code></td>
+              <td>MDA 21 - 40 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>370 - 428 (798)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>52</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-052</code></td>
+              <td>MDA 14 - 31 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>388 - 447 (835)</td>
+              <td>2 - 1 (3)</td>
+            </tr>
+            <tr>
+              <td>53</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-053</code></td>
+              <td>MDA 3 - 26 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>366 - 401 (767)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>54</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-054</code></td>
+              <td>MDA 10 - 10 MDB</td>
+              <td>Unentschieden</td>
+              <td>341 - 374 (715)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>55</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-055</code></td>
+              <td>MDA 35 - 24 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>401 - 419 (820)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>56</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-056</code></td>
+              <td>MDA 0 - 31 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>328 - 372 (700)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>57</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-057</code></td>
+              <td>MDA 7 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>406 - 427 (833)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>58</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-058</code></td>
+              <td>MDA 27 - 42 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>450 - 501 (951)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>59</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-059</code></td>
+              <td>MDA 35 - 23 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>393 - 428 (821)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>60</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-060</code></td>
+              <td>MDA 28 - 41 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>433 - 530 (963)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>61</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-061</code></td>
+              <td>MDA 10 - 3 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>429 - 464 (893)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>62</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-062</code></td>
+              <td>MDA 7 - 10 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>382 - 393 (775)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>63</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-063</code></td>
+              <td>MDA 14 - 27 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>348 - 417 (765)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>64</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-064</code></td>
+              <td>MDA 21 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>391 - 397 (788)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>65</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-065</code></td>
+              <td>MDA 0 - 28 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>359 - 388 (747)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>66</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-066</code></td>
+              <td>MDA 17 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>363 - 406 (769)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>67</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-067</code></td>
+              <td>MDA 24 - 7 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>362 - 381 (743)</td>
+              <td>1 - 2 (3)</td>
+            </tr>
+            <tr>
+              <td>68</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-068</code></td>
+              <td>MDA 0 - 21 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>369 - 407 (776)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>69</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-069</code></td>
+              <td>MDA 35 - 24 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>389 - 369 (758)</td>
+              <td>2 - 1 (3)</td>
+            </tr>
+            <tr>
+              <td>70</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-070</code></td>
+              <td>MDA 10 - 29 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>382 - 425 (807)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>71</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-071</code></td>
+              <td>MDA 26 - 30 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>367 - 352 (719)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>72</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-072</code></td>
+              <td>MDA 7 - 23 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>341 - 362 (703)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>73</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-073</code></td>
+              <td>MDA 10 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>453 - 504 (957)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>74</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-074</code></td>
+              <td>MDA 14 - 0 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>333 - 401 (734)</td>
+              <td>0 - 3 (3)</td>
+            </tr>
+            <tr>
+              <td>75</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-075</code></td>
+              <td>MDA 17 - 7 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>354 - 387 (741)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>76</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-076</code></td>
+              <td>MDA 7 - 42 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>315 - 406 (721)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>77</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-077</code></td>
+              <td>MDA 3 - 20 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>380 - 415 (795)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>78</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-078</code></td>
+              <td>MDA 13 - 20 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>411 - 445 (856)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>79</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-079</code></td>
+              <td>MDA 21 - 37 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>391 - 414 (805)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>80</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-080</code></td>
+              <td>MDA 16 - 30 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>370 - 419 (789)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>81</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-081</code></td>
+              <td>MDA 0 - 20 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>314 - 393 (707)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>82</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-082</code></td>
+              <td>MDA 17 - 28 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>426 - 495 (921)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>83</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-083</code></td>
+              <td>MDA 13 - 26 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>399 - 478 (877)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>84</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-084</code></td>
+              <td>MDA 10 - 20 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>412 - 445 (857)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>85</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-085</code></td>
+              <td>MDA 21 - 29 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>373 - 417 (790)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>86</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-086</code></td>
+              <td>MDA 28 - 38 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>374 - 375 (749)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>87</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-087</code></td>
+              <td>MDA 21 - 24 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>371 - 399 (770)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>88</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-088</code></td>
+              <td>MDA 28 - 37 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>477 - 492 (969)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>89</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-089</code></td>
+              <td>MDA 31 - 31 MDB</td>
+              <td>Unentschieden</td>
+              <td>438 - 524 (962)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>90</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-090</code></td>
+              <td>MDA 14 - 9 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>335 - 416 (751)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>91</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-091</code></td>
+              <td>MDA 10 - 16 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>363 - 379 (742)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>92</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-092</code></td>
+              <td>MDA 21 - 17 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>423 - 484 (907)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>93</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-093</code></td>
+              <td>MDA 7 - 35 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>386 - 437 (823)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>94</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-094</code></td>
+              <td>MDA 21 - 20 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>367 - 387 (754)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>95</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-095</code></td>
+              <td>MDA 31 - 27 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>408 - 478 (886)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>96</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-096</code></td>
+              <td>MDA 42 - 31 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>419 - 480 (899)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>97</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-097</code></td>
+              <td>MDA 17 - 26 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>335 - 386 (721)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>98</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-098</code></td>
+              <td>MDA 10 - 21 MDB</td>
+              <td>MDB Memphis Pilots</td>
+              <td>466 - 448 (914)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>99</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-099</code></td>
+              <td>MDA 10 - 9 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>372 - 398 (770)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>100</td>
+              <td><code>qa-matchup-medium-a-vs-medium-b-100</code></td>
+              <td>MDA 14 - 13 MDB</td>
+              <td>MDA Portland Bridges</td>
+              <td>359 - 343 (702)</td>
+              <td>0 - 0 (0)</td>
+            </tr></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="series-games" id="games-medium-b-vs-weak">
+          <h3>Mittel B vs Schwach: alle 100 Spiele</h3>
+          <p>Notation: Home-Wert zuerst, Away-Wert danach. Home = MDB Memphis Pilots, Away = WEK Canton Anchors.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Spiel</th>
+                  <th>Seed</th>
+                  <th>Score</th>
+                  <th>Winner</th>
+                  <th>Yards</th>
+                  <th>Turnovers</th>
+                </tr>
+              </thead>
+              <tbody>
+            <tr>
+              <td>1</td>
+              <td><code>qa-matchup-medium-b-vs-weak-001</code></td>
+              <td>MDB 36 - 14 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>441 - 243 (684)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><code>qa-matchup-medium-b-vs-weak-002</code></td>
+              <td>MDB 19 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>449 - 214 (663)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><code>qa-matchup-medium-b-vs-weak-003</code></td>
+              <td>MDB 42 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>474 - 229 (703)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><code>qa-matchup-medium-b-vs-weak-004</code></td>
+              <td>MDB 23 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>443 - 233 (676)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><code>qa-matchup-medium-b-vs-weak-005</code></td>
+              <td>MDB 22 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>396 - 241 (637)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><code>qa-matchup-medium-b-vs-weak-006</code></td>
+              <td>MDB 40 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>521 - 229 (750)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><code>qa-matchup-medium-b-vs-weak-007</code></td>
+              <td>MDB 16 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>485 - 232 (717)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><code>qa-matchup-medium-b-vs-weak-008</code></td>
+              <td>MDB 36 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>506 - 270 (776)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><code>qa-matchup-medium-b-vs-weak-009</code></td>
+              <td>MDB 38 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>452 - 211 (663)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><code>qa-matchup-medium-b-vs-weak-010</code></td>
+              <td>MDB 40 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>430 - 220 (650)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><code>qa-matchup-medium-b-vs-weak-011</code></td>
+              <td>MDB 27 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>479 - 251 (730)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><code>qa-matchup-medium-b-vs-weak-012</code></td>
+              <td>MDB 41 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>530 - 248 (778)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><code>qa-matchup-medium-b-vs-weak-013</code></td>
+              <td>MDB 23 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>457 - 259 (716)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><code>qa-matchup-medium-b-vs-weak-014</code></td>
+              <td>MDB 37 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>516 - 228 (744)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><code>qa-matchup-medium-b-vs-weak-015</code></td>
+              <td>MDB 34 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>460 - 204 (664)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><code>qa-matchup-medium-b-vs-weak-016</code></td>
+              <td>MDB 17 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>420 - 270 (690)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><code>qa-matchup-medium-b-vs-weak-017</code></td>
+              <td>MDB 55 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>527 - 223 (750)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><code>qa-matchup-medium-b-vs-weak-018</code></td>
+              <td>MDB 34 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>475 - 235 (710)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><code>qa-matchup-medium-b-vs-weak-019</code></td>
+              <td>MDB 51 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>581 - 306 (887)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><code>qa-matchup-medium-b-vs-weak-020</code></td>
+              <td>MDB 48 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>543 - 270 (813)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><code>qa-matchup-medium-b-vs-weak-021</code></td>
+              <td>MDB 47 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>538 - 242 (780)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><code>qa-matchup-medium-b-vs-weak-022</code></td>
+              <td>MDB 26 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>450 - 265 (715)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><code>qa-matchup-medium-b-vs-weak-023</code></td>
+              <td>MDB 6 - 7 WEK</td>
+              <td>WEK Canton Anchors</td>
+              <td>521 - 246 (767)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><code>qa-matchup-medium-b-vs-weak-024</code></td>
+              <td>MDB 45 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>512 - 231 (743)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><code>qa-matchup-medium-b-vs-weak-025</code></td>
+              <td>MDB 19 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>401 - 167 (568)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>26</td>
+              <td><code>qa-matchup-medium-b-vs-weak-026</code></td>
+              <td>MDB 19 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>469 - 217 (686)</td>
+              <td>1 - 2 (3)</td>
+            </tr>
+            <tr>
+              <td>27</td>
+              <td><code>qa-matchup-medium-b-vs-weak-027</code></td>
+              <td>MDB 21 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>501 - 227 (728)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>28</td>
+              <td><code>qa-matchup-medium-b-vs-weak-028</code></td>
+              <td>MDB 22 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>475 - 231 (706)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>29</td>
+              <td><code>qa-matchup-medium-b-vs-weak-029</code></td>
+              <td>MDB 30 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>532 - 278 (810)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>30</td>
+              <td><code>qa-matchup-medium-b-vs-weak-030</code></td>
+              <td>MDB 34 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>476 - 251 (727)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>31</td>
+              <td><code>qa-matchup-medium-b-vs-weak-031</code></td>
+              <td>MDB 23 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>464 - 251 (715)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>32</td>
+              <td><code>qa-matchup-medium-b-vs-weak-032</code></td>
+              <td>MDB 46 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>549 - 287 (836)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>33</td>
+              <td><code>qa-matchup-medium-b-vs-weak-033</code></td>
+              <td>MDB 41 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>580 - 250 (830)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>34</td>
+              <td><code>qa-matchup-medium-b-vs-weak-034</code></td>
+              <td>MDB 39 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>599 - 232 (831)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>35</td>
+              <td><code>qa-matchup-medium-b-vs-weak-035</code></td>
+              <td>MDB 24 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>512 - 264 (776)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>36</td>
+              <td><code>qa-matchup-medium-b-vs-weak-036</code></td>
+              <td>MDB 40 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>477 - 277 (754)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>37</td>
+              <td><code>qa-matchup-medium-b-vs-weak-037</code></td>
+              <td>MDB 30 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>496 - 277 (773)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>38</td>
+              <td><code>qa-matchup-medium-b-vs-weak-038</code></td>
+              <td>MDB 23 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>393 - 208 (601)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>39</td>
+              <td><code>qa-matchup-medium-b-vs-weak-039</code></td>
+              <td>MDB 14 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>469 - 232 (701)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>40</td>
+              <td><code>qa-matchup-medium-b-vs-weak-040</code></td>
+              <td>MDB 35 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>531 - 282 (813)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>41</td>
+              <td><code>qa-matchup-medium-b-vs-weak-041</code></td>
+              <td>MDB 37 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>583 - 282 (865)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>42</td>
+              <td><code>qa-matchup-medium-b-vs-weak-042</code></td>
+              <td>MDB 41 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>471 - 198 (669)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>43</td>
+              <td><code>qa-matchup-medium-b-vs-weak-043</code></td>
+              <td>MDB 33 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>435 - 227 (662)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>44</td>
+              <td><code>qa-matchup-medium-b-vs-weak-044</code></td>
+              <td>MDB 31 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>424 - 201 (625)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>45</td>
+              <td><code>qa-matchup-medium-b-vs-weak-045</code></td>
+              <td>MDB 13 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>548 - 242 (790)</td>
+              <td>3 - 0 (3)</td>
+            </tr>
+            <tr>
+              <td>46</td>
+              <td><code>qa-matchup-medium-b-vs-weak-046</code></td>
+              <td>MDB 44 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>643 - 317 (960)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>47</td>
+              <td><code>qa-matchup-medium-b-vs-weak-047</code></td>
+              <td>MDB 51 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>566 - 261 (827)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>48</td>
+              <td><code>qa-matchup-medium-b-vs-weak-048</code></td>
+              <td>MDB 27 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>454 - 217 (671)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>49</td>
+              <td><code>qa-matchup-medium-b-vs-weak-049</code></td>
+              <td>MDB 23 - 3 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>531 - 257 (788)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>50</td>
+              <td><code>qa-matchup-medium-b-vs-weak-050</code></td>
+              <td>MDB 33 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>482 - 257 (739)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>51</td>
+              <td><code>qa-matchup-medium-b-vs-weak-051</code></td>
+              <td>MDB 23 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>546 - 264 (810)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>52</td>
+              <td><code>qa-matchup-medium-b-vs-weak-052</code></td>
+              <td>MDB 27 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>394 - 213 (607)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>53</td>
+              <td><code>qa-matchup-medium-b-vs-weak-053</code></td>
+              <td>MDB 31 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>485 - 236 (721)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>54</td>
+              <td><code>qa-matchup-medium-b-vs-weak-054</code></td>
+              <td>MDB 43 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>472 - 226 (698)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>55</td>
+              <td><code>qa-matchup-medium-b-vs-weak-055</code></td>
+              <td>MDB 33 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>489 - 234 (723)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>56</td>
+              <td><code>qa-matchup-medium-b-vs-weak-056</code></td>
+              <td>MDB 44 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>510 - 242 (752)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>57</td>
+              <td><code>qa-matchup-medium-b-vs-weak-057</code></td>
+              <td>MDB 19 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>495 - 276 (771)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>58</td>
+              <td><code>qa-matchup-medium-b-vs-weak-058</code></td>
+              <td>MDB 21 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>503 - 206 (709)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>59</td>
+              <td><code>qa-matchup-medium-b-vs-weak-059</code></td>
+              <td>MDB 41 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>399 - 215 (614)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>60</td>
+              <td><code>qa-matchup-medium-b-vs-weak-060</code></td>
+              <td>MDB 31 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>484 - 255 (739)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>61</td>
+              <td><code>qa-matchup-medium-b-vs-weak-061</code></td>
+              <td>MDB 21 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>346 - 237 (583)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>62</td>
+              <td><code>qa-matchup-medium-b-vs-weak-062</code></td>
+              <td>MDB 10 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>460 - 258 (718)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>63</td>
+              <td><code>qa-matchup-medium-b-vs-weak-063</code></td>
+              <td>MDB 42 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>499 - 261 (760)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>64</td>
+              <td><code>qa-matchup-medium-b-vs-weak-064</code></td>
+              <td>MDB 50 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>498 - 270 (768)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>65</td>
+              <td><code>qa-matchup-medium-b-vs-weak-065</code></td>
+              <td>MDB 20 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>558 - 286 (844)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>66</td>
+              <td><code>qa-matchup-medium-b-vs-weak-066</code></td>
+              <td>MDB 28 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>498 - 237 (735)</td>
+              <td>0 - 3 (3)</td>
+            </tr>
+            <tr>
+              <td>67</td>
+              <td><code>qa-matchup-medium-b-vs-weak-067</code></td>
+              <td>MDB 44 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>469 - 233 (702)</td>
+              <td>0 - 2 (2)</td>
+            </tr>
+            <tr>
+              <td>68</td>
+              <td><code>qa-matchup-medium-b-vs-weak-068</code></td>
+              <td>MDB 44 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>448 - 216 (664)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>69</td>
+              <td><code>qa-matchup-medium-b-vs-weak-069</code></td>
+              <td>MDB 48 - 14 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>549 - 299 (848)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>70</td>
+              <td><code>qa-matchup-medium-b-vs-weak-070</code></td>
+              <td>MDB 39 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>540 - 224 (764)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>71</td>
+              <td><code>qa-matchup-medium-b-vs-weak-071</code></td>
+              <td>MDB 21 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>458 - 226 (684)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>72</td>
+              <td><code>qa-matchup-medium-b-vs-weak-072</code></td>
+              <td>MDB 37 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>483 - 240 (723)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>73</td>
+              <td><code>qa-matchup-medium-b-vs-weak-073</code></td>
+              <td>MDB 22 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>456 - 229 (685)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>74</td>
+              <td><code>qa-matchup-medium-b-vs-weak-074</code></td>
+              <td>MDB 47 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>587 - 299 (886)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>75</td>
+              <td><code>qa-matchup-medium-b-vs-weak-075</code></td>
+              <td>MDB 36 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>485 - 209 (694)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>76</td>
+              <td><code>qa-matchup-medium-b-vs-weak-076</code></td>
+              <td>MDB 27 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>485 - 251 (736)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>77</td>
+              <td><code>qa-matchup-medium-b-vs-weak-077</code></td>
+              <td>MDB 12 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>513 - 277 (790)</td>
+              <td>2 - 0 (2)</td>
+            </tr>
+            <tr>
+              <td>78</td>
+              <td><code>qa-matchup-medium-b-vs-weak-078</code></td>
+              <td>MDB 37 - 14 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>490 - 255 (745)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>79</td>
+              <td><code>qa-matchup-medium-b-vs-weak-079</code></td>
+              <td>MDB 40 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>551 - 266 (817)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>80</td>
+              <td><code>qa-matchup-medium-b-vs-weak-080</code></td>
+              <td>MDB 40 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>474 - 218 (692)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>81</td>
+              <td><code>qa-matchup-medium-b-vs-weak-081</code></td>
+              <td>MDB 30 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>492 - 260 (752)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>82</td>
+              <td><code>qa-matchup-medium-b-vs-weak-082</code></td>
+              <td>MDB 34 - 14 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>531 - 272 (803)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>83</td>
+              <td><code>qa-matchup-medium-b-vs-weak-083</code></td>
+              <td>MDB 24 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>508 - 264 (772)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>84</td>
+              <td><code>qa-matchup-medium-b-vs-weak-084</code></td>
+              <td>MDB 43 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>493 - 236 (729)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>85</td>
+              <td><code>qa-matchup-medium-b-vs-weak-085</code></td>
+              <td>MDB 33 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>461 - 209 (670)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>86</td>
+              <td><code>qa-matchup-medium-b-vs-weak-086</code></td>
+              <td>MDB 37 - 14 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>490 - 243 (733)</td>
+              <td>1 - 1 (2)</td>
+            </tr>
+            <tr>
+              <td>87</td>
+              <td><code>qa-matchup-medium-b-vs-weak-087</code></td>
+              <td>MDB 40 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>468 - 287 (755)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>88</td>
+              <td><code>qa-matchup-medium-b-vs-weak-088</code></td>
+              <td>MDB 38 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>604 - 304 (908)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>89</td>
+              <td><code>qa-matchup-medium-b-vs-weak-089</code></td>
+              <td>MDB 43 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>538 - 240 (778)</td>
+              <td>2 - 1 (3)</td>
+            </tr>
+            <tr>
+              <td>90</td>
+              <td><code>qa-matchup-medium-b-vs-weak-090</code></td>
+              <td>MDB 26 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>424 - 205 (629)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>91</td>
+              <td><code>qa-matchup-medium-b-vs-weak-091</code></td>
+              <td>MDB 42 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>478 - 236 (714)</td>
+              <td>0 - 1 (1)</td>
+            </tr>
+            <tr>
+              <td>92</td>
+              <td><code>qa-matchup-medium-b-vs-weak-092</code></td>
+              <td>MDB 10 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>438 - 242 (680)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>93</td>
+              <td><code>qa-matchup-medium-b-vs-weak-093</code></td>
+              <td>MDB 20 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>478 - 254 (732)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>94</td>
+              <td><code>qa-matchup-medium-b-vs-weak-094</code></td>
+              <td>MDB 35 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>480 - 232 (712)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>95</td>
+              <td><code>qa-matchup-medium-b-vs-weak-095</code></td>
+              <td>MDB 44 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>572 - 238 (810)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>96</td>
+              <td><code>qa-matchup-medium-b-vs-weak-096</code></td>
+              <td>MDB 38 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>508 - 253 (761)</td>
+              <td>0 - 0 (0)</td>
+            </tr>
+            <tr>
+              <td>97</td>
+              <td><code>qa-matchup-medium-b-vs-weak-097</code></td>
+              <td>MDB 21 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>427 - 258 (685)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>98</td>
+              <td><code>qa-matchup-medium-b-vs-weak-098</code></td>
+              <td>MDB 27 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>533 - 261 (794)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>99</td>
+              <td><code>qa-matchup-medium-b-vs-weak-099</code></td>
+              <td>MDB 33 - 0 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>521 - 266 (787)</td>
+              <td>1 - 0 (1)</td>
+            </tr>
+            <tr>
+              <td>100</td>
+              <td><code>qa-matchup-medium-b-vs-weak-100</code></td>
+              <td>MDB 37 - 7 WEK</td>
+              <td>MDB Memphis Pilots</td>
+              <td>465 - 264 (729)</td>
+              <td>0 - 0 (0)</td>
+            </tr></tbody>
+            </table>
+          </div>
+        </section>
+    </section>
+
+    <section id="ratings">
+      <h2>6. Spieler-Ratingsystem</h2>
+      <div class="note">
+        Spieler besitzen Einzelratings auf einer 1-99-Skala. Die Engine bildet daraus Composite Ratings wie <code>passing</code>, <code>passBlocking</code>, <code>coverage</code> oder <code>kicking</code>. Diese zusammengesetzten Werte beeinflussen dann, wie gut ein Team laeuft, passt, blockt, verteidigt, kickt und Entscheidungen ausfuehrt.
+      </div>
+      
+        <section id="ratings-mental" class="subsection">
+          <h3>Mental und Basiswerte</h3>
+          <p>Diese Werte sind nicht an eine einzelne Position gebunden. Sie bilden die koerperliche Grundlage und die mentale Stabilitaet eines Spielers.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rating</th>
+                  <th>Bedeutung</th>
+                  <th>Einfluss im Spiel</th>
+                </tr>
+              </thead>
+              <tbody>
+                
+                      <tr>
+                        <td><code>SPEED</code></td>
+                        <td>Endgeschwindigkeit.</td>
+                        <td>Hilft bei langen Runs, Yards after Catch, Returns und Coverage-Reichweite.</td>
+                      </tr>
+                      <tr>
+                        <td><code>ACCELERATION</code></td>
+                        <td>Wie schnell ein Spieler auf Tempo kommt.</td>
+                        <td>Wichtig bei Antritt nach dem Snap, Pass Rush, Separation und Richtungswechseln.</td>
+                      </tr>
+                      <tr>
+                        <td><code>AGILITY</code></td>
+                        <td>Beweglichkeit und Richtungswechsel.</td>
+                        <td>Erhoeht Ausweichchancen bei Balltraegern und hilft Verteidigern beim Reagieren.</td>
+                      </tr>
+                      <tr>
+                        <td><code>STRENGTH</code></td>
+                        <td>Kraft im Kontakt.</td>
+                        <td>Wirkt bei Blocks, Run Defense, Tackles und Power-Runs.</td>
+                      </tr>
+                      <tr>
+                        <td><code>AWARENESS</code></td>
+                        <td>Spieluebersicht.</td>
+                        <td>Senkt Fehler, verbessert Reads und fliesst in viele Composite Ratings ein.</td>
+                      </tr>
+                      <tr>
+                        <td><code>TOUGHNESS</code></td>
+                        <td>Haerte und Belastbarkeit im Kontakt.</td>
+                        <td>Unterstuetzt Blocking, kurze Yards, Run Defense und Stabilitaet ueber ein Spiel.</td>
+                      </tr>
+                      <tr>
+                        <td><code>DURABILITY</code></td>
+                        <td>Koerperliche Robustheit.</td>
+                        <td>Relevanter Basiswert fuer langfristige Einsatzfaehigkeit und Belastungslogik.</td>
+                      </tr>
+                      <tr>
+                        <td><code>DISCIPLINE</code></td>
+                        <td>Fehlervermeidung und Fokus.</td>
+                        <td>Reduziert riskante Entscheidungen und hilft Spezialisten bei Konstanz.</td>
+                      </tr>
+                      <tr>
+                        <td><code>INTELLIGENCE</code></td>
+                        <td>Football-IQ.</td>
+                        <td>Verbessert Spielverstaendnis, audibles Reads und mentale Composite Ratings.</td>
+                      </tr>
+                      <tr>
+                        <td><code>LEADERSHIP</code></td>
+                        <td>Fuehrungsqualitaet.</td>
+                        <td>Traegt zur Command-/Consistency-Bewertung bei und stabilisiert Teamrollen.</td>
+                      </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="ratings-qb" class="subsection">
+          <h3>QB</h3>
+          <p>Quarterback-Werte steuern, wie sauber und wie riskant ein Passspiel funktioniert.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rating</th>
+                  <th>Bedeutung</th>
+                  <th>Einfluss im Spiel</th>
+                </tr>
+              </thead>
+              <tbody>
+                
+                      <tr>
+                        <td><code>THROW_POWER</code></td>
+                        <td>Armstaerke.</td>
+                        <td>Ermoeglicht tiefere Wuerfe und hilft, Fenster gegen Coverage zu attackieren.</td>
+                      </tr>
+                      <tr>
+                        <td><code>THROW_ACCURACY_SHORT</code></td>
+                        <td>Genauigkeit bei kurzen Paessen.</td>
+                        <td>Erhoeht die Completion Rate bei sicheren Konzepten und kurzen Downs.</td>
+                      </tr>
+                      <tr>
+                        <td><code>THROW_ACCURACY_MEDIUM</code></td>
+                        <td>Genauigkeit im mittleren Bereich.</td>
+                        <td>Treibt die Effizienz bei Standard-Passspiel und Third-Down-Konzepten.</td>
+                      </tr>
+                      <tr>
+                        <td><code>THROW_ACCURACY_DEEP</code></td>
+                        <td>Genauigkeit bei tiefen Paessen.</td>
+                        <td>Erhoeht Big-Play-Chancen, aber wirkt in riskanteren Spielsituationen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>POCKET_PRESENCE</code></td>
+                        <td>Gefuehl fuer Druck in der Pocket.</td>
+                        <td>Hilft gegen Sacks, schlechte Wuerfe und zu spaete Entscheidungen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>DECISION_MAKING</code></td>
+                        <td>Entscheidungsqualitaet.</td>
+                        <td>Senkt Turnover-Risiko und verbessert, ob der richtige Read getroffen wird.</td>
+                      </tr>
+                      <tr>
+                        <td><code>PLAY_ACTION</code></td>
+                        <td>Qualitaet bei Play-Action-Konzepten.</td>
+                        <td>Macht Passspiel nach Run-Fakes glaubwuerdiger und effizienter.</td>
+                      </tr>
+                      <tr>
+                        <td><code>SCRAMBLING</code></td>
+                        <td>Improvisieren und Laufen aus der Pocket.</td>
+                        <td>Erhoeht QB-Run-Optionen und kann negative Plays vermeiden.</td>
+                      </tr>
+                      <tr>
+                        <td><code>MOBILITY</code></td>
+                        <td>Allgemeine Beweglichkeit des QBs.</td>
+                        <td>Wirkt mit Scrambling, Acceleration und Agility auf QB-Mobility.</td>
+                      </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="ratings-skill" class="subsection">
+          <h3>Skill Positions</h3>
+          <p>Diese Ratings betreffen Running Backs, Receiver, Tight Ends und Returner.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rating</th>
+                  <th>Bedeutung</th>
+                  <th>Einfluss im Spiel</th>
+                </tr>
+              </thead>
+              <tbody>
+                
+                      <tr>
+                        <td><code>VISION</code></td>
+                        <td>Erkennen von Laufwegen.</td>
+                        <td>Hilft Balltraegern, bessere Lanes zu finden und konstante Yards zu erzielen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>BALL_SECURITY</code></td>
+                        <td>Ballsicherheit.</td>
+                        <td>Senkt Fumble- und Turnover-Risiko bei Runs, Catches und Returns.</td>
+                      </tr>
+                      <tr>
+                        <td><code>ELUSIVENESS</code></td>
+                        <td>Ausweichfaehigkeit.</td>
+                        <td>Erhoeht Chancen, Tackles zu vermeiden und Zusatzyards zu gewinnen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>BREAK_TACKLE</code></td>
+                        <td>Tackles brechen.</td>
+                        <td>Wirkt bei Power-Runs und Yards nach Kontakt.</td>
+                      </tr>
+                      <tr>
+                        <td><code>ROUTE_RUNNING</code></td>
+                        <td>Praezision der Route.</td>
+                        <td>Verbessert Timing und Separation bei Passzielen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>PASS_PROTECTION</code></td>
+                        <td>Passschutz-Faehigkeit von Backs und Tight Ends.</td>
+                        <td>Hilft gegen Blitzes und reduziert Druck auf den Quarterback.</td>
+                      </tr>
+                      <tr>
+                        <td><code>SHORT_YARDAGE_POWER</code></td>
+                        <td>Kraft bei kurzen Distanzen.</td>
+                        <td>Wichtig bei Goal Line, Third/Fourth and Short und engen Runs.</td>
+                      </tr>
+                      <tr>
+                        <td><code>CATCHING</code></td>
+                        <td>Fangen des Balls.</td>
+                        <td>Erhoeht sichere Catches und senkt Drops.</td>
+                      </tr>
+                      <tr>
+                        <td><code>HANDS</code></td>
+                        <td>Haende und Ballkontrolle.</td>
+                        <td>Wirkt bei Catches, Interceptions, Returns und contested Situationen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>RELEASE</code></td>
+                        <td>Start gegen Press Coverage.</td>
+                        <td>Hilft Receivern, frueh frei zu werden.</td>
+                      </tr>
+                      <tr>
+                        <td><code>SEPARATION</code></td>
+                        <td>Abstand zum Verteidiger schaffen.</td>
+                        <td>Erhoeht Zielqualitaet und Completion-Wahrscheinlichkeit.</td>
+                      </tr>
+                      <tr>
+                        <td><code>CONTESTED_CATCH</code></td>
+                        <td>Fang im direkten Duell.</td>
+                        <td>Hilft bei engen Wuerfen, Red Zone und tiefen Paessen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>JUMPING</code></td>
+                        <td>Sprungkraft.</td>
+                        <td>Hilft bei hohen Paessen, Ball Skills und contested Catches.</td>
+                      </tr>
+                      <tr>
+                        <td><code>RUN_AFTER_CATCH</code></td>
+                        <td>Yards nach dem Catch.</td>
+                        <td>Erhoeht Big-Play-Chancen nach kurzen und mittleren Paessen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>BLOCKING</code></td>
+                        <td>Allgemeines Blocken ausserhalb der O-Line.</td>
+                        <td>Hilft Runs nach aussen, Screens und Spezialteams.</td>
+                      </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="ratings-oline" class="subsection">
+          <h3>O-Line</h3>
+          <p>O-Line-Ratings bestimmen, ob die Offense stabile Taschen und Laufwege bekommt.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rating</th>
+                  <th>Bedeutung</th>
+                  <th>Einfluss im Spiel</th>
+                </tr>
+              </thead>
+              <tbody>
+                
+                      <tr>
+                        <td><code>PASS_BLOCK</code></td>
+                        <td>Pass-Blocking.</td>
+                        <td>Reduziert Druck und Sacks, besonders bei Tackles und Guards.</td>
+                      </tr>
+                      <tr>
+                        <td><code>RUN_BLOCK</code></td>
+                        <td>Run-Blocking.</td>
+                        <td>Oeffnet Laufwege und verbessert konstante Rushing-Yards.</td>
+                      </tr>
+                      <tr>
+                        <td><code>HAND_TECHNIQUE</code></td>
+                        <td>Handarbeit im Block.</td>
+                        <td>Verbessert Kontrolle im Kontakt und hilft beim Block-Halten.</td>
+                      </tr>
+                      <tr>
+                        <td><code>FOOTWORK</code></td>
+                        <td>Fussarbeit.</td>
+                        <td>Wichtig gegen schnelle Pass Rusher und beim Erreichen von Blocks.</td>
+                      </tr>
+                      <tr>
+                        <td><code>ANCHOR</code></td>
+                        <td>Standfestigkeit.</td>
+                        <td>Hilft gegen Power Rush und verhindert, dass die Pocket kollabiert.</td>
+                      </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="ratings-defense" class="subsection">
+          <h3>Defense</h3>
+          <p>Defense-Ratings beeinflussen Pass Rush, Run Defense, Coverage und Ballgewinne.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rating</th>
+                  <th>Bedeutung</th>
+                  <th>Einfluss im Spiel</th>
+                </tr>
+              </thead>
+              <tbody>
+                
+                      <tr>
+                        <td><code>TACKLING</code></td>
+                        <td>Tackle-Sicherheit.</td>
+                        <td>Senkt verpasste Tackles und begrenzt Zusatzyards.</td>
+                      </tr>
+                      <tr>
+                        <td><code>PURSUIT</code></td>
+                        <td>Verfolgungswinkel.</td>
+                        <td>Hilft bei Runs nach aussen, Screens und langen Plays.</td>
+                      </tr>
+                      <tr>
+                        <td><code>BLOCK_SHEDDING</code></td>
+                        <td>Blocks loswerden.</td>
+                        <td>Verbessert Run Defense und Pass Rush.</td>
+                      </tr>
+                      <tr>
+                        <td><code>PASS_RUSH</code></td>
+                        <td>Druck auf den Quarterback.</td>
+                        <td>Erhoeht Pressure- und Sack-Chancen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>POWER_MOVES</code></td>
+                        <td>Kraftbasierte Rush Moves.</td>
+                        <td>Hilft gegen O-Line-Anker und erzeugt Pocket-Druck.</td>
+                      </tr>
+                      <tr>
+                        <td><code>FINESSE_MOVES</code></td>
+                        <td>Technische Rush Moves.</td>
+                        <td>Hilft ueber Speed, Winkel und Handtechnik zum QB zu kommen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>PLAY_RECOGNITION</code></td>
+                        <td>Spielzug erkennen.</td>
+                        <td>Verbessert Reads gegen Run/Pass, Coverage und Blitzreaktionen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>HIT_POWER</code></td>
+                        <td>Kontaktwucht.</td>
+                        <td>Hilft bei Run Defense und kann Balltraeger staerker unter Druck setzen.</td>
+                      </tr>
+                      <tr>
+                        <td><code>MAN_COVERAGE</code></td>
+                        <td>Manndeckung.</td>
+                        <td>Verbessert direkte Duelle gegen Receiver.</td>
+                      </tr>
+                      <tr>
+                        <td><code>ZONE_COVERAGE</code></td>
+                        <td>Zonendeckung.</td>
+                        <td>Verbessert Raumverteidigung, Reads und Passfenster-Kontrolle.</td>
+                      </tr>
+                      <tr>
+                        <td><code>PRESS</code></td>
+                        <td>Press Coverage an der Line.</td>
+                        <td>Stoert Releases und Timing des Passspiels.</td>
+                      </tr>
+                      <tr>
+                        <td><code>BALL_SKILLS</code></td>
+                        <td>Spiel am Ball.</td>
+                        <td>Erhoeht Chancen auf Pass Breakups und Interceptions.</td>
+                      </tr>
+                      <tr>
+                        <td><code>LB_MAN_COVERAGE</code></td>
+                        <td>Linebacker-Manndeckung.</td>
+                        <td>Hilft Linebackern gegen Tight Ends und Running Backs.</td>
+                      </tr>
+                      <tr>
+                        <td><code>LB_ZONE_COVERAGE</code></td>
+                        <td>Linebacker-Zonendeckung.</td>
+                        <td>Hilft bei Hook/Curl-Zonen und kurzen Passfenstern.</td>
+                      </tr>
+                      <tr>
+                        <td><code>COVERAGE_RANGE</code></td>
+                        <td>Coverage-Reichweite.</td>
+                        <td>Erweitert den Wirkungsradius in Zone, Safety-Hilfe und Ball Hawk Plays.</td>
+                      </tr>
+                      <tr>
+                        <td><code>LB_COVERAGE</code></td>
+                        <td>Allgemeine Linebacker-Coverage.</td>
+                        <td>Fliesst in Linebacker-Coverage-Composite ein.</td>
+                      </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="ratings-special" class="subsection">
+          <h3>Special Teams</h3>
+          <p>Special-Teams-Ratings entscheiden ueber Field Goals, Punts, Returns und Long Snaps.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rating</th>
+                  <th>Bedeutung</th>
+                  <th>Einfluss im Spiel</th>
+                </tr>
+              </thead>
+              <tbody>
+                
+                      <tr>
+                        <td><code>KICK_POWER</code></td>
+                        <td>Kick-Kraft.</td>
+                        <td>Erhoeht Reichweite bei Field Goals und Kickoffs.</td>
+                      </tr>
+                      <tr>
+                        <td><code>KICK_ACCURACY</code></td>
+                        <td>Kick-Genauigkeit.</td>
+                        <td>Erhoeht Field-Goal-Erfolg, besonders bei mittleren und langen Kicks.</td>
+                      </tr>
+                      <tr>
+                        <td><code>PUNT_POWER</code></td>
+                        <td>Punt-Kraft.</td>
+                        <td>Verbessert Punt-Distanz und Feldposition.</td>
+                      </tr>
+                      <tr>
+                        <td><code>PUNT_ACCURACY</code></td>
+                        <td>Punt-Platzierung.</td>
+                        <td>Hilft bei Inside-20-Punts und vermeidet schlechte Returns.</td>
+                      </tr>
+                      <tr>
+                        <td><code>KICKOFF_POWER</code></td>
+                        <td>Kickoff-Kraft.</td>
+                        <td>Erhoeht Touchback-Chancen und senkt gegnerische Return-Position.</td>
+                      </tr>
+                      <tr>
+                        <td><code>KICK_CONSISTENCY</code></td>
+                        <td>Konstanz von Kickern/Puntern.</td>
+                        <td>Reduziert Schwankungen bei Field Goals, Punts und Specialists.</td>
+                      </tr>
+                      <tr>
+                        <td><code>PUNT_HANG_TIME</code></td>
+                        <td>Hang Time beim Punt.</td>
+                        <td>Gibt Coverage-Zeit und reduziert Return-Risiko.</td>
+                      </tr>
+                      <tr>
+                        <td><code>RETURN_VISION</code></td>
+                        <td>Return-Laufwege erkennen.</td>
+                        <td>Verbessert Kick- und Punt-Returns.</td>
+                      </tr>
+                      <tr>
+                        <td><code>SNAP_ACCURACY</code></td>
+                        <td>Long-Snap-Genauigkeit.</td>
+                        <td>Stabilisiert Field Goals, Punts und Spezialteams-Ablauf.</td>
+                      </tr>
+                      <tr>
+                        <td><code>SNAP_VELOCITY</code></td>
+                        <td>Long-Snap-Geschwindigkeit.</td>
+                        <td>Reduziert Druck auf Holder/Punter und verhindert Timing-Probleme.</td>
+                      </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      <section class="subsection" id="composites">
+        <h3>Composite Ratings</h3>
+        <p>Diese Werte werden aus mehreren Einzelratings berechnet und sind die lesbare Zwischenebene zwischen Spielerprofil und Spielausgang.</p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Composite</th>
+                <th>Gruppe</th>
+                <th>Bedeutung</th>
+              </tr>
+            </thead>
+            <tbody>
+        <tr>
+          <td><code>passing</code></td>
+          <td>QB</td>
+          <td>Passqualitaet aus Accuracy, Throw Power, Decision und Awareness.</td>
+        </tr>
+        <tr>
+          <td><code>pocket</code></td>
+          <td>QB</td>
+          <td>Ruhe und Reaktion in der Pocket.</td>
+        </tr>
+        <tr>
+          <td><code>mobility</code></td>
+          <td>QB</td>
+          <td>Beweglichkeit und Scrambling-Wert des Quarterbacks.</td>
+        </tr>
+        <tr>
+          <td><code>command</code></td>
+          <td>Mental</td>
+          <td>Spielverstaendnis, Disziplin, Intelligenz und Leadership.</td>
+        </tr>
+        <tr>
+          <td><code>ballCarrier</code></td>
+          <td>Skill</td>
+          <td>Run-Qualitaet aus Vision, Ball Security, Elusiveness und Power.</td>
+        </tr>
+        <tr>
+          <td><code>protection</code></td>
+          <td>Skill</td>
+          <td>Pass Protection fuer Backs und Tight Ends.</td>
+        </tr>
+        <tr>
+          <td><code>hands</code></td>
+          <td>Skill/Defense</td>
+          <td>Ballkontrolle bei Catches, Returns und Ball-Hawk-Situationen.</td>
+        </tr>
+        <tr>
+          <td><code>receiving</code></td>
+          <td>Skill</td>
+          <td>Receiver-Qualitaet aus Catching, Route Running, Release und Separation.</td>
+        </tr>
+        <tr>
+          <td><code>passBlocking</code></td>
+          <td>O-Line</td>
+          <td>Passschutz aus Pass Block, Footwork, Technik, Anchor und Awareness.</td>
+        </tr>
+        <tr>
+          <td><code>runBlocking</code></td>
+          <td>O-Line</td>
+          <td>Run Blocking aus Run Block, Technik, Strength, Anchor und Toughness.</td>
+        </tr>
+        <tr>
+          <td><code>passRush</code></td>
+          <td>Defense</td>
+          <td>QB-Druck aus Pass Rush, Power/Finesse Moves und Block Shedding.</td>
+        </tr>
+        <tr>
+          <td><code>runDefense</code></td>
+          <td>Defense</td>
+          <td>Run-Stopping aus Tackling, Pursuit, Block Shedding und Play Recognition.</td>
+        </tr>
+        <tr>
+          <td><code>linebackerCoverage</code></td>
+          <td>Defense</td>
+          <td>Coverage-Wert fuer Linebacker.</td>
+        </tr>
+        <tr>
+          <td><code>coverage</code></td>
+          <td>Defense</td>
+          <td>Secondary-Coverage aus Man, Zone, Range, Press und Awareness.</td>
+        </tr>
+        <tr>
+          <td><code>ballHawk</code></td>
+          <td>Defense</td>
+          <td>Ballgewinne und Pass Breakups aus Ball Skills, Hands und Recognition.</td>
+        </tr>
+        <tr>
+          <td><code>returnGame</code></td>
+          <td>Special Teams</td>
+          <td>Return-Wert aus Return Vision, Hands, Ball Security und Speed.</td>
+        </tr>
+        <tr>
+          <td><code>kicking</code></td>
+          <td>Special Teams</td>
+          <td>Field-Goal/Kickoff-Wert aus Power, Accuracy und Consistency.</td>
+        </tr>
+        <tr>
+          <td><code>punting</code></td>
+          <td>Special Teams</td>
+          <td>Punt-Wert aus Power, Accuracy, Hang Time und Consistency.</td>
+        </tr>
+        <tr>
+          <td><code>snapping</code></td>
+          <td>Special Teams</td>
+          <td>Long-Snap-Wert aus Accuracy, Velocity, Discipline und Technik.</td>
+        </tr>
+        <tr>
+          <td><code>specialistConsistency</code></td>
+          <td>Special Teams/Mental</td>
+          <td>Stabilitaet von Specialists aus Consistency, Snapping, Discipline und Awareness.</td>
+        </tr></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section id="impact">
+      <h2>7. Impact der Ratings: Beispiele</h2>
+      <p>Diese Beispiele zeigen, wie einzelne Ratings auf dem Feld sichtbar werden.</p>
+      <div class="example-grid">
+        <article class="example-card">
+          <h3>QB Accuracy -&gt; Completion Rate</h3>
+          <p>THROW_ACCURACY_SHORT, MEDIUM und DEEP erhoehen, ob ein Pass ankommt. Je nach Distanz wird ein anderer Accuracy-Wert wichtiger.</p>
+        </article>
+        <article class="example-card">
+          <h3>QB Decision -&gt; Turnover Risiko</h3>
+          <p>DECISION_MAKING und DISCIPLINE helfen, riskante Wuerfe zu vermeiden. Gute QBs verlieren seltener Drives durch schlechte Reads.</p>
+        </article>
+        <article class="example-card">
+          <h3>OL Pass Block -&gt; Sacks</h3>
+          <p>PASS_BLOCK, FOOTWORK und ANCHOR geben dem Quarterback Zeit. Schwache O-Line-Werte fuehren eher zu Druck und Sacks.</p>
+        </article>
+        <article class="example-card">
+          <h3>DL Pass Rush -&gt; Pressure</h3>
+          <p>PASS_RUSH, POWER_MOVES und FINESSE_MOVES erhoehen Druck. Mehr Druck senkt die Qualitaet des gegnerischen Passspiels.</p>
+        </article>
+        <article class="example-card">
+          <h3>RB Vision -&gt; Laufentscheidungen</h3>
+          <p>VISION hilft dem Balltraeger, den richtigen Laufweg zu finden. Das fuehrt zu mehr konstanten Yards.</p>
+        </article>
+        <article class="example-card">
+          <h3>RB Ball Security -&gt; Fumbles</h3>
+          <p>BALL_SECURITY reduziert Ballverluste. Gerade bei vielen Carries und Returns wird dieser Wert wichtig.</p>
+        </article>
+        <article class="example-card">
+          <h3>WR Route Running -&gt; Separation</h3>
+          <p>ROUTE_RUNNING, RELEASE und SEPARATION helfen Receivern, freie Fenster zu schaffen.</p>
+        </article>
+        <article class="example-card">
+          <h3>DB Coverage -&gt; Pass Defense</h3>
+          <p>MAN_COVERAGE, ZONE_COVERAGE, COVERAGE_RANGE und BALL_SKILLS erschweren Catches und erhoehen Pass-Breakup-Chancen.</p>
+        </article>
+        <article class="example-card">
+          <h3>Kicker Accuracy -&gt; FG Erfolg</h3>
+          <p>KICK_ACCURACY und KICK_CONSISTENCY entscheiden, ob Drives mit drei Punkten enden oder leer bleiben.</p>
+        </article>
+        <article class="example-card">
+          <h3>Punter -&gt; Field Position</h3>
+          <p>PUNT_POWER, PUNT_ACCURACY und PUNT_HANG_TIME beeinflussen, wo der Gegner seinen naechsten Drive startet.</p>
+        </article>
+        <article class="example-card">
+          <h3>Mental Command -&gt; weniger Chaos</h3>
+          <p>AWARENESS, INTELLIGENCE, LEADERSHIP und DISCIPLINE verbessern Reads und Stabilitaet in kritischen Situationen.</p>
+        </article>
+        <article class="example-card">
+          <h3>Ball Hawk -&gt; Interceptions</h3>
+          <p>BALL_SKILLS, HANDS und PLAY_RECOGNITION geben Defensive Backs mehr Chancen, aus engen Paessen Ballgewinne zu machen.</p>
+        </article></div>
+    </section>
+
+    <section id="connection">
+      <h2>8. Verbindung Ratings & Ergebnisse</h2>
+      <div class="note">
+        <strong>Warum gewinnt das starke Team?</strong>
+        <p>San Diego hat im kontrollierten Datensatz Roster 95.50, Offense 95.60, Defense 95.10 und Mental 89.30. Gegen Canton liegt der Roster-Abstand bei 30.00 Punkten, gegen Portland bei 18.00 Punkten. Das fuehrt zu mehr Yards, mehr Touchdowns, weniger Punts und weniger leeren Drives.</p>
+      </div>
+      <div class="note">
+        <strong>Warum kann ein schwaches Team trotzdem gewinnen?</strong>
+        <p>Football-Ergebnisse entstehen nicht nur aus Durchschnittsstaerke. Seeds, Drive-Enden, Field Goals, Turnover on Downs, Red-Zone-Konversion und einzelne Sequenzen koennen ein Spiel kippen. Die grossen Upsets in diesen Daten sind nicht durch bessere Durchschnittswerte entstanden, sondern durch Spiele, in denen der Favorit viele Yards hatte, aber kaum Touchdowns erzielte.</p>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Serie</th>
+              <th>Spiel</th>
+              <th>Seed</th>
+              <th>Favorit</th>
+              <th>Gewinner</th>
+              <th>Score</th>
+              <th>Yards</th>
+              <th>TDs</th>
+              <th>FG</th>
+              <th>TOD</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td>Stark vs Mittel A</td>
+          <td>76</td>
+          <td><code>qa-matchup-strong-vs-medium-a-076</code></td>
+          <td>STR San Diego Sentinels</td>
+          <td>MDA Portland Bridges</td>
+          <td>18-21</td>
+          <td>496-353</td>
+          <td>0-3</td>
+          <td>7-0</td>
+          <td>0-1</td>
+        </tr>
+        <tr>
+          <td>Mittel B vs Schwach</td>
+          <td>23</td>
+          <td><code>qa-matchup-medium-b-vs-weak-023</code></td>
+          <td>MDB Memphis Pilots</td>
+          <td>WEK Canton Anchors</td>
+          <td>6-7</td>
+          <td>521-246</td>
+          <td>0-1</td>
+          <td>5-0</td>
+          <td>1-0</td>
+        </tr></tbody>
+        </table>
+      </div>
+      <div class="note">
+        <strong>Entscheidende Rating-Bereiche:</strong> QB Accuracy/Decision, O-Line Pass Block, Run-Blocking, Coverage, Pass Rush, Ball Security und Kicking bestimmen besonders sichtbar, ob Drives zu Touchdowns, Field Goals, Punts oder Ballverlusten werden. In den Upset-Beispielen sieht man vor allem Red-Zone- und Field-Goal-Abweichungen: Der Favorit bewegt den Ball, aber beendet Drives nicht effizient genug.
+      </div>
+    </section>
+
+    <section id="plausibility">
+      <h2>9. Plausibilitaetsbewertung</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="label">Realismus</div>
+          <div class="value good">Plausibel</div>
+          <p>Staerkere Teams gewinnen klar haeufiger.</p>
+        </div>
+        <div class="card">
+          <div class="label">Upsets</div>
+          <div class="value warn">Selten</div>
+          <p>Bei grossen Rating-Luecken nur 2/300.</p>
+        </div>
+        <div class="card">
+          <div class="label">Stats</div>
+          <div class="value warn">Hart</div>
+          <p>Schwache Teams punkten gegen starke Gegner sehr wenig.</p>
+        </div>
+        <div class="card">
+          <div class="label">Balance-Fazit</div>
+          <div class="value good">Keine Sofort-Aenderung</div>
+          <p>Die Daten belegen Wirkung, aber noch keine globale Fehlbalance.</p>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Zu viele oder zu wenige Upsets?</strong>
+        <p>In grossen Mismatches sind Upsets sehr selten, was bei absichtlich extremen Rating-Unterschieden plausibel ist. Fuer normale Ligen koennte die Varianz aber etwas niedrig wirken, wenn solche Abstaende haeufig vorkommen. Das Mittelklasse-Matchup zeigt dagegen passende Varianz: Der bessere Kader gewinnt deutlich haeufiger, aber nicht automatisch.</p>
+      </div>
+      <div class="note">
+        <strong>Stats plausibel?</strong>
+        <p>Yards und Scores folgen der Rating-Hierarchie. Auffaellig sind die sehr niedrigen Scores schwacher Teams und die hohen Punt-Zahlen gegen bessere Gegner. Das ist kein klarer Fehler, sollte aber in weiteren Tests beobachtet werden, besonders bei Red-Zone-Effizienz und Field-Goal-lastigen Favoriten-Spielen.</p>
+      </div>
+    </section>
+
+    <section id="conclusion">
+      <h2>10. Fazit & Empfehlung</h2>
+      <div class="note">
+        <strong>Rating-System:</strong> Gut genug fuer den aktuellen Stand. Ratings wirken sichtbar und konsistent: grosse Staerkeunterschiede erzeugen klare Ergebnisse, kleinere Unterschiede lassen Upsets und Unentschieden zu.
+      </div>
+      <div class="note">
+        <strong>Anpassungen:</strong> Keine direkte Engine- oder Balancing-Aenderung aus diesem Bericht ableiten. Zuerst sollten Home/Away-Spiegel, groessere Round-Robin-Matrizen und Archetyp-Tests folgen, damit getrennt werden kann, ob Auffaelligkeiten von Ratings, Home Field, Playcalling, Red Zone oder Spezialteams kommen.
+      </div>
+      <h3>Statuspruefung</h3>
+      <ul class="checklist">
+        <li>HTML erstellt: <span class="good">Ja</span></li>
+        <li>4 Teams enthalten: <span class="good">Ja</span></li>
+        <li>4 Serien a 100 Spiele enthalten: <span class="good">Ja</span></li>
+        <li>Alle Spiele gelistet: <span class="good">Ja, 400</span></li>
+        <li>Ratings erklaert: <span class="good">Ja, alle 65 Einzelratings</span></li>
+        <li>Impact-Beispiele enthalten: <span class="good">Ja, 12</span></li>
+        <li>Verstaendlich fuer Nicht-Programmierer: <span class="good">Ja</span></li>
+        <li>Keine neue Simulation ausgefuehrt: <span class="good">Ja</span></li>
+      </ul>
+      <div class="note">
+        Finale Bewertung: <strong class="good">GR&Uuml;N</strong>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

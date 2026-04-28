@@ -1,0 +1,69 @@
+{
+  "overallStatus": "ROT",
+  "reportDate": "2026-04-24",
+  "reports": {
+    "html": "/Users/lukashanzi/Documents/AFBM/reports/qa-production-simulation-suite-2026-04-24.html",
+    "json": "/Users/lukashanzi/Documents/AFBM/reports/qa-production-simulation-suite-2026-04-24.json"
+  },
+  "smoke": {
+    "status": "ROT",
+    "technicalStatus": "GRUEN",
+    "qualityStatus": "GRUEN",
+    "observabilityStatus": "ROT",
+    "criticalIssues": 0,
+    "majorIssues": 0,
+    "avgRuntimeMs": 1.699,
+    "avgPointsPerGame": 35.8,
+    "avgYardsPerTeam": 459.8,
+    "technicalIssues": [],
+    "qualityFindings": [],
+    "observabilityFindings": [
+      "3rd-Down-Conversion ist nicht als nativer Simulationsoutput verfuegbar.",
+      "Play-by-Play ist nicht als nativer Simulationsoutput verfuegbar."
+    ]
+  },
+  "stability": {
+    "status": "ROT",
+    "technicalStatus": "GRUEN",
+    "qualityStatus": "GRUEN",
+    "observabilityStatus": "ROT",
+    "criticalIssues": 0,
+    "majorIssues": 0,
+    "avgRuntimeMs": 1.063,
+    "avgPointsPerGame": 35.8,
+    "avgYardsPerTeam": 452.7,
+    "technicalIssues": [],
+    "qualityFindings": [],
+    "observabilityFindings": [
+      "3rd-Down-Conversion ist nicht als nativer Simulationsoutput verfuegbar.",
+      "Play-by-Play ist nicht als nativer Simulationsoutput verfuegbar."
+    ]
+  },
+  "regression": {
+    "status": "GRUEN",
+    "baselineMatches": true,
+    "deterministic": true,
+    "fingerprints": {
+      "production-regression-seed-001": "ed34dcd3818a78c7",
+      "production-regression-seed-002": "31710ecc2dfd17ee",
+      "production-regression-seed-003": "3f34231b8a14133e",
+      "production-regression-seed-004": "faf5d852ba85ea7a",
+      "production-regression-seed-005": "2c17b1d2f270c5f8",
+      "production-regression-seed-006": "d08a0ed5553286b1",
+      "production-regression-seed-007": "96c7503a856213fd",
+      "production-regression-seed-008": "9ad2a2b6cbf4440d"
+    }
+  },
+  "edge": {
+    "status": "GRUEN",
+    "scannedGames": 160,
+    "endgameDriveCount": 416,
+    "lateTrailingDecisionCount": 284,
+    "blowoutGameCount": 18,
+    "garbageTimeDecisionCount": 99,
+    "redZoneStopCount": 217,
+    "backedUpDriveCount": 2250,
+    "playoffDecisive": true,
+    "issues": []
+  }
+}

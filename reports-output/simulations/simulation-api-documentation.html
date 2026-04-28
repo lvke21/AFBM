@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simulation API Documentation</title>
+    <style>
+      :root {
+        --bg: #f4f0e8;
+        --panel: #fffdf8;
+        --ink: #1f2824;
+        --muted: #66726c;
+        --line: #d8cec0;
+        --accent: #214b5b;
+        --good: #17613d;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.55;
+      }
+      main {
+        width: min(1120px, calc(100vw - 32px));
+        margin: 24px auto 56px;
+      }
+      header, section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 22px;
+        margin-bottom: 16px;
+      }
+      h1, h2, h3 { margin: 0 0 12px; line-height: 1.2; }
+      h1 { color: var(--accent); font-size: 34px; }
+      h2 { font-size: 24px; }
+      h3 { font-size: 17px; margin-top: 16px; }
+      p { margin: 0 0 12px; }
+      code {
+        background: #eee7dc;
+        border-radius: 5px;
+        padding: 2px 5px;
+      }
+      pre {
+        margin: 10px 0 0;
+        padding: 14px;
+        background: #1f2824;
+        color: #f8f3ea;
+        border-radius: 8px;
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+      th, td {
+        border-bottom: 1px solid var(--line);
+        padding: 9px 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #eee7dc;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+      .pill {
+        display: inline-flex;
+        border-radius: 999px;
+        padding: 6px 10px;
+        color: var(--good);
+        background: rgba(23, 97, 61, .12);
+        font-weight: 700;
+        font-size: 12px;
+      }
+      .muted { color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Simulation API Documentation</h1>
+        <p class="muted">Standalone API fuer spaetere Frontend-Integration. Die Endpoints verwenden die bestehende Match-Engine und erzeugen echte Simulationsergebnisse.</p>
+        <p><span class="pill">Status: GRUEN</span></p>
+      </header>
+
+      <section>
+        <h2>Endpoint-Uebersicht</h2>
+        <table>
+          <thead>
+            <tr><th>Funktion</th><th>HTTP</th><th>Pfad</th><th>Zweck</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>createGame</td><td>POST</td><td><code>/api/simulation/createGame</code></td><td>Erzeugt ein Spiel mit Teams, Seed, Gameplan und Settings.</td></tr>
+            <tr><td>simulateGame</td><td>POST</td><td><code>/api/simulation/simulateGame</code></td><td>Simuliert ein zuvor erzeugtes Spiel.</td></tr>
+            <tr><td>getGameResult</td><td>GET</td><td><code>/api/simulation/getGameResult?gameId=...</code></td><td>Liefert Score, Winner, Team Stats, Player Stats und Drive Summary.</td></tr>
+            <tr><td>getDriveLog</td><td>GET</td><td><code>/api/simulation/getDriveLog?gameId=...</code></td><td>Liefert Drive-by-Drive-Informationen.</td></tr>
+            <tr><td>getStats</td><td>GET</td><td><code>/api/simulation/getStats?gameId=...</code></td><td>Liefert frontend-taugliche Team-/Player-Stats, Leaders und Summary.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>createGame</h2>
+        <pre><code>POST /api/simulation/createGame
+Content-Type: application/json
+
+{
+  "seed": "frontend-seed-1",
+  "teams": {
+    "home": {
+      "id": "BOS",
+      "city": "Boston",
+      "nickname": "Guardians",
+      "abbreviation": "BOS",
+      "overallRating": 74,
+      "rosterSeed": 0
+    },
+    "away": {
+      "id": "NYT",
+      "city": "New York",
+      "nickname": "Titans",
+      "abbreviation": "NYT",
+      "overallRating": 78,
+      "rosterSeed": 1
+    }
+  },
+  "gameplan": {
+    "home": { "tempo": "balanced" },
+    "away": { "tempo": "aggressive" }
+  },
+  "settings": {
+    "kind": "REGULAR_SEASON",
+    "seasonYear": 2026,
+    "week": 1,
+    "scheduledAt": "2026-09-01T18:00:00.000Z"
+  }
+}</code></pre>
+        <pre><code>{
+  "gameId": "generated-or-provided-id",
+  "status": "CREATED",
+  "teams": {
+    "home": { "id": "BOS", "city": "Boston", "nickname": "Guardians", "abbreviation": "BOS", "overallRating": 74 },
+    "away": { "id": "NYT", "city": "New York", "nickname": "Titans", "abbreviation": "NYT", "overallRating": 78 }
+  },
+  "seed": "frontend-seed-1",
+  "createdAt": "2026-04-25T00:00:00.000Z"
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>simulateGame</h2>
+        <pre><code>POST /api/simulation/simulateGame
+Content-Type: application/json
+
+{ "gameId": "generated-or-provided-id" }</code></pre>
+        <pre><code>{
+  "gameId": "generated-or-provided-id",
+  "status": "SIMULATED",
+  "finalScore": { "home": 24, "away": 17 },
+  "winner": {
+    "teamId": "BOS",
+    "side": "home",
+    "name": "Boston Guardians",
+    "abbreviation": "BOS"
+  },
+  "simulatedAt": "2026-04-25T00:01:00.000Z"
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>getGameResult</h2>
+        <pre><code>GET /api/simulation/getGameResult?gameId=generated-or-provided-id</code></pre>
+        <pre><code>{
+  "gameId": "generated-or-provided-id",
+  "finalScore": { "home": 24, "away": 17 },
+  "winner": { "teamId": "BOS", "side": "home", "name": "Boston Guardians", "abbreviation": "BOS" },
+  "teamStats": [ "...2 team stat objects..." ],
+  "playerStats": [ "...player stat objects..." ],
+  "driveSummary": [
+    {
+      "sequence": 1,
+      "phaseLabel": "Q1",
+      "result": "PUNT",
+      "plays": 6,
+      "totalYards": 24,
+      "scoreAfterDrive": { "home": 0, "away": 0 },
+      "summary": "..."
+    }
+  ]
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>getDriveLog</h2>
+        <pre><code>GET /api/simulation/getDriveLog?gameId=generated-or-provided-id</code></pre>
+        <pre><code>{
+  "gameId": "generated-or-provided-id",
+  "drives": [
+    {
+      "sequence": 1,
+      "startFieldPosition": 24,
+      "endFieldPosition": 48,
+      "result": "PUNT",
+      "plays": 6,
+      "scoreAfterDrive": { "home": 0, "away": 0 },
+      "importantEvents": ["fourth down: PUNT"],
+      "summary": "..."
+    }
+  ]
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>getStats</h2>
+        <pre><code>GET /api/simulation/getStats?gameId=generated-or-provided-id</code></pre>
+        <pre><code>{
+  "gameId": "generated-or-provided-id",
+  "teamStats": [ "...2 team stat objects..." ],
+  "playerStats": [ "...player stat objects..." ],
+  "leaders": {
+    "passing": "...",
+    "rushing": "...",
+    "receiving": "...",
+    "defense": "...",
+    "specialTeams": "..."
+  },
+  "summary": "Boston Guardians gewinnt 24-17 gegen New York Titans."
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>Fehlerfaelle</h2>
+        <table>
+          <thead>
+            <tr><th>Status</th><th>Code</th><th>Bedeutung</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>400</td><td><code>INVALID_INPUT</code>, <code>INVALID_JSON</code>, <code>MISSING_GAME_ID</code></td><td>Request ist ungueltig oder unvollstaendig.</td></tr>
+            <tr><td>404</td><td><code>GAME_NOT_FOUND</code></td><td>Die angefragte <code>gameId</code> ist unbekannt.</td></tr>
+            <tr><td>409</td><td><code>GAME_NOT_SIMULATED</code></td><td>Result, DriveLog oder Stats wurden vor der Simulation abgefragt.</td></tr>
+            <tr><td>409</td><td><code>GAME_ALREADY_EXISTS</code></td><td>Eine explizit gesetzte <code>gameId</code> existiert bereits.</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

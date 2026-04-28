@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Fine Tune Report 2026-04-24</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 28px; color: #1f2a2a; background: #f6f1e8; }
+    section { background: #fffdf8; border: 1px solid #ded4c6; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #e3dacd; vertical-align: top; }
+    th { background: #efe5d8; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .green { background: #dcfce7; color: #166534; }
+    .red { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>Fine Tune Report</h1>
+    <p>50-Spiele-Validierung nach Feinjustierung von Yard-Quellen und GO_FOR_IT-Folgezone.</p>
+    <p><span class="pill red">ROT</span></p>
+  </section>
+  <section>
+    <h2>Vorher / Nachher</h2>
+    <table><thead><tr><th>Metrik</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody><tr><td>Punts / Team-Spiel</td><td>3.91</td><td>6.16</td></tr><tr><td>FG-Attempts / Team-Spiel</td><td>2.14</td><td>2.91</td></tr><tr><td>Touchdowns / Team-Spiel</td><td>3.14</td><td>2.62</td></tr><tr><td>Punkte / Spiel</td><td>52.4</td><td>48.3</td></tr><tr><td>Total Yards / Spiel</td><td>1042.4</td><td>988.3</td></tr><tr><td>Turnover on Downs / Team-Spiel</td><td>3.57</td><td>2.79</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Yards-Quellenanalyse</h2>
+    <table><thead><tr><th>Kennzahl</th><th>Wert</th></tr></thead><tbody><tr><td>Yards / Drive</td><td>33.2</td></tr><tr><td>Plays / Drive</td><td>7.4</td></tr><tr><td>Yards / Play</td><td>4.89</td></tr><tr><td>Start Field Position</td><td>27.6</td></tr><tr><td>Yards nach 4th-Convert</td><td>11.2</td></tr><tr><td>Yards in Plus Territory</td><td>33.9</td></tr><tr><td>Yards Own20 bis Opp45</td><td>29.1</td></tr><tr><td>Yards Hurry/Garbage</td><td>33.2</td></tr></tbody></table>
+    <table><thead><tr><th>Zone</th><th>Drives</th><th>Avg Yards</th></tr></thead><tbody><tr><td>RED_ZONE</td><td>164</td><td>37.2</td></tr><tr><td>PLUS_TERRITORY</td><td>1093</td><td>33.4</td></tr><tr><td>BACKED_UP</td><td>48</td><td>29.8</td></tr><tr><td>OWN20_TO_OPP45</td><td>184</td><td>29.1</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Drive-End-Verteilung</h2>
+    <table><thead><tr><th>Result</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>PUNT</td><td>616</td><td>41.4</td></tr><tr><td>TURNOVER_ON_DOWNS</td><td>279</td><td>18.7</td></tr><tr><td>TOUCHDOWN</td><td>262</td><td>17.6</td></tr><tr><td>FIELD_GOAL_MADE</td><td>200</td><td>13.4</td></tr><tr><td>FIELD_GOAL_MISSED</td><td>91</td><td>6.1</td></tr><tr><td>TURNOVER</td><td>41</td><td>2.8</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>GO_FOR_IT-Folgeanalyse</h2>
+    <table><thead><tr><th>Result nach erfolgreichem Convert</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>TOUCHDOWN</td><td>260</td><td>60.7</td></tr><tr><td>TURNOVER_ON_DOWNS</td><td>101</td><td>23.6</td></tr><tr><td>FIELD_GOAL_MADE</td><td>48</td><td>11.2</td></tr><tr><td>FIELD_GOAL_MISSED</td><td>19</td><td>4.4</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Turnover-on-Downs nach Feldzone</h2>
+    <table><thead><tr><th>Zone</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>OPP35_TO_20</td><td>166</td><td>59.5</td></tr><tr><td>OPP45_TO_35</td><td>83</td><td>29.7</td></tr><tr><td>RED_ZONE_20</td><td>29</td><td>10.4</td></tr><tr><td>OUTSIDE_PLUS</td><td>1</td><td>0.4</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Beispiel-Drives</h2>
+    <table><thead><tr><th>Quarter</th><th>Off</th><th>Start</th><th>Peak</th><th>Yards</th><th>Decision</th><th>Converted</th><th>Post-Convert Yards</th><th>Result</th><th>Summary</th></tr></thead><tbody><tr><td>Q1</td><td>BOS</td><td>29</td><td>74</td><td>42</td><td>GO_FOR_IT</td><td>false</td><td></td><td>TURNOVER_ON_DOWNS</td><td>NYT stoppt BOS bei 4th &amp; 2; Turnover on Downs.</td></tr><tr><td>Q1</td><td>NYT</td><td>22</td><td>58</td><td>31</td><td>GO_FOR_IT</td><td>false</td><td></td><td>TURNOVER_ON_DOWNS</td><td>BOS stoppt NYT bei 4th &amp; 1; Turnover on Downs.</td></tr><tr><td>Q1</td><td>NYT</td><td>22</td><td>57</td><td>29</td><td>GO_FOR_IT</td><td>false</td><td></td><td>TURNOVER_ON_DOWNS</td><td>BOS stoppt NYT bei 4th &amp; 2; Turnover on Downs.</td></tr><tr><td>Q1</td><td>BOS</td><td>28</td><td>86</td><td>39</td><td>GO_FOR_IT</td><td>true</td><td>16</td><td>TURNOVER_ON_DOWNS</td><td>NYT stoppt BOS auch nach konvertiertem 4th Down noch in Plus Territory.</td></tr><tr><td>Q2</td><td>NYT</td><td>22</td><td>75</td><td>44</td><td>GO_FOR_IT</td><td>true</td><td>10</td><td>FIELD_GOAL_MISSED</td><td>NYT beruhigt den Drive nach konvertiertem 4th Down, verfehlt aber das Field Goal aus 42 Yards.</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Empfehlung</h2>
+    <p>Als naechstes sollte die Kopplung zwischen Feldpositionsfortschritt und Stat-Yards im Mittelfeld weiter gestrafft werden, ohne die Terminal-Zone erneut aggressiver zu machen.</p>
+  </section>
+  
+</body>
+</html>

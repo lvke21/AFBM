@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>QA Match Report qa-match-9</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --panel: #fffdf8;
+      --ink: #1e2a2a;
+      --muted: #5b6a6b;
+      --line: #d9d0c3;
+      --accent: #12343b;
+      --accent-2: #d9843b;
+      --warn: #b45309;
+      --bad: #991b1b;
+      --good: #166534;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top left, rgba(217, 132, 59, 0.18), transparent 30%),
+        linear-gradient(180deg, #f6f0e6 0%, #efe7db 100%);
+      color: var(--ink);
+    }
+    .shell {
+      width: min(1380px, calc(100vw - 40px));
+      margin: 28px auto 56px;
+    }
+    .hero, .section {
+      background: rgba(255, 253, 248, 0.9);
+      border: 1px solid rgba(18, 52, 59, 0.12);
+      border-radius: 22px;
+      box-shadow: 0 20px 60px rgba(18, 52, 59, 0.08);
+      backdrop-filter: blur(8px);
+      padding: 24px 26px;
+      margin-bottom: 18px;
+    }
+    h1, h2, h3 { margin: 0 0 12px; line-height: 1.1; }
+    h1 { font-size: 42px; }
+    h2 { font-size: 26px; }
+    p { margin: 0 0 12px; line-height: 1.5; }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .scoreline {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 16px 0 8px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(18, 52, 59, 0.97), rgba(28, 65, 71, 0.92));
+      color: #f7f4ee;
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .kicker {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.78;
+      margin-bottom: 8px;
+    }
+    .value {
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+    .pill.good { background: rgba(22, 101, 52, 0.12); color: var(--good); }
+    .pill.bad { background: rgba(153, 27, 27, 0.12); color: var(--bad); }
+    .pill.warn { background: rgba(180, 83, 9, 0.12); color: var(--warn); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.65);
+      border-radius: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: #ece4d7;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    tr:last-child td { border-bottom: 0; }
+    .small { color: var(--muted); font-size: 13px; }
+    .section > .small { margin-bottom: 10px; }
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+      .scoreline { flex-direction: column; align-items: flex-start; }
+      .shell { width: min(100vw - 20px, 1380px); }
+      .hero, .section { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">AFBM QA Simulation Report · 2026-04-24</div>
+      <h1>10 Spielsimulationen geprueft</h1>
+      <p>Der Bericht basiert auf einer reproduzierbaren Ausfuehrung der produktiven Match-Engine. Geprueft wurden Team- und Player-Aggregation, Drive-Konsistenz, fehlende Werte, Doppelzaehlungen sowie die Nutzbarkeit des Reports fuer Anwender.</p>
+      <div class="scoreline">
+        <span>Boston Guardians 91</span>
+        <span>:</span>
+        <span>84 Dallas Wranglers</span>
+      </div>
+      <p class="small">Ausgewaehltes Spiel: qa-match-9 · Seed qa-seed-9 · Woche 9</p>
+      <div>
+        <span class="pill good">10 Spiele simuliert: Ja</span>
+        <span class="pill good">Einzelspielbericht vollstaendig: Ja</span>
+        <span class="pill good">Kritische Datenfehler: Keine</span>
+        <span class="pill warn">Plausibilitaet: Grundsaetzlich plausibel</span>
+      </div>
+      
+    <div class="cards">
+      <div class="card"><div class="kicker">Simulierte Spiele</div><div class="value">10</div></div>
+      <div class="card"><div class="kicker">Erfolgreich</div><div class="value">10/10</div></div>
+      <div class="card"><div class="kicker">Critical Issues</div><div class="value">0</div></div>
+      <div class="card"><div class="kicker">Major Issues</div><div class="value">30</div></div>
+      <div class="card"><div class="kicker">Turnovers gesamt</div><div class="value">6</div></div>
+    </div>
+  
+    </section>
+
+    <section class="section">
+      <h2>Statuspruefung</h2>
+      <div class="grid">
+        <div>
+          <p><strong>10 Spiele erfolgreich simuliert?</strong><br />10/10 Spiele wurden ohne Laufzeitabbruch erzeugt.</p>
+          <p><strong>Einzelspielbericht vollstaendig?</strong><br />Ja, alle geforderten Inhaltsbloecke sind enthalten. Quarter Scores und Play-by-Play werden dabei als abgeleitete bzw. ersetzte Sichten kenntlich gemacht.</p>
+        </div>
+        <div>
+          <p><strong>Stats plausibel?</strong><br />Ja, ohne kritische Aggregations- oder Zuordnungsfehler.</p>
+          <p><strong>Keine kritischen Datenfehler?</strong><br />Ja.</p>
+          <p><strong>Status</strong><br /><strong>GRUEN</strong></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Endstand</h2>
+      <p>Boston Guardians 91 : 84 Dallas Wranglers</p>
+    </section>
+
+    <section class="section">
+      <h2>Quarter Scores</h2>
+      <p class="small">Hinweis: Die aktuelle Engine speichert keine echten Quarter-Events. Die Verteilung unten ist aus der chronologischen Drive-Reihenfolge abgeleitet.</p>
+      <table><thead><tr><th>Quarter</th><th>BOS</th><th>DAL</th><th>Hinweis</th></tr></thead><tbody><tr><td>Q1</td><td>28</td><td>21</td><td>Abgeleitet aus Drive-Reihenfolge, nicht nativ als Quarter-Event gespeichert.</td></tr><tr><td>Q2</td><td>21</td><td>21</td><td>Abgeleitet aus Drive-Reihenfolge, nicht nativ als Quarter-Event gespeichert.</td></tr><tr><td>Q3</td><td>21</td><td>28</td><td>Abgeleitet aus Drive-Reihenfolge, nicht nativ als Quarter-Event gespeichert.</td></tr><tr><td>Q4</td><td>21</td><td>14</td><td>Abgeleitet aus Drive-Reihenfolge, nicht nativ als Quarter-Event gespeichert.</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Team Stats</h2>
+      <table><thead><tr><th>Team</th><th>Pts</th><th>Yds</th><th>Pass</th><th>Rush</th><th>1st</th><th>TO</th><th>Sacks</th><th>Expl</th><th>RZ</th><th>Pen</th><th>TOP</th></tr></thead><tbody><tr><td>BOS</td><td>91</td><td>1465</td><td>1105</td><td>360</td><td>80</td><td>0</td><td>1</td><td>26</td><td>13/13</td><td>3</td><td>40:38</td></tr><tr><td>DAL</td><td>84</td><td>1448</td><td>1101</td><td>347</td><td>79</td><td>1</td><td>0</td><td>26</td><td>12/12</td><td>3</td><td>35:33</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Player Stats</h2>
+      <p class="small">Es werden nur Spieler mit relevanter Produktion angezeigt.</p>
+      <table><thead><tr><th>Player</th><th>Team</th><th>Start</th><th>Passing</th><th>Rushing</th><th>Receiving</th><th>Defense</th><th>Snaps O/D/ST</th></tr></thead><tbody><tr><td>DAL-player-0</td><td>DAL</td><td>Y</td><td>23/64, 1101y, TD 6, INT 1</td><td>2 car, 32y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>78/0/0</td></tr><tr><td>BOS-player-0</td><td>BOS</td><td>Y</td><td>25/72, 1105y, TD 8, INT 0</td><td>2 car, 21y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>78/0/0</td></tr><tr><td>DAL-player-9</td><td>DAL</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>7/10, 336y, TD 2</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>43/0/6</td></tr><tr><td>DAL-player-11</td><td>DAL</td><td>N</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>6/10, 283y, TD 1</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>23/0/0</td></tr><tr><td>BOS-player-11</td><td>BOS</td><td>N</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>6/9, 238y, TD 3</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>23/0/0</td></tr><tr><td>DAL-player-8</td><td>DAL</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>5/13, 233y, TD 3</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>78/0/10</td></tr><tr><td>BOS-player-9</td><td>BOS</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>5/12, 231y, TD 2</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>43/0/6</td></tr><tr><td>BOS-player-10</td><td>BOS</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>5/12, 226y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>23/0/0</td></tr><tr><td>BOS-player-15</td><td>BOS</td><td>N</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>3/11, 168y, TD 1</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>43/0/0</td></tr><tr><td>BOS-player-14</td><td>BOS</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>4/14, 141y, TD 1</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>78/0/0</td></tr><tr><td>DAL-player-3</td><td>DAL</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>8 car, 137y, TD 3, FUM 0</td><td>0/0, 0y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>78/0/10</td></tr><tr><td>BOS-player-3</td><td>BOS</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>11 car, 133y, TD 2, FUM 0</td><td>0/0, 0y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>78/0/10</td></tr><tr><td>DAL-player-10</td><td>DAL</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>2/9, 133y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>23/0/0</td></tr><tr><td>BOS-player-8</td><td>BOS</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>2/14, 101y, TD 1</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>78/0/10</td></tr><tr><td>BOS-player-7</td><td>BOS</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>9 car, 115y, TD 2, FUM 0</td><td>0/0, 0y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>78/0/0</td></tr><tr><td>DAL-player-4</td><td>DAL</td><td>N</td><td>0/0, 0y, TD 0, INT 0</td><td>8 car, 102y, TD 1, FUM 0</td><td>0/0, 0y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>43/0/0</td></tr><tr><td>DAL-player-14</td><td>DAL</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>2/16, 83y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>78/0/0</td></tr><tr><td>BOS-player-4</td><td>BOS</td><td>N</td><td>0/0, 0y, TD 0, INT 0</td><td>8 car, 91y, TD 1, FUM 0</td><td>0/0, 0y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>43/0/0</td></tr><tr><td>DAL-player-7</td><td>DAL</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>7 car, 76y, TD 2, FUM 0</td><td>0/0, 0y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>78/0/0</td></tr><tr><td>DAL-player-15</td><td>DAL</td><td>N</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>1/6, 37y, TD 0</td><td>0 TKL, 0 SK, 0 INT, FF 0</td><td>43/0/0</td></tr><tr><td>BOS-player-35</td><td>BOS</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>10 TKL, 0 SK, 0 INT, FF 0</td><td>0/78/0</td></tr><tr><td>DAL-player-38</td><td>DAL</td><td>N</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>10 TKL, 0 SK, 0 INT, FF 0</td><td>0/43/0</td></tr><tr><td>DAL-player-36</td><td>DAL</td><td>N</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>9 TKL, 0 SK, 0 INT, FF 0</td><td>0/0/0</td></tr><tr><td>BOS-player-40</td><td>BOS</td><td>N</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>9 TKL, 0 SK, 0 INT, FF 0</td><td>0/0/0</td></tr><tr><td>DAL-player-39</td><td>DAL</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>8 TKL, 0 SK, 0 INT, FF 0</td><td>0/78/0</td></tr><tr><td>BOS-player-39</td><td>BOS</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>7 TKL, 0 SK, 0 INT, FF 0</td><td>0/78/0</td></tr><tr><td>DAL-player-37</td><td>DAL</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>6 TKL, 0 SK, 0 INT, FF 0</td><td>0/78/0</td></tr><tr><td>DAL-player-35</td><td>DAL</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>6 TKL, 0 SK, 0 INT, FF 0</td><td>0/78/0</td></tr><tr><td>BOS-player-37</td><td>BOS</td><td>Y</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>4 TKL, 0 SK, 0 INT, FF 0</td><td>0/78/0</td></tr><tr><td>BOS-player-38</td><td>BOS</td><td>N</td><td>0/0, 0y, TD 0, INT 0</td><td>0 car, 0y, TD 0, FUM 0</td><td>0/0, 0y, TD 0</td><td>3 TKL, 0 SK, 0 INT, FF 0</td><td>0/43/0</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Drive Summary</h2>
+      <table><thead><tr><th>Drive</th><th>Phase</th><th>Off</th><th>Def</th><th>Plays</th><th>Yards</th><th>Result</th><th>Pts</th><th>Start</th><th>Ende</th><th>Summary</th></tr></thead><tbody><tr><td>1</td><td>REG</td><td>BOS</td><td>DAL</td><td>8</td><td>111</td><td>TOUCHDOWN</td><td>7</td><td>0-0</td><td>7-0</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Noah Ellis ab.</td></tr><tr><td>2</td><td>REG</td><td>DAL</td><td>BOS</td><td>5</td><td>108</td><td>TOUCHDOWN</td><td>7</td><td>7-0</td><td>7-7</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Julian Ward.</td></tr><tr><td>3</td><td>REG</td><td>BOS</td><td>DAL</td><td>9</td><td>110</td><td>TOUCHDOWN</td><td>7</td><td>7-7</td><td>14-7</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Isaiah Logan ab.</td></tr><tr><td>4</td><td>REG</td><td>DAL</td><td>BOS</td><td>8</td><td>108</td><td>TOUCHDOWN</td><td>7</td><td>14-7</td><td>14-14</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Malik Powell.</td></tr><tr><td>5</td><td>REG</td><td>BOS</td><td>DAL</td><td>6</td><td>115</td><td>TOUCHDOWN</td><td>7</td><td>14-14</td><td>21-14</td><td>BOS vollendet den Drive mit einem Rushing Touchdown von Noah Ellis.</td></tr><tr><td>6</td><td>REG</td><td>DAL</td><td>BOS</td><td>10</td><td>114</td><td>TOUCHDOWN</td><td>7</td><td>21-14</td><td>21-21</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Roman Mercer.</td></tr><tr><td>7</td><td>REG</td><td>BOS</td><td>DAL</td><td>7</td><td>113</td><td>TOUCHDOWN</td><td>7</td><td>21-21</td><td>28-21</td><td>BOS vollendet den Drive mit einem Rushing Touchdown von Nathan Harper.</td></tr><tr><td>8</td><td>REG</td><td>DAL</td><td>BOS</td><td>9</td><td>117</td><td>TOUCHDOWN</td><td>7</td><td>28-21</td><td>28-28</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Bryce Daniels ab.</td></tr><tr><td>9</td><td>REG</td><td>BOS</td><td>DAL</td><td>9</td><td>113</td><td>TOUCHDOWN</td><td>7</td><td>28-28</td><td>35-28</td><td>BOS vollendet den Drive mit einem Rushing Touchdown von Tre Holland.</td></tr><tr><td>10</td><td>REG</td><td>DAL</td><td>BOS</td><td>5</td><td>110</td><td>TOUCHDOWN</td><td>7</td><td>35-28</td><td>35-35</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Jalen Reed ab.</td></tr><tr><td>11</td><td>REG</td><td>BOS</td><td>DAL</td><td>8</td><td>111</td><td>TOUCHDOWN</td><td>7</td><td>35-35</td><td>42-35</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Isaiah Logan ab.</td></tr><tr><td>12</td><td>REG</td><td>DAL</td><td>BOS</td><td>9</td><td>117</td><td>TOUCHDOWN</td><td>7</td><td>42-35</td><td>42-42</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Liam Hayes ab.</td></tr><tr><td>13</td><td>REG</td><td>BOS</td><td>DAL</td><td>4</td><td>107</td><td>TOUCHDOWN</td><td>7</td><td>42-42</td><td>49-42</td><td>BOS vollendet den Drive mit einem Rushing Touchdown von Nathan Harper.</td></tr><tr><td>14</td><td>LATE</td><td>DAL</td><td>BOS</td><td>9</td><td>123</td><td>TOUCHDOWN</td><td>7</td><td>49-42</td><td>49-49</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Jalen Reed ab.</td></tr><tr><td>15</td><td>LATE</td><td>BOS</td><td>DAL</td><td>9</td><td>110</td><td>TOUCHDOWN</td><td>7</td><td>49-49</td><td>56-49</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Avery Ross ab.</td></tr><tr><td>16</td><td>LATE</td><td>DAL</td><td>BOS</td><td>5</td><td>105</td><td>TOUCHDOWN</td><td>7</td><td>56-49</td><td>56-56</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Liam Hayes ab.</td></tr><tr><td>17</td><td>LATE</td><td>BOS</td><td>DAL</td><td>8</td><td>109</td><td>TOUCHDOWN</td><td>7</td><td>56-56</td><td>63-56</td><td>BOS vollendet den Drive mit einem Rushing Touchdown von Tre Holland.</td></tr><tr><td>18</td><td>LATE</td><td>DAL</td><td>BOS</td><td>4</td><td>109</td><td>TOUCHDOWN</td><td>7</td><td>63-56</td><td>63-63</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Malik Powell.</td></tr><tr><td>19</td><td>LATE</td><td>BOS</td><td>DAL</td><td>7</td><td>118</td><td>TOUCHDOWN</td><td>7</td><td>63-63</td><td>70-63</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Evan Carter ab.</td></tr><tr><td>20</td><td>LATE</td><td>DAL</td><td>BOS</td><td>8</td><td>111</td><td>TOUCHDOWN</td><td>7</td><td>70-63</td><td>70-70</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Julian Ward.</td></tr><tr><td>21</td><td>LATE</td><td>BOS</td><td>DAL</td><td>9</td><td>116</td><td>TOUCHDOWN</td><td>7</td><td>70-70</td><td>77-70</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Avery Ross ab.</td></tr><tr><td>22</td><td>LATE</td><td>DAL</td><td>BOS</td><td>5</td><td>106</td><td>TOUCHDOWN</td><td>7</td><td>77-70</td><td>77-77</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Julian Ward.</td></tr><tr><td>23</td><td>LATE</td><td>BOS</td><td>DAL</td><td>8</td><td>111</td><td>TOUCHDOWN</td><td>7</td><td>77-77</td><td>84-77</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Malik Powell ab.</td></tr><tr><td>24</td><td>LATE</td><td>DAL</td><td>BOS</td><td>6</td><td>112</td><td>TOUCHDOWN</td><td>7</td><td>84-77</td><td>84-84</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Jalen Reed ab.</td></tr><tr><td>25</td><td>LATE</td><td>BOS</td><td>DAL</td><td>10</td><td>121</td><td>TOUCHDOWN</td><td>7</td><td>84-84</td><td>91-84</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Isaiah Logan ab.</td></tr><tr><td>26</td><td>LATE</td><td>DAL</td><td>BOS</td><td>7</td><td>108</td><td>TURNOVER</td><td>0</td><td>91-84</td><td>91-84</td><td>BOS erzwingt nach 108 Yards Raumgewinn einen Ballverlust.</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Play-by-Play Uebersicht</h2>
+      <p class="small">Die Engine liefert noch kein echtes Play-by-Play. Diese Tabelle ist deshalb eine chronologische Possession-/Drive-Timeline fuer Anwender.</p>
+      <table><thead><tr><th>Moment</th><th>Offense</th><th>Result</th><th>Score</th><th>Beschreibung</th></tr></thead><tbody><tr><td>REG #1</td><td>BOS</td><td>TOUCHDOWN</td><td>7-0</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Noah Ellis ab.</td></tr><tr><td>REG #2</td><td>DAL</td><td>TOUCHDOWN</td><td>7-7</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Julian Ward.</td></tr><tr><td>REG #3</td><td>BOS</td><td>TOUCHDOWN</td><td>14-7</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Isaiah Logan ab.</td></tr><tr><td>REG #4</td><td>DAL</td><td>TOUCHDOWN</td><td>14-14</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Malik Powell.</td></tr><tr><td>REG #5</td><td>BOS</td><td>TOUCHDOWN</td><td>21-14</td><td>BOS vollendet den Drive mit einem Rushing Touchdown von Noah Ellis.</td></tr><tr><td>REG #6</td><td>DAL</td><td>TOUCHDOWN</td><td>21-21</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Roman Mercer.</td></tr><tr><td>REG #7</td><td>BOS</td><td>TOUCHDOWN</td><td>28-21</td><td>BOS vollendet den Drive mit einem Rushing Touchdown von Nathan Harper.</td></tr><tr><td>REG #8</td><td>DAL</td><td>TOUCHDOWN</td><td>28-28</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Bryce Daniels ab.</td></tr><tr><td>REG #9</td><td>BOS</td><td>TOUCHDOWN</td><td>35-28</td><td>BOS vollendet den Drive mit einem Rushing Touchdown von Tre Holland.</td></tr><tr><td>REG #10</td><td>DAL</td><td>TOUCHDOWN</td><td>35-35</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Jalen Reed ab.</td></tr><tr><td>REG #11</td><td>BOS</td><td>TOUCHDOWN</td><td>42-35</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Isaiah Logan ab.</td></tr><tr><td>REG #12</td><td>DAL</td><td>TOUCHDOWN</td><td>42-42</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Liam Hayes ab.</td></tr><tr><td>REG #13</td><td>BOS</td><td>TOUCHDOWN</td><td>49-42</td><td>BOS vollendet den Drive mit einem Rushing Touchdown von Nathan Harper.</td></tr><tr><td>LATE #14</td><td>DAL</td><td>TOUCHDOWN</td><td>49-49</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Jalen Reed ab.</td></tr><tr><td>LATE #15</td><td>BOS</td><td>TOUCHDOWN</td><td>56-49</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Avery Ross ab.</td></tr><tr><td>LATE #16</td><td>DAL</td><td>TOUCHDOWN</td><td>56-56</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Liam Hayes ab.</td></tr><tr><td>LATE #17</td><td>BOS</td><td>TOUCHDOWN</td><td>63-56</td><td>BOS vollendet den Drive mit einem Rushing Touchdown von Tre Holland.</td></tr><tr><td>LATE #18</td><td>DAL</td><td>TOUCHDOWN</td><td>63-63</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Malik Powell.</td></tr><tr><td>LATE #19</td><td>BOS</td><td>TOUCHDOWN</td><td>70-63</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Evan Carter ab.</td></tr><tr><td>LATE #20</td><td>DAL</td><td>TOUCHDOWN</td><td>70-70</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Julian Ward.</td></tr><tr><td>LATE #21</td><td>BOS</td><td>TOUCHDOWN</td><td>77-70</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Avery Ross ab.</td></tr><tr><td>LATE #22</td><td>DAL</td><td>TOUCHDOWN</td><td>77-77</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Julian Ward.</td></tr><tr><td>LATE #23</td><td>BOS</td><td>TOUCHDOWN</td><td>84-77</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Malik Powell ab.</td></tr><tr><td>LATE #24</td><td>DAL</td><td>TOUCHDOWN</td><td>84-84</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Jalen Reed ab.</td></tr><tr><td>LATE #25</td><td>BOS</td><td>TOUCHDOWN</td><td>91-84</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Isaiah Logan ab.</td></tr><tr><td>LATE #26</td><td>DAL</td><td>TURNOVER</td><td>91-84</td><td>BOS erzwingt nach 108 Yards Raumgewinn einen Ballverlust.</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Turnovers</h2>
+      <table><thead><tr><th>Drive</th><th>Off</th><th>Def</th><th>Score</th><th>Balltraeger/Passer</th><th>Defender</th><th>Beschreibung</th></tr></thead><tbody><tr><td>26</td><td>DAL</td><td>BOS</td><td>91-84</td><td>Jordan Turner</td><td>Isaiah Logan</td><td>BOS erzwingt nach 108 Yards Raumgewinn einen Ballverlust.</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Penalties</h2>
+      <table><thead><tr><th>Team</th><th>Penalties</th><th>Datenlage</th></tr></thead><tbody><tr><td>BOS</td><td>3</td><td>Nur Team-Zaehler vorhanden, keine Eventliste.</td></tr><tr><td>DAL</td><td>3</td><td>Nur Team-Zaehler vorhanden, keine Eventliste.</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Special Teams</h2>
+      <table><thead><tr><th>Player</th><th>Team</th><th>FG</th><th>XP</th><th>Punts</th><th>Punt Yds</th><th>I20</th><th>KR</th><th>PR</th></tr></thead><tbody><tr><td>BOS-player-3</td><td>BOS</td><td>0/0</td><td>0/0</td><td>0</td><td>0</td><td>0</td><td>12 / 205</td><td>0 / 0</td></tr><tr><td>BOS-player-50</td><td>BOS</td><td>0/0</td><td>13/13</td><td>0</td><td>0</td><td>0</td><td>0 / 0</td><td>0 / 0</td></tr><tr><td>DAL-player-3</td><td>DAL</td><td>0/0</td><td>0/0</td><td>0</td><td>0</td><td>0</td><td>13 / 263</td><td>0 / 0</td></tr><tr><td>DAL-player-50</td><td>DAL</td><td>0/0</td><td>12/12</td><td>0</td><td>0</td><td>0</td><td>0 / 0</td><td>0 / 0</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Key Plays</h2>
+      <table><thead><tr><th>Drive</th><th>Phase</th><th>Off</th><th>Result</th><th>Impact</th><th>Summary</th></tr></thead><tbody><tr><td>14</td><td>LATE</td><td>DAL</td><td>TOUCHDOWN</td><td>Scoring Drive</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Jalen Reed ab.</td></tr><tr><td>25</td><td>LATE</td><td>BOS</td><td>TOUCHDOWN</td><td>Scoring Drive</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Isaiah Logan ab.</td></tr><tr><td>19</td><td>LATE</td><td>BOS</td><td>TOUCHDOWN</td><td>Scoring Drive</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Evan Carter ab.</td></tr><tr><td>8</td><td>REG</td><td>DAL</td><td>TOUCHDOWN</td><td>Scoring Drive</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Bryce Daniels ab.</td></tr><tr><td>12</td><td>REG</td><td>DAL</td><td>TOUCHDOWN</td><td>Scoring Drive</td><td>DAL schliesst den Drive mit einem Passing Touchdown auf Liam Hayes ab.</td></tr><tr><td>21</td><td>LATE</td><td>BOS</td><td>TOUCHDOWN</td><td>Scoring Drive</td><td>BOS schliesst den Drive mit einem Passing Touchdown auf Avery Ross ab.</td></tr><tr><td>5</td><td>REG</td><td>BOS</td><td>TOUCHDOWN</td><td>Scoring Drive</td><td>BOS vollendet den Drive mit einem Rushing Touchdown von Noah Ellis.</td></tr><tr><td>6</td><td>REG</td><td>DAL</td><td>TOUCHDOWN</td><td>Scoring Drive</td><td>DAL vollendet den Drive mit einem Rushing Touchdown von Roman Mercer.</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Auffaelligkeiten und Datenprobleme</h2>
+      <p class="small">Diese Punkte sind fuer Anwender und fuer die technische Weiterentwicklung relevant.</p>
+      <table><thead><tr><th>Severity</th><th>Category</th><th>Scope</th><th>Message</th></tr></thead><tbody><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-9</td><td>Quarter Scores sind im produktiven Match-Result nicht nativ vorhanden und werden nur aus der Drive-Sequenz abgeleitet.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-9</td><td>Ein echtes Play-by-Play existiert in dieser Simulationsstufe nicht; verfuegbar sind nur Drive-Summaries.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-9</td><td>Penalty-Details werden nur als Team-Zaehler persistiert, nicht als vollstaendiges Ereignisprotokoll mit Spielern/Yards.</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Gesamtuebersicht ueber alle 10 Spiele</h2>
+      <table><thead><tr><th>Severity</th><th>Category</th><th>Scope</th><th>Message</th></tr></thead><tbody><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-1 · qa-match-1</td><td>Quarter Scores sind im produktiven Match-Result nicht nativ vorhanden und werden nur aus der Drive-Sequenz abgeleitet.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-1 · qa-match-1</td><td>Ein echtes Play-by-Play existiert in dieser Simulationsstufe nicht; verfuegbar sind nur Drive-Summaries.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-1 · qa-match-1</td><td>Penalty-Details werden nur als Team-Zaehler persistiert, nicht als vollstaendiges Ereignisprotokoll mit Spielern/Yards.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-2 · qa-match-2</td><td>Quarter Scores sind im produktiven Match-Result nicht nativ vorhanden und werden nur aus der Drive-Sequenz abgeleitet.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-2 · qa-match-2</td><td>Ein echtes Play-by-Play existiert in dieser Simulationsstufe nicht; verfuegbar sind nur Drive-Summaries.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-2 · qa-match-2</td><td>Penalty-Details werden nur als Team-Zaehler persistiert, nicht als vollstaendiges Ereignisprotokoll mit Spielern/Yards.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-3 · qa-match-3</td><td>Quarter Scores sind im produktiven Match-Result nicht nativ vorhanden und werden nur aus der Drive-Sequenz abgeleitet.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-3 · qa-match-3</td><td>Ein echtes Play-by-Play existiert in dieser Simulationsstufe nicht; verfuegbar sind nur Drive-Summaries.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-3 · qa-match-3</td><td>Penalty-Details werden nur als Team-Zaehler persistiert, nicht als vollstaendiges Ereignisprotokoll mit Spielern/Yards.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-4 · qa-match-4</td><td>Quarter Scores sind im produktiven Match-Result nicht nativ vorhanden und werden nur aus der Drive-Sequenz abgeleitet.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-4 · qa-match-4</td><td>Ein echtes Play-by-Play existiert in dieser Simulationsstufe nicht; verfuegbar sind nur Drive-Summaries.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-4 · qa-match-4</td><td>Penalty-Details werden nur als Team-Zaehler persistiert, nicht als vollstaendiges Ereignisprotokoll mit Spielern/Yards.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-5 · qa-match-5</td><td>Quarter Scores sind im produktiven Match-Result nicht nativ vorhanden und werden nur aus der Drive-Sequenz abgeleitet.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-5 · qa-match-5</td><td>Ein echtes Play-by-Play existiert in dieser Simulationsstufe nicht; verfuegbar sind nur Drive-Summaries.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-5 · qa-match-5</td><td>Penalty-Details werden nur als Team-Zaehler persistiert, nicht als vollstaendiges Ereignisprotokoll mit Spielern/Yards.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-6 · qa-match-6</td><td>Quarter Scores sind im produktiven Match-Result nicht nativ vorhanden und werden nur aus der Drive-Sequenz abgeleitet.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-6 · qa-match-6</td><td>Ein echtes Play-by-Play existiert in dieser Simulationsstufe nicht; verfuegbar sind nur Drive-Summaries.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-6 · qa-match-6</td><td>Penalty-Details werden nur als Team-Zaehler persistiert, nicht als vollstaendiges Ereignisprotokoll mit Spielern/Yards.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-7 · qa-match-7</td><td>Quarter Scores sind im produktiven Match-Result nicht nativ vorhanden und werden nur aus der Drive-Sequenz abgeleitet.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-7 · qa-match-7</td><td>Ein echtes Play-by-Play existiert in dieser Simulationsstufe nicht; verfuegbar sind nur Drive-Summaries.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-7 · qa-match-7</td><td>Penalty-Details werden nur als Team-Zaehler persistiert, nicht als vollstaendiges Ereignisprotokoll mit Spielern/Yards.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-8 · qa-match-8</td><td>Quarter Scores sind im produktiven Match-Result nicht nativ vorhanden und werden nur aus der Drive-Sequenz abgeleitet.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-8 · qa-match-8</td><td>Ein echtes Play-by-Play existiert in dieser Simulationsstufe nicht; verfuegbar sind nur Drive-Summaries.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-8 · qa-match-8</td><td>Penalty-Details werden nur als Team-Zaehler persistiert, nicht als vollstaendiges Ereignisprotokoll mit Spielern/Yards.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-9 · qa-match-9</td><td>Quarter Scores sind im produktiven Match-Result nicht nativ vorhanden und werden nur aus der Drive-Sequenz abgeleitet.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-9 · qa-match-9</td><td>Ein echtes Play-by-Play existiert in dieser Simulationsstufe nicht; verfuegbar sind nur Drive-Summaries.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-9 · qa-match-9</td><td>Penalty-Details werden nur als Team-Zaehler persistiert, nicht als vollstaendiges Ereignisprotokoll mit Spielern/Yards.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-10 · qa-match-10</td><td>Quarter Scores sind im produktiven Match-Result nicht nativ vorhanden und werden nur aus der Drive-Sequenz abgeleitet.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-10 · qa-match-10</td><td>Ein echtes Play-by-Play existiert in dieser Simulationsstufe nicht; verfuegbar sind nur Drive-Summaries.</td></tr><tr><td>MAJOR</td><td>reporting-gap</td><td>qa-match-10 · qa-match-10</td><td>Penalty-Details werden nur als Team-Zaehler persistiert, nicht als vollstaendiges Ereignisprotokoll mit Spielern/Yards.</td></tr></tbody></table>
+    </section>
+  </main>
+</body>
+</html>

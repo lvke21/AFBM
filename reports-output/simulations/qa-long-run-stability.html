@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>QA Long Run Stability</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 28px; color: #202726; background: #f4efe7; }
+    section { background: #fffdf8; border: 1px solid #ded4c6; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 10px; }
+    p { line-height: 1.45; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+    th, td { text-align: left; padding: 8px 9px; border-bottom: 1px solid #e3dacd; vertical-align: top; }
+    th { background: #eadcc8; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .green { background: #dcfce7; color: #166534; }
+    .red { background: #fee2e2; color: #991b1b; }
+    .note { background: #fff7ed; border-left: 4px solid #f59e0b; padding: 10px 12px; }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>QA Long Run Stability</h1>
+    <p>Long-Run-Test mit 500 vollstaendigen Spielen. Gemessen wurden Kernmetriken, Verteilungen, Extremwerte, First/Last-100-Drift und Laufzeit.</p>
+    <p><span class="pill green">GRUEN</span></p>
+  </section>
+  <section>
+    <h2>Statuspruefung</h2>
+    <table><thead><tr><th>Check</th><th>Status</th></tr></thead><tbody><tr><td>Punkte im historischen Balance-Korridor</td><td>BEOBACHTEN</td></tr><tr><td>Total Yards im historischen Balance-Korridor</td><td>GRUEN</td></tr><tr><td>TDs im historischen Balance-Korridor</td><td>BEOBACHTEN</td></tr><tr><td>Punts im historischen Balance-Korridor</td><td>BEOBACHTEN</td></tr><tr><td>FG im historischen Balance-Korridor</td><td>BEOBACHTEN</td></tr><tr><td>TOD im historischen Balance-Korridor</td><td>BEOBACHTEN</td></tr><tr><td>Keine State-Integritaetsfehler</td><td>GRUEN</td></tr><tr><td>Keine First/Last-100 Drift</td><td>GRUEN</td></tr><tr><td>Performance akzeptabel</td><td>GRUEN</td></tr></tbody></table>
+    <p class="note">Referenz ist die zuletzt gruen akzeptierte Coach-/Playcount-Konfiguration. Ziel: stabile Mittelwerte, keine neue Drift, keine kritischen Extremwerte.</p>
+  </section>
+  <section>
+    <h2>Mittelwerte und Min/Max</h2>
+    <table><thead><tr><th>Metrik</th><th>Avg</th><th>Min</th><th>Max</th><th>P10</th><th>Median</th><th>P90</th><th>StdDev</th></tr></thead><tbody><tr><td>Punkte / Spiel</td><td>34.3</td><td>0</td><td>78</td><td>17</td><td>33</td><td>53.1</td><td>14.3</td></tr><tr><td>Total Yards / Spiel</td><td>838.6</td><td>636</td><td>1104</td><td>743.9</td><td>833.5</td><td>944</td><td>76.6</td></tr><tr><td>Passing Yards / Spiel</td><td>576.3</td><td>411</td><td>777</td><td>502.9</td><td>575</td><td>653</td><td>57.9</td></tr><tr><td>Rushing Yards / Spiel</td><td>262.3</td><td>183</td><td>341</td><td>231</td><td>261</td><td>294.1</td><td>24.8</td></tr><tr><td>TDs / Team-Spiel</td><td>1.88</td><td>0</td><td>4.5</td><td>1</td><td>2</td><td>3</td><td>0.86</td></tr><tr><td>Punts / Team-Spiel</td><td>6.72</td><td>1.5</td><td>13.5</td><td>4</td><td>6.5</td><td>9.5</td><td>2.14</td></tr><tr><td>FG Attempts / Team-Spiel</td><td>2.22</td><td>0</td><td>8</td><td>0.5</td><td>2</td><td>4</td><td>1.29</td></tr><tr><td>TOD / Team-Spiel</td><td>0.6</td><td>0</td><td>2</td><td>0</td><td>0.5</td><td>1</td><td>0.48</td></tr><tr><td>Turnovers / Team-Spiel</td><td>0.92</td><td>0</td><td>3</td><td>0</td><td>1</td><td>1.5</td><td>0.62</td></tr><tr><td>Sacks / Team-Spiel</td><td>1.37</td><td>0</td><td>5</td><td>0.5</td><td>1</td><td>2.5</td><td>0.94</td></tr><tr><td>Penalties / Team-Spiel</td><td>3.96</td><td>0.5</td><td>7.5</td><td>2.5</td><td>4</td><td>6</td><td>1.32</td></tr><tr><td>Explosive Plays / Team-Spiel</td><td>3.64</td><td>0</td><td>7.5</td><td>2</td><td>3.5</td><td>5</td><td>1.16</td></tr><tr><td>Red-Zone Trips / Team-Spiel</td><td>1.49</td><td>0</td><td>4.5</td><td>0.5</td><td>1.5</td><td>2.5</td><td>0.79</td></tr><tr><td>Red-Zone TD Rate</td><td>57.6</td><td>0</td><td>100</td><td>0</td><td>60</td><td>100</td><td>33</td></tr><tr><td>4th Down GO Rate</td><td>27.8</td><td>3.4</td><td>65.2</td><td>15.4</td><td>27.4</td><td>40.1</td><td>10.1</td></tr><tr><td>4th Down Success Rate</td><td>65.4</td><td>0</td><td>100</td><td>42.9</td><td>66.7</td><td>100</td><td>18.9</td></tr><tr><td>Drives / Spiel</td><td>27.8</td><td>22</td><td>38</td><td>24</td><td>28</td><td>31</td><td>2.6</td></tr><tr><td>Plays / Drive</td><td>6.33</td><td>5.63</td><td>7.27</td><td>5.97</td><td>6.33</td><td>6.69</td><td>0.26</td></tr><tr><td>Yards / Drive</td><td>30.16</td><td>26.75</td><td>34</td><td>28.39</td><td>30.13</td><td>32</td><td>1.44</td></tr><tr><td>TOP total</td><td>3600</td><td>3600</td><td>3600</td><td>3600</td><td>3600</td><td>3600</td><td>0</td></tr><tr><td>Runtime / Spiel ms</td><td>5.25</td><td>3.06</td><td>97.79</td><td>3.85</td><td>4.53</td><td>6.11</td><td>5.05</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Drift First 100 vs Last 100</h2>
+    <table><thead><tr><th>Metrik</th><th>First 100</th><th>Last 100</th><th>Delta</th><th>Bewertung</th></tr></thead><tbody><tr><td>Punkte / Spiel</td><td>33.84</td><td>35.27</td><td>+1.43</td><td>STABIL</td></tr><tr><td>Total Yards / Spiel</td><td>837.86</td><td>858.12</td><td>+20.26</td><td>STABIL</td></tr><tr><td>TDs / Team-Spiel</td><td>1.84</td><td>1.93</td><td>+0.08</td><td>STABIL</td></tr><tr><td>Punts / Team-Spiel</td><td>6.77</td><td>6.68</td><td>-0.09</td><td>STABIL</td></tr><tr><td>FG / Team-Spiel</td><td>2.15</td><td>2.37</td><td>+0.22</td><td>STABIL</td></tr><tr><td>TOD / Team-Spiel</td><td>0.64</td><td>0.6</td><td>-0.04</td><td>STABIL</td></tr><tr><td>Plays / Drive</td><td>6.35</td><td>6.3</td><td>-0.05</td><td>STABIL</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Drive-End-Verteilung</h2>
+    <table><thead><tr><th>Result</th><th>Count</th><th>Anteil</th></tr></thead><tbody><tr><td>PUNT</td><td>6719</td><td>48.3%</td></tr><tr><td>TOUCHDOWN</td><td>1877</td><td>13.5%</td></tr><tr><td>EMPTY_DRIVE</td><td>1587</td><td>11.4%</td></tr><tr><td>FIELD_GOAL_MADE</td><td>1372</td><td>9.9%</td></tr><tr><td>TURNOVER</td><td>915</td><td>6.6%</td></tr><tr><td>FIELD_GOAL_MISSED</td><td>847</td><td>6.1%</td></tr><tr><td>TURNOVER_ON_DOWNS</td><td>603</td><td>4.3%</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>4th Down Verteilung</h2>
+    <table><thead><tr><th>Decision</th><th>Count</th><th>Anteil</th></tr></thead><tbody><tr><td>PUNT</td><td>7845</td><td>61.2%</td></tr><tr><td>GO_FOR_IT</td><td>3545</td><td>27.6%</td></tr><tr><td>FIELD_GOAL</td><td>1433</td><td>11.2%</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Coach-Verteilung</h2>
+    <table><thead><tr><th>Coach</th><th>Count</th><th>Anteil</th></tr></thead><tbody><tr><td>AGGRESSIVE</td><td>8305</td><td>63.9%</td></tr><tr><td>BALANCED</td><td>4188</td><td>32.2%</td></tr><tr><td>CONSERVATIVE</td><td>512</td><td>3.9%</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Auffaelligkeiten / Ausreisser</h2>
+    <table><thead><tr><th>Game</th><th>Metrik</th><th>Wert</th><th>Bewertung</th></tr></thead><tbody><tr><td>1</td><td>Punkte</td><td>14</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr><tr><td>1</td><td>Punts / Team</td><td>9</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>3</td><td>Punkte</td><td>20</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr><tr><td>3</td><td>Punts / Team</td><td>8</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>7</td><td>Punts / Team</td><td>8</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>9</td><td>Punkte</td><td>23</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr><tr><td>10</td><td>Punts / Team</td><td>8</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>12</td><td>Punkte</td><td>13</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr><tr><td>12</td><td>Punts / Team</td><td>7.5</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>18</td><td>Punkte</td><td>7</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr><tr><td>18</td><td>Punts / Team</td><td>9</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>20</td><td>Punkte</td><td>23</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr><tr><td>22</td><td>Punkte</td><td>10</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr><tr><td>22</td><td>Punts / Team</td><td>8</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>24</td><td>Punkte</td><td>3</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr><tr><td>24</td><td>Punts / Team</td><td>9.5</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>25</td><td>Punts / Team</td><td>8.5</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>26</td><td>Punkte</td><td>10</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr><tr><td>26</td><td>Punts / Team</td><td>7.5</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>27</td><td>Punkte</td><td>14</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr><tr><td>29</td><td>Punkte</td><td>7</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr><tr><td>29</td><td>Punts / Team</td><td>9</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>31</td><td>Punts / Team</td><td>8.5</td><td>Sehr puntlastiges Einzelspiel.</td></tr><tr><td>32</td><td>Punkte</td><td>20</td><td>Ausserhalb breitem Long-Run-Korridor 24-70.</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Performance</h2>
+    <p>500 Spiele in 2647.1 ms, durchschnittlich 5.29 ms pro Spiel.</p>
+  </section>
+</body>
+</html>

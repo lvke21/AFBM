@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Finaler GUI-Bericht zur GM-Simulation</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7fb;
+        --panel: #ffffff;
+        --ink: #172033;
+        --muted: #5a667a;
+        --line: #d9e1ec;
+        --accent: #0f766e;
+        --accent-soft: #e0f2f1;
+        --warn: #92400e;
+        --warn-soft: #fffbeb;
+        --code: #0f172a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 56px;
+      }
+
+      header,
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+        margin-bottom: 20px;
+        padding: 24px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        letter-spacing: -0.02em;
+      }
+
+      h2 {
+        margin-bottom: 14px;
+        font-size: 1.45rem;
+      }
+
+      h3 {
+        margin-top: 18px;
+        margin-bottom: 8px;
+        font-size: 1.05rem;
+      }
+
+      p {
+        margin: 10px 0;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 1.05rem;
+        max-width: 860px;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .badge {
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 5px 12px;
+        font-size: 0.86rem;
+        font-weight: 700;
+      }
+
+      .toc {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .toc a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 14px 0 8px;
+        overflow: hidden;
+        border-radius: 10px;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef4fb;
+        color: #24324a;
+        font-weight: 800;
+      }
+
+      tr:nth-child(even) td {
+        background: #fbfdff;
+      }
+
+      code {
+        background: #eef2f7;
+        border-radius: 6px;
+        color: var(--code);
+        font-size: 0.92em;
+        padding: 2px 5px;
+      }
+
+      ul,
+      ol {
+        margin: 10px 0 10px 22px;
+        padding: 0;
+      }
+
+      li {
+        margin: 5px 0;
+      }
+
+      .callout {
+        border-left: 5px solid var(--accent);
+        background: var(--accent-soft);
+        border-radius: 10px;
+        padding: 16px;
+      }
+
+      .risk {
+        border-left-color: var(--warn);
+        background: var(--warn-soft);
+      }
+
+      .status-table td:last-child {
+        color: var(--accent);
+        font-weight: 800;
+      }
+
+      @media (max-width: 720px) {
+        main {
+          width: min(100% - 20px, 1180px);
+          padding-top: 16px;
+        }
+
+        header,
+        section {
+          padding: 18px;
+        }
+
+        table {
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Finaler GUI-Bericht zur GM-Simulation</h1>
+        <p class="subtitle">
+          Konsolidierter Bericht zu Struktur, Navigation, Screens, Komponenten, Datenfluss,
+          User Experience, technischer Qualitaet und naechsten Schritten. Es wurde keine neue
+          Funktionalitaet gebaut.
+        </p>
+        <div class="meta">
+          <span class="badge">Stand: 2026-04-25</span>
+          <span class="badge">Status: Gruen</span>
+          <span class="badge">MVP-Bewertung</span>
+        </div>
+      </header>
+
+      <section>
+        <h2>Inhaltsverzeichnis</h2>
+        <nav class="toc" aria-label="Inhaltsverzeichnis">
+          <a href="#kurzfazit">Kurzfazit</a>
+          <a href="#uebersicht">1. Gesamtuebersicht</a>
+          <a href="#navigation">2. Navigation</a>
+          <a href="#screens">3. Screens</a>
+          <a href="#komponenten">4. Komponenten</a>
+          <a href="#datenfluss">5. Datenfluss</a>
+          <a href="#ux">6. GM-User Experience</a>
+          <a href="#staerken">7. Staerken &amp; Schwaechen</a>
+          <a href="#verbesserungen">8. Verbesserungen</a>
+          <a href="#technik">9. Technische Bewertung</a>
+          <a href="#fazit">10. Gesamtfazit</a>
+        </nav>
+      </section>
+
+      <section id="kurzfazit">
+        <h2>Kurzfazit</h2>
+        <div class="callout">
+          <p>
+            Die bestehende GUI ist als MVP-Basis fuer reale Nutzung grundsaetzlich bereit. Sie
+            zeigt Savegame, Team, Saison, Kader, naechstes Spiel und wichtige Aufgaben bereits
+            nachvollziehbar an. Die wichtigsten Systeme sind erreichbar und nutzen echte
+            Datenquellen.
+          </p>
+          <p>
+            Das groesste Risiko liegt in der Informationsarchitektur: Die Team-Seite buendelt
+            zu viele Verantwortlichkeiten, einige Navigationspunkte besitzen noch keine eigenen
+            Arbeitsbereiche, und kritische Aktionen benoetigen klareres Feedback.
+          </p>
+        </div>
+      </section>
+
+      <section id="uebersicht">
+        <h2>1. Gesamtuebersicht der GUI</h2>
+        <p>
+          Die GUI ist eine savegame-zentrierte GM-Anwendung. Nach Auswahl eines Savegames zeigt
+          sie den aktuellen Kontext aus Savegame, Saison, Woche und Manager-Team und fuehrt den
+          Nutzer durch den GM-Loop.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Aufgabe</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>App Shell</td><td>Grundlayout mit Sidebar, TopBar, Breadcrumbs und PageHeader</td></tr>
+            <tr><td>Dashboard</td><td>Zentraler Einstieg mit Teamstatus und naechster Aktion</td></tr>
+            <tr><td>Team Overview</td><td>Teamzustand, Needs, Schemes, Finanzen, Roster und Depth Chart</td></tr>
+            <tr><td>Roster Building</td><td>Free Agency und Signings</td></tr>
+            <tr><td>Saison / Liga</td><td>Standings, Schedule, Playoff Picture und Wochensimulation</td></tr>
+            <tr><td>Game Center / Report</td><td>Spielstatus, Drives, Scores, Boxscore und Top Performer</td></tr>
+            <tr><td>Inbox</td><td>Priorisierte Aufgaben und relevante Ereignisse</td></tr>
+          </tbody>
+        </table>
+        <p>
+          Zentrale Designprinzipien sind sichtbarer Savegame-Kontext, echte Datenquellen,
+          wiederverwendbare Komponenten und arbeitsorientierte Screens.
+        </p>
+      </section>
+
+      <section id="navigation">
+        <h2>2. Navigation</h2>
+        <p>Die Hauptnavigation ist funktional nach GM-Arbeitsbereichen gegliedert.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Menuepunkt</th>
+              <th>Ziel / Bedeutung</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Dashboard</td><td>Startseite des aktiven Savegames</td><td>klar und wichtig</td></tr>
+            <tr><td>Inbox</td><td>Aufgaben, Blocker, wichtige Hinweise</td><td>sehr sinnvoll fuer Orientierung</td></tr>
+            <tr><td>Team</td><td>Team Overview mit Kader, Finanzen, Schemes, Depth Chart</td><td>funktional stark, aber ueberladen</td></tr>
+            <tr><td>Game</td><td>aktuell eher Saison-/Match-Kontext</td><td>sollte direkter auf naechstes Spiel zeigen</td></tr>
+            <tr><td>League</td><td>Saison, Tabelle, Schedule</td><td>logisch</td></tr>
+            <tr><td>Roster Building</td><td>Free Agency</td><td>klarer eigenstaendiger Flow</td></tr>
+            <tr><td>Contracts &amp; Finance</td><td>aktuell Team-Kontext</td><td>strukturelle Luecke</td></tr>
+            <tr><td>Development</td><td>aktuell Team-Kontext</td><td>strukturelle Luecke</td></tr>
+            <tr><td>Savegames</td><td>Savegame-Hub</td><td>logisch</td></tr>
+          </tbody>
+        </table>
+        <h3>Typische User-Flows</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Flow</th>
+              <th>Ablauf</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Dashboard zu Spiel</td><td>Dashboard -> MatchCard -> Game Center -> Spielbericht</td><td>sinnvoll, Game-Menue koennte direkter sein</td></tr>
+            <tr><td>Roster zu Spielerprofil</td><td>Team -> RosterTable -> Spielerprofil</td><td>klar und effizient</td></tr>
+            <tr><td>Saison zu Spielbericht</td><td>League -> Schedule -> Match/Game Center -> Report</td><td>logisch, Status sollte sichtbarer sein</td></tr>
+            <tr><td>Inbox zu Aktion</td><td>Inbox -> Aufgabe -> passender Screen</td><td>guter Orientierungspunkt</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="screens">
+        <h2>3. Screen-Analyse</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Screen</th>
+              <th>Zweck</th>
+              <th>Wichtigste Inhalte</th>
+              <th>Wichtigste Aktionen</th>
+              <th>Datenquellen / Services</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Dashboard</td><td>GM-Startseite</td><td>Team, Woche, Record, Cap, Needs, naechstes Match</td><td>Team, Saison, Free Agency, Game Center oeffnen</td><td><code>getSaveGameFlowSnapshot</code>, <code>getTeamDetailForUser</code>, <code>getSeasonOverviewForUser</code></td></tr>
+            <tr><td>Team Overview</td><td>Teamzustand verwalten</td><td>TeamCard, Needs, Schemes, Cap, Contracts, Depth Chart, Roster</td><td>Schemes, Slots, Release, Profile</td><td><code>getTeamDetailForUser</code></td></tr>
+            <tr><td>Roster View</td><td>Kader durchsuchen</td><td>Filter, Sortierung, Karten, Tabelle</td><td>Profil oeffnen, Release</td><td><code>TeamDetail.players</code></td></tr>
+            <tr><td>Player Profile</td><td>Einzelspieler bewerten</td><td>Header, Ratings, Attribute, Vertrag, Karriere</td><td>Spieler bewerten</td><td><code>getPlayerDetailForUser</code></td></tr>
+            <tr><td>Depth Chart</td><td>Starter und Rollen verwalten</td><td>Slots, Konflikte, Status, KR/PR, Captain, Dev Focus</td><td>Assignment speichern</td><td><code>TeamDetail.players</code>, <code>updateRosterAssignmentAction</code></td></tr>
+            <tr><td>Free Agency</td><td>Spieler verpflichten</td><td>Markt, Needs, Cap/Cash, OfferBuilder</td><td>Spieler signen</td><td><code>getFreeAgentMarketForUser</code>, <code>signFreeAgentAction</code></td></tr>
+            <tr><td>Finanzen</td><td>Cap und Vertragslage verstehen</td><td>CapOverview, ContractTable, FinanceEventList</td><td>Vertraege pruefen</td><td><code>TeamDetail.contractOutlook</code>, <code>recentFinanceEvents</code></td></tr>
+            <tr><td>Saison / Liga</td><td>Ligastatus kontrollieren</td><td>Standings, Schedule, Playoff Picture, SimulationProgress</td><td>Woche simulieren, Match oeffnen</td><td><code>getSeasonOverviewForUser</code>, <code>simulateSeasonWeekAction</code></td></tr>
+            <tr><td>Game Setup</td><td>Spiel vorbereiten</td><td>Gegner, eigene Staerke, Gameplan/Schemes</td><td>Gameplan speichern</td><td><code>getMatchDetailForUser</code>, <code>updateGamePreparationAction</code></td></tr>
+            <tr><td>Game Center</td><td>Spielstatus verfolgen</td><td>Status, Score, letzter Drive, DriveLog</td><td>Report oeffnen</td><td><code>getMatchDetailForUser</code></td></tr>
+            <tr><td>Game Report</td><td>Spiel nachvollziehen</td><td>Scoreboard, BoxScore, TopPerformers, DriveLog</td><td>Spiel analysieren</td><td><code>getMatchDetailForUser</code></td></tr>
+            <tr><td>Inbox</td><td>Naechste Aufgaben erkennen</td><td>Priorisierte Items, kritische/hohe Aufgaben, Links</td><td>zur relevanten Aktion springen</td><td><code>buildInboxState</code>, Team, Season, Savegame</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="komponenten">
+        <h2>4. Komponenten-Architektur</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Komponente</th>
+              <th>Zweck</th>
+              <th>Verwendung</th>
+              <th>Daten / Props</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>AppShell</code></td><td>globales Layout</td><td>alle Savegame-Screens</td><td><code>AppShellContext</code>, <code>children</code></td></tr>
+            <tr><td><code>SidebarNavigation</code></td><td>Hauptnavigation</td><td>AppShell</td><td>Savegame-, Team-, Season-Kontext</td></tr>
+            <tr><td><code>SectionPanel</code></td><td>Standardbereich</td><td>fast alle Screens</td><td>Titel, Beschreibung, Actions, Inhalt</td></tr>
+            <tr><td><code>StatCard</code></td><td>Kennzahlen</td><td>Dashboard, Team, Player, Season, Match, Inbox</td><td>Label, Wert, Tone</td></tr>
+            <tr><td><code>ActionRequiredBanner</code></td><td>wichtigste Aktion</td><td>Dashboard, Depth Chart</td><td>DashboardAction</td></tr>
+            <tr><td><code>TeamNeedsPanel</code></td><td>Team-Bedarfe</td><td>Dashboard, Team</td><td>Needs, Links</td></tr>
+            <tr><td><code>RosterTable</code></td><td>Kader filtern und sortieren</td><td>Team</td><td>Spieler, Managerrechte, Release Action</td></tr>
+            <tr><td><code>DepthChartView</code></td><td>Lineup und Rollen</td><td>Team</td><td>Spieler, Team-ID, Assignment Action</td></tr>
+            <tr><td><code>FreeAgentBoard</code></td><td>Marktansicht</td><td>Free Agency</td><td>Market, Sign Action</td></tr>
+            <tr><td><code>OfferBuilder</code></td><td>Vertragsangebot</td><td>FreeAgentBoard</td><td>Cap, Cash, Spieler, Sign Action</td></tr>
+            <tr><td><code>GamePreparationPanel</code></td><td>Gameplan setzen</td><td>Game Report / Pre-Game</td><td>Match, Update Action</td></tr>
+            <tr><td><code>GameCenterPanel</code></td><td>Spielstatus</td><td>Game Center</td><td>Match, Report-Link</td></tr>
+            <tr><td><code>DriveLog</code></td><td>Drive-Verlauf</td><td>Game Center, Game Report</td><td>Drives</td></tr>
+            <tr><td><code>InboxList</code></td><td>Aufgaben anzeigen</td><td>Inbox</td><td>InboxState</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="datenfluss">
+        <h2>5. Datenfluss und Logik</h2>
+        <ol>
+          <li>Page laedt den angemeldeten Nutzer ueber <code>requirePageUserId</code>.</li>
+          <li>Page ruft einen <code>ForUser</code>-Query-Service auf.</li>
+          <li>Service laedt Daten ueber Repository/Prisma.</li>
+          <li>Service mappt Domain-Daten in View-Daten.</li>
+          <li>Komponenten stellen diese Daten dar.</li>
+          <li>Mutationen laufen ueber Server Actions.</li>
+          <li>Server Actions validieren Kontext, schreiben Daten und redirecten zurueck.</li>
+        </ol>
+        <table>
+          <thead>
+            <tr><th>Service / Logik</th><th>Aufgabe</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>getSaveGameFlowSnapshot</code></td><td>Savegame-, Team- und Saisonkontext bestimmen</td></tr>
+            <tr><td><code>getTeamDetailForUser</code></td><td>Team, Spieler, Needs, Vertraege und Finanzen bereitstellen</td></tr>
+            <tr><td><code>getPlayerDetailForUser</code></td><td>Spielerprofil, Ratings, Attribute, Stats und Historie liefern</td></tr>
+            <tr><td><code>getFreeAgentMarketForUser</code></td><td>Free-Agent-Markt mit Need/Fit/Cap berechnen</td></tr>
+            <tr><td><code>getSeasonOverviewForUser</code></td><td>Standings, Schedule und Playoff Picture liefern</td></tr>
+            <tr><td><code>getMatchDetailForUser</code></td><td>Match, Score, Drives, Teamstats und Leaders liefern</td></tr>
+            <tr><td><code>buildInboxState</code></td><td>Aufgaben aus Team-, Saison- und Spielzustand ableiten</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="ux">
+        <h2>6. GM-User Experience</h2>
+        <p>
+          Der Spieler versteht den Teamzustand grundsaetzlich schnell. Dashboard, StatCards,
+          Team Needs, Cap Space und Inbox vermitteln die wichtigsten Informationen. Bestehende
+          Probleme werden ueber Team Needs, Depth-Chart-Konflikte und Inbox sichtbar.
+        </p>
+        <p>
+          Entscheidungen werden in Roster, Depth Chart, Free Agency, Saison und Spielanalyse gut
+          unterstuetzt. Nutzer koennen jedoch haengen bleiben, wenn Team-Seite, Game Setup und
+          Finanz-/Development-Navigation keine klare Trennung bieten.
+        </p>
+      </section>
+
+      <section id="staerken">
+        <h2>7. Staerken und Schwaechen</h2>
+        <h3>Staerken</h3>
+        <table>
+          <thead><tr><th>Staerke</th><th>Warum es gut geloest ist</th></tr></thead>
+          <tbody>
+            <tr><td>Savegame-Kontext</td><td>Nutzer weiss, in welchem Spielstand, Team und Saisonkontext er arbeitet</td></tr>
+            <tr><td>Dashboard</td><td>Status und naechste Aktion sind schnell sichtbar</td></tr>
+            <tr><td>Echte Daten</td><td>GUI ist an reale Query-Services angebunden</td></tr>
+            <tr><td>Komponentenstruktur</td><td>Panels, Cards und Tabellen reduzieren Duplikation</td></tr>
+            <tr><td>Depth Chart</td><td>Konflikte und leere Slots werden sichtbar</td></tr>
+            <tr><td>Inbox</td><td>macht aus Daten konkrete Aufgaben</td></tr>
+            <tr><td>Free Agency</td><td>sortierbarer Markt mit Cap-/Cash-Bezug</td></tr>
+            <tr><td>Game Report</td><td>Score, Stats, Top Performer und Drives sind nachvollziehbar</td></tr>
+          </tbody>
+        </table>
+        <h3>Schwaechen</h3>
+        <table>
+          <thead><tr><th>Schwaeche</th><th>Auswirkung</th></tr></thead>
+          <tbody>
+            <tr><td>Team-Seite ueberladen</td><td>Nutzer muss scrollen und Aufgaben mental trennen</td></tr>
+            <tr><td>Finance/Development ohne eigene Tiefe</td><td>Navigation verspricht mehr Struktur als vorhanden</td></tr>
+            <tr><td>Game Setup unscharf</td><td>nicht klar genug als eigener Vorbereitungsprozess</td></tr>
+            <tr><td>Wenig Action-Feedback</td><td>Nutzer sieht Folgen von Aktionen nicht stark genug</td></tr>
+            <tr><td>Keine persistente Inbox</td><td>Aufgaben koennen nicht erledigt, gelesen oder verschoben werden</td></tr>
+            <tr><td>Rohe Statuslabels</td><td>technische Begriffe sind fuer Anwender weniger freundlich</td></tr>
+            <tr><td>Generische Breadcrumbs</td><td>Kontext wie Spielername oder Match fehlt teilweise</td></tr>
+            <tr><td>Statisches Game Center</td><td>laufende Simulationen wirken nicht wirklich live</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="verbesserungen">
+        <h2>8. Verbesserungspotenzial</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Prioritaet</th>
+              <th>Verbesserung</th>
+              <th>Begruendung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Hoch</td><td>Team-Seite in Tabs oder Unterseiten teilen</td><td>Roster, Depth Chart, Finanzen und Contracts brauchen klarere Arbeitsflaechen</td></tr>
+            <tr><td>Hoch</td><td>Game-Menue direkt zum naechsten relevanten Spiel fuehren</td><td>reduziert Umwege zwischen League, Game Center und Report</td></tr>
+            <tr><td>Hoch</td><td>Eigenen Pre-Game-/Game-Setup-Flow schaffen</td><td>Vorbereitung sollte vor dem Spiel deutlich getrennt sein</td></tr>
+            <tr><td>Hoch</td><td>Action-Feedback einfuehren</td><td>Signings, Releases und Scheme-Aenderungen brauchen Erfolg/Fehler/Impact-Rueckmeldung</td></tr>
+            <tr><td>Hoch</td><td>Finance als echte Seite ausbauen</td><td>Cap, Vertraege und Events sind zentral fuer GM-Gameplay</td></tr>
+            <tr><td>Mittel</td><td>Development als eigener Bereich strukturieren</td><td>Training, Potential und Focus brauchen spaeter einen klaren Ort</td></tr>
+            <tr><td>Mittel</td><td>Inbox persistent machen</td><td>Gelesen, erledigt, ausgeblendet und spaeter erinnern verbessert Aufgabenmanagement</td></tr>
+            <tr><td>Mittel</td><td>Statuswerte nutzerfreundlich uebersetzen</td><td>technische Enums werden zu Anwendertexten</td></tr>
+            <tr><td>Mittel</td><td>Breadcrumbs mit Entity-Namen verbessern</td><td>Spieler-, Team- und Match-Kontext wird schneller erfassbar</td></tr>
+            <tr><td>Mittel</td><td>Game Center mit Polling/Refresh ergaenzen</td><td>laufende Spiele wirken nachvollziehbarer</td></tr>
+            <tr><td>Niedrig</td><td>Filter/Sortierung in URL speichern</td><td>Nutzer verliert Kontext beim Zuruecknavigieren nicht</td></tr>
+            <tr><td>Niedrig</td><td>Dashboard weiter personalisieren</td><td>naechste Aktion kann je nach Saisonphase praeziser werden</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="technik">
+        <h2>9. Technische Bewertung</h2>
+        <table>
+          <thead><tr><th>Bereich</th><th>Bewertung</th></tr></thead>
+          <tbody>
+            <tr><td>Wiederverwendbarkeit</td><td>Gut. Layout-, Panel-, Statistik-, Team-, Match- und Player-Komponenten sind sinnvoll getrennt.</td></tr>
+            <tr><td>View-Struktur</td><td>Solide, aber einzelne Pages, besonders Team, tragen zu viele Verantwortlichkeiten.</td></tr>
+            <tr><td>Wartbarkeit</td><td>Gut bei Services und Komponenten; mittleres Risiko bei wachsenden Monolith-Screens.</td></tr>
+            <tr><td>Skalierbarkeit</td><td>Grundstruktur traegt weitere Screens, benoetigt aber klarere fachliche Routen.</td></tr>
+            <tr><td>Datenfluss</td><td>Nachvollziehbar und sicher: Server Page -> Service -> Komponenten -> Server Action.</td></tr>
+            <tr><td>UX-Risiko</td><td>Wachsende Komplexitaet kann Navigation und Screen-Dichte ueberfordern.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="fazit">
+        <h2>10. Gesamtfazit</h2>
+        <h3>Ist die GUI bereit fuer reale Nutzung?</h3>
+        <p>
+          Ja, mit MVP-Einschraenkung. Die GUI ist fuer einen ersten echten GM-Flow nutzbar:
+          Savegame oeffnen, Teamzustand pruefen, Kader ansehen, Depth Chart bearbeiten, Free
+          Agents verpflichten, Saison simulieren und Spiele analysieren.
+        </p>
+        <h3>Groesste Risiken</h3>
+        <table>
+          <thead><tr><th>Risiko</th><th>Beschreibung</th></tr></thead>
+          <tbody>
+            <tr><td>Informationsdichte</td><td>Team Overview wird zum Sammelplatz fuer zu viele Systeme</td></tr>
+            <tr><td>Navigationsversprechen</td><td>Finance und Development sind sichtbar, aber nicht als eigene Workflows ausgearbeitet</td></tr>
+            <tr><td>Aktionsunsicherheit</td><td>Nutzer sieht bei Mutationen nicht ausreichend, was passiert ist</td></tr>
+            <tr><td>Game-Flow</td><td>Vorbereitung, Game Center und Report sind vorhanden, aber noch nicht optimal getrennt</td></tr>
+            <tr><td>Skalierung</td><td>Weitere GM-Systeme koennen die bestehende Struktur schnell ueberladen</td></tr>
+          </tbody>
+        </table>
+        <h3>Naechster logischer Entwicklungsschritt</h3>
+        <ol>
+          <li>Team-Bereich in klare Unterbereiche oder Tabs aufteilen.</li>
+          <li>Finance und Development als echte Screens definieren.</li>
+          <li>Pre-Game/Game Setup als eigenen Flow staerken.</li>
+          <li>Action-Feedback fuer kritische GM-Aktionen einfuehren.</li>
+          <li>Game Center und Inbox als Orientierungsanker weiter stabilisieren.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Statuspruefung</h2>
+        <table class="status-table">
+          <thead><tr><th>Pruefung</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Bericht vollstaendig?</td><td>Gruen</td></tr>
+            <tr><td>Verstaendlich fuer Anwender?</td><td>Gruen</td></tr>
+            <tr><td>Sauber strukturiert?</td><td>Gruen</td></tr>
+            <tr><td>Bereit zur Weiterverwendung?</td><td>Gruen</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

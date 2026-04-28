@@ -1,0 +1,1136 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AFBM Gameengine: Wie Spielergebnisse entstehen</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17211d;
+        --muted: #607068;
+        --bg: #f3efe6;
+        --paper: #fffaf0;
+        --paper-strong: #ffffff;
+        --line: #d9cfbd;
+        --field: #27553b;
+        --field-soft: #e7f0e8;
+        --gold: #b98220;
+        --gold-soft: #fff1d2;
+        --rust: #944b2d;
+        --blue: #244f6b;
+        --green: #1f7a4f;
+        --red: #a63d2f;
+        --shadow: 0 18px 44px rgba(51, 40, 24, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 12% 0%, rgba(185, 130, 32, 0.16), transparent 32rem),
+          linear-gradient(140deg, rgba(39, 85, 59, 0.12), transparent 36rem),
+          var(--bg);
+        color: var(--ink);
+        font-family: "Avenir Next", "Trebuchet MS", Verdana, sans-serif;
+        line-height: 1.62;
+      }
+
+      a {
+        color: var(--blue);
+      }
+
+      .page {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 34px 0 60px;
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 34px;
+        border: 1px solid rgba(217, 207, 189, 0.95);
+        border-radius: 28px;
+        background:
+          linear-gradient(135deg, rgba(255, 250, 240, 0.97), rgba(255, 255, 255, 0.9)),
+          repeating-linear-gradient(90deg, transparent 0 70px, rgba(39, 85, 59, 0.055) 70px 72px);
+        box-shadow: var(--shadow);
+      }
+
+      .hero::after {
+        position: absolute;
+        right: -88px;
+        bottom: -96px;
+        width: 320px;
+        height: 320px;
+        border: 18px solid rgba(39, 85, 59, 0.1);
+        border-radius: 999px;
+        content: "";
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 12px;
+        color: var(--field);
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        width: 34px;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--gold);
+        content: "";
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        max-width: 860px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(2.25rem, 6vw, 4.6rem);
+        letter-spacing: -0.055em;
+      }
+
+      .hero p {
+        max-width: 900px;
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 1.08rem;
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 26px;
+      }
+
+      .meta-card {
+        padding: 15px 16px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.68);
+      }
+
+      .meta-card strong {
+        display: block;
+        font-size: 1.3rem;
+      }
+
+      .meta-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      nav {
+        margin: 22px 0;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: rgba(255, 250, 240, 0.86);
+        box-shadow: 0 12px 28px rgba(51, 40, 24, 0.08);
+      }
+
+      nav h2 {
+        margin-bottom: 14px;
+        font-size: 1.1rem;
+      }
+
+      .toc {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+        gap: 9px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .toc a {
+        display: block;
+        padding: 10px 12px;
+        border: 1px solid rgba(217, 207, 189, 0.7);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.52);
+        color: var(--ink);
+        text-decoration: none;
+      }
+
+      .toc a:hover,
+      .toc a:focus-visible {
+        border-color: var(--gold);
+        background: var(--gold-soft);
+        outline: none;
+      }
+
+      main {
+        display: grid;
+        gap: 20px;
+      }
+
+      section {
+        padding: 28px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--paper);
+        box-shadow: 0 10px 26px rgba(51, 40, 24, 0.07);
+        scroll-margin-top: 18px;
+      }
+
+      section h2 {
+        margin-bottom: 12px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(1.65rem, 3vw, 2.25rem);
+        letter-spacing: -0.025em;
+      }
+
+      section h3 {
+        margin: 22px 0 8px;
+        color: var(--field);
+        font-size: 1.1rem;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 14px 1.25rem;
+        padding: 0;
+      }
+
+      li + li {
+        margin-top: 6px;
+      }
+
+      .lead {
+        color: var(--muted);
+        font-size: 1.08rem;
+      }
+
+      .callout {
+        margin: 16px 0;
+        padding: 16px 18px;
+        border: 1px solid rgba(39, 85, 59, 0.18);
+        border-left: 6px solid var(--field);
+        border-radius: 18px;
+        background: var(--field-soft);
+      }
+
+      .warning {
+        border-color: rgba(148, 75, 45, 0.28);
+        border-left-color: var(--rust);
+        background: #fff0e8;
+      }
+
+      .example-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+        margin-top: 14px;
+      }
+
+      .example {
+        padding: 16px;
+        border: 1px solid rgba(217, 207, 189, 0.95);
+        border-radius: 18px;
+        background: var(--paper-strong);
+      }
+
+      .example h3 {
+        margin-top: 0;
+        color: var(--rust);
+      }
+
+      .tag {
+        display: inline-block;
+        margin: 0 6px 8px 0;
+        padding: 4px 9px;
+        border-radius: 999px;
+        background: var(--gold-soft);
+        color: #76510f;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        margin: 16px 0 20px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--paper-strong);
+      }
+
+      table {
+        width: 100%;
+        min-width: 720px;
+        border-collapse: collapse;
+      }
+
+      caption {
+        padding: 13px 15px;
+        color: var(--muted);
+        font-weight: 700;
+        text-align: left;
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        border-top: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #efe6d5;
+        color: #35281a;
+        font-size: 0.9rem;
+      }
+
+      .scoreboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin: 16px 0;
+      }
+
+      .score-card {
+        padding: 18px;
+        border-radius: 18px;
+        background: var(--field);
+        color: white;
+      }
+
+      .score-card strong {
+        display: block;
+        font-size: 2rem;
+        line-height: 1;
+      }
+
+      .score-card span {
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 0.9rem;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: #dff3e9;
+        color: var(--green);
+        font-weight: 800;
+      }
+
+      .status::before {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: currentColor;
+        content: "";
+      }
+
+      .small {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      footer {
+        margin-top: 22px;
+        color: var(--muted);
+        font-size: 0.92rem;
+        text-align: center;
+      }
+
+      @media (max-width: 780px) {
+        .page {
+          width: min(100% - 20px, 1180px);
+          padding-top: 18px;
+        }
+
+        .hero,
+        nav,
+        section {
+          padding: 20px;
+          border-radius: 20px;
+        }
+
+        .meta-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        h1 {
+          letter-spacing: -0.04em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero" id="top">
+        <p class="eyebrow">Anwenderbericht · Gameengine · 24.04.2026</p>
+        <h1>Wie die Football-Simulation zu Spielständen kommt</h1>
+        <p>
+          Dieser Bericht erklärt die Gameengine aus Anwendersicht: nicht als Code-Handbuch,
+          sondern als verständliche Beschreibung, warum ein Spiel 24:20, 41:38 oder 13:10
+          ausgehen kann. Im Mittelpunkt stehen Spieler, Coaches, Gameplan, Zeit, Score,
+          Field Position und die kontrollierte Varianz, die jedes Spiel lebendig macht.
+        </p>
+        <div class="meta-grid" aria-label="Aktuelle QA-Eckwerte">
+          <div class="meta-card">
+            <strong>45,1</strong>
+            <span>Punkte pro Spiel im letzten Edge-Case-Audit</span>
+          </div>
+          <div class="meta-card">
+            <strong>824,3</strong>
+            <span>Total Yards pro Spiel, im Zielbereich</span>
+          </div>
+          <div class="meta-card">
+            <strong>6,33</strong>
+            <span>Plays pro Drive nach Playcount-Kalibrierung</span>
+          </div>
+          <div class="meta-card">
+            <strong>54,7%</strong>
+            <span>Red-Zone-TD-Rate nach Tracking-Fix</span>
+          </div>
+        </div>
+      </header>
+
+      <nav aria-label="Inhaltsverzeichnis">
+        <h2>Inhaltsverzeichnis</h2>
+        <ul class="toc">
+          <li><a href="#summary">Executive Summary</a></li>
+          <li><a href="#simulation">Wie ein Spiel simuliert wird</a></li>
+          <li><a href="#scores">Wie Scores entstehen</a></li>
+          <li><a href="#play-factors">Welche Faktoren ein Play beeinflussen</a></li>
+          <li><a href="#players">Rolle der Spieler</a></li>
+          <li><a href="#coaches">Rolle der Coaches</a></li>
+          <li><a href="#time-score-field">Zeit, Score und Field Position</a></li>
+          <li><a href="#variance">Warum Ergebnisse variieren</a></li>
+          <li><a href="#examples">Beispielsituationen</a></li>
+          <li><a href="#strengths">Was die Simulation bereits gut kann</a></li>
+          <li><a href="#limits">Aktuelle Grenzen</a></li>
+          <li><a href="#player-meaning">Was bedeutet das für den Spieler?</a></li>
+          <li><a href="#conclusion">Fazit</a></li>
+          <li><a href="#status">Statusprüfung</a></li>
+        </ul>
+      </nav>
+
+      <main>
+        <section id="summary">
+          <h2>Executive Summary</h2>
+          <p class="lead">
+            Die Gameengine simuliert ein Footballspiel als Abfolge von Ballbesitzen. Jeder Drive
+            beginnt mit einer Feldposition, entwickelt sich über mehrere Plays und endet mit einem
+            Touchdown, Field Goal, Punt, Turnover, Turnover on Downs oder einem kontrollierten
+            Auslaufen der Uhr.
+          </p>
+          <p>
+            Ein Ergebnis entsteht nicht durch einen einzigen Teamwert. Die Engine kombiniert
+            Teamstärken, Spielerattribute, Matchups, Coach-Risiko, Feldposition, Down & Distance,
+            Uhr, Spielstand, Special Teams und Zufallsvarianz. Dadurch gewinnt ein starkes Team
+            häufiger gute Matchups, aber nicht automatisch jedes einzelne Play.
+          </p>
+          <div class="callout">
+            <strong>Einfach gesagt:</strong> Gute Spieler und ein passender Gameplan verschieben
+            Wahrscheinlichkeiten. Sie garantieren keine perfekte Serie. Genau das macht Ergebnisse
+            nachvollziehbar, aber nicht vorhersehbar.
+          </div>
+          <div class="table-wrap">
+            <table>
+              <caption>Aktuelle QA-Lage, verständlich zusammengefasst</caption>
+              <thead>
+                <tr>
+                  <th>Bereich</th>
+                  <th>Aktueller Stand</th>
+                  <th>Was das für Anwender bedeutet</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Gesamtbalance</td>
+                  <td>Finaler 100-Spiele-Test grün: Punkte, TDs, Yards, Punts, FGs und TOD im Zielkorridor.</td>
+                  <td>Spiele bewegen sich im erwarteten Football-Rahmen, ohne dauerhaft zu score-lastig oder zu defensiv zu sein.</td>
+                </tr>
+                <tr>
+                  <td>Red Zone</td>
+                  <td>Tracking korrigiert: Red-Zone-Trip = jedes Betreten der gegnerischen 20. TD-Rate ca. 54,7%.</td>
+                  <td>Red-Zone-Erfolg wird jetzt so gezählt, wie Fans es erwarten: Wer die 20 erreicht, hat einen echten Red-Zone-Trip.</td>
+                </tr>
+                <tr>
+                  <td>Clock & Endgame</td>
+                  <td>Kneel Downs, 2-Minute Drill, Clock Kill und Garbage Time sind aktiv.</td>
+                  <td>Teams verhalten sich am Spielende situativer: führen sie, nehmen sie Zeit; liegen sie zurück, spielen sie schneller.</td>
+                </tr>
+                <tr>
+                  <td>Coaching</td>
+                  <td>Conservative, Balanced und Aggressive Coaches unterscheiden sich messbar.</td>
+                  <td>Der Coach-Stil beeinflusst Risiko, 4th Downs, Field Goals und Tempo sichtbar, ohne die Gesamtbalance zu sprengen.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="simulation">
+          <h2>Wie ein Spiel simuliert wird</h2>
+          <p>
+            Die Matchsimulation arbeitet in Drives. Ein Drive ist ein Ballbesitz: Ein Team bekommt
+            den Ball, läuft mehrere Plays und gibt ihn danach durch Score, Punt, Turnover oder ein
+            anderes Drive-Ende wieder ab.
+          </p>
+          <ol>
+            <li>Vor dem Spiel wird geprüft, welche Spieler einsatzfähig sind und welche Rollen sie übernehmen: Starter, Rotation, Kicker, Punter, Returner und so weiter.</li>
+            <li>Aus den Spielern entstehen Teamstärken, zum Beispiel Passspiel, Laufspiel, Pass Defense, Run Defense, Ball Security, Kicking und Punting.</li>
+            <li>Für jeden Drive wird eine Startposition gewählt. Häufig startet ein Team ungefähr zwischen eigener 20 und eigener 35.</li>
+            <li>Die Engine bestimmt, wie erfolgreich der Drive ungefähr verläuft: Passversuche, Laufversuche, Sacks, Drops, Stops, Yards, Turnover-Risiko und Field Position.</li>
+            <li>Wenn der Drive nicht vorher durch Turnover oder Touchdown endet, entscheidet die Engine am 4th Down zwischen Punt, Field Goal oder Go-for-it.</li>
+            <li>Nach dem Drive werden Score, Team Stats, Player Stats, Red-Zone-Daten, Drive Summary und Spielzeit aktualisiert.</li>
+          </ol>
+          <div class="callout">
+            <strong>Drive Loop:</strong> Der Drive Loop ist der Ablauf „Ballbesitz starten,
+            Plays auswerten, Drive-Ende entscheiden, Stats schreiben, Ballbesitz wechseln“.
+            Anwender müssen das nicht bedienen, aber es erklärt, warum Stats und Scores logisch
+            zusammenhängen.
+          </div>
+          <h3>Outcome Engine und Play Selection</h3>
+          <p>
+            Neben der Drive-Simulation existiert eine feinere Gameplay-Schicht für Play Selection
+            und Outcome Resolution. Dort werden Play-Familien, Formationen, defensive Antworten,
+            X-Factor-Pläne und konkrete Wahrscheinlichkeiten wie Completion, Sack, Interception,
+            Explosive Play oder Stuffed Run bewertet. Aus Anwendersicht ist das die Ebene, auf der
+            ein Gameplan sagt: „Wir spielen schneller“, „wir schützen den QB“, „wir attackieren die
+            schwache O-Line“ oder „wir limitieren den Pass“.
+          </p>
+          <p>
+            Die aktuelle Matchsimulation fasst viele dieser Details für schnelle Saisonspiele in
+            Team- und Drivewerte zusammen. Das Ziel ist: schnell genug für viele Spiele, aber mit
+            nachvollziehbaren Football-Ursachen.
+          </p>
+        </section>
+
+        <section id="scores">
+          <h2>Wie Scores entstehen</h2>
+          <p>
+            Punkte entstehen, wenn ein Drive gut genug in Scoring-Reichweite kommt und das Team
+            den Abschluss schafft. Die Engine unterscheidet verschiedene Enden, damit nicht jeder
+            gute Drive automatisch ein Touchdown wird.
+          </p>
+          <div class="scoreboard">
+            <div class="score-card">
+              <strong>6+1</strong>
+              <span>Touchdown plus Extra Point</span>
+            </div>
+            <div class="score-card">
+              <strong>3</strong>
+              <span>Field Goal, abhängig von Distanz und Kicker</span>
+            </div>
+            <div class="score-card">
+              <strong>0</strong>
+              <span>Punt, Turnover, TOD oder Empty Drive</span>
+            </div>
+          </div>
+          <h3>Touchdowns</h3>
+          <p>
+            Touchdowns entstehen, wenn ein Drive weit genug kommt und die Offensive den Abschluss
+            gewinnt. Ein starker QB, gute Receiver, ein passender Laufangriff, gute Blocks und eine
+            schwächere Defense erhöhen die Chance. In der Red Zone wird gesondert gewertet, ob ein
+            Team nach Betreten der gegnerischen 20 tatsächlich mit TD abschließt.
+          </p>
+          <h3>Field Goals</h3>
+          <p>
+            Field Goals entstehen, wenn ein Drive in Kick-Reichweite endet und die Spielsituation
+            den Kick sinnvoll macht. Die Distanz, Kickerqualität, Long Snapper/Snap Operation,
+            Score, Zeit und Coach-Profil beeinflussen, ob überhaupt gekickt wird und ob der Kick
+            gut ist.
+          </p>
+          <h3>Punts</h3>
+          <p>
+            Punts entstehen meist, wenn ein Team bei 4th Down zu weit von einem First Down oder
+            einem sinnvollen Field Goal entfernt ist. Der Punter beeinflusst Distanz, Net Punt,
+            Inside-20-Chance, Touchbacks und Return-Möglichkeiten.
+          </p>
+          <h3>Turnovers und Turnover on Downs</h3>
+          <p>
+            Ein normaler Turnover ist ein Ballverlust wie Interception oder Fumble. Ein Turnover
+            on Downs entsteht, wenn ein Team bei 4th Down auf dem Feld bleibt und die benötigten
+            Yards nicht schafft. Die Engine erlaubt diese Risiken, begrenzt sie aber situativ,
+            damit Drives nicht unrealistisch oft in wiederholte 4th-Down-Schleifen geraten.
+          </p>
+          <h3>Warum endet ein Drive manchmal ohne Punkte?</h3>
+          <p>
+            Ein Drive kann viele Yards machen und trotzdem leer ausgehen: Sack, Penalty, Incomplete
+            Pass, 3rd-Down-Stop, zu lange Field-Goal-Distanz, konservativer Punt, verfehlter Kick
+            oder ein gescheiterter 4th-Down-Versuch. Genau diese „fast erfolgreichen“ Drives sind
+            wichtig, damit Football nicht nur aus TDs besteht.
+          </p>
+        </section>
+
+        <section id="play-factors">
+          <h2>Welche Faktoren ein Play beeinflussen</h2>
+          <p>
+            Ein einzelnes Play ist ein kleines Matchup zwischen Absicht, Ausführung und Gegner.
+            Die Engine betrachtet nicht nur „Team A ist besser als Team B“, sondern mehrere
+            kleinere Hebel.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Die wichtigsten Play-Faktoren</caption>
+              <thead>
+                <tr>
+                  <th>Faktor</th>
+                  <th>Was bedeutet das?</th>
+                  <th>Wie merkt man es im Spiel?</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Spielerwerte</td>
+                  <td>Attribute wie Accuracy, Vision, Catching, Pass Rush, Coverage, Ball Security oder Kick Power.</td>
+                  <td>Mehr Completions, bessere Runs, weniger Sacks, sichere Kicks oder mehr Takeaways.</td>
+                </tr>
+                <tr>
+                  <td>Play Call</td>
+                  <td>Ob das Team eher läuft, kurz passt, tief wirft, Play Action nutzt, Screen spielt oder Tempo macht.</td>
+                  <td>Andere Chancen auf Yards, Explosivität, Sack, Turnover oder Uhrverbrauch.</td>
+                </tr>
+                <tr>
+                  <td>Formation</td>
+                  <td>Personal und Aufstellung, zum Beispiel Gun Doubles, Trips, Singleback Tight, Nickel, Dime oder Goal Line.</td>
+                  <td>Mehr Receiver strecken die Defense, schwere Formationen helfen im Laufspiel und in Short Yardage.</td>
+                </tr>
+                <tr>
+                  <td>Gegnerische Defense</td>
+                  <td>Coverage, Pass Rush, Run Fit, Tackling und Ball Skills.</td>
+                  <td>Gute Coverage senkt Completion-Chancen; starker Rush erhöht Druck und Sack-Risiko.</td>
+                </tr>
+                <tr>
+                  <td>Down & Distance</td>
+                  <td>1st & 10 ist offen. 3rd & 12 ist berechenbarer. 4th & 1 erlaubt Risiko.</td>
+                  <td>Je länger die Distanz, desto eher Pass, Punt, Sack-Risiko oder schwierige 4th-Down-Entscheidung.</td>
+                </tr>
+                <tr>
+                  <td>Field Position</td>
+                  <td>Wo der Ball liegt: eigene Hälfte, Midfield, gegnerische 40, Red Zone oder Goal-to-Go.</td>
+                  <td>Nahe der Endzone steigen TD- und FG-Optionen; tief in eigener Hälfte wird konservativer gespielt.</td>
+                </tr>
+                <tr>
+                  <td>Clock und Score</td>
+                  <td>Wie viel Zeit bleibt und ob ein Team führt, zurückliegt oder ein Field Goal reicht.</td>
+                  <td>2-Minute Drill, Clock Kill, Kneel Down, Endgame-FG oder TD-Need.</td>
+                </tr>
+                <tr>
+                  <td>Coaching Risk</td>
+                  <td>Conservative, Balanced oder Aggressive beeinflussen Risikoentscheidungen.</td>
+                  <td>Aggressive Coaches gehen öfter bei 4th & short, Conservative nehmen eher Punkte oder Feldposition.</td>
+                </tr>
+                <tr>
+                  <td>X-Factor / Gameplan</td>
+                  <td>Vorgegebene Schwerpunkte: Run First, Pass First, Max Protect, Fast Release, Protect Ball, Hunt Turnovers.</td>
+                  <td>Der Spielstil kippt subtil, ohne dass ein Gameplan allein ein Spiel garantiert.</td>
+                </tr>
+                <tr>
+                  <td>Zufallsvarianz</td>
+                  <td>Football enthält unsichere Ausführung: ein Drop, ein perfekter Blitz, ein starker Punt, ein verpasster Tackle.</td>
+                  <td>Gleiche Teams können mehrfach spielen und unterschiedliche, aber plausible Ergebnisse liefern.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="players">
+          <h2>Rolle der Spieler</h2>
+          <p>
+            Spieler sind der wichtigste Unterbau der Simulation. Die Engine erstellt aus dem Kader
+            aktive Spieltagsrollen und gewichtet danach, wer Plays beeinflusst. Starter tragen mehr
+            Last, Rotationsspieler kommen aber ebenfalls vor. Verletzungsstatus, Fitness und Moral
+            können die Tagesform verändern.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Positionsgruppen und wichtige Attribute</caption>
+              <thead>
+                <tr>
+                  <th>Position</th>
+                  <th>Wichtige Attribute</th>
+                  <th>Auswirkung im Spiel</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>QB</td>
+                  <td>Short/Medium/Deep Accuracy, Decision Making, Pocket Presence, Mobility, Throw Power, Awareness.</td>
+                  <td>Bestimmt Completion-Chance, Druckverhalten, Sacks, Scrambles, Interceptions und explosive Pässe.</td>
+                </tr>
+                <tr>
+                  <td>RB / FB</td>
+                  <td>Vision, Break Tackle, Elusiveness, Acceleration, Ball Security, Short-Yardage Power, Hands.</td>
+                  <td>Beeinflusst Laufyards, kurze Conversions, Fumble-Risiko, Screens und Checkdowns.</td>
+                </tr>
+                <tr>
+                  <td>WR / TE</td>
+                  <td>Catching, Hands, Route Running, Separation, Release, Contested Catch, Ball Security.</td>
+                  <td>Mehr Separation und sichere Hände erhöhen Completions; gute TEs helfen besonders in Red Zone und Play Action.</td>
+                </tr>
+                <tr>
+                  <td>Offensive Line</td>
+                  <td>Pass Block, Run Block, Footwork, Anchor, Strength, Hand Technique, Discipline.</td>
+                  <td>Schützt den QB, öffnet Laufwege, reduziert Druck, Sacks und Holding-Penalties.</td>
+                </tr>
+                <tr>
+                  <td>Defensive Line / Pass Rush</td>
+                  <td>Pass Rush, Power Moves, Finesse Moves, Block Shedding, Strength, Tackling.</td>
+                  <td>Erzeugt Druck, Sacks, Tackles for Loss und schlechte Würfe.</td>
+                </tr>
+                <tr>
+                  <td>Linebacker</td>
+                  <td>Tackling, Pursuit, Hit Power, Play Recognition, Coverage, Block Shedding.</td>
+                  <td>Stabilisiert Run Defense, verteidigt kurze Zonen und macht viele Tackles.</td>
+                </tr>
+                <tr>
+                  <td>Defensive Backs</td>
+                  <td>Man Coverage, Zone Coverage, Ball Skills, Coverage Range, Play Recognition, Tackling.</td>
+                  <td>Senken Completion- und Big-Play-Chancen, erhöhen Pass Breakups und Interceptions.</td>
+                </tr>
+                <tr>
+                  <td>Kicker</td>
+                  <td>Kick Accuracy, Kick Power, Kick Consistency, Discipline, Awareness.</td>
+                  <td>Bestimmt, ob lange Field Goals sinnvoll sind und wie oft Kicks verwandelt werden.</td>
+                </tr>
+                <tr>
+                  <td>Punter / Returner</td>
+                  <td>Punt Power, Punt Accuracy, Punt Hang Time, Return Vision, Speed, Ball Security, Elusiveness.</td>
+                  <td>Verändert Field Position: Inside-20-Punts, Touchbacks, Returns, Fumbles und versteckte Yards.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout">
+            <strong>Warum gewinnt der bessere Spieler nicht jedes Play?</strong> Weil Football aus
+            Matchups besteht. Ein starker WR kann gegen Double Coverage ausgebremst werden. Ein
+            guter QB kann trotz starker Werte unter Druck geraten. Ein Top-RB kann auf eine
+            perfekt gesetzte Run Defense treffen. Gute Werte erhöhen Chancen, ersetzen aber keine
+            Ausführung.
+          </div>
+        </section>
+
+        <section id="coaches">
+          <h2>Rolle der Coaches</h2>
+          <p>
+            Coaches verändern nicht einfach die Teamstärke. Sie verändern Entscheidungen: Wie viel
+            Risiko nimmt ein Team? Wann geht es bei 4th Down? Wann nimmt es das Field Goal? Wann
+            schützt es eine Führung?
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Coach-Stile aus Anwendersicht</caption>
+              <thead>
+                <tr>
+                  <th>Coach-Typ</th>
+                  <th>Spielstil</th>
+                  <th>Typische Wirkung</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Conservative</td>
+                  <td>Weniger Go-for-it, mehr Absicherung, mehr Field Position, eher Field Goal in neutralen Situationen.</td>
+                  <td>Senkt Risiko, kann aber Drives früher beenden und explosive Comebacks erschweren.</td>
+                </tr>
+                <tr>
+                  <td>Balanced</td>
+                  <td>Mittelweg. Passt sich an Down, Score, Zeit und Feldposition an.</td>
+                  <td>Meist stabile Entscheidungen, weder extrem aggressiv noch extrem vorsichtig.</td>
+                </tr>
+                <tr>
+                  <td>Aggressive</td>
+                  <td>Mehr 4th-short-Risiko, mehr Risiko bei Rückstand, leicht höhere Explosive-Play-Neigung.</td>
+                  <td>Kann Drives verlängern und mehr TDs erzeugen, riskiert aber auch Turnover on Downs.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Der Coach-Effekt ist messbar: Im Coach-Audit gingen Aggressive Coaches häufiger bei
+            4th Down, Conservative Coaches punteten oder kickten häufiger, und die Gesamtwerte
+            blieben trotzdem stabil. Das ist wichtig: Coaching soll einen Stil erzeugen, nicht die
+            Simulation kaputt dominieren.
+          </p>
+          <h3>4th Downs</h3>
+          <p>
+            4th Down ist der sichtbarste Coach-Moment. Die Engine betrachtet Distanz, Field
+            Position, Score, Zeit, Kicker, Risiko-Profil und vorherige Risk-Events im Drive. An der
+            gegnerischen 40 ist 4th & 1 ein ganz anderer Call als 4th & 8 an der eigenen 25.
+          </p>
+          <h3>Tempo und Anpassungen</h3>
+          <p>
+            In späten Spielsituationen verhält sich die Engine anders: Teams im Rückstand nutzen
+            eher 2-Minute-Verhalten, Teams mit Führung töten Uhr, bei deutlicher Führung wird
+            konservativer gespielt, und am Ende wird zwischen „Field Goal reicht“ und „wir brauchen
+            einen Touchdown“ unterschieden.
+          </p>
+        </section>
+
+        <section id="time-score-field">
+          <h2>Rolle von Zeit, Score und Field Position</h2>
+          <p>
+            Die gleiche Spielsituation kann je nach Uhr und Spielstand völlig anders bewertet
+            werden. Ein Field Goal im ersten Quarter ist ein normaler Score. Ein Field Goal mit
+            40 Sekunden Rest und vier Punkten Rückstand ist wertlos, weil ein Touchdown gebraucht
+            wird.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Situationen und ihr Einfluss</caption>
+              <thead>
+                <tr>
+                  <th>Situation</th>
+                  <th>Engine-Verhalten</th>
+                  <th>Warum es realistisch ist</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Early Game</td>
+                  <td>Mehr neutrale Entscheidungen, Score wird noch nicht überbewertet.</td>
+                  <td>Teams spielen ihren Plan, statt sofort in Panik zu geraten.</td>
+                </tr>
+                <tr>
+                  <td>Two-Minute Situation</td>
+                  <td>Mehr schnelle Plays, mehr Clock Stops, mehr Risiko wenn Punkte gebraucht werden.</td>
+                  <td>Teams im Rückstand müssen Zeit sparen.</td>
+                </tr>
+                <tr>
+                  <td>Führung im 4. Quarter</td>
+                  <td>Clock Kill, Läufe inbounds, weniger unnötiges Risiko.</td>
+                  <td>Das Ziel ist nicht mehr maximale Yards, sondern das Spiel zu schließen.</td>
+                </tr>
+                <tr>
+                  <td>Knapper Rückstand</td>
+                  <td>Field Goal kann wichtiger werden, wenn es zum Ausgleich oder Sieg reicht.</td>
+                  <td>Ein Team nimmt eher sichere Punkte, wenn sie den Spielstand lösen.</td>
+                </tr>
+                <tr>
+                  <td>Rückstand mit TD-Need</td>
+                  <td>Mehr Go-for-it in Plus Territory, Field Goal wird weniger attraktiv.</td>
+                  <td>Wenn drei Punkte nicht reichen, muss Risiko genommen werden.</td>
+                </tr>
+                <tr>
+                  <td>Red Zone</td>
+                  <td>Mehr TD- und FG-Finishes, kaum Punts, weniger endlose 4th-Down-Schleifen.</td>
+                  <td>Nahe der Endzone muss ein Drive strukturiert abgeschlossen werden.</td>
+                </tr>
+                <tr>
+                  <td>Garbage Time / Blowout</td>
+                  <td>Führende Teams werden konservativer, Risiko sinkt.</td>
+                  <td>Bei deutlicher Führung ist Ballkontrolle wichtiger als Stilpunkte.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout">
+            <strong>Clock:</strong> Beide Teams teilen sich dieselbe Spieluhr. Time of Possession
+            wird nur aus echter Ballbesitzzeit erzeugt. Der jüngste Edge-Case-Test bestätigt, dass
+            Kneel Downs, Clock Kill, Two-Minute Drill und Garbage Time sichtbar auftreten, ohne
+            die Gesamtstatistik nennenswert zu verschieben.
+          </div>
+        </section>
+
+        <section id="variance">
+          <h2>Warum Ergebnisse variieren</h2>
+          <p>
+            Die Simulation ist bewusst nicht deterministisch. Das bedeutet: Gleiche Teams müssen
+            nicht immer das gleiche Ergebnis produzieren. Stattdessen arbeitet die Engine mit
+            kontrollierten Wahrscheinlichkeiten.
+          </p>
+          <ul>
+            <li>Ein starker QB erhöht Completion- und Explosive-Chancen, aber Würfe können trotzdem unter Druck misslingen.</li>
+            <li>Eine starke Defense senkt gegnerische Effizienz, aber ein einzelner verpasster Tackle kann ein Big Play erlauben.</li>
+            <li>Ein konservativer Coach reduziert Risiko, aber ein zu vorsichtiger Punt kann später indirekt Punkte kosten.</li>
+            <li>Ein aggressiver Coach kann einen Drive retten, aber ein gescheiterter 4th Down gibt dem Gegner Feldposition.</li>
+            <li>Special Teams enthalten eigene Varianz: lange Field Goals, Punt Returns, Touchbacks und versteckte Field Position.</li>
+          </ul>
+          <p>
+            Im 500-Spiele-Stabilitätslauf blieben die Mittelwerte stabil und es gab keine Drift
+            zwischen den ersten und letzten 100 Spielen. Einzelne Ausreißer existieren aber noch:
+            sehr niedrige oder hohe Scores, sehr puntlastige Spiele oder viele Turnover on Downs
+            können auftreten. Aus Anwendersicht heißt das: Die Liga wirkt lebendig, aber extreme
+            Einzelspiele sollten weiter beobachtet werden.
+          </p>
+        </section>
+
+        <section id="examples">
+          <h2>Beispielsituationen</h2>
+          <p class="lead">
+            Die folgenden Beispiele zeigen, wie die Engine aus Spielsituation, Spielern und Coach
+            eine plausible Entscheidung ableitet.
+          </p>
+          <div class="example-grid">
+            <article class="example">
+              <span class="tag">3rd & long</span>
+              <h3>3rd & 11 an der eigenen 32</h3>
+              <p>
+                Die Offense braucht viele Yards. Die Defense rechnet eher mit Pass. Ein guter Pass
+                Rush erhöht Sack- und Throwaway-Gefahr, starke Coverage senkt die Completion-Chance.
+                Ein Checkdown kann nur 6 Yards bringen: statistisch okay, aber der Drive endet oft
+                im Punt.
+              </p>
+            </article>
+            <article class="example">
+              <span class="tag">4th & short</span>
+              <h3>4th & 1 an der gegnerischen 40</h3>
+              <p>
+                Das ist klassisches Go-for-it-Territory. Ein Aggressive Coach bleibt fast immer auf
+                dem Feld. Balanced wägt ab. Conservative kann bei ungünstigem Score oder langer
+                Restzeit auch auf Field Position achten. Ein erfolgreicher Versuch verlängert den
+                Drive, ein Fehlschlag ist Turnover on Downs.
+              </p>
+            </article>
+            <article class="example">
+              <span class="tag">Red Zone</span>
+              <h3>1st & 10 an der gegnerischen 18</h3>
+              <p>
+                Der Drive zählt als Red-Zone-Trip. Die Räume werden enger: Receiver-Separation ist
+                schwieriger, TE und RB können wichtiger werden, und die Defense nutzt häufiger
+                Bracket- oder Goal-Line-Konzepte. Ein TD ist wahrscheinlich, aber ein FG bleibt ein
+                realistischer Fail-Finish.
+              </p>
+            </article>
+            <article class="example">
+              <span class="tag">Rückstand</span>
+              <h3>Aggressiver Coach, 6 Punkte zurück, 1:40 Rest</h3>
+              <p>
+                Ein Field Goal reicht nicht. Die Engine erkennt TD-Need. 4th & medium in Plus
+                Territory wird eher ausgespielt, die Uhr wird schneller geführt, und Risiko wird
+                akzeptiert. Ein Turnover on Downs bleibt möglich, aber der Call ist nachvollziehbar.
+              </p>
+            </article>
+            <article class="example">
+              <span class="tag">Führung</span>
+              <h3>Konservativer Coach führt mit 10 im 4. Quarter</h3>
+              <p>
+                Jetzt zählt Uhr. Läufe inbounds, sichere kurze Plays, Punt statt unnötigem 4th Down
+                und weniger tiefe Risikowürfe sind wahrscheinlicher. Der Coach versucht, das Spiel
+                zu schließen, nicht die Boxscore-Yards zu maximieren.
+              </p>
+            </article>
+            <article class="example">
+              <span class="tag">QB vs Secondary</span>
+              <h3>Starker QB gegen schwache Secondary</h3>
+              <p>
+                Accuracy, Decision Making und Receiver-Separation treffen auf Coverage und Ball
+                Skills. Die Offense bekommt bessere Completion- und Explosive-Chancen. Trotzdem
+                kann Druck der D-Line den Vorteil neutralisieren.
+              </p>
+            </article>
+            <article class="example">
+              <span class="tag">Trenches</span>
+              <h3>Schwache O-Line gegen starken Pass Rush</h3>
+              <p>
+                Pass Protection, Footwork und Anchor verlieren gegen Pass Rush, Power Moves und
+                Finesse Moves. Das erhöht Druck, Sacks, schlechte Würfe und kurze Drives. Ein
+                Gameplan mit Fast Release oder Max Protect kann helfen, kostet aber oft Explosivität.
+              </p>
+            </article>
+            <article class="example">
+              <span class="tag">Endgame</span>
+              <h3>Field Goal im 4. Quarter</h3>
+              <p>
+                Liegt ein Team mit 1 bis 3 Punkten zurück und die Uhr ist knapp, wird ein machbares
+                Field Goal attraktiver. Liegt es mit 4 bis 8 Punkten zurück, reicht der Kick nicht:
+                Die Engine bevorzugt dann häufiger den Versuch, den Drive für einen TD am Leben zu
+                halten.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section id="strengths">
+          <h2>Was die Simulation bereits gut kann</h2>
+          <ul>
+            <li>Sie erzeugt komplette Spiele aus Drives, Scores, Team Stats, Player Stats und Drive Logs.</li>
+            <li>Sie verbindet Spielerattribute mit Teamstärken, statt nur einen Gesamtwert zu nutzen.</li>
+            <li>Sie unterscheidet Drive-Enden: TD, FG made/missed, Punt, Turnover, Turnover on Downs und Empty Drives.</li>
+            <li>Sie behandelt 4th Downs situativ nach Distanz, Feldposition, Coach, Score und Uhr.</li>
+            <li>Sie hat korrigiertes Red-Zone-Tracking mit plausibler TD-Rate.</li>
+            <li>Sie nutzt eine gemeinsame Spieluhr und konsistente Time of Possession.</li>
+            <li>Sie bildet Endgame-Verhalten ab: Kneel Down, Clock Kill, Two-Minute Drill, Garbage Time und Blowout Risk-Off.</li>
+            <li>Sie hält zentrale Zielwerte aktuell stabil: Punkte ca. 42-54, Total Yards ca. 700-850, TDs ca. 2,2-3,0 pro Team-Spiel, Punts ca. 3,0-4,5, FG-Attempts ca. 1,5-2,5 und TOD ca. 0,5-1,2.</li>
+          </ul>
+        </section>
+
+        <section id="limits">
+          <h2>Aktuelle Grenzen</h2>
+          <p>
+            Die Simulation ist realistisch genug für schnelle Saison- und QA-Simulationen, aber
+            noch keine vollständige Play-by-Play-NFL-Nachbildung.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Bewusst vereinfachte Bereiche</caption>
+              <thead>
+                <tr>
+                  <th>Bereich</th>
+                  <th>Aktuelle Vereinfachung</th>
+                  <th>Möglicher späterer Ausbau</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Einzelne Plays im Season-Match</td>
+                  <td>Viele Playdetails werden in Drive- und Teammetriken gebündelt.</td>
+                  <td>Feinere Einbindung der Play Selection und Outcome Engine pro Snap.</td>
+                </tr>
+                <tr>
+                  <td>Formationen</td>
+                  <td>Formation und Play Library existieren, sind aber in der schnellen Matchsimulation abstrahiert.</td>
+                  <td>Mehr sichtbare Formationseffekte im Spielbericht und in der Drive-Erzählung.</td>
+                </tr>
+                <tr>
+                  <td>Momentum</td>
+                  <td>Spielsituation und Score wirken bereits; echtes psychologisches Momentum ist nur indirekt vorhanden.</td>
+                  <td>Serien, Crowd, Rivalry, Coach Adjustments und Morale-Swings stärker modellieren.</td>
+                </tr>
+                <tr>
+                  <td>Ausreißer</td>
+                  <td>Mittelwerte sind stabil, aber einzelne Extremspiele bleiben möglich.</td>
+                  <td>Outlier-Kontrolle, ohne die natürliche Varianz zu glätten.</td>
+                </tr>
+                <tr>
+                  <td>Advanced Stats</td>
+                  <td>Basisstats und Drive Logs sind vorhanden; EPA/WPA-artige Werte sind nicht Hauptfokus.</td>
+                  <td>Mehr moderne Analysemetriken für Power User.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warning">
+            <strong>Wichtig:</strong> Die Engine soll nicht jedes reale Detail simulieren, sondern
+            glaubwürdige Football-Ursachen liefern. Für Anwender ist entscheidend, dass Kaderbau,
+            Coaching und Gameplan sichtbar wirken und Ergebnisse nicht willkürlich erscheinen.
+          </div>
+        </section>
+
+        <section id="player-meaning">
+          <h2>Was bedeutet das für den Spieler?</h2>
+          <p>
+            Für Anwender bedeutet die Gameengine: Entscheidungen abseits des Spielfelds sollen im
+            Ergebnis spürbar werden. Der Score ist nicht nur Zufall, sondern die Summe vieler
+            kleiner Vorteile und Risiken.
+          </p>
+          <ul>
+            <li><strong>Kaderbau ist wichtig:</strong> Ein guter QB hilft, aber ohne O-Line, Receiver und Ball Security bleibt das Passspiel verwundbar. Eine starke Defense braucht Rush und Coverage.</li>
+            <li><strong>Coaching-Stil ist wichtig:</strong> Conservative, Balanced und Aggressive führen zu anderen 4th-Down-, FG-, Punt- und Endgame-Entscheidungen.</li>
+            <li><strong>Gameplan ist wichtig:</strong> X-Factor-Schwerpunkte wie Run First, Pass First, Protect Ball, Hunt Turnovers, Max Protect oder Fast Release verändern, welche Risiken ein Team bevorzugt.</li>
+            <li><strong>Situationen sind wichtig:</strong> Ein guter Call im ersten Quarter kann im Endgame falsch sein. Score, Uhr und Field Position verändern die beste Entscheidung.</li>
+            <li><strong>Varianz bleibt wichtig:</strong> Auch der beste Plan kann durch Drop, Sack, Penalty oder verfehlten Kick kippen. Langfristig setzen sich gute Entscheidungen aber häufiger durch.</li>
+          </ul>
+          <p>
+            Später kann ein Anwender vor allem an drei Hebeln drehen: Kaderqualität, Coach-Profil
+            und Gameplan/X-Factor. Genau diese drei Ebenen sollen unterschiedliche Teamidentitäten
+            erzeugen: ein lauflastiges Kontrollteam, ein explosives Pass-Team, eine defensive
+            Field-Position-Mannschaft oder ein aggressives Comeback-Team.
+          </p>
+        </section>
+
+        <section id="conclusion">
+          <h2>Fazit</h2>
+          <p>
+            Die Gameengine erzeugt Spielstände, indem sie Drive für Drive entscheidet, wie gut eine
+            Offense gegen eine Defense funktioniert und wie der Ballbesitz endet. Touchdowns,
+            Field Goals, Punts und Turnovers entstehen aus einer Mischung aus Spielerqualität,
+            Teammatchups, Coach-Risiko, Feldposition, Uhr, Score und kontrollierter Varianz.
+          </p>
+          <p>
+            Für Nicht-Programmierer ist die wichtigste Erkenntnis: Die Simulation ist kein
+            schwarzer Würfel. Sie ist ein Wahrscheinlichkeitsmodell mit Football-Logik. Gute
+            Entscheidungen erhöhen Chancen, schlechte Matchups erzeugen Probleme, und einzelne
+            Plays bleiben unsicher genug, damit Spiele spannend bleiben.
+          </p>
+        </section>
+
+        <section id="status">
+          <h2>Statusprüfung</h2>
+          <div class="table-wrap">
+            <table>
+              <caption>Abschlusscheck</caption>
+              <thead>
+                <tr>
+                  <th>Check</th>
+                  <th>Status</th>
+                  <th>Begründung</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>HTML-Datei im reports-Folder erstellt</td>
+                  <td>GRÜN</td>
+                  <td>Dieser Bericht ist eine eigenständige HTML-Datei mit CSS und Inhaltsverzeichnis.</td>
+                </tr>
+                <tr>
+                  <td>Für Nicht-Programmierer verständlich</td>
+                  <td>GRÜN</td>
+                  <td>Der Fokus liegt auf Football-Ursachen und Anwenderentscheidungen, nicht auf Code.</td>
+                </tr>
+                <tr>
+                  <td>Scores nachvollziehbar erklärt</td>
+                  <td>GRÜN</td>
+                  <td>Touchdowns, Field Goals, Punts, Turnovers und leere Drives werden separat erklärt.</td>
+                </tr>
+                <tr>
+                  <td>Spieler, Coaches und Situationen erklärt</td>
+                  <td>GRÜN</td>
+                  <td>Positionsgruppen, Coach-Profile, Clock, Score und Field Position sind abgedeckt.</td>
+                </tr>
+                <tr>
+                  <td>Konkrete Beispiele enthalten</td>
+                  <td>GRÜN</td>
+                  <td>Es gibt acht Beispielboxen zu typischen Spielsituationen.</td>
+                </tr>
+                <tr>
+                  <td>Aktuelle QA-Ergebnisse berücksichtigt</td>
+                  <td>GRÜN</td>
+                  <td>Final-100, Red-Zone-Fix, Playcount, Coach Behaviour, Edge Cases und Long-Run-Stability sind eingearbeitet.</td>
+                </tr>
+                <tr>
+                  <td>Keine Codeänderungen durchgeführt</td>
+                  <td>GRÜN</td>
+                  <td>Es wurde nur dieser Anwenderbericht im reports-Folder erstellt.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p><span class="status">Status: GRÜN</span></p>
+        </section>
+      </main>
+
+      <footer>
+        Bericht erstellt für Anwenderkommunikation und QA-Kontext. Grundlage: Match Engine,
+        Gameplay Play Selection / Outcome Resolution und aktuelle QA-Berichte im reports-Folder.
+      </footer>
+    </div>
+  </body>
+</html>

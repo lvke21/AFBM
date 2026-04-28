@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Terminal Drive Calibration Report 2026-04-24</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 28px; color: #1f2a2a; background: #f6f1e8; }
+    section { background: #fffdf8; border: 1px solid #ded4c6; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #e3dacd; vertical-align: top; }
+    th { background: #efe5d8; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .green { background: #dcfce7; color: #166534; }
+    .red { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>Terminal Drive Calibration Report</h1>
+    <p>50-Spiele-Validierung mit Fokus auf Plus Territory, Red Zone und realistischere Drive-Enden ab gegnerischer 45-Yard-Linie.</p>
+    <p><span class="pill red">ROT</span></p>
+  </section>
+  <section>
+    <h2>Vorher / Nachher</h2>
+    <table><thead><tr><th>Metrik</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody><tr><td>Punts / Team-Spiel</td><td>6.91</td><td>3.91</td></tr><tr><td>FG-Attempts / Team-Spiel</td><td>4.75</td><td>2.14</td></tr><tr><td>Touchdowns / Team-Spiel</td><td>0.62</td><td>3.14</td></tr><tr><td>Punkte / Spiel</td><td>29.3</td><td>52.4</td></tr><tr><td>Total Yards / Spiel</td><td>1090.5</td><td>1042.4</td></tr><tr><td>Turnover on Downs / Team-Spiel</td><td>0.96</td><td>3.57</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Terminal-Drive-Verteilung</h2>
+    <table><thead><tr><th>Drive-Ende</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>PUNT</td><td>391</td><td>30</td></tr><tr><td>TURNOVER_ON_DOWNS</td><td>357</td><td>27.4</td></tr><tr><td>TOUCHDOWN</td><td>314</td><td>24.1</td></tr><tr><td>FIELD_GOAL_MADE</td><td>150</td><td>11.5</td></tr><tr><td>FIELD_GOAL_MISSED</td><td>64</td><td>4.9</td></tr><tr><td>TURNOVER</td><td>28</td><td>2.1</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Plus-Territory-Verteilung</h2>
+    <p>Analysiert wurden 1185 Drives, die mindestens die gegnerische 45 erreicht haben.</p>
+    <table><thead><tr><th>Result</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>TURNOVER_ON_DOWNS</td><td>355</td><td>30</td></tr><tr><td>TOUCHDOWN</td><td>314</td><td>26.5</td></tr><tr><td>PUNT</td><td>277</td><td>23.4</td></tr><tr><td>FIELD_GOAL_MADE</td><td>150</td><td>12.7</td></tr><tr><td>FIELD_GOAL_MISSED</td><td>64</td><td>5.4</td></tr><tr><td>TURNOVER</td><td>25</td><td>2.1</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Red-Zone-Verteilung</h2>
+    <p>Analysiert wurden 281 Drives mit hoechster Feldposition ab gegnerischer 20.</p>
+    <table><thead><tr><th>Result</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>TOUCHDOWN</td><td>155</td><td>55.2</td></tr><tr><td>TURNOVER_ON_DOWNS</td><td>90</td><td>32</td></tr><tr><td>FIELD_GOAL_MADE</td><td>24</td><td>8.5</td></tr><tr><td>FIELD_GOAL_MISSED</td><td>10</td><td>3.6</td></tr><tr><td>TURNOVER</td><td>2</td><td>0.7</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>4th-Down-Decision-Verteilung</h2>
+    <table><thead><tr><th>Decision</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>GO_FOR_IT</td><td>709</td><td>55.6</td></tr><tr><td>PUNT</td><td>391</td><td>30.6</td></tr><tr><td>FIELD_GOAL</td><td>176</td><td>13.8</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Auffaellige Terminal Drives</h2>
+    <table><thead><tr><th>Quarter</th><th>Off</th><th>Start</th><th>Peak</th><th>Decision</th><th>Result</th><th>Coach</th><th>Dist</th><th>Summary</th></tr></thead><tbody><tr><td>Q1</td><td>NYT</td><td>23</td><td>57</td><td>PUNT</td><td>PUNT</td><td>AGGRESSIVE</td><td>4</td><td>NYT puntet bei 4th &amp; 4 von der 57-Yard-Linie nach 5 Plays und 39 Yards.</td></tr><tr><td>Q1</td><td>BOS</td><td>25</td><td>69</td><td>FIELD_GOAL</td><td>FIELD_GOAL_MADE</td><td>AGGRESSIVE</td><td>7</td><td>BOS kickt das Field Goal aus 48 Yards nach 4th &amp; 7.</td></tr><tr><td>Q1</td><td>NYT</td><td>26</td><td>55</td><td>GO_FOR_IT</td><td>TURNOVER_ON_DOWNS</td><td>AGGRESSIVE</td><td>2</td><td>BOS stoppt NYT bei 4th &amp; 2; Turnover on Downs.</td></tr><tr><td>Q1</td><td>BOS</td><td>18</td><td>79</td><td>GO_FOR_IT</td><td>FIELD_GOAL_MISSED</td><td>AGGRESSIVE</td><td>2</td><td>BOS konvertiert 4th &amp; 2, verfehlt spaeter aber das Field Goal aus 38 Yards.</td></tr><tr><td>Q1</td><td>NYT</td><td>27</td><td>77</td><td>GO_FOR_IT</td><td>TOUCHDOWN</td><td>AGGRESSIVE</td><td>1</td><td>NYT bleibt bei 4th &amp; 1 drauf und erzielt den Touchdown.</td></tr><tr><td>Q1</td><td>BOS</td><td>34</td><td>92</td><td>GO_FOR_IT</td><td>TOUCHDOWN</td><td>AGGRESSIVE</td><td>3</td><td>BOS bleibt bei 4th &amp; 3 drauf und erzielt den Touchdown.</td></tr><tr><td>Q2</td><td>NYT</td><td>22</td><td>57</td><td>PUNT</td><td>PUNT</td><td>AGGRESSIVE</td><td>5</td><td>NYT puntet bei 4th &amp; 5 von der 57-Yard-Linie nach 11 Plays und 37 Yards.</td></tr><tr><td>Q2</td><td>BOS</td><td>20</td><td>67</td><td>GO_FOR_IT</td><td>TURNOVER_ON_DOWNS</td><td>AGGRESSIVE</td><td>1</td><td>NYT stoppt BOS auch nach konvertiertem 4th Down noch in Plus Territory.</td></tr><tr><td>Q2</td><td>NYT</td><td>27</td><td>70</td><td>GO_FOR_IT</td><td>TURNOVER_ON_DOWNS</td><td>AGGRESSIVE</td><td>4</td><td>BOS stoppt NYT bei 4th &amp; 4; Turnover on Downs.</td></tr><tr><td>Q2</td><td>BOS</td><td>32</td><td>78</td><td>GO_FOR_IT</td><td>TURNOVER_ON_DOWNS</td><td>AGGRESSIVE</td><td>2</td><td>NYT stoppt BOS auch nach konvertiertem 4th Down noch in Plus Territory.</td></tr><tr><td>Q2</td><td>NYT</td><td>37</td><td>84</td><td>GO_FOR_IT</td><td>TURNOVER_ON_DOWNS</td><td>AGGRESSIVE</td><td>1</td><td>BOS stoppt NYT bei 4th &amp; 1; Turnover on Downs.</td></tr><tr><td>Q3</td><td>BOS</td><td>38</td><td>86</td><td>GO_FOR_IT</td><td>TURNOVER_ON_DOWNS</td><td>AGGRESSIVE</td><td>3</td><td>NYT stoppt BOS auch nach konvertiertem 4th Down noch in Plus Territory.</td></tr><tr><td>Q3</td><td>NYT</td><td>21</td><td>64</td><td>PUNT</td><td>PUNT</td><td>AGGRESSIVE</td><td>5</td><td>NYT puntet bei 4th &amp; 5 von der 64-Yard-Linie nach 6 Plays und 45 Yards.</td></tr><tr><td>Q3</td><td>BOS</td><td>24</td><td>57</td><td>PUNT</td><td>PUNT</td><td>AGGRESSIVE</td><td>4</td><td>BOS puntet bei 4th &amp; 4 von der 57-Yard-Linie nach 5 Plays und 34 Yards.</td></tr><tr><td>Q3</td><td>NYT</td><td>28</td><td>63</td><td>PUNT</td><td>PUNT</td><td>AGGRESSIVE</td><td>5</td><td>NYT puntet bei 4th &amp; 5 von der 63-Yard-Linie nach 10 Plays und 34 Yards.</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Empfehlung</h2>
+    <p>Als naechstes sollte die Red-Zone-Finish-Rate leicht weiter angehoben werden.</p>
+  </section>
+  
+</body>
+</html>

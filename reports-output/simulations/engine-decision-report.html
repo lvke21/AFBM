@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Neue Engine Entscheidungen - Game Report</title>
+  <style>
+    body { margin: 0; background: #f5f7f6; color: #172126; font-family: Inter, system-ui, sans-serif; line-height: 1.5; }
+    main { max-width: 1120px; margin: 0 auto; padding: 32px 20px 56px; }
+    h1 { margin: 0; font-size: 32px; }
+    h2 { margin-top: 32px; font-size: 22px; }
+    h3 { margin-top: 24px; font-size: 17px; }
+    p { color: #5d696d; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; background: #fff; border: 1px solid #d8dfdc; }
+    th, td { padding: 10px; border-bottom: 1px solid #d8dfdc; text-align: left; vertical-align: top; font-size: 13px; }
+    th { background: #edf2ef; color: #5d696d; text-transform: uppercase; font-size: 12px; }
+    .note { border: 1px solid #d8dfdc; background: #fff; border-radius: 8px; padding: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Neue Engine Entscheidungen im Game Report</h1>
+    <p class="note">Dieser Bericht erklaert die neuen Engine-Entscheidungen fuer Anwender und Entwickler. Der normale Game Report soll kurze Zusammenfassungen zeigen; der Developer Debug Mode darf die Detailtabellen anzeigen.</p>
+
+    <h2>Was sichtbar wird</h2>
+    <table>
+      <thead><tr><th>Bereich</th><th>Anzeige im Report</th><th>Erklaerung fuer Anwender</th></tr></thead>
+      <tbody>
+        <tr><td>Play Call</td><td>Offense-Call und Defense-Call</td><td>Zeigt, welche Idee beide Seiten vor dem Play hatten.</td></tr>
+        <tr><td>Protection</td><td>Blocker vs Rusher, Pressure Level</td><td>Erklaert, ob der QB Zeit hatte oder Druck schnell kam.</td></tr>
+        <tr><td>QB Decision</td><td>Decision Time, verfuegbare Targets, gewaehltes Target</td><td>Zeigt, warum nicht jede Route anspielbar war.</td></tr>
+        <tr><td>Coverage</td><td>Press Result, Separation Result</td><td>Erklaert, ob Receiver oder Defender das Matchup gewonnen haben.</td></tr>
+        <tr><td>Run Game</td><td>Run Lane Quality</td><td>Zeigt, ob die Line eine Lane erzeugte oder der RB selbst kreieren musste.</td></tr>
+        <tr><td>Context</td><td>Chemistry, Gameplan, Coordinator, Coach/Momentum</td><td>Zeigt kleine situative Einfluesse ohne Rohwert-Ueberladung.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>10 Beispiel-Plays</h2>
+    <table>
+      <thead><tr><th>#</th><th>Play</th><th>Anwender-Erklaerung</th><th>Developer Debug</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Quick Pass gegen Blitz</td><td>Der Coordinator erwartet Druck und nutzt schnelle Ballabgabe.</td><td>Play Call: Quick Stick. Defense Call: Fire Zone. Gameplan: Fast Release.</td></tr>
+        <tr><td>2</td><td>Stabile Pocket</td><td>Fuenf Blocker kontrollieren vier Rusher, der QB bekommt Zeit.</td><td>Blocker vs Rusher: 5 vs 4. Pressure Level: niedrig. O-Line Chemistry leicht positiv.</td></tr>
+        <tr><td>3</td><td>Open Blitz Lane</td><td>Ein freier Rusher zwingt den QB zu schneller Entscheidung.</td><td>Blocker vs Rusher: 5 vs 6. QB Decision Time: kurz. Targets: Quick/Short.</td></tr>
+        <tr><td>4</td><td>Sicheres Target</td><td>Der QB nimmt die entwickelte kurze Route statt eines riskanten Deep Shots.</td><td>Target Selection: Slot. Pressure Modifier: kleiner Malus. Separation: leichter Vorteil.</td></tr>
+        <tr><td>5</td><td>Press gewinnt Timing</td><td>Der Corner stoert die Route frueh und verengt das Catch Window.</td><td>Press Result: Press Win. Separation Result: reduziert. Outcome: PBU moeglich.</td></tr>
+        <tr><td>6</td><td>Outside Run mit Perimeter-Hilfe</td><td>TE/WR helfen am Rand, die Lane wird besser.</td><td>Run Lane Quality: gut. Open Lane Chance: erhoeht. WR zaehlt nur beim passenden Concept.</td></tr>
+        <tr><td>7</td><td>Run Blitz gegen Inside Run</td><td>Defensive Ueberzahl erhoeht Stuffed Risk und negative Yards.</td><td>Box Defender Vorteil. Block Shedding/Tackling wirken gegen Lane Quality.</td></tr>
+        <tr><td>8</td><td>QB-WR Chemistry</td><td>Ein eingespieltes Duo bekommt einen kleinen Timing-Vorteil.</td><td>Modifier: Route Timing, Target Selection, Catch Window leicht positiv.</td></tr>
+        <tr><td>9</td><td>DB Chemistry</td><td>Eine eingespielte Secondary uebergibt Routen sauberer.</td><td>Modifier: Coverage Support, Zone Handoff, Safety Help leicht positiv.</td></tr>
+        <tr><td>10</td><td>Coach stabilisiert nach Turnover</td><td>Ein guter HC reduziert Fehlerketten, dreht aber kein Spiel magisch.</td><td>Momentum Event: Interception. Modifier: Focus/Discipline klein, Collapse Risk gedeckelt.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Bewertung</h2>
+    <p>Die Anzeige bleibt bewusst zweistufig: Anwender sehen kurze Football-Erklaerungen, Entwickler erhalten im Debug Mode die Faktoren und Werte. Dadurch wird der Game Report nachvollziehbarer, ohne die GUI mit Rohdaten zu ueberladen.</p>
+    <p>Status: GRUEN</p>
+  </main>
+</body>
+</html>

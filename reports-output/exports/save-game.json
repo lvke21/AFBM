@@ -1,0 +1,216 @@
+{
+  "schema": "afbm.save-game",
+  "version": 1,
+  "savedAt": "2026-04-24T00:00:00.000Z",
+  "saveGame": {
+    "id": "save-1",
+    "name": "Example Save",
+    "status": "ACTIVE",
+    "currentSeasonId": "season-1"
+  },
+  "season": {
+    "id": "season-1",
+    "year": 2026,
+    "phase": "REGULAR_SEASON",
+    "week": 6
+  },
+  "seeds": {
+    "globalSeed": "save-load-seed-1",
+    "matches": [
+      {
+        "matchId": "match-1",
+        "simulationSeed": "save-load-seed-1"
+      }
+    ]
+  },
+  "gameplan": {
+    "teams": {
+      "BOS": {
+        "coachingProfile": "BALANCED",
+        "offenseXFactorPlan": {
+          "offensiveFocus": "PASS_FIRST",
+          "defensiveFocus": "BALANCED",
+          "aggression": "BALANCED",
+          "tempoPlan": "NORMAL",
+          "protectionPlan": "STANDARD",
+          "offensiveMatchupFocus": "FEATURE_WR",
+          "defensiveMatchupFocus": "BALANCED",
+          "turnoverPlan": "PROTECT_BALL"
+        },
+        "defenseXFactorPlan": {
+          "offensiveFocus": "BALANCED",
+          "defensiveFocus": "LIMIT_PASS",
+          "aggression": "BALANCED",
+          "tempoPlan": "NORMAL",
+          "protectionPlan": "STANDARD",
+          "offensiveMatchupFocus": "BALANCED",
+          "defensiveMatchupFocus": "DOUBLE_WR1",
+          "turnoverPlan": "BALANCED"
+        }
+      },
+      "NYT": {
+        "coachingProfile": "AGGRESSIVE",
+        "offenseXFactorPlan": {
+          "offensiveFocus": "BALANCED",
+          "defensiveFocus": "BALANCED",
+          "aggression": "AGGRESSIVE",
+          "tempoPlan": "HURRY_UP",
+          "protectionPlan": "FAST_RELEASE",
+          "offensiveMatchupFocus": "BALANCED",
+          "defensiveMatchupFocus": "ATTACK_WEAK_OL",
+          "turnoverPlan": "BALANCED"
+        },
+        "defenseXFactorPlan": {
+          "offensiveFocus": "BALANCED",
+          "defensiveFocus": "BALANCED",
+          "aggression": "BALANCED",
+          "tempoPlan": "NORMAL",
+          "protectionPlan": "STANDARD",
+          "offensiveMatchupFocus": "BALANCED",
+          "defensiveMatchupFocus": "BALANCED",
+          "turnoverPlan": "HUNT_TURNOVERS"
+        }
+      }
+    }
+  },
+  "teams": [
+    {
+      "id": "BOS",
+      "city": "Boston",
+      "nickname": "Guardians",
+      "abbreviation": "BOS",
+      "overallRating": 74,
+      "roster": [
+        {
+          "id": "BOS-player-0",
+          "teamId": "BOS",
+          "firstName": "Example",
+          "lastName": "Quarterback",
+          "age": 26,
+          "developmentTrait": "NORMAL",
+          "potentialRating": 78,
+          "positionCode": "QB",
+          "secondaryPositionCode": null,
+          "rosterStatus": "ACTIVE",
+          "depthChartSlot": 1,
+          "captainFlag": true,
+          "developmentFocus": false,
+          "injuryRisk": 10,
+          "status": "ACTIVE",
+          "injuryStatus": "HEALTHY",
+          "injuryName": null,
+          "injuryEndsOn": null,
+          "fatigue": 20,
+          "morale": 60,
+          "positionOverall": 78,
+          "offensiveOverall": 78,
+          "defensiveOverall": null,
+          "specialTeamsOverall": null,
+          "physicalOverall": 72,
+          "mentalOverall": 78,
+          "attributes": {
+            "THROW_ACCURACY_SHORT": 78,
+            "THROW_ACCURACY_MEDIUM": 76,
+            "DECISION_MAKING": 78,
+            "AWARENESS": 76
+          },
+          "seasonStat": {
+            "id": "season-BOS-player-0",
+            "passingLongestCompletion": 0,
+            "rushingLongestRush": 0,
+            "receivingLongestReception": 0,
+            "kickingLongestFieldGoal": 0,
+            "puntingLongestPunt": 0
+          },
+          "careerStat": {
+            "id": "career-BOS-player-0",
+            "passingLongestCompletion": 0,
+            "rushingLongestRush": 0,
+            "receivingLongestReception": 0,
+            "kickingLongestFieldGoal": 0,
+            "puntingLongestPunt": 0
+          },
+          "gameDayAvailability": "ACTIVE",
+          "gameDayReadinessMultiplier": 1,
+          "gameDaySnapMultiplier": 1
+        }
+      ]
+    },
+    {
+      "id": "NYT",
+      "city": "New York",
+      "nickname": "Titans",
+      "abbreviation": "NYT",
+      "overallRating": 78,
+      "roster": [
+        {
+          "id": "NYT-player-0",
+          "teamId": "NYT",
+          "firstName": "Example",
+          "lastName": "Defender",
+          "age": 27,
+          "developmentTrait": "NORMAL",
+          "potentialRating": 80,
+          "positionCode": "CB",
+          "secondaryPositionCode": "PR",
+          "rosterStatus": "ACTIVE",
+          "depthChartSlot": 1,
+          "captainFlag": false,
+          "developmentFocus": false,
+          "injuryRisk": 8,
+          "status": "ACTIVE",
+          "injuryStatus": "HEALTHY",
+          "injuryName": null,
+          "injuryEndsOn": null,
+          "fatigue": 18,
+          "morale": 58,
+          "positionOverall": 80,
+          "offensiveOverall": null,
+          "defensiveOverall": 80,
+          "specialTeamsOverall": 74,
+          "physicalOverall": 78,
+          "mentalOverall": 76,
+          "attributes": {
+            "MAN_COVERAGE": 80,
+            "ZONE_COVERAGE": 78,
+            "BALL_SKILLS": 76,
+            "PLAY_RECOGNITION": 77
+          },
+          "seasonStat": {
+            "id": "season-NYT-player-0",
+            "passingLongestCompletion": 0,
+            "rushingLongestRush": 0,
+            "receivingLongestReception": 0,
+            "kickingLongestFieldGoal": 0,
+            "puntingLongestPunt": 0
+          },
+          "careerStat": {
+            "id": "career-NYT-player-0",
+            "passingLongestCompletion": 0,
+            "rushingLongestRush": 0,
+            "receivingLongestReception": 0,
+            "kickingLongestFieldGoal": 0,
+            "puntingLongestPunt": 0
+          },
+          "gameDayAvailability": "ACTIVE",
+          "gameDayReadinessMultiplier": 1,
+          "gameDaySnapMultiplier": 1
+        }
+      ]
+    }
+  ],
+  "matches": [
+    {
+      "matchId": "match-1",
+      "status": "IN_PROGRESS",
+      "kind": "REGULAR_SEASON",
+      "week": 6,
+      "scheduledAt": "2026-10-10T18:00:00.000Z",
+      "homeTeamId": "BOS",
+      "awayTeamId": "NYT",
+      "simulationSeed": "save-load-seed-1",
+      "result": null
+    }
+  ],
+  "currentMatchId": "match-1"
+}

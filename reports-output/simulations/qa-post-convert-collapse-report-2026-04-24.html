@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Post Convert Collapse Report 2026-04-24</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 28px; color: #1f2a2a; background: #f6f1e8; }
+    section { background: #fffdf8; border: 1px solid #ded4c6; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #e3dacd; vertical-align: top; }
+    th { background: #efe5d8; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .green { background: #dcfce7; color: #166534; }
+    .red { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>Post Convert Collapse Report</h1>
+    <p>50-Spiele-Validierung fuer das Post-Convert-Collapse-Problem in OPP45_TO_35.</p>
+    <p><span class="pill red">ROT</span></p>
+  </section>
+  <section>
+    <h2>Vorher / Nachher</h2>
+    <table><thead><tr><th>Metrik</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody><tr><td>Punkte / Spiel</td><td>51.8</td><td>54.1</td></tr><tr><td>Total Yards / Spiel</td><td>913.5</td><td>921.5</td></tr><tr><td>Punts / Team-Spiel</td><td>4.78</td><td>4.88</td></tr><tr><td>FG-Attempts / Team-Spiel</td><td>2.86</td><td>3.01</td></tr><tr><td>Touchdowns / Team-Spiel</td><td>2.9</td><td>3.02</td></tr><tr><td>TURNOVER_ON_DOWNS / Team-Spiel</td><td>2.87</td><td>2.65</td></tr><tr><td>CONVERTED -&gt; TOD</td><td>24.9%</td><td>24.2%</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Convert-Folgen</h2>
+    <table><thead><tr><th>Kennzahl</th><th>Wert</th></tr></thead><tbody><tr><td>Avg Plays nach Convert</td><td>3</td></tr><tr><td>Avg 4th Downs pro Convert-Drive</td><td>1.01</td></tr></tbody></table>
+    <table><thead><tr><th>Resolution :: Outcome</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>CONVERTED :: TOUCHDOWN</td><td>287</td><td>58.8</td></tr><tr><td>CONVERTED_COLLAPSE :: TURNOVER_ON_DOWNS</td><td>112</td><td>23</td></tr><tr><td>CONVERTED_STABILIZED_FG :: FIELD_GOAL_MADE</td><td>37</td><td>7.6</td></tr><tr><td>CONVERTED_STABILIZED_FG :: FIELD_GOAL_MISSED</td><td>29</td><td>5.9</td></tr><tr><td>SOFT_FAIL_AUTO_FIRST :: TOUCHDOWN</td><td>6</td><td>1.2</td></tr><tr><td>SOFT_FAIL_PLAY_EXTENSION :: TOUCHDOWN</td><td>4</td><td>0.8</td></tr><tr><td>SOFT_FAIL_SNEAK_CONVERT :: TOUCHDOWN</td><td>4</td><td>0.8</td></tr><tr><td>SOFT_FAIL_AUTO_FIRST :: TURNOVER_ON_DOWNS</td><td>3</td><td>0.6</td></tr><tr><td>SOFT_FAIL_SNEAK_CONVERT :: TURNOVER_ON_DOWNS</td><td>2</td><td>0.4</td></tr><tr><td>SOFT_FAIL_SNEAK_CONVERT :: FIELD_GOAL_MISSED</td><td>1</td><td>0.2</td></tr><tr><td>SOFT_FAIL_PLAY_EXTENSION :: TURNOVER_ON_DOWNS</td><td>1</td><td>0.2</td></tr><tr><td>SOFT_FAIL_PLAY_EXTENSION :: FIELD_GOAL_MISSED</td><td>1</td><td>0.2</td></tr><tr><td>SOFT_FAIL_PLAY_EXTENSION :: FIELD_GOAL_MADE</td><td>1</td><td>0.2</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>TOD nach Zone</h2>
+    <table><thead><tr><th>Zone</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>OPP45_TO_35</td><td>154</td><td>58.1</td></tr><tr><td>OPP35_TO_20</td><td>105</td><td>39.6</td></tr><tr><td>RED_ZONE_20</td><td>4</td><td>1.5</td></tr><tr><td>BACKED_UP</td><td>2</td><td>0.8</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Beispiel-Drives</h2>
+    <table><thead><tr><th>Quarter</th><th>Off</th><th>Ball</th><th>Dist</th><th>Resolution</th><th>Plays nach Convert</th><th>4th Downs</th><th>Result</th><th>Summary</th></tr></thead><tbody><tr><td>Q1</td><td>NYT</td><td>60</td><td>3</td><td>CONVERTED</td><td>2</td><td>1</td><td>TOUCHDOWN</td><td>NYT bleibt bei 4th &amp; 3 drauf und erzielt den Touchdown.</td></tr><tr><td>Q1</td><td>BOS</td><td>56</td><td>5</td><td>CONVERTED</td><td>3</td><td>1</td><td>TOUCHDOWN</td><td>BOS bleibt bei 4th &amp; 5 drauf und erzielt den Touchdown.</td></tr><tr><td>Q1</td><td>NYT</td><td>62</td><td>4</td><td>CONVERTED</td><td>4</td><td>1</td><td>TOUCHDOWN</td><td>NYT bleibt bei 4th &amp; 4 drauf und erzielt den Touchdown.</td></tr><tr><td>Q2</td><td>NYT</td><td>60</td><td>3</td><td>CONVERTED</td><td>2</td><td>1</td><td>TOUCHDOWN</td><td>NYT bleibt bei 4th &amp; 3 drauf und erzielt den Touchdown.</td></tr><tr><td>Q3</td><td>NYT</td><td>57</td><td>4</td><td>SOFT_FAIL_AUTO_FIRST</td><td>2</td><td>1</td><td>TURNOVER_ON_DOWNS</td><td>BOS stoppt NYT auch nach konvertiertem 4th Down noch in Plus Territory.</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Empfehlung</h2>
+    <p>Die Post-Convert-Stabilisierung verbessert das Muster. Als naechstes sollte nur noch die Rest-TOD-Last in OPP35_TO_20 reduziert werden.</p>
+  </section>
+</body>
+</html>

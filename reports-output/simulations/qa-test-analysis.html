@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QA Test Analysis</title>
+  <style>
+    :root {
+      --bg: #f6f7f4;
+      --panel: #ffffff;
+      --ink: #1b2428;
+      --muted: #657174;
+      --line: #d7dedb;
+      --good: #17613d;
+      --bad: #9b2d25;
+      --warn: #8a5b13;
+      --accent: #2c5d73;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 34px;
+      line-height: 1.1;
+    }
+
+    h2 {
+      margin-top: 32px;
+      font-size: 22px;
+    }
+
+    h3 {
+      margin-top: 18px;
+      font-size: 16px;
+    }
+
+    p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .pill-row,
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .pill,
+    .card,
+    .note {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 10px;
+      font-weight: 800;
+    }
+
+    .good {
+      color: var(--good);
+    }
+
+    .bad {
+      color: var(--bad);
+    }
+
+    .warn {
+      color: var(--warn);
+    }
+
+    .card {
+      min-width: 180px;
+      padding: 14px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .value {
+      margin-top: 4px;
+      font-size: 20px;
+      font-weight: 850;
+    }
+
+    .note {
+      margin-top: 12px;
+      padding: 14px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 12px;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--muted);
+      background: #eef3f0;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top">
+      <div>
+        <h1>QA Test Analysis</h1>
+        <p>Analyse der vorhandenen Game-Engine-Tests, Reports, Teams, Seeds und Matchup-Abdeckung.</p>
+      </div>
+      <span class="pill good">Status: GRUEN</span>
+    </div>
+
+    <section>
+      <h2>Scope</h2>
+      <div class="cards">
+        <div class="card"><div class="label">Codeaenderungen</div><div class="value good">Nein</div></div>
+        <div class="card"><div class="label">Matchsimulationen</div><div class="value good">Nein</div></div>
+        <div class="card"><div class="label">Reports analysiert</div><div class="value good">Ja</div></div>
+        <div class="card"><div class="label">Luecken benannt</div><div class="value good">Ja</div></div>
+      </div>
+      <div class="note">
+        Es wurde keine neue Matchsimulation gestartet. Ausgewertet wurden bestehende Reports, Testdateien und
+        Testskripte. Team-Rating-Aggregate wurden ohne Simulation aus dem deterministischen Roster-Builder
+        gelesen, weil die vorhandenen QA-Reports nur Team-Overall/Prestige direkt dokumentieren.
+      </div>
+    </section>
+
+    <section>
+      <h2>Testmethodik</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Test / Report</th>
+            <th>Anzahl</th>
+            <th>Matchups</th>
+            <th>Seeds</th>
+            <th>Zielmetriken</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>production-qa.test.ts</code> Smoke</td>
+            <td>100 Spiele</td>
+            <td>Deterministische 8-Team-Rotation, keine Voll-Round-Robin-Abdeckung.</td>
+            <td><code>production-smoke-1..100</code></td>
+            <td>Technical gate: 0 critical/major, TOP 3600, Performance akzeptabel.</td>
+          </tr>
+          <tr>
+            <td><code>production-qa.test.ts</code> Stability</td>
+            <td>500 Spiele</td>
+            <td>Dieselbe 8-Team-Rotation, 8 gerichtete Paarungen wiederholt.</td>
+            <td><code>production-stability-1..500</code></td>
+            <td>Technical gate, Runtime, Punkte-StdDev &lt; 30, Yards-StdDev &lt; 350, TOP 3600.</td>
+          </tr>
+          <tr>
+            <td>Seed Regression</td>
+            <td>8 Szenarien, je zweimal simuliert im Test</td>
+            <td>8 feste Szenarien mit expliziten Team-Indizes.</td>
+            <td><code>production-regression-seed-001..008</code></td>
+            <td>Determinismus, identischer Fingerprint, Baseline-Hash.</td>
+          </tr>
+          <tr>
+            <td>Edge Scan</td>
+            <td>160 Spiele + Playoff-Tiebreak-Case</td>
+            <td>8-Team-Rotation, je Paarung 20 Spiele.</td>
+            <td><code>production-edge-1..160</code></td>
+            <td>Endgame, late trailing decisions, blowout, garbage time, red-zone stops, backed-up drives, playoff decisive.</td>
+          </tr>
+          <tr>
+            <td><code>qa-large-simulation-report</code></td>
+            <td>300 Spiele</td>
+            <td>8-Team-Rotation, 8 gerichtete Paarungen.</td>
+            <td><code>qa-large-seed-1..300</code></td>
+            <td>Stabilitaet, Plausibilitaet, Ausreisser, Datenkonsistenz, Performance.</td>
+          </tr>
+          <tr>
+            <td><code>qa-final-100-game-balance-report</code></td>
+            <td>100 Spiele</td>
+            <td>Fixe Serie: BOS zuhause vs NYT auswaerts.</td>
+            <td><code>opp35-20-finish-seed-1..100</code></td>
+            <td>Punkte, TDs, Total Yards, Punts, FG Attempts, TOD im Zielkorridor; Yard-Konsistenz.</td>
+          </tr>
+          <tr>
+            <td><code>qa-long-run-stability</code></td>
+            <td>500 Spiele</td>
+            <td>Fixe Serie: BOS zuhause vs NYT auswaerts.</td>
+            <td><code>long-run-stability-seed-1..500</code></td>
+            <td>Long-run Mittelwerte, Min/Max, First/Last-100 Drift, Ausreisser, Runtime.</td>
+          </tr>
+          <tr>
+            <td>Historische Fix-/Balance-Reports</td>
+            <td>Meist 50 oder 100 Spiele</td>
+            <td>Fast immer fixe BOS-vs-NYT-Serie.</td>
+            <td>Prefix je Report, z.B. <code>balance-seed</code>, <code>fine-tune-seed</code>, <code>opp45-35-seed</code>.</td>
+            <td>Einzelthemen: Punt/FG/TOD/Yards, Red Zone, Playcount, Coach Behaviour, Direct Go-For-It.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        Die Tests sind deterministisch seeded. Innerhalb der Engine gibt es Zufallsentscheidungen, aber sie sind
+        pro Seed reproduzierbar. Die Matchups sind nicht zufaellig gezogen.
+      </div>
+    </section>
+
+    <section>
+      <h2>Teams und Ratings</h2>
+      <p>
+        Die Production- und Large-Simulation-Suites nutzen dieselben acht Testteams. <code>Overall</code> ist das
+        im Testkontext gesetzte Teamrating/Prestige. Offense, Defense und Special sind aus den vorhandenen
+        Roster-Feldern aggregierte Durchschnittswerte; sie sind keine separat persistierten Teamratings.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>Roster Seed</th>
+            <th>Overall</th>
+            <th>Roster Avg</th>
+            <th>Offense Avg</th>
+            <th>Defense Avg</th>
+            <th>Special Avg</th>
+            <th>Phys / Mental</th>
+            <th>Coaching Profile</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>BOS Boston Guardians</td><td>0</td><td>74</td><td>80.5</td><td>80.4</td><td>80.4</td><td>81.1</td><td>75.7 / 74.5</td><td>Dynamisch pro Drive</td></tr>
+          <tr><td>NYT New York Titans</td><td>1</td><td>78</td><td>81.5</td><td>81.5</td><td>81.4</td><td>82.0</td><td>76.7 / 75.4</td><td>Dynamisch pro Drive</td></tr>
+          <tr><td>MIA Miami Cyclones</td><td>2</td><td>76</td><td>80.5</td><td>80.8</td><td>80.2</td><td>80.8</td><td>75.7 / 74.4</td><td>Dynamisch pro Drive</td></tr>
+          <tr><td>CHI Chicago Voyagers</td><td>3</td><td>72</td><td>79.5</td><td>79.6</td><td>79.3</td><td>79.9</td><td>74.7 / 73.5</td><td>Dynamisch pro Drive</td></tr>
+          <tr><td>DAL Dallas Wranglers</td><td>4</td><td>80</td><td>81.5</td><td>81.4</td><td>81.4</td><td>82.0</td><td>76.6 / 75.4</td><td>Dynamisch pro Drive</td></tr>
+          <tr><td>SEA Seattle Phantoms</td><td>5</td><td>77</td><td>80.7</td><td>80.7</td><td>80.4</td><td>81.3</td><td>75.7 / 74.3</td><td>Dynamisch pro Drive</td></tr>
+          <tr><td>DEN Denver Mountaineers</td><td>6</td><td>75</td><td>80.5</td><td>80.7</td><td>80.2</td><td>81.1</td><td>75.6 / 74.5</td><td>Dynamisch pro Drive</td></tr>
+          <tr><td>ATL Atlanta Firebirds</td><td>7</td><td>73</td><td>80.5</td><td>80.4</td><td>80.4</td><td>81.1</td><td>75.7 / 74.5</td><td>Dynamisch pro Drive</td></tr>
+        </tbody>
+      </table>
+      <div class="note">
+        Coach-Profile sind aktuell keine fixen Team-DNA-Werte. Die Engine berechnet pro Drive ein
+        <code>CONSERVATIVE</code>, <code>BALANCED</code> oder <code>AGGRESSIVE</code> Profil aus Teammetriken und
+        Seed-Roll. Basiskonfiguration: ca. 6% Conservative, ca. 60% Aggressive, Rest Balanced mit Team-Lean.
+        Im Long-Run-Report waren die Drive-Anteile: 64.6% Aggressive, 31.4% Balanced, 4.0% Conservative.
+      </div>
+    </section>
+
+    <section>
+      <h2>Deterministische Matchup-Rotation</h2>
+      <p>
+        Die Production- und Large-Simulation-Suites verwenden die Formel:
+        Home = <code>index % 8</code>, Away = <code>(index * 3 + 1) % 8</code>, mit Ausweichregel bei identischem Team.
+        Dadurch entstehen nur acht gerichtete Paarungen.
+      </p>
+      <table>
+        <thead>
+          <tr><th>Matchup</th><th>100er Smoke</th><th>160er Edge</th><th>300er Large</th><th>500er Stability</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>BOS vs NYT</td><td>13</td><td>20</td><td>38</td><td>63</td></tr>
+          <tr><td>NYT vs DAL</td><td>13</td><td>20</td><td>38</td><td>63</td></tr>
+          <tr><td>MIA vs ATL</td><td>13</td><td>20</td><td>38</td><td>63</td></tr>
+          <tr><td>CHI vs MIA</td><td>13</td><td>20</td><td>38</td><td>63</td></tr>
+          <tr><td>DAL vs SEA</td><td>12</td><td>20</td><td>37</td><td>62</td></tr>
+          <tr><td>SEA vs BOS</td><td>12</td><td>20</td><td>37</td><td>62</td></tr>
+          <tr><td>DEN vs CHI</td><td>12</td><td>20</td><td>37</td><td>62</td></tr>
+          <tr><td>ATL vs DEN</td><td>12</td><td>20</td><td>37</td><td>62</td></tr>
+        </tbody>
+      </table>
+      <div class="note">
+        Es gibt keine automatische Home/Away-Spiegelung jeder Paarung und keine komplette 8-Team-Round-Robin-Matrix.
+        Einige naheliegende Paarungen wie DAL vs BOS, CHI vs ATL oder SEA vs DEN kommen in dieser Rotation nicht vor.
+      </div>
+    </section>
+
+    <section>
+      <h2>Vorhandene feste Serien</h2>
+      <table>
+        <thead>
+          <tr><th>Serie / Report</th><th>Teams</th><th>Anzahl</th><th>Seeds</th><th>Win Record</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Final 100 Game Balance</td>
+            <td>BOS zuhause vs NYT auswaerts</td>
+            <td>100</td>
+            <td><code>opp35-20-finish-seed-1..100</code></td>
+            <td>Nicht dokumentiert; die Reports enthalten Aggregate, aber keine vollstaendige Ergebnisliste.</td>
+          </tr>
+          <tr>
+            <td>Coach Behaviour</td>
+            <td>BOS zuhause vs NYT auswaerts</td>
+            <td>100</td>
+            <td><code>opp35-20-finish-seed-1..100</code></td>
+            <td>Nicht dokumentiert.</td>
+          </tr>
+          <tr>
+            <td>Edge Case Behaviour</td>
+            <td>BOS zuhause vs NYT auswaerts</td>
+            <td>100</td>
+            <td><code>opp35-20-finish-seed-1..100</code></td>
+            <td>Nicht dokumentiert.</td>
+          </tr>
+          <tr>
+            <td>Playcount / Redzone / weitere 100er Fixreports</td>
+            <td>BOS zuhause vs NYT auswaerts</td>
+            <td>100 je Report</td>
+            <td>Meist <code>opp35-20-finish-seed-1..100</code></td>
+            <td>Nicht dokumentiert.</td>
+          </tr>
+          <tr>
+            <td>Long Run Stability</td>
+            <td>BOS zuhause vs NYT auswaerts</td>
+            <td>500</td>
+            <td><code>long-run-stability-seed-1..500</code></td>
+            <td>Nicht dokumentiert.</td>
+          </tr>
+          <tr>
+            <td>Viele historische 50er Fixreports</td>
+            <td>BOS zuhause vs NYT auswaerts</td>
+            <td>50 je Report</td>
+            <td>Report-spezifische Prefixes</td>
+            <td>Nicht dokumentiert.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        Ja, es gibt feste Serien mit exakt gleichen Teams. Es fehlt aber ein persistierter Win/Loss-Record pro Serie.
+        Ohne neue Simulation und ohne Rohresultate kann der Record nicht verlaesslich aus den HTML-Aggregaten rekonstruiert werden.
+      </div>
+    </section>
+
+    <section>
+      <h2>Vorhandene Serien: Bewertung</h2>
+      <table>
+        <thead>
+          <tr><th>Abdeckung</th><th>Status</th><th>Kommentar</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Smoke/Stability</td>
+            <td class="good">Gut</td>
+            <td>100er und 500er Gates pruefen technische Invarianten, Determinismus, Runtime, Clock und Verteilungs-StdDev.</td>
+          </tr>
+          <tr>
+            <td>Balance-Zielkorridore</td>
+            <td class="warn">Teilweise</td>
+            <td>Final-100 ist gruen fuer Kernmetriken, Production-QA markiert aber weiterhin Quality-Themen: Turnovers, Sacks, Penalties niedrig; Explosives hoch.</td>
+          </tr>
+          <tr>
+            <td>Teamvielfalt</td>
+            <td class="warn">Teilweise</td>
+            <td>8 Teams existieren, aber Roster-Aggregate liegen eng beieinander. Die Overall-Spanne 72-80 ist moderat.</td>
+          </tr>
+          <tr>
+            <td>Matchup-Matrix</td>
+            <td class="bad">Schwach</td>
+            <td>Die 8-Team-Rotation deckt nur 8 gerichtete Paarungen ab, keine komplette Matrix und keine systematischen Heim/Auswaerts-Spiegel.</td>
+          </tr>
+          <tr>
+            <td>Kontrollierte Head-to-Head-Serien</td>
+            <td class="bad">Fehlt weitgehend</td>
+            <td>Es gibt BOS/NYT-Serien, aber keine strukturierte Reihe stark vs schwach, schwach vs stark, gleichstark, Offense-vs-Defense-Archetypen.</td>
+          </tr>
+          <tr>
+            <td>Win Records</td>
+            <td class="bad">Fehlt</td>
+            <td>Die Reports speichern Aggregate, aber keine vollstaendigen Records nach Team/Matchup.</td>
+          </tr>
+          <tr>
+            <td>Coach-Kontrolle</td>
+            <td class="warn">Teilweise</td>
+            <td>Coach-Typen sind messbar, aber nicht als feste Teamprofile oder Testachsen kontrolliert.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Lueckenanalyse</h2>
+      <ul>
+        <li>Keine dedizierten kontrollierten Matchup-Tests mit gleichem Seed-Set pro Paarung.</li>
+        <li>Keine vollstaendige Round-Robin- oder Home/Away-Mirror-Serie fuer die acht QA-Teams.</li>
+        <li>Keine Win-Rate-Gates fuer bessere Teams gegen schlechtere Teams.</li>
+        <li>Keine dokumentierte Record-Tabelle fuer bestehende 100er oder 500er Serien.</li>
+        <li>Keine getrennten Archetyp-Tests: starke Offense gegen starke Defense, schwache Offense gegen starke Defense, starke Special Teams, konservativer Coach gegen aggressiven Coach.</li>
+        <li>Keine kontrollierte Coach-Zuweisung pro Team; Coach-Risk-Profile werden pro Drive aus Engine-Kontext und Seed-Roll erzeugt.</li>
+        <li>Teamratings sind fuer echte Matchup-Sensitivitaet relativ eng gruppiert, besonders bei abgeleiteten Roster-Durchschnittswerten.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Empfehlung fuer naechste Tests</h2>
+      <table>
+        <thead>
+          <tr><th>Prioritaet</th><th>Test</th><th>Ziel</th><th>Vorschlag</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>P1</td>
+            <td>Controlled Matchup Matrix</td>
+            <td>Teamstaerke soll sichtbar, aber nicht deterministisch gewinnen.</td>
+            <td>8 Teams, jede Paarung Home/Away, z.B. 25 Seeds pro Richtung; Record, Points, Yards, Turnovers je Matchup speichern.</td>
+          </tr>
+          <tr>
+            <td>P1</td>
+            <td>Fixed Seed Head-to-Head</td>
+            <td>Faire Vergleichbarkeit zwischen Paarungen.</td>
+            <td>Identisches Seed-Set fuer mehrere Matchups nutzen und Ergebnisdifferenzen vergleichen.</td>
+          </tr>
+          <tr>
+            <td>P2</td>
+            <td>Strength Gradient</td>
+            <td>Ratings muessen Wirkung zeigen.</td>
+            <td>Stark vs schwach, schwach vs stark, gleichstark; mit Home/Away-Spiegel und Win-Rate-Korridor.</td>
+          </tr>
+          <tr>
+            <td>P2</td>
+            <td>Archetype Matchups</td>
+            <td>Offense/Defense/Special-Teams-Unterschiede isolieren.</td>
+            <td>Roster- oder Teamfixture mit passstarker Offense, runstarker Offense, starker Defense, schwacher Defense.</td>
+          </tr>
+          <tr>
+            <td>P3</td>
+            <td>Coach-Control Series</td>
+            <td>Coach-Stil als kontrollierte Testachse.</td>
+            <td>Falls Architektur es erlaubt: feste Coach-Profile je Team/Testlauf statt nur Drive-Rolls.</td>
+          </tr>
+          <tr>
+            <td>P3</td>
+            <td>Report-Erweiterung</td>
+            <td>Analyse ohne erneute Simulation moeglich machen.</td>
+            <td>Raw game rows oder JSON mit Matchup, Seed, Winner, Score, Teamstats je Testlauf persistieren.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        Fazit: Die bisherigen Tests sind ausreichend fuer technische Stabilitaet und grobe Balance-Signale.
+        Fuer Football-Matchup-Qualitaet fehlen aber kontrollierte Serien mit dokumentierten Records und
+        vollstaendiger Paarungsabdeckung.
+      </div>
+    </section>
+
+    <section>
+      <h2>Statuspruefung</h2>
+      <ul>
+        <li>Keine neue Matchsimulation durchgefuehrt: <strong>Ja</strong>.</li>
+        <li>Reports, Testskripte und relevante Tests analysiert: <strong>Ja</strong>.</li>
+        <li>Teams, Seeds, Matchup-Rotation und Ratings dokumentiert: <strong>Ja</strong>.</li>
+        <li>Vorhandene feste Serien bewertet: <strong>Ja</strong>.</li>
+        <li>Luecken klar benannt: <strong>Ja</strong>.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

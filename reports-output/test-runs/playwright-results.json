@@ -1,0 +1,305 @@
+{
+  "config": {
+    "configFile": "/Users/lukashanzi/Documents/AFBM/playwright.config.ts",
+    "rootDir": "/Users/lukashanzi/Documents/AFBM/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 90000,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/lukashanzi/Documents/AFBM/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/lukashanzi/Documents/AFBM/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "open": "never",
+          "outputFolder": "reports/playwright"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "reports/playwright-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 10000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.59.1",
+    "workers": 4,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3100",
+      "url": "http://127.0.0.1:3100",
+      "reuseExistingServer": false,
+      "timeout": 45000,
+      "gracefulShutdown": {
+        "signal": "SIGTERM",
+        "timeout": 5000
+      },
+      "stdout": "pipe",
+      "stderr": "pipe",
+      "env": {
+        "RUST_LOG": "warn",
+        "CODEX_SANDBOX_NETWORK_DISABLED": "1",
+        "VSCODE_CRASH_REPORTER_PROCESS_TYPE": "extensionHost",
+        "NODE": "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+        "INIT_CWD": "/Users/lukashanzi/Documents/AFBM",
+        "TERM": "dumb",
+        "SHELL": "/bin/zsh",
+        "TMPDIR": "/var/folders/ys/75_wt9dj4rv3c3n61qkrql540000gn/T/",
+        "HOMEBREW_REPOSITORY": "/opt/homebrew",
+        "npm_config_global_prefix": "/opt/homebrew",
+        "FPATH": "/opt/homebrew/share/zsh/site-functions:/opt/homebrew/share/zsh/site-functions:/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions",
+        "MallocNanoZone": "0",
+        "COLOR": "0",
+        "NO_COLOR": "1",
+        "npm_config_local_prefix": "/Users/lukashanzi/Documents/AFBM",
+        "LC_ALL": "C.UTF-8",
+        "USER": "lukashanzi",
+        "COMMAND_MODE": "unix2003",
+        "npm_config_globalconfig": "/opt/homebrew/etc/npmrc",
+        "SSH_AUTH_SOCK": "/private/tmp/com.apple.launchd.Lelx3rMWka/Listeners",
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+        "npm_execpath": "/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js",
+        "PAGER": "cat",
+        "ELECTRON_RUN_AS_NODE": "1",
+        "PATH": "/Users/lukashanzi/Documents/AFBM/node_modules/.bin:/Users/lukashanzi/Documents/node_modules/.bin:/Users/lukashanzi/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/opt/homebrew/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/Users/lukashanzi/.codex/tmp/arg0/codex-arg0s6rSem:/Users/lukashanzi/.vscode/extensions/openai.chatgpt-26.422.30944-darwin-arm64/bin/macos-aarch64",
+        "npm_package_json": "/Users/lukashanzi/Documents/AFBM/package.json",
+        "npm_config_userconfig": "/Users/lukashanzi/.npmrc",
+        "npm_config_init_module": "/Users/lukashanzi/.npm-init.js",
+        "__CFBundleIdentifier": "com.microsoft.VSCode",
+        "CODEX_THREAD_ID": "019dc9bd-3ea7-7370-a3cb-bf06ba01054f",
+        "npm_command": "run",
+        "PWD": "/Users/lukashanzi/Documents/AFBM",
+        "VSCODE_HANDLES_UNCAUGHT_ERRORS": "true",
+        "npm_lifecycle_event": "test:e2e:week-loop",
+        "EDITOR": "vi",
+        "VSCODE_ESM_ENTRYPOINT": "vs/workbench/api/node/extensionHostProcess",
+        "npm_package_name": "afbm-manager",
+        "LANG": "C.UTF-8",
+        "npm_config_npm_version": "11.12.1",
+        "XPC_FLAGS": "0x0",
+        "CODEX_CI": "1",
+        "npm_package_engines_node": ">=20.19.0",
+        "MACH_PORT_RENDEZVOUS_PEER_VALDATION": "0",
+        "npm_config_node_gyp": "/opt/homebrew/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js",
+        "npm_package_version": "0.1.0",
+        "XPC_SERVICE_NAME": "0",
+        "SHLVL": "1",
+        "HOME": "/Users/lukashanzi",
+        "VSCODE_NLS_CONFIG": "{\"userLocale\":\"en-us\",\"osLocale\":\"en-us\",\"resolvedLanguage\":\"en\",\"defaultMessagesFile\":\"/Applications/Visual Studio Code.app/Contents/Resources/app/out/nls.messages.json\",\"locale\":\"en-us\",\"availableLanguages\":{}}",
+        "HOMEBREW_PREFIX": "/opt/homebrew",
+        "GH_PAGER": "cat",
+        "npm_config_cache": "/Users/lukashanzi/.npm",
+        "LOGNAME": "lukashanzi",
+        "npm_lifecycle_script": "npm run test:e2e:seed && node scripts/e2e-preflight.mjs && playwright test e2e/week-loop.spec.ts",
+        "VSCODE_IPC_HOOK": "/Users/lukashanzi/Library/Application Support/Code/1.11-main.sock",
+        "VSCODE_CODE_CACHE_PATH": "/Users/lukashanzi/Library/Application Support/Code/CachedData/10c8e557c8b9f9ed0a87f61f1c9a44bde731c409",
+        "LC_CTYPE": "C.UTF-8",
+        "npm_config_user_agent": "npm/11.12.1 node/v25.9.0 darwin arm64 workspaces/false",
+        "VSCODE_PID": "66062",
+        "INFOPATH": "/opt/homebrew/share/info:/opt/homebrew/share/info:",
+        "HOMEBREW_CELLAR": "/opt/homebrew/Cellar",
+        "OSLogRateLimit": "64",
+        "GIT_PAGER": "cat",
+        "VSCODE_CWD": "/",
+        "DEBUG": "release",
+        "npm_node_execpath": "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+        "npm_config_prefix": "/opt/homebrew",
+        "CODEX_INTERNAL_ORIGINATOR_OVERRIDE": "codex_vscode",
+        "_": "/Users/lukashanzi/Documents/AFBM/node_modules/.bin/playwright",
+        "npm_config_noproxy": "",
+        "COLORTERM": "",
+        "__NEXT_PROCESSED_ENV": "true",
+        "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/afbm_manager?schema=public",
+        "AUTH_SECRET": "tqzn5VKnshnnC5jN85YTiIsS82PtWbBs9+DnUpZiXiQ=",
+        "AUTH_URL": "http://127.0.0.1:3100",
+        "AUTH_DEV_ENABLED": "true",
+        "AUTH_DEV_EMAIL": "dev@localhost",
+        "AUTH_DEV_PASSWORD": "local-dev-password",
+        "AUTH_GITHUB_ID": "",
+        "AUTH_GITHUB_SECRET": "",
+        "E2E_AUTH_BYPASS": "true",
+        "NEXTAUTH_URL": "http://127.0.0.1:3100"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "week-loop.spec.ts",
+      "file": "week-loop.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Minimaler Week Loop",
+          "file": "week-loop.spec.ts",
+          "line": 68,
+          "column": 6,
+          "specs": [
+            {
+              "title": "durchlaeuft PRE_WEEK -> READY -> GAME_RUNNING -> POST_GAME -> PRE_WEEK",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 34570,
+                      "error": {
+                        "message": "TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event \"response\"",
+                        "stack": "TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event \"response\"\n    at submitServerAction (/Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts:43:33)\n    at /Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts:121:13\n    at /Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts:113:5",
+                        "location": {
+                          "file": "/Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts",
+                          "column": 33,
+                          "line": 43
+                        },
+                        "snippet": "  41 |   submit: () => Promise<void>,\n  42 | ) {\n> 43 |   const redirectResponse = page.waitForResponse((response) => {\n     |                                 ^\n  44 |     const url = new URL(response.url());\n  45 |     return (\n  46 |       url.pathname === postPath &&"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts",
+                            "column": 33,
+                            "line": 43
+                          },
+                          "message": "TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event \"response\"\n\n  41 |   submit: () => Promise<void>,\n  42 | ) {\n> 43 |   const redirectResponse = page.waitForResponse((response) => {\n     |                                 ^\n  44 |     const url = new URL(response.url());\n  45 |     return (\n  46 |       url.pathname === postPath &&\n    at submitServerAction (/Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts:43:33)\n    at /Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts:121:13\n    at /Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts:113:5"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "PRE_WEEK anzeigen",
+                          "duration": 5131
+                        },
+                        {
+                          "title": "prepareWeekAction ausfuehren und READY pruefen",
+                          "duration": 2535
+                        },
+                        {
+                          "title": "Game Setup oeffnen",
+                          "duration": 5322
+                        },
+                        {
+                          "title": "startGameAction ausfuehren und GAME_RUNNING pruefen",
+                          "duration": 3963
+                        },
+                        {
+                          "title": "finishGameAction ausfuehren und POST_GAME pruefen",
+                          "duration": 15082,
+                          "error": {
+                            "message": "TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event \"response\"",
+                            "stack": "TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event \"response\"\n    at submitServerAction (/Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts:43:33)\n    at /Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts:121:13\n    at /Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts:113:5",
+                            "location": {
+                              "file": "/Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts",
+                              "column": 33,
+                              "line": 43
+                            },
+                            "snippet": "  41 |   submit: () => Promise<void>,\n  42 | ) {\n> 43 |   const redirectResponse = page.waitForResponse((response) => {\n     |                                 ^\n  44 |     const url = new URL(response.url());\n  45 |     return (\n  46 |       url.pathname === postPath &&"
+                          }
+                        }
+                      ],
+                      "startTime": "2026-04-26T13:50:25.038Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/lukashanzi/Documents/AFBM/test-results/week-loop-Minimaler-Week-L-1e54e-NING---POST-GAME---PRE-WEEK-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/lukashanzi/Documents/AFBM/test-results/week-loop-Minimaler-Week-L-1e54e-NING---POST-GAME---PRE-WEEK-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/lukashanzi/Documents/AFBM/test-results/week-loop-Minimaler-Week-L-1e54e-NING---POST-GAME---PRE-WEEK-chromium/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/lukashanzi/Documents/AFBM/test-results/week-loop-Minimaler-Week-L-1e54e-NING---POST-GAME---PRE-WEEK-chromium/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/lukashanzi/Documents/AFBM/e2e/week-loop.spec.ts",
+                        "column": 33,
+                        "line": 43
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "48ecdc6deca5e1ec9ec3-0d0a79e6a5dc90916cca",
+              "file": "week-loop.spec.ts",
+              "line": 69,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "message": "\u001b[31mTesting stopped early after 1 maximum allowed failures.\u001b[39m"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-04-26T13:50:18.653Z",
+    "duration": 42455.264,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

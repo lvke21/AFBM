@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QA 500 Game Stability Fix Report</title>
+  <style>
+    :root {
+      --bg: #f6f7f4;
+      --panel: #ffffff;
+      --ink: #1b2428;
+      --muted: #657174;
+      --line: #d7dedb;
+      --good: #17613d;
+      --bad: #9b2d25;
+      --warn: #8a5b13;
+      --accent: #2c5d73;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 34px;
+      line-height: 1.1;
+    }
+
+    h2 {
+      margin-top: 32px;
+      font-size: 22px;
+    }
+
+    h3 {
+      margin-top: 18px;
+      font-size: 16px;
+    }
+
+    p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .pill-row,
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .pill,
+    .card,
+    .note {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 10px;
+      font-weight: 800;
+    }
+
+    .good {
+      color: var(--good);
+    }
+
+    .bad {
+      color: var(--bad);
+    }
+
+    .warn {
+      color: var(--warn);
+    }
+
+    .card {
+      min-width: 170px;
+      padding: 14px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .value {
+      margin-top: 4px;
+      font-size: 20px;
+      font-weight: 850;
+    }
+
+    .note {
+      margin-top: 12px;
+      padding: 14px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 12px;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--muted);
+      background: #eef3f0;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top">
+      <div>
+        <h1>QA 500 Game Stability Fix Report</h1>
+        <p>Analyse und Minimalfix fuer das fehlgeschlagene 500-Spiele-Stability-Gate.</p>
+      </div>
+      <span class="pill good">Finale Bewertung: GRUEN</span>
+    </div>
+
+    <section>
+      <h2>Executive Summary</h2>
+      <div class="cards">
+        <div class="card"><div class="label">Ursache</div><div class="value">Rollup-Bug</div></div>
+        <div class="card"><div class="label">Betroffene Spiele</div><div class="value">2 / 500</div></div>
+        <div class="card"><div class="label">Abweichung</div><div class="value">1 Rush-Yard</div></div>
+        <div class="card"><div class="label">500 Gate</div><div class="value good">GRUEN</div></div>
+        <div class="card"><div class="label">Full Tests</div><div class="value good">126 / 126</div></div>
+      </div>
+      <div class="note">
+        Das Stability-Gate scheiterte nicht an Balance-Korridoren, Drift, Extremspielen oder einem zu strengen Gate.
+        Der Gate war korrekt: In zwei reproduzierbaren Seeds wurden Player-Rushing-Yards um 1 Yard hoeher kreditiert
+        als die finalen Team-Rushing-Yards. Die kleinste notwendige Korrektur kappt QB-Scramble-Credit auf die
+        tatsaechlich dem Team gutgeschriebenen Rushing-Yards des Drives.
+      </div>
+    </section>
+
+    <section>
+      <h2>Diagnose</h2>
+      <table>
+        <thead>
+          <tr><th>Frage</th><th>Ergebnis</th><th>Bewertung</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Welche Metrik scheitert?</td>
+            <td><code>team-aggregation</code>: Team yards do not match player rollups.</td>
+            <td>Technische Konsistenzmetrik, kein Gameplay-Balance-Korridor.</td>
+          </tr>
+          <tr>
+            <td>Wie weit ausserhalb?</td>
+            <td>Jeweils exakt 1 Rushing-Yard Differenz zwischen Team- und Player-Rollup.</td>
+            <td>Minimal, aber invariantenkritisch.</td>
+          </tr>
+          <tr>
+            <td>Reproduzierbar?</td>
+            <td>Ja: <code>production-stability-63</code> und <code>production-stability-105</code>.</td>
+            <td>Seed-stabil, kein Zufallsflackern.</td>
+          </tr>
+          <tr>
+            <td>Drift?</td>
+            <td>Keine Drift: alle 100er-Fenster nach Fix haben 0 Issues.</td>
+            <td>Kein Langlauf-Driftproblem.</td>
+          </tr>
+          <tr>
+            <td>Extremspiele?</td>
+            <td>Max Points und Max Yards hatten 0 Issues.</td>
+            <td>Keine Einzel-Extremspiele als Ursache.</td>
+          </tr>
+          <tr>
+            <td>Debug-Tool Nebeneffekt?</td>
+            <td>Nein. Debug-Service liest/analysiert Simulationsergebnisse und ist nicht in der Match Engine aufgerufen.</td>
+            <td>Debug-Tool weiterhin GRUEN.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Root Cause</h2>
+      <p>
+        In <code>src/modules/seasons/application/simulation/match-engine.ts</code> wurde QB-Scramble-Yardage vor der
+        finalen Drive-Kompression berechnet. In seltenen Drives konnte <code>scrambleYards</code> hoeher sein als der
+        finale <code>rushYards</code>-Wert des Teams. Danach erhielt der QB die vollen Scramble-Yards, waehrend das
+        Team nur die komprimierten Rushing-Yards behielt. Dadurch entstand: Player rushing = Team rushing + 1.
+      </p>
+      <div class="note">
+        Diagnoseklasse: echtes Simulations-/Statistikproblem im Output-Rollup. Kein zu strenger Zielkorridor,
+        kein statistischer Ausreisser, kein Gate-Fehler, kein Debug-Tool-Nebeneffekt.
+      </div>
+    </section>
+
+    <section>
+      <h2>Betroffene Seeds</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Match</th>
+            <th>Seed</th>
+            <th>Team</th>
+            <th>Vorher Team Rush</th>
+            <th>Vorher Player Rush</th>
+            <th>Nachher Team Rush</th>
+            <th>Nachher Player Rush</th>
+            <th>Delta Nachher</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>production-stability-500-63</code></td>
+            <td><code>production-stability-63</code></td>
+            <td>CHI</td>
+            <td>136</td>
+            <td>137</td>
+            <td>136</td>
+            <td>136</td>
+            <td class="good">0</td>
+          </tr>
+          <tr>
+            <td><code>production-stability-500-105</code></td>
+            <td><code>production-stability-105</code></td>
+            <td>BOS</td>
+            <td>108</td>
+            <td>109</td>
+            <td>108</td>
+            <td>108</td>
+            <td class="good">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Vorgenommene Aenderung</h2>
+      <table>
+        <thead>
+          <tr><th>Datei</th><th>Aenderung</th><th>Scope</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>src/modules/seasons/application/simulation/match-engine.ts</code></td>
+            <td>
+              <code>quarterbackRushYards</code> wird bei QB-Scramble auf <code>Math.min(scrambleYards, rushYards)</code>
+              gekappt, solange es auch Running-Back-Attempts gibt.
+            </td>
+            <td>Nur Player-Rushing-Credit; keine globale Rebalance, keine Score-/Drive-Logik, kein Debug-Tool.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Vorher / Nachher</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Suite</th>
+            <th>Metrik</th>
+            <th>Vorher</th>
+            <th>Nachher</th>
+            <th>Bewertung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>100 Spiele Smoke</td>
+            <td>Technical Status</td>
+            <td class="good">GRUEN</td>
+            <td class="good">GRUEN</td>
+            <td>Stabil geblieben.</td>
+          </tr>
+          <tr>
+            <td>100 Spiele Smoke</td>
+            <td>Critical / Major</td>
+            <td>0 / 0</td>
+            <td>0 / 0</td>
+            <td>Keine technischen Issues.</td>
+          </tr>
+          <tr>
+            <td>100 Spiele Smoke</td>
+            <td>Avg Points / Avg Yards Team</td>
+            <td>44.2 / 421.7</td>
+            <td>44.17 / 421.74</td>
+            <td>Keine relevante Balance-Verschiebung.</td>
+          </tr>
+          <tr>
+            <td>500 Spiele Stability</td>
+            <td>Technical Status</td>
+            <td class="bad">ROT</td>
+            <td class="good">GRUEN</td>
+            <td>Gate bestanden.</td>
+          </tr>
+          <tr>
+            <td>500 Spiele Stability</td>
+            <td>Critical / Major</td>
+            <td>2 / 0</td>
+            <td>0 / 0</td>
+            <td>Rollup-Fehler behoben.</td>
+          </tr>
+          <tr>
+            <td>500 Spiele Stability</td>
+            <td>Avg Points / StdDev</td>
+            <td>45.2 / 15.50</td>
+            <td>45.23 / 15.50</td>
+            <td>Unveraendert plausibel.</td>
+          </tr>
+          <tr>
+            <td>500 Spiele Stability</td>
+            <td>Avg Yards Team / Game Yard StdDev</td>
+            <td>417.0 / 73.30</td>
+            <td>417.047 / 73.295</td>
+            <td>Unveraendert plausibel.</td>
+          </tr>
+          <tr>
+            <td>500 Spiele Stability</td>
+            <td>Total TOP Avg</td>
+            <td>3600</td>
+            <td>3600</td>
+            <td>Clock invariant stabil.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        Bestehende Quality-Findings zu Turnovers, Sacks, Penalties und Explosive Plays bleiben vorhanden und waren
+        bereits im alten Production-QA-Report sichtbar. Sie sind nicht Ursache dieses Stability-Gate-Fehlers und
+        wurden nicht mitbalanciert.
+      </div>
+    </section>
+
+    <section>
+      <h2>Drift- und Extremspiel-Pruefung</h2>
+      <table>
+        <thead>
+          <tr><th>500er-Fenster</th><th>Avg Points</th><th>Avg Yards/Game</th><th>Issues</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1-100</td><td>44.01</td><td>845.44</td><td class="good">0</td></tr>
+          <tr><td>101-200</td><td>46.09</td><td>829.39</td><td class="good">0</td></tr>
+          <tr><td>201-300</td><td>44.61</td><td>829.93</td><td class="good">0</td></tr>
+          <tr><td>301-400</td><td>44.24</td><td>823.66</td><td class="good">0</td></tr>
+          <tr><td>401-500</td><td>47.20</td><td>842.05</td><td class="good">0</td></tr>
+        </tbody>
+      </table>
+      <table>
+        <thead>
+          <tr><th>Extremfall</th><th>Match</th><th>Seed</th><th>Wert</th><th>Issues</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Max Points</td>
+            <td><code>production-stability-500-100</code></td>
+            <td><code>production-stability-100</code></td>
+            <td>103 Punkte</td>
+            <td class="good">0</td>
+          </tr>
+          <tr>
+            <td>Max Yards</td>
+            <td><code>production-stability-500-497</code></td>
+            <td><code>production-stability-497</code></td>
+            <td>1117 Yards</td>
+            <td class="good">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Verifikation</h2>
+      <table>
+        <thead>
+          <tr><th>Check</th><th>Ergebnis</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>npm run lint</code></td><td class="good">GRUEN</td></tr>
+          <tr><td><code>npm run test:run</code></td><td class="good">GRUEN - 28 Test Files, 126 Tests</td></tr>
+          <tr><td>100-Spiele-Test</td><td class="good">GRUEN - Production Smoke 100 technical gate</td></tr>
+          <tr><td>500-Spiele-Stability-Gate</td><td class="good">GRUEN - Production Stability 500 technical gate</td></tr>
+          <tr><td>Seed Regression</td><td class="good">GRUEN - Fingerprints unveraendert</td></tr>
+          <tr><td>Debug-Tool</td><td class="good">GRUEN - <code>npm run debug:simulation</code>, 27 Drives, 134 Logs</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Statuspruefung</h2>
+      <ul>
+        <li>Ursache eindeutig gefunden: <strong>Ja</strong>.</li>
+        <li>Minimaler Fix umgesetzt: <strong>Ja</strong>, nur QB-Scramble-Player-Credit gekappt.</li>
+        <li>Debug-Tool weiterhin gruen: <strong>Ja</strong>.</li>
+        <li>Lint gruen: <strong>Ja</strong>.</li>
+        <li>Tests gruen: <strong>Ja</strong>.</li>
+        <li>100-Spiele-Balance weiterhin plausibel: <strong>Ja</strong>, technische Gates gruen, keine relevante Mittelwertverschiebung.</li>
+        <li>500-Spiele-Stability-Gate bestanden: <strong>Ja</strong>.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

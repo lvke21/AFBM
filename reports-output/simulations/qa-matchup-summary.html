@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QA Matchup Summary 2026-04-25</title>
+  <style>
+    :root {
+      --bg: #f6f7f4;
+      --panel: #ffffff;
+      --ink: #1b2428;
+      --muted: #657174;
+      --line: #d7dedb;
+      --good: #17613d;
+      --bad: #9b2d25;
+      --accent: #2c5d73;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    h1, h2 { margin: 0; letter-spacing: 0; }
+    h1 { font-size: 34px; line-height: 1.1; }
+    h2 { margin-top: 32px; font-size: 22px; }
+    p { margin: 8px 0 0; color: var(--muted); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+
+    .top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .pill, .card, .note {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 10px;
+      font-weight: 800;
+      color: var(--good);
+    }
+
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .card {
+      min-width: 170px;
+      padding: 14px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .value {
+      margin-top: 4px;
+      font-size: 20px;
+      font-weight: 850;
+    }
+
+    .note {
+      margin-top: 12px;
+      padding: 14px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 12px;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--muted);
+      background: #eef3f0;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top">
+      <div>
+        <h1>QA Matchup Summary</h1>
+        <p>Kontrollierte Serien mit vier klar unterschiedlich bewerteten Teams. Keine Engine- oder Balancing-Aenderungen.</p>
+      </div>
+      <span class="pill">Status: GRUEN</span>
+    </div>
+
+    <section>
+      <h2>Statuspruefung</h2>
+      <div class="cards">
+        <div class="card"><div class="label">Serien</div><div class="value">4</div></div>
+        <div class="card"><div class="label">Spiele pro Serie</div><div class="value">100</div></div>
+        <div class="card"><div class="label">Gesamtspiele</div><div class="value">400</div></div>
+        <div class="card"><div class="label">Ratings fix</div><div class="value">Ja</div></div>
+      </div>
+      <div class="note">
+        Rohdaten mit allen Spielen liegen in <code>reports/qa-matchup-results.json</code>. Jede Serie verwendet dieselben Teams ueber 100 unterschiedliche Seeds.
+      </div>
+    </section>
+
+    <section>
+      <h2>Teams</h2>
+      <table><thead><tr><th>Tier</th><th>Team</th><th>Overall</th><th>Offset</th><th>Roster</th><th>Offense</th><th>Defense</th><th>Special</th><th>Phys / Mental</th></tr></thead><tbody><tr><td>SCHWACH</td><td>WEK Canton Anchors</td><td>58</td><td>-12</td><td>65.5</td><td>65.6</td><td>65.3</td><td>66.4</td><td>60.7 / 59.5</td></tr><tr><td>MITTEL_A</td><td>MDA Portland Bridges</td><td>72</td><td>-2</td><td>77.5</td><td>77.5</td><td>77.4</td><td>78.1</td><td>72.6 / 71.4</td></tr><tr><td>MITTEL_B</td><td>MDB Memphis Pilots</td><td>76</td><td>2</td><td>82.7</td><td>82.7</td><td>82.4</td><td>83.3</td><td>77.7 / 76.3</td></tr><tr><td>STARK</td><td>STR San Diego Sentinels</td><td>90</td><td>12</td><td>95.5</td><td>95.6</td><td>95.1</td><td>95.6</td><td>90.6 / 89.3</td></tr></tbody></table>
+    </section>
+
+    <section>
+      <h2>Serien-Ergebnisse</h2>
+      <table><thead><tr><th>Serie</th><th>Home</th><th>Away</th><th>Win Record H-A-T</th><th>Avg Score</th><th>Avg Diff H-A</th><th>Avg Yards</th><th>Avg TD</th><th>Avg Punts</th><th>Avg FG</th><th>Avg TO</th><th>Avg TOD</th></tr></thead><tbody><tr><td>Stark vs Schwach</td><td>STR San Diego Sentinels</td><td>WEK Canton Anchors</td><td>100-0-0</td><td>40.84-0.4</td><td>40.44</td><td>504.71-164.51</td><td>4.41-0.06</td><td>0.36-10.08</td><td>3.89-0</td><td>0.33-0.3</td><td>1.22-1.02</td></tr><tr><td>Stark vs Mittel A</td><td>STR San Diego Sentinels</td><td>MDA Portland Bridges</td><td>99-1-0</td><td>40.67-7.76</td><td>32.91</td><td>532.5-310.92</td><td>4.39-1.06</td><td>0.88-9.12</td><td>4.01-0.35</td><td>0.44-0.46</td><td>1.37-0.9</td></tr><tr><td>Mittel A vs Mittel B</td><td>MDA Portland Bridges</td><td>MDB Memphis Pilots</td><td>23-71-6</td><td>15.76-23.78</td><td>-8.02</td><td>379.09-419.26</td><td>2.05-2.93</td><td>6.26-3.82</td><td>1.13-2.16</td><td>0.44-0.47</td><td>1.01-0.98</td></tr><tr><td>Mittel B vs Schwach</td><td>MDB Memphis Pilots</td><td>WEK Canton Anchors</td><td>99-1-0</td><td>32.29-3.18</td><td>29.11</td><td>492-245.72</td><td>3.58-0.45</td><td>1.74-10.57</td><td>3.7-0.06</td><td>0.43-0.33</td><td>1.02-0.99</td></tr></tbody></table>
+    </section>
+  </main>
+</body>
+</html>

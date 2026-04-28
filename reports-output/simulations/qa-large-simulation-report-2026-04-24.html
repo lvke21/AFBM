@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>QA Large Simulation Report 2026-04-24</title>
+  <style>
+    :root {
+      --bg: #f3efe7;
+      --panel: #fffdf9;
+      --ink: #1d2929;
+      --muted: #5e6c69;
+      --line: #ddd3c7;
+      --accent: #19363d;
+      --accent-2: #d07b31;
+      --good: #166534;
+      --warn: #b45309;
+      --bad: #991b1b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top right, rgba(208, 123, 49, 0.16), transparent 28%),
+        linear-gradient(180deg, #f7f1e7 0%, #efe7dc 100%);
+    }
+    .shell {
+      width: min(1420px, calc(100vw - 36px));
+      margin: 24px auto 52px;
+    }
+    .hero, .section {
+      background: rgba(255, 253, 249, 0.92);
+      border: 1px solid rgba(25, 54, 61, 0.12);
+      border-radius: 24px;
+      box-shadow: 0 18px 60px rgba(25, 54, 61, 0.08);
+      padding: 24px 26px;
+      margin-bottom: 18px;
+    }
+    h1, h2 { margin: 0 0 12px; line-height: 1.08; }
+    h1 { font-size: 42px; }
+    h2 { font-size: 26px; }
+    p { margin: 0 0 12px; line-height: 1.52; }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(25, 54, 61, 0.98), rgba(37, 72, 78, 0.94));
+      color: #fbf7f0;
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .card .label {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.78;
+      margin-bottom: 8px;
+    }
+    .card .value {
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      margin-right: 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .good { background: rgba(22, 101, 52, 0.12); color: var(--good); }
+    .warn { background: rgba(180, 83, 9, 0.12); color: var(--warn); }
+    .bad { background: rgba(153, 27, 27, 0.12); color: var(--bad); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,0.72);
+      border-radius: 16px;
+      overflow: hidden;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th {
+      background: #ece3d6;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+    }
+    tr:last-child td { border-bottom: 0; }
+    ul { margin: 0; padding-left: 18px; }
+    li { margin: 0 0 8px; }
+    .small { color: var(--muted); font-size: 13px; }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .shell { width: min(100vw - 18px, 1420px); }
+      .hero, .section { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">AFBM QA Large Simulation Report · 2026-04-24</div>
+      <h1>Groesstest mit 300 vollstaendigen Spielen</h1>
+      <p>Der Batch-Test wurde nur nach gruenem Abschluss von Prompt 6A gestartet. Simuliert wurden 300 vollstaendige Regular-Season-Spiele mit reproduzierbaren Seeds; geprueft wurden Stabilitaet, Plausibilitaet, Ausreisser, Datenkonsistenz und Performance.</p>
+      <div>
+        <span class="pill bad">Status: ROT</span>
+        <span class="pill good">Performance: akzeptabel</span>
+        <span class="pill good">Stabilitaet: formal stabil</span>
+        <span class="pill bad">Plausibilitaet: nicht ausreichend</span>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="label">Simulierte Spiele</div><div class="value">300</div></div>
+        <div class="card"><div class="label">Suite Laufzeit</div><div class="value">1265.9 ms</div></div>
+        <div class="card"><div class="label">Ø pro Spiel</div><div class="value">1.53 ms</div></div>
+        <div class="card"><div class="label">Critical Issues</div><div class="value">0</div></div>
+        <div class="card"><div class="label">Major Issues</div><div class="value">0</div></div>
+        <div class="card"><div class="label">Ø Punkte / Spiel</div><div class="value">44.2</div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Statuspruefung</h2>
+      <div class="grid">
+        <div>
+          <p><strong>Grosstest erfolgreich abgeschlossen?</strong><br />Ja, 300/300 Spiele wurden simuliert.</p>
+          <p><strong>Stats stabil?</strong><br />Formal ja, aber nur im Sinne reproduzierbarer Verteilungen.</p>
+          <p><strong>Werte plausibel?</strong><br />Nein, mehrere systematische Plausibilitaetsprobleme bleiben sichtbar.</p>
+        </div>
+        <div>
+          <p><strong>Performance akzeptabel?</strong><br />Ja, im Mittel 1.53 ms pro Spiel.</p>
+          <p><strong>Naechste Schritte klar?</strong><br />Ja, sie sind im Abschnitt Empfehlungen konkret benannt.</p>
+          <p><strong>Gesamtstatus</strong><br /><strong>ROT</strong></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Testumfang</h2>
+      <p>300 vollstaendige Spiele, 8 wiederverwendete Testteams, deterministische Seeds, Team-/Player-Konsistenzchecks, Performance-Messung pro Spiel sowie IQR-basierte Ausreissererkennung fuer Kernmetriken.</p>
+      <p class="small">Hinweis: 3rd-Down-Conversion ist aktuell nicht nativ messbar, da der Simulationsoutput keine 3rd-Down-Ereignisse oder Conversions persistiert.</p>
+    </section>
+
+    <section class="section">
+      <h2>Aggregierte Durchschnittswerte</h2>
+      <table><thead><tr><th>Metrik</th><th>Avg</th><th>Min</th><th>Max</th><th>P10</th><th>Median</th><th>P90</th><th>StdDev</th></tr></thead><tbody><tr><td>Punkte pro Spiel</td><td>44.2</td><td>10</td><td>85</td><td>26</td><td>42.5</td><td>65</td><td>15.4</td></tr><tr><td>Total Yards pro Spiel</td><td>827.1</td><td>634</td><td>1053</td><td>728.9</td><td>825</td><td>923.2</td><td>77.4</td></tr><tr><td>Total Yards pro Team</td><td>413.6</td><td>283</td><td>553</td><td>361</td><td>413</td><td>471.1</td><td>42.3</td></tr><tr><td>Passing Yards pro Team</td><td>301</td><td>196</td><td>409</td><td>258.9</td><td>300</td><td>344</td><td>33.6</td></tr><tr><td>Rushing Yards pro Team</td><td>112.5</td><td>66</td><td>165</td><td>94</td><td>112</td><td>131</td><td>15.1</td></tr><tr><td>Pass-Quote pro Team</td><td>0.7</td><td>0.7</td><td>0.7</td><td>0.7</td><td>0.7</td><td>0.7</td><td>0</td></tr><tr><td>First Downs pro Team</td><td>18.4</td><td>12</td><td>27</td><td>15</td><td>18</td><td>22</td><td>2.5</td></tr><tr><td>Turnovers pro Team</td><td>0.4</td><td>0</td><td>3</td><td>0</td><td>0</td><td>1</td><td>0.6</td></tr><tr><td>Sacks pro Team</td><td>0.7</td><td>0</td><td>5</td><td>0</td><td>0</td><td>2</td><td>0.9</td></tr><tr><td>Penalties pro Team</td><td>1.3</td><td>0</td><td>7</td><td>0</td><td>1</td><td>3</td><td>1.1</td></tr><tr><td>TOP pro Team (Sek.)</td><td>1800</td><td>1283</td><td>2317</td><td>1597.3</td><td>1800</td><td>2002.7</td><td>168.5</td></tr><tr><td>TOP pro Spiel (Sek.)</td><td>3600</td><td>3600</td><td>3600</td><td>3600</td><td>3600</td><td>3600</td><td>0</td></tr><tr><td>Explosive Plays pro Team</td><td>17</td><td>11</td><td>24</td><td>15</td><td>17</td><td>20</td><td>2</td></tr><tr><td>Red Zone Effizienz</td><td>0.4</td><td>0</td><td>1</td><td>0</td><td>0.5</td><td>1</td><td>0.4</td></tr><tr><td>Drives pro Spiel</td><td>27.3</td><td>21</td><td>36</td><td>24</td><td>27</td><td>31</td><td>2.6</td></tr><tr><td>Laufzeit pro Spiel (ms)</td><td>1.5</td><td>0.8</td><td>23.7</td><td>0.9</td><td>1.2</td><td>2</td><td>1.7</td></tr><tr><td>FG-Quote pro Team</td><td>0.5</td><td>0</td><td>1</td><td>0</td><td>0.5</td><td>1</td><td>0.4</td></tr><tr><td>Punt Yards pro Team</td><td>243.1</td><td>0</td><td>570</td><td>108.9</td><td>229.5</td><td>388.1</td><td>104.1</td></tr><tr><td>Kick Return Yards pro Team</td><td>0.6</td><td>0</td><td>26</td><td>0</td><td>0</td><td>0</td><td>3.5</td></tr><tr><td>Punt Return Yards pro Team</td><td>30.6</td><td>0</td><td>106</td><td>10</td><td>29</td><td>55</td><td>17.3</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Ausreisser</h2>
+      <table><thead><tr><th>Match</th><th>Metrik</th><th>Wert</th><th>IQR-Schwelle</th><th>Teams</th><th>Score</th></tr></thead><tbody><tr><td>qa-large-match-31</td><td>Total Yards/Game</td><td>1037</td><td>613.6 .. 1032.6</td><td>DEN vs CHI</td><td>43-41</td></tr><tr><td>qa-large-match-246</td><td>Total Yards/Game</td><td>1039</td><td>613.6 .. 1032.6</td><td>SEA vs BOS</td><td>33-14</td></tr><tr><td>qa-large-match-248</td><td>Total Yards/Game</td><td>1039</td><td>613.6 .. 1032.6</td><td>ATL vs DEN</td><td>10-28</td></tr><tr><td>qa-large-match-276</td><td>Total Yards/Game</td><td>1040</td><td>613.6 .. 1032.6</td><td>CHI vs MIA</td><td>35-50</td></tr><tr><td>qa-large-match-278</td><td>Total Yards/Game</td><td>1053</td><td>613.6 .. 1032.6</td><td>SEA vs BOS</td><td>14-13</td></tr><tr><td>qa-large-match-250</td><td>Red Zone Trips/Game</td><td>8</td><td>-1 .. 7</td><td>NYT vs DAL</td><td>23-35</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Auffaellige Extremspiele</h2>
+      <table><thead><tr><th>Match</th><th>Teams</th><th>Score</th><th>Total Yards</th><th>TOP Summe</th><th>Laufzeit ms</th></tr></thead><tbody><tr><td>qa-large-match-276</td><td>CHI vs MIA</td><td>35-50</td><td>1040</td><td>3600</td><td>2.22</td></tr><tr><td>qa-large-match-31</td><td>DEN vs CHI</td><td>43-41</td><td>1037</td><td>3600</td><td>23.66</td></tr><tr><td>qa-large-match-123</td><td>MIA vs ATL</td><td>45-38</td><td>905</td><td>3600</td><td>1.12</td></tr><tr><td>qa-large-match-154</td><td>NYT vs DAL</td><td>38-45</td><td>895</td><td>3600</td><td>1.25</td></tr><tr><td>qa-large-match-26</td><td>NYT vs DAL</td><td>35-45</td><td>716</td><td>3600</td><td>1.02</td></tr><tr><td>qa-large-match-258</td><td>NYT vs DAL</td><td>24-55</td><td>829</td><td>3600</td><td>1.73</td></tr><tr><td>qa-large-match-130</td><td>NYT vs DAL</td><td>45-33</td><td>879</td><td>3600</td><td>1.06</td></tr><tr><td>qa-large-match-209</td><td>BOS vs NYT</td><td>27-49</td><td>719</td><td>3600</td><td>1.01</td></tr><tr><td>qa-large-match-284</td><td>CHI vs MIA</td><td>42-34</td><td>844</td><td>3600</td><td>1.12</td></tr><tr><td>qa-large-match-188</td><td>CHI vs MIA</td><td>38-37</td><td>770</td><td>3600</td><td>0.95</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Erkannte Bugs</h2>
+      <ul>
+        <li>Turnovers pro Team sind mit 0.4 im Mittel zu niedrig.</li><li>Sacks pro Team sind mit 0.7 im Mittel zu niedrig.</li><li>Penalties pro Team sind mit 1.3 im Mittel zu niedrig.</li><li>Explosive Plays pro Team sind mit 17 im Mittel deutlich zu hoch.</li><li>3rd-Down-Conversion ist in der aktuellen Simulationsstufe nicht auswertbar, weil keine 3rd-Down-Ereignisse persistiert werden.</li><li>Play-by-Play, Quarter Scores und detaillierte Penalty-Ereignisse fehlen weiterhin als native Datenbasis.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Verbesserungsvorschlaege</h2>
+      <ul>
+        <li>Takeaway-Logik und Fumble/INT-Raten nach oben kalibrieren.</li><li>Pass-Rush-Druck und Sack-Umsetzung anheben.</li><li>Penalty-Subsystem ausbauen und ereignisbezogen speichern.</li><li>Explosive-Play-Schwellen und tiefe Passerfolge strenger gewichten.</li><li>Performance ist akzeptabel mit 1.53 ms pro Spiel und 1265.9 ms fuer 300 Spiele.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Naechste Arbeitsschritte</h2>
+      <ol>
+        <li>Scoring- und Yardage-Kalibrierung priorisieren, insbesondere Drive-Erfolgsraten und Explosive Plays.</li>
+        <li>Clock-/Time-of-Possession-Modell ueberarbeiten, damit die Summe pro Spiel physikalisch bei rund 3600 Sekunden landet.</li>
+        <li>Turnover-, Sack- und Penalty-Raten realistischer machen und eventbasiert protokollieren.</li>
+        <li>Third-Down- und Play-by-Play-Daten als native Simulationsoutputs einfuehren.</li>
+        <li>Danach denselben Batch-Test erneut laufen lassen und gegen Zielkorridore vergleichen.</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>Konsistenzpruefung</h2>
+      <p>Keine technischen Konsistenzfehler gefunden.</p>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,1 @@
+/opt/homebrew/Cellar/postgresql@16/16.13/bin/postgres "-D" "/Users/lukashanzi/Documents/AFBM/.local/postgres16-data" "-p" "5432" "-c" "listen_addresses=127.0.0.1"

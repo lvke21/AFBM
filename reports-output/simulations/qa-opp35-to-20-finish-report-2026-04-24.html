@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>OPP35_TO_20 Finish Report 2026-04-24</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 28px; color: #1f2a2a; background: #f6f1e8; }
+    section { background: #fffdf8; border: 1px solid #ded4c6; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #e3dacd; vertical-align: top; }
+    th { background: #efe5d8; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .green { background: #dcfce7; color: #166534; }
+    .red { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>OPP35_TO_20 Finish Report</h1>
+    <p>50-Spiele-Validierung fuer Hard-Finish-Routing nach erfolgreichem 4th-Down-Convert mit Ursprung oder Eintritt in OPP35_TO_20.</p>
+    <p><span class="pill red">ROT</span></p>
+  </section>
+  <section>
+    <h2>Vorher / Nachher</h2>
+    <table><thead><tr><th>Metrik</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody><tr><td>Punkte / Spiel</td><td>54.1</td><td>53.6</td></tr><tr><td>Total Yards / Spiel</td><td>921.5</td><td>936.6</td></tr><tr><td>Punts / Team-Spiel</td><td>4.88</td><td>5.17</td></tr><tr><td>FG-Attempts / Team-Spiel</td><td>3.01</td><td>3.81</td></tr><tr><td>Touchdowns / Team-Spiel</td><td>3.02</td><td>2.75</td></tr><tr><td>TURNOVER_ON_DOWNS / Team-Spiel</td><td>2.65</td><td>1.82</td></tr><tr><td>CONVERTED -&gt; TOD</td><td>24.2%</td><td>10.6%</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Finish-Verteilung OPP35_TO_20</h2>
+    <table><thead><tr><th>Kennzahl</th><th>Wert</th></tr></thead><tbody><tr><td>Drives mit Convert aus OPP35_TO_20</td><td>196</td></tr><tr><td>Drives mit Convert + Ursprung/Eintritt OPP35_TO_20</td><td>347</td></tr><tr><td>TOD-Anteil im Finish-Fenster</td><td>6.9%</td></tr><tr><td>Avg Plays nach Eintritt</td><td>2.5</td></tr></tbody></table>
+    <table><thead><tr><th>Finish</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>TOUCHDOWN</td><td>196</td><td>56.5</td></tr><tr><td>FIELD_GOAL_MADE</td><td>80</td><td>23.1</td></tr><tr><td>FIELD_GOAL_MISSED</td><td>47</td><td>13.5</td></tr><tr><td>TURNOVER_ON_DOWNS_EXCEPTION</td><td>24</td><td>6.9</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Convert-Outcomes</h2>
+    <table><thead><tr><th>Resolution :: Outcome</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>CONVERTED_OPP35_TO_20_FINISH :: TOUCHDOWN</td><td>192</td><td>41.6</td></tr><tr><td>CONVERTED_OPP35_TO_20_FINISH :: FIELD_GOAL_MADE</td><td>76</td><td>16.5</td></tr><tr><td>CONVERTED :: TOUCHDOWN</td><td>72</td><td>15.6</td></tr><tr><td>CONVERTED_OPP35_TO_20_FINISH :: FIELD_GOAL_MISSED</td><td>43</td><td>9.3</td></tr><tr><td>CONVERTED_COLLAPSE :: TURNOVER_ON_DOWNS</td><td>25</td><td>5.4</td></tr><tr><td>CONVERTED_OPP35_TO_20_EXCEPTION :: TURNOVER_ON_DOWNS</td><td>24</td><td>5.2</td></tr><tr><td>CONVERTED_STABILIZED_FG :: FIELD_GOAL_MADE</td><td>10</td><td>2.2</td></tr><tr><td>SOFT_FAIL_SNEAK_CONVERT :: TOUCHDOWN</td><td>5</td><td>1.1</td></tr><tr><td>SOFT_FAIL_PLAY_EXTENSION :: FIELD_GOAL_MISSED</td><td>3</td><td>0.6</td></tr><tr><td>SOFT_FAIL_PLAY_EXTENSION :: TOUCHDOWN</td><td>3</td><td>0.6</td></tr><tr><td>CONVERTED_STABILIZED_FG :: FIELD_GOAL_MISSED</td><td>3</td><td>0.6</td></tr><tr><td>SOFT_FAIL_AUTO_FIRST :: FIELD_GOAL_MADE</td><td>2</td><td>0.4</td></tr><tr><td>SOFT_FAIL_PLAY_EXTENSION :: FIELD_GOAL_MADE</td><td>2</td><td>0.4</td></tr><tr><td>SOFT_FAIL_AUTO_FIRST :: TOUCHDOWN</td><td>1</td><td>0.2</td></tr><tr><td>SOFT_FAIL_SNEAK_CONVERT :: FIELD_GOAL_MISSED</td><td>1</td><td>0.2</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Beispiel-Drives</h2>
+    <table><thead><tr><th>Quarter</th><th>Off</th><th>Ball</th><th>Dist</th><th>Fenster</th><th>Finish</th><th>Plays nach Eintritt</th><th>Result</th><th>Summary</th></tr></thead><tbody><tr><td>Q1</td><td>BOS</td><td>62</td><td>2</td><td>Entry</td><td>FIELD_GOAL_MISSED</td><td>3</td><td>FIELD_GOAL_MISSED</td><td>BOS nutzt den Convert fuer ein Field Goal aus 50 Yards, verfehlt aber.</td></tr><tr><td>Q2</td><td>BOS</td><td>65</td><td>2</td><td>Origin Entry</td><td>TOUCHDOWN</td><td>2</td><td>TOUCHDOWN</td><td>BOS stabilisiert den Drive nach dem Convert und finisht mit einem Touchdown.</td></tr><tr><td>Q2</td><td>NYT</td><td>59</td><td>4</td><td>Entry</td><td>FIELD_GOAL_MISSED</td><td>2</td><td>FIELD_GOAL_MISSED</td><td>NYT nutzt den Convert fuer ein Field Goal aus 39 Yards, verfehlt aber.</td></tr><tr><td>Q3</td><td>BOS</td><td>74</td><td>3</td><td>Origin</td><td>TURNOVER_ON_DOWNS_EXCEPTION</td><td>2</td><td>TURNOVER_ON_DOWNS</td><td>NYT erzeugt den seltenen Stop nach bereits stabilisiertem Convert in OPP35_TO_20.</td></tr><tr><td>Q3</td><td>BOS</td><td>59</td><td>1</td><td>Entry</td><td>FIELD_GOAL_MADE</td><td>2</td><td>FIELD_GOAL_MADE</td><td>BOS nutzt den Convert fuer kontrolliertes Field-Goal-Finish aus 45 Yards.</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Empfehlung</h2>
+    <p>Der Hard-Finish-Pfad in OPP35_TO_20 greift fuer originierende und eintretende Convert-Drives. Als naechstes sollte nur noch die globale direkte GO_FOR_IT-TOD-Last geprueft werden, ohne den neuen Finish-Pfad zu lockern.</p>
+  </section>
+</body>
+</html>

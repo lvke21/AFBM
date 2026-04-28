@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Punt Reduction Report 2026-04-24</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 28px; color: #1f2a2a; background: #f5efe4; }
+    section { background: #fffdf8; border: 1px solid #ded4c6; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 10px; }
+    p { line-height: 1.45; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+    th, td { text-align: left; padding: 8px 9px; border-bottom: 1px solid #e3dacd; vertical-align: top; }
+    th { background: #ece0cf; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .green { background: #dcfce7; color: #166534; }
+    .red { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>Punt Reduction Report</h1>
+    <p>50-Spiele-Validierung fuer gezielte Punt-Reduktion in MIDFIELD und OPP45_TO_35 ohne FG-Ersatzpfad.</p>
+    <p><span class="pill green">GRUEN</span></p>
+  </section>
+  <section>
+    <h2>Vorher / Nachher</h2>
+    <table><thead><tr><th>Metrik</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody><tr><td>Punkte / Spiel</td><td>55.2</td><td>55.7</td></tr><tr><td>Total Yards / Spiel</td><td>916.7</td><td>926.3</td></tr><tr><td>Punts / Team-Spiel</td><td>5.14</td><td>4.31</td></tr><tr><td>FG-Attempts / Team-Spiel</td><td>3.8</td><td>3.7</td></tr><tr><td>Touchdowns / Team-Spiel</td><td>3.14</td><td>3.19</td></tr><tr><td>TURNOVER_ON_DOWNS / Team-Spiel</td><td>1.34</td><td>1.13</td></tr><tr><td>EMPTY_DRIVE / Team-Spiel</td><td>-</td><td>1.17</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Punts nach Zone</h2>
+    <table><thead><tr><th>Zone</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>OPP45_TO_35</td><td>162</td><td>37.6</td></tr><tr><td>MIDFIELD</td><td>152</td><td>35.3</td></tr><tr><td>OWN20_TO_MIDFIELD</td><td>68</td><td>15.8</td></tr><tr><td>OPP35_TO_20</td><td>49</td><td>11.4</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Punts nach Distance</h2>
+    <table><thead><tr><th>Distance</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>4th &amp; 6+</td><td>329</td><td>76.3</td></tr><tr><td>4th &amp; 3-5</td><td>65</td><td>15.1</td></tr><tr><td>4th &amp; 1-2</td><td>37</td><td>8.6</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Result-Verteilung</h2>
+    <table><thead><tr><th>Result</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>PUNT</td><td>431</td><td>30.8</td></tr><tr><td>TOUCHDOWN</td><td>319</td><td>22.8</td></tr><tr><td>FIELD_GOAL_MADE</td><td>191</td><td>13.6</td></tr><tr><td>FIELD_GOAL_MISSED</td><td>179</td><td>12.8</td></tr><tr><td>EMPTY_DRIVE</td><td>117</td><td>8.4</td></tr><tr><td>TURNOVER_ON_DOWNS</td><td>113</td><td>8.1</td></tr><tr><td>TURNOVER</td><td>50</td><td>3.6</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Bewertung</h2>
+    <p>Punts sind klar im Zielkorridor 3.0-4.5. FG-Attempts und TURNOVER_ON_DOWNS steigen nicht; die Punt-Reduktion wird nicht durch Field Goals ersetzt. Punkte und TDs bleiben nur minimal ueber Ausgangslage und gelten fuer diesen isolierten Punt-Fix als plausibel.</p>
+  </section>
+</body>
+</html>

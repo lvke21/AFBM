@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QA Determinism Report</title>
+    <style>
+      :root {
+        --bg: #f5f3ed;
+        --surface: #fffdf7;
+        --ink: #1d2520;
+        --muted: #657168;
+        --line: #ddd3c2;
+        --green: #1d7a4f;
+        --red: #a63d2f;
+        --blue: #244f6b;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Avenir Next", Verdana, sans-serif;
+        line-height: 1.55;
+      }
+      .page {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 54px;
+      }
+      header, section {
+        margin-bottom: 20px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--surface);
+      }
+      h1, h2 { margin: 0 0 12px; line-height: 1.15; }
+      h1 { font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -0.04em; }
+      p { margin: 0 0 12px; }
+      .muted { color: var(--muted); }
+      .pill {
+        display: inline-flex;
+        padding: 6px 11px;
+        border-radius: 999px;
+        color: white;
+        font-weight: 800;
+      }
+      .green { background: var(--green); }
+      .red { background: var(--red); }
+      .note {
+        padding: 14px 16px;
+        border-left: 5px solid var(--blue);
+        border-radius: 12px;
+        background: #e9f0f4;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        background: white;
+      }
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+      }
+      th, td {
+        padding: 10px 12px;
+        border-top: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+        white-space: nowrap;
+      }
+      th {
+        background: #eee6d8;
+      }
+      code {
+        padding: 2px 5px;
+        border-radius: 5px;
+        background: #eee6d8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>QA Determinism Report</h1>
+        <p class="muted">10 Seeds wurden jeweils zweimal mit identischem Match-Kontext simuliert. Verglichen wurde das vollstaendige serialisierte Matchresultat inklusive Score, Team Stats, Player Lines und Drive Logs.</p>
+        <p><span class="pill green">GRUEN</span></p>
+      </header>
+
+      <section>
+        <h2>Technisches Ergebnis</h2>
+        <div class="note">
+          Gleicher Seed + gleicher Match-Kontext erzeugt exakt denselben Ablauf. Der Seed wird im Matchresultat getragen; im Saisonpfad wird ein gespeicherter Match-Seed beim Kontextaufbau bevorzugt wiederverwendet, damit ein Spiel reproduzierbar bleibt.
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>Seed</th><th>Identisch</th><th>Seed im Result</th><th>Hash Run A</th><th>Hash Run B</th><th>Score</th><th>Drives</th><th>Yards</th><th>TOP</th></tr></thead><tbody><tr><td>1</td><td>determinism-qa-seed-1</td><td>JA</td><td>JA</td><td>0755901e9b50ee5d</td><td>0755901e9b50ee5d</td><td>17:14</td><td>29</td><td>835</td><td>3600</td></tr><tr><td>2</td><td>determinism-qa-seed-2</td><td>JA</td><td>JA</td><td>fb5d952ca501fec5</td><td>fb5d952ca501fec5</td><td>13:28</td><td>29</td><td>828</td><td>3600</td></tr><tr><td>3</td><td>determinism-qa-seed-3</td><td>JA</td><td>JA</td><td>cb141e1f56894244</td><td>cb141e1f56894244</td><td>16:21</td><td>29</td><td>892</td><td>3600</td></tr><tr><td>4</td><td>determinism-qa-seed-4</td><td>JA</td><td>JA</td><td>9a805f1624b43d71</td><td>9a805f1624b43d71</td><td>14:24</td><td>30</td><td>926</td><td>3600</td></tr><tr><td>5</td><td>determinism-qa-seed-5</td><td>JA</td><td>JA</td><td>7b271df1b1855477</td><td>7b271df1b1855477</td><td>28:26</td><td>30</td><td>868</td><td>3600</td></tr><tr><td>6</td><td>determinism-qa-seed-6</td><td>JA</td><td>JA</td><td>dde6964612455639</td><td>dde6964612455639</td><td>21:17</td><td>30</td><td>889</td><td>3600</td></tr><tr><td>7</td><td>determinism-qa-seed-7</td><td>JA</td><td>JA</td><td>29745f45af90a644</td><td>29745f45af90a644</td><td>16:38</td><td>25</td><td>790</td><td>3600</td></tr><tr><td>8</td><td>determinism-qa-seed-8</td><td>JA</td><td>JA</td><td>7a91ddf153563f82</td><td>7a91ddf153563f82</td><td>17:42</td><td>23</td><td>710</td><td>3600</td></tr><tr><td>9</td><td>determinism-qa-seed-9</td><td>JA</td><td>JA</td><td>69a9983559ecea7c</td><td>69a9983559ecea7c</td><td>27:17</td><td>29</td><td>881</td><td>3600</td></tr><tr><td>10</td><td>determinism-qa-seed-10</td><td>JA</td><td>JA</td><td>5b936bc7332f07cc</td><td>5b936bc7332f07cc</td><td>17:20</td><td>28</td><td>867</td><td>3600</td></tr></tbody></table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Statuspruefung</h2>
+        <div class="table-wrap">
+          <table><thead><tr><th>Check</th><th>Status</th></tr></thead><tbody><tr><td>10 gleiche Seeds -&gt; identische Ergebnisse</td><td>GRUEN</td></tr><tr><td>Seed pro Ergebnis vorhanden</td><td>GRUEN</td></tr><tr><td>TOP weiterhin konsistent 3600 Sekunden</td><td>GRUEN</td></tr><tr><td>Reproduzierbarkeit ueber gespeicherten Seed</td><td>GRUEN</td></tr></tbody></table>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

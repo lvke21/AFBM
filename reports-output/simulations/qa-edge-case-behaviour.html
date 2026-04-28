@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>QA Edge Case Behaviour</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 28px; color: #202726; background: #f4efe7; }
+    section { background: #fffdf8; border: 1px solid #ded4c6; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 10px; }
+    p { line-height: 1.45; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+    th, td { text-align: left; padding: 8px 9px; border-bottom: 1px solid #e3dacd; vertical-align: top; }
+    th { background: #eadcc8; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .green { background: #dcfce7; color: #166534; }
+    .red { background: #fee2e2; color: #991b1b; }
+    .note { background: #fff7ed; border-left: 4px solid #f59e0b; padding: 10px 12px; }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>QA Edge Case Behaviour</h1>
+    <p>100-Spiele-Audit fuer situative Endgame- und Blowout-Details ohne globale Balance-Verschiebung.</p>
+    <p><span class="pill green">GRUEN</span></p>
+  </section>
+  <section>
+    <h2>Technische Aenderung</h2>
+    <p class="note">Ergaenzt wurden Victory-Formation-Kneels, Clock-Kill-Clock-Modus, Two-Minute-Drill-Clock-Modus, Garbage-Time-Risk-Off, Endgame-FG/TD-Need-Entscheidungen und Blowout-Risk-Off. Die normalen Drive-Physik- und Yardage-Verteilungen bleiben unveraendert.</p>
+  </section>
+  <section>
+    <h2>Stats Stabilitaet</h2>
+    <table><thead><tr><th>Metrik</th><th>Baseline</th><th>Nachher</th><th>Delta</th></tr></thead><tbody><tr><td>Punkte / Spiel</td><td>45.8</td><td>45.1</td><td>-0.7</td></tr><tr><td>Total Yards / Spiel</td><td>825.1</td><td>824.3</td><td>-0.8</td></tr><tr><td>TDs / Team-Spiel</td><td>2.89</td><td>2.85</td><td>-0.04</td></tr><tr><td>Punts / Team-Spiel</td><td>4.55</td><td>4.58</td><td>+0.03</td></tr><tr><td>FG-Attempts / Team-Spiel</td><td>1.82</td><td>1.83</td><td>0</td></tr><tr><td>TOD / Team-Spiel</td><td>0.97</td><td>0.97</td><td>0</td></tr><tr><td>Plays / Drive</td><td>6.38</td><td>6.33</td><td>-0.05</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Edge-Case Counts</h2>
+    <table><thead><tr><th>Edge Case</th><th>Count</th></tr></thead><tbody><tr><td>Kneel Downs</td><td>41</td></tr><tr><td>Clock Kill Drives</td><td>56</td></tr><tr><td>2-Minute Drill</td><td>81</td></tr><tr><td>Garbage Time konservativ</td><td>52</td></tr><tr><td>Endgame FG statt TD-Jagd</td><td>2</td></tr><tr><td>Endgame TD-Need</td><td>26</td></tr><tr><td>Blowout Risk-Off</td><td>54</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Statuspruefung</h2>
+    <table><thead><tr><th>Check</th><th>Status</th></tr></thead><tbody><tr><td>Verhalten realistischer</td><td>GRUEN</td></tr><tr><td>Stats unveraendert/stabil</td><td>GRUEN</td></tr><tr><td>Clock/TOP konsistent</td><td>GRUEN</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Beispiel-Drives</h2>
+    <table><thead><tr><th>Game</th><th>Seq</th><th>Q</th><th>Off</th><th>Edge</th><th>Result</th><th>Home Start</th><th>Away Start</th><th>Sek. Start</th><th>Summary</th></tr></thead><tbody><tr><td>1</td><td>26</td><td>Q4</td><td>BOS</td><td>clockKill</td><td>EMPTY_DRIVE</td><td>27</td><td>10</td><td>153</td><td>BOS laesst den Drive bei 4th &amp; 5 nahe der 54-Yard-Linie ohne offiziellen Punt auslaufen. [Edge: Clock Kill, Blowout Risk-Off]</td></tr><tr><td>1</td><td>26</td><td>Q4</td><td>BOS</td><td>blowoutRiskOff</td><td>EMPTY_DRIVE</td><td>27</td><td>10</td><td>153</td><td>BOS laesst den Drive bei 4th &amp; 5 nahe der 54-Yard-Linie ohne offiziellen Punt auslaufen. [Edge: Clock Kill, Blowout Risk-Off]</td></tr><tr><td>1</td><td>27</td><td>Q4</td><td>NYT</td><td>twoMinute</td><td>FIELD_GOAL_MISSED</td><td>27</td><td>10</td><td>109</td><td>NYT nutzt den Convert fuer ein Field Goal aus 37 Yards, verfehlt aber. [Edge: 2-Minute Drill]</td></tr><tr><td>1</td><td>28</td><td>Q4</td><td>BOS</td><td>kneelDown</td><td>EMPTY_DRIVE</td><td>27</td><td>10</td><td>20</td><td>BOS geht in Victory Formation und kniet die Uhr kontrolliert herunter.</td></tr><tr><td>1</td><td>29</td><td>Q4</td><td>NYT</td><td>twoMinute</td><td>TURNOVER_ON_DOWNS</td><td>27</td><td>10</td><td>16</td><td>BOS stoppt NYT bei 4th &amp; 4; Turnover on Downs. [Edge: 2-Minute Drill]</td></tr><tr><td>2</td><td>25</td><td>Q4</td><td>BOS</td><td>twoMinute</td><td>TURNOVER_ON_DOWNS</td><td>14</td><td>35</td><td>120</td><td>NYT stoppt BOS auch nach konvertiertem 4th Down noch in Plus Territory. [Edge: 2-Minute Drill]</td></tr><tr><td>2</td><td>26</td><td>Q4</td><td>NYT</td><td>kneelDown</td><td>EMPTY_DRIVE</td><td>14</td><td>35</td><td>27</td><td>NYT geht in Victory Formation und kniet die Uhr kontrolliert herunter.</td></tr><tr><td>2</td><td>27</td><td>Q4</td><td>BOS</td><td>twoMinute</td><td>FIELD_GOAL_MISSED</td><td>14</td><td>35</td><td>25</td><td>BOS nutzt den Convert fuer ein Field Goal aus 47 Yards, verfehlt aber. [Edge: 2-Minute Drill]</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Bewertung</h2>
+    <p>GRUEN: Edge-Case-Verhalten ist sichtbar realistischer, Kernstats bleiben stabil und Clock/TOP bleibt konsistent.</p>
+  </section>
+</body>
+</html>

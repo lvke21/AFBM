@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>FG Attempt Reduction Report 2026-04-24</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 28px; color: #202726; background: #f4efe7; }
+    section { background: #fffdf8; border: 1px solid #ded4c6; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 10px; }
+    p { line-height: 1.45; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+    th, td { text-align: left; padding: 8px 9px; border-bottom: 1px solid #e3dacd; vertical-align: top; }
+    th { background: #eadcc8; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .green { background: #dcfce7; color: #166534; }
+    .red { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>FG Attempt Reduction Report</h1>
+    <p>50-Spiele-Validierung fuer das zweite Fixpaket: lange und wiederholte Field-Goal-Finishes werden situativer bewertet, ohne neue GO_FOR_IT-Spam-Pfade, Red-Zone-Aenderungen oder globale Offense-Aenderungen.</p>
+    <p><span class="pill green">GRUEN</span></p>
+  </section>
+  <section>
+    <h2>Vorher / Nachher</h2>
+    <table><thead><tr><th>Metrik</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody><tr><td>Punkte / Spiel</td><td>55.7</td><td>50.6</td></tr><tr><td>Total Yards / Spiel</td><td>926.3</td><td>894.4</td></tr><tr><td>Punts / Team-Spiel</td><td>4.31</td><td>4.08</td></tr><tr><td>FG-Attempts / Team-Spiel</td><td>3.7</td><td>2.24</td></tr><tr><td>FG Made Rate</td><td>51.6%</td><td>53.1%</td></tr><tr><td>Touchdowns / Team-Spiel</td><td>3.19</td><td>3.13</td></tr><tr><td>TURNOVER_ON_DOWNS / Team-Spiel</td><td>1.13</td><td>1.19</td></tr><tr><td>EMPTY_DRIVE / Team-Spiel</td><td>1.17</td><td>2.44</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>FG-Attempts nach 4th-Down-Zone</h2>
+    <table><thead><tr><th>Zone</th><th>Attempts</th><th>Made</th><th>Missed</th><th>Made %</th></tr></thead><tbody><tr><td>OPP35_TO_20</td><td>171</td><td>89</td><td>82</td><td>52</td></tr><tr><td>OPP45_TO_35</td><td>41</td><td>21</td><td>20</td><td>51.2</td></tr><tr><td>RED_ZONE</td><td>11</td><td>9</td><td>2</td><td>81.8</td></tr><tr><td>MIDFIELD</td><td>1</td><td>0</td><td>1</td><td>0</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>FG-Attempts nach Kick-Spot-Zone</h2>
+    <table><thead><tr><th>Zone</th><th>Attempts</th><th>Made</th><th>Missed</th><th>Made %</th></tr></thead><tbody><tr><td>OPP35_TO_20</td><td>175</td><td>87</td><td>88</td><td>49.7</td></tr><tr><td>RED_ZONE</td><td>49</td><td>32</td><td>17</td><td>65.3</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>FG-Attempts nach Yardline</h2>
+    <table><thead><tr><th>Yardline</th><th>Attempts</th><th>Made</th><th>Missed</th><th>Made %</th></tr></thead><tbody><tr><td>OPP30-26</td><td>75</td><td>40</td><td>35</td><td>53.3</td></tr><tr><td>OPP25-21</td><td>67</td><td>42</td><td>25</td><td>62.7</td></tr><tr><td>OPP20 or closer</td><td>49</td><td>32</td><td>17</td><td>65.3</td></tr><tr><td>OPP35-31</td><td>33</td><td>5</td><td>28</td><td>15.2</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>FG-Attempts nach Kickdistanz</h2>
+    <table><thead><tr><th>Kickdistanz</th><th>Attempts</th><th>Made</th><th>Missed</th><th>Made %</th></tr></thead><tbody><tr><td>30-39</td><td>68</td><td>46</td><td>22</td><td>67.6</td></tr><tr><td>40-43</td><td>66</td><td>37</td><td>29</td><td>56.1</td></tr><tr><td>44-46</td><td>45</td><td>28</td><td>17</td><td>62.2</td></tr><tr><td>47-49</td><td>32</td><td>5</td><td>27</td><td>15.6</td></tr><tr><td>50-52</td><td>13</td><td>3</td><td>10</td><td>23.1</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>FG-Attempts nach 4th-Down-Distance</h2>
+    <table><thead><tr><th>Distance</th><th>Attempts</th><th>Made</th><th>Missed</th><th>Made %</th></tr></thead><tbody><tr><td>4th &amp; 6+</td><td>102</td><td>54</td><td>48</td><td>52.9</td></tr><tr><td>4th &amp; 3-5</td><td>69</td><td>33</td><td>36</td><td>47.8</td></tr><tr><td>4th &amp; 1-2</td><td>53</td><td>32</td><td>21</td><td>60.4</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>FG-Pfade</h2>
+    <table><thead><tr><th>Pfad</th><th>Attempts</th><th>Made</th><th>Missed</th><th>Made %</th></tr></thead><tbody><tr><td>DIRECT_FG_DECISION</td><td>131</td><td>66</td><td>65</td><td>50.4</td></tr><tr><td>OPP35_TO_20_FINISH</td><td>93</td><td>53</td><td>40</td><td>57</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Ersatzpfade statt FG</h2>
+    <table><thead><tr><th>Ersatzpfad</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>OTHER_EMPTY_DRIVE</td><td>123</td><td>50.4</td></tr><tr><td>POST_CONVERT_FG_DECLINED_TO_FIELD_POSITION</td><td>66</td><td>27</td></tr><tr><td>DIRECT_LONG_FG_DECLINED_TO_FIELD_POSITION</td><td>55</td><td>22.5</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Result-Verteilung</h2>
+    <table><thead><tr><th>Result</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>PUNT</td><td>408</td><td>30.1</td></tr><tr><td>TOUCHDOWN</td><td>313</td><td>23.1</td></tr><tr><td>EMPTY_DRIVE</td><td>244</td><td>18</td></tr><tr><td>TURNOVER_ON_DOWNS</td><td>119</td><td>8.8</td></tr><tr><td>FIELD_GOAL_MADE</td><td>119</td><td>8.8</td></tr><tr><td>FIELD_GOAL_MISSED</td><td>105</td><td>7.7</td></tr><tr><td>TURNOVER</td><td>48</td><td>3.5</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Bewertung</h2>
+    <p>FG-Attempts sinken in den Zielkorridor, ohne dass Punts oder TURNOVER_ON_DOWNS stark steigen. Punkte und TDs bleiben plausibel. Der OPP35_TO_20-Finish-Fix bleibt aktiv: problematische lange Post-Convert-FGs werden als kontrollierte Field-Position-Finishes abgefangen, nicht als neue direkte TODs.</p>
+  </section>
+</body>
+</html>

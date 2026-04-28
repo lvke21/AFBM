@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Final 100 Game Balance Report 2026-04-24</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 28px; color: #202726; background: #f4efe7; }
+    section { background: #fffdf8; border: 1px solid #ded4c6; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 10px; }
+    p { line-height: 1.45; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+    th, td { text-align: left; padding: 8px 9px; border-bottom: 1px solid #e3dacd; vertical-align: top; }
+    th { background: #eadcc8; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .green { background: #dcfce7; color: #166534; }
+    .red { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>Final 100 Game Balance Report</h1>
+    <p>Gesamtvalidierung nach den Fixpaketen: Lint und Tests wurden separat ausgefuehrt, danach wurden 100 vollstaendige Spiele simuliert.</p>
+    <p><span class="pill green">GRUEN</span></p>
+  </section>
+  <section>
+    <h2>Zielkorridor-Bewertung</h2>
+    <table><thead><tr><th>Metrik</th><th>Ziel</th><th>Ist</th><th>Bewertung</th></tr></thead><tbody><tr><td>Punkte / Spiel</td><td>42-54</td><td>47.8</td><td>GRUEN</td></tr><tr><td>TDs / Team-Spiel</td><td>2.2-3.0</td><td>3</td><td>GRUEN</td></tr><tr><td>Total Yards / Spiel</td><td>700-850</td><td>849.2</td><td>GRUEN</td></tr><tr><td>Punts / Team-Spiel</td><td>3.0-4.5</td><td>4.36</td><td>GRUEN</td></tr><tr><td>FG-Attempts / Team-Spiel</td><td>1.5-2.5</td><td>1.88</td><td>GRUEN</td></tr><tr><td>TOD / Team-Spiel</td><td>0.5-1.2</td><td>0.81</td><td>GRUEN</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Kernmetriken</h2>
+    <table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody><tr><td>Punkte / Spiel</td><td>47.8</td></tr><tr><td>TDs / Team-Spiel</td><td>3</td></tr><tr><td>Total Yards / Spiel</td><td>849.2</td></tr><tr><td>Drive-Log Yards / Spiel</td><td>849.2</td></tr><tr><td>Punts / Team-Spiel</td><td>4.36</td></tr><tr><td>FG-Attempts / Team-Spiel</td><td>1.88</td></tr><tr><td>TOD / Team-Spiel</td><td>0.81</td></tr><tr><td>Turnovers / Team-Spiel</td><td>0.45</td></tr><tr><td>Sacks / Team-Spiel</td><td>0.6</td></tr><tr><td>Penalties / Team-Spiel</td><td>1.27</td></tr><tr><td>Red-Zone Trips / Team-Spiel</td><td>1.65</td></tr><tr><td>Red-Zone TD Rate</td><td>16.1%</td></tr><tr><td>Drives / Spiel</td><td>27.1</td></tr><tr><td>Plays / Drive</td><td>7.5</td></tr><tr><td>Yards / Drive</td><td>31.3</td></tr><tr><td>Yards / Play</td><td>4.18</td></tr><tr><td>Team/Drive-Yard-Mismatches</td><td>0</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Vorher / Nachher ueber Fixpakete</h2>
+    <table><thead><tr><th>Phase</th><th>Punkte</th><th>Yards</th><th>Punts</th><th>FG Att</th><th>TD</th><th>TOD</th></tr></thead><tbody><tr><td>Root Cause Baseline</td><td>55.2</td><td>916.7</td><td>5.14</td><td>3.80</td><td>3.14</td><td>1.34</td></tr><tr><td>Punt Reduction</td><td>55.7</td><td>926.3</td><td>4.31</td><td>3.70</td><td>3.19</td><td>1.13</td></tr><tr><td>FG Attempt Reduction</td><td>50.6</td><td>894.4</td><td>4.08</td><td>2.24</td><td>3.13</td><td>1.19</td></tr><tr><td>TOD Final Reduction</td><td>49.8</td><td>883.9</td><td>3.98</td><td>2.21</td><td>3.09</td><td>0.83</td></tr><tr><td>Total Yards Reduction</td><td>47.2</td><td>849.7</td><td>4.50</td><td>1.88</td><td>2.95</td><td>0.80</td></tr><tr><td>Final 100 Games</td><td>47.8</td><td>849.2</td><td>4.36</td><td>1.88</td><td>3</td><td>0.81</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Drive-End-Verteilung</h2>
+    <table><thead><tr><th>Result</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>PUNT</td><td>872</td><td>32.2</td></tr><tr><td>EMPTY_DRIVE</td><td>614</td><td>22.6</td></tr><tr><td>TOUCHDOWN</td><td>599</td><td>22.1</td></tr><tr><td>FIELD_GOAL_MADE</td><td>210</td><td>7.7</td></tr><tr><td>FIELD_GOAL_MISSED</td><td>165</td><td>6.1</td></tr><tr><td>TURNOVER_ON_DOWNS</td><td>162</td><td>6</td></tr><tr><td>TURNOVER</td><td>90</td><td>3.3</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>4th Down Entscheidungen</h2>
+    <table><thead><tr><th>Decision</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>GO_FOR_IT</td><td>1189</td><td>45.3</td></tr><tr><td>PUNT</td><td>1155</td><td>44.1</td></tr><tr><td>FIELD_GOAL</td><td>278</td><td>10.6</td></tr></tbody></table>
+    <table><thead><tr><th>Decision / Distance</th><th>Count</th><th>GO Converted</th><th>GO Failed</th><th>TOD</th><th>GO Success %</th></tr></thead><tbody><tr><td>PUNT / 4th &amp; 6+</td><td>883</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>GO_FOR_IT / 4th &amp; 1-2</td><td>644</td><td>556</td><td>87</td><td>80</td><td>86.5</td></tr><tr><td>GO_FOR_IT / 4th &amp; 3-5</td><td>516</td><td>432</td><td>84</td><td>71</td><td>83.7</td></tr><tr><td>FIELD_GOAL / 4th &amp; 6+</td><td>209</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>PUNT / 4th &amp; 3-5</td><td>192</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>PUNT / 4th &amp; 1-2</td><td>80</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>FIELD_GOAL / 4th &amp; 3-5</td><td>69</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>GO_FOR_IT / 4th &amp; 6+</td><td>29</td><td>18</td><td>11</td><td>11</td><td>62.1</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Restprobleme nach Prioritaet</h2>
+    <table><thead><tr><th>Prioritaet</th><th>Bereich</th><th>Bewertung</th></tr></thead><tbody><tr><td>P1</td><td>Red Zone</td><td>Red-Zone-TD-Rate wirkt mit dem aktuellen Tracking sehr niedrig; wahrscheinlich werden TD-Finishes ausserhalb des klassischen Red-Zone-Trip-Pfads untererfasst.</td></tr><tr><td>P2</td><td>Punts</td><td>Punts liegen im Zielkorridor, aber nahe am oberen Rand und sollten bei kuenftigen Yardage-Patches nicht weiter steigen.</td></tr><tr><td>P3</td><td>Total Yards</td><td>Total Yards liegen stabil im Zielkorridor, aber nahe der oberen Grenze.</td></tr><tr><td>P4</td><td>Sample Size</td><td>100 Spiele sind erfolgreich; fuer Release-Freigabe waere spaeter ein 300-500-Spiele-Stabilitaetslauf sinnvoll.</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Empfehlung</h2>
+    <p>GRUEN: Die Kernmetriken liegen im Zielkorridor, die Drive-End-Verteilung zeigt keine neue kritische Verzerrung, und die Yard-Statistik ist konsistent. Red-Zone-Tracking bleibt als separates QA-Thema offen.</p>
+  </section>
+</body>
+</html>

@@ -1,0 +1,1675 @@
+{
+  "availability": {
+    "byTeam": [
+      {
+        "averageAvailabilityIndex": 0.926,
+        "averageBackupFatigue": 0.02,
+        "averageBackupUsageRate": 0.122,
+        "averageEffectiveDepthRating": 72.48,
+        "averageStarterFatigue": 28.09,
+        "averageStarterLossCount": 3.42,
+        "maxStarterLossCount": 9,
+        "samples": 252,
+        "teamId": "EQL1",
+        "teamProfile": "EQUAL"
+      },
+      {
+        "averageAvailabilityIndex": 0.92,
+        "averageBackupFatigue": 0.02,
+        "averageBackupUsageRate": 0.134,
+        "averageEffectiveDepthRating": 72.54,
+        "averageStarterFatigue": 27.09,
+        "averageStarterLossCount": 3.52,
+        "maxStarterLossCount": 8,
+        "samples": 252,
+        "teamId": "EQL2",
+        "teamProfile": "EQUAL"
+      },
+      {
+        "averageAvailabilityIndex": 0.922,
+        "averageBackupFatigue": 0.01,
+        "averageBackupUsageRate": 0.129,
+        "averageEffectiveDepthRating": 74.13,
+        "averageStarterFatigue": 28.02,
+        "averageStarterLossCount": 3.58,
+        "maxStarterLossCount": 10,
+        "samples": 252,
+        "teamId": "MED1",
+        "teamProfile": "MEDIUM"
+      },
+      {
+        "averageAvailabilityIndex": 0.929,
+        "averageBackupFatigue": 0.04,
+        "averageBackupUsageRate": 0.124,
+        "averageEffectiveDepthRating": 73.42,
+        "averageStarterFatigue": 26.92,
+        "averageStarterLossCount": 3.53,
+        "maxStarterLossCount": 11,
+        "samples": 252,
+        "teamId": "MED2",
+        "teamProfile": "MEDIUM"
+      },
+      {
+        "averageAvailabilityIndex": 0.956,
+        "averageBackupFatigue": 0.01,
+        "averageBackupUsageRate": 0.074,
+        "averageEffectiveDepthRating": 82.09,
+        "averageStarterFatigue": 31.96,
+        "averageStarterLossCount": 2.09,
+        "maxStarterLossCount": 8,
+        "samples": 252,
+        "teamId": "STR1",
+        "teamProfile": "STRONG"
+      },
+      {
+        "averageAvailabilityIndex": 0.938,
+        "averageBackupFatigue": 0.03,
+        "averageBackupUsageRate": 0.103,
+        "averageEffectiveDepthRating": 80.53,
+        "averageStarterFatigue": 29.07,
+        "averageStarterLossCount": 2.88,
+        "maxStarterLossCount": 9,
+        "samples": 252,
+        "teamId": "STR2",
+        "teamProfile": "STRONG"
+      },
+      {
+        "averageAvailabilityIndex": 0.918,
+        "averageBackupFatigue": 0.03,
+        "averageBackupUsageRate": 0.126,
+        "averageEffectiveDepthRating": 66.66,
+        "averageStarterFatigue": 25.36,
+        "averageStarterLossCount": 3.51,
+        "maxStarterLossCount": 12,
+        "samples": 252,
+        "teamId": "WEK1",
+        "teamProfile": "WEAK"
+      },
+      {
+        "averageAvailabilityIndex": 0.923,
+        "averageBackupFatigue": 0.02,
+        "averageBackupUsageRate": 0.116,
+        "averageEffectiveDepthRating": 67.39,
+        "averageStarterFatigue": 26.03,
+        "averageStarterLossCount": 3.21,
+        "maxStarterLossCount": 10,
+        "samples": 252,
+        "teamId": "WEK2",
+        "teamProfile": "WEAK"
+      }
+    ],
+    "byWeek": [
+      {
+        "averageAvailabilityIndex": 0.952,
+        "averageBackupUsageRate": 0.081,
+        "averageEffectiveDepthRating": 74.01,
+        "averageStarterLossCount": 2.24,
+        "samples": 144,
+        "week": 1
+      },
+      {
+        "averageAvailabilityIndex": 0.947,
+        "averageBackupUsageRate": 0.088,
+        "averageEffectiveDepthRating": 73.92,
+        "averageStarterLossCount": 2.45,
+        "samples": 144,
+        "week": 2
+      },
+      {
+        "averageAvailabilityIndex": 0.944,
+        "averageBackupUsageRate": 0.088,
+        "averageEffectiveDepthRating": 73.86,
+        "averageStarterLossCount": 2.44,
+        "samples": 144,
+        "week": 3
+      },
+      {
+        "averageAvailabilityIndex": 0.941,
+        "averageBackupUsageRate": 0.097,
+        "averageEffectiveDepthRating": 73.83,
+        "averageStarterLossCount": 2.67,
+        "samples": 144,
+        "week": 4
+      },
+      {
+        "averageAvailabilityIndex": 0.937,
+        "averageBackupUsageRate": 0.105,
+        "averageEffectiveDepthRating": 73.81,
+        "averageStarterLossCount": 2.91,
+        "samples": 144,
+        "week": 5
+      },
+      {
+        "averageAvailabilityIndex": 0.934,
+        "averageBackupUsageRate": 0.109,
+        "averageEffectiveDepthRating": 73.72,
+        "averageStarterLossCount": 2.99,
+        "samples": 144,
+        "week": 6
+      },
+      {
+        "averageAvailabilityIndex": 0.929,
+        "averageBackupUsageRate": 0.119,
+        "averageEffectiveDepthRating": 73.7,
+        "averageStarterLossCount": 3.27,
+        "samples": 144,
+        "week": 7
+      },
+      {
+        "averageAvailabilityIndex": 0.926,
+        "averageBackupUsageRate": 0.121,
+        "averageEffectiveDepthRating": 73.65,
+        "averageStarterLossCount": 3.38,
+        "samples": 144,
+        "week": 8
+      },
+      {
+        "averageAvailabilityIndex": 0.924,
+        "averageBackupUsageRate": 0.124,
+        "averageEffectiveDepthRating": 73.6,
+        "averageStarterLossCount": 3.47,
+        "samples": 144,
+        "week": 9
+      },
+      {
+        "averageAvailabilityIndex": 0.92,
+        "averageBackupUsageRate": 0.129,
+        "averageEffectiveDepthRating": 73.54,
+        "averageStarterLossCount": 3.59,
+        "samples": 144,
+        "week": 10
+      },
+      {
+        "averageAvailabilityIndex": 0.917,
+        "averageBackupUsageRate": 0.135,
+        "averageEffectiveDepthRating": 73.46,
+        "averageStarterLossCount": 3.79,
+        "samples": 144,
+        "week": 11
+      },
+      {
+        "averageAvailabilityIndex": 0.916,
+        "averageBackupUsageRate": 0.132,
+        "averageEffectiveDepthRating": 73.37,
+        "averageStarterLossCount": 3.66,
+        "samples": 144,
+        "week": 12
+      },
+      {
+        "averageAvailabilityIndex": 0.911,
+        "averageBackupUsageRate": 0.144,
+        "averageEffectiveDepthRating": 73.36,
+        "averageStarterLossCount": 4.01,
+        "samples": 144,
+        "week": 13
+      },
+      {
+        "averageAvailabilityIndex": 0.909,
+        "averageBackupUsageRate": 0.149,
+        "averageEffectiveDepthRating": 73.31,
+        "averageStarterLossCount": 4.17,
+        "samples": 144,
+        "week": 14
+      }
+    ]
+  },
+  "diagnostics": {
+    "byAiArchetypePair": [
+      {
+        "averageLoserScore": 10,
+        "averageMargin": 17.39,
+        "averageScore": 37.38,
+        "averageWinnerScore": 27.38,
+        "blowoutRate": 0.278,
+        "closeGameRate": 0.473,
+        "games": 450,
+        "key": "BALANCED_MATCHUP-vs-BALANCED_MATCHUP"
+      },
+      {
+        "averageLoserScore": 8.11,
+        "averageMargin": 32.71,
+        "averageScore": 48.94,
+        "averageWinnerScore": 40.83,
+        "blowoutRate": 0.686,
+        "closeGameRate": 0.083,
+        "games": 360,
+        "key": "FAVORITE_CONTROL-vs-UNDERDOG_VARIANCE"
+      },
+      {
+        "averageLoserScore": 9.58,
+        "averageMargin": 30.56,
+        "averageScore": 49.72,
+        "averageWinnerScore": 40.14,
+        "blowoutRate": 0.591,
+        "closeGameRate": 0.096,
+        "games": 198,
+        "key": "UNDERDOG_VARIANCE-vs-FAVORITE_CONTROL"
+      }
+    ],
+    "byAvailabilityBand": [
+      {
+        "averageLoserScore": 8.95,
+        "averageMargin": 25.16,
+        "averageScore": 43.05,
+        "averageWinnerScore": 34.11,
+        "blowoutRate": 0.476,
+        "closeGameRate": 0.276,
+        "games": 185,
+        "key": "75-84"
+      },
+      {
+        "averageLoserScore": 9.4,
+        "averageMargin": 24.75,
+        "averageScore": 43.55,
+        "averageWinnerScore": 34.15,
+        "blowoutRate": 0.465,
+        "closeGameRate": 0.278,
+        "games": 529,
+        "key": "85-94"
+      },
+      {
+        "averageLoserScore": 9.36,
+        "averageMargin": 26.37,
+        "averageScore": 45.1,
+        "averageWinnerScore": 35.73,
+        "blowoutRate": 0.516,
+        "closeGameRate": 0.223,
+        "games": 283,
+        "key": "95-100"
+      },
+      {
+        "averageLoserScore": 3.55,
+        "averageMargin": 40,
+        "averageScore": 47.09,
+        "averageWinnerScore": 43.55,
+        "blowoutRate": 0.818,
+        "closeGameRate": 0.091,
+        "games": 11,
+        "key": "under-75"
+      }
+    ],
+    "byBackupUsageBand": [
+      {
+        "averageLoserScore": 9.55,
+        "averageMargin": 25.7,
+        "averageScore": 44.79,
+        "averageWinnerScore": 35.24,
+        "blowoutRate": 0.502,
+        "closeGameRate": 0.243,
+        "games": 313,
+        "key": "0-9"
+      },
+      {
+        "averageLoserScore": 9.19,
+        "averageMargin": 25.47,
+        "averageScore": 43.85,
+        "averageWinnerScore": 34.66,
+        "blowoutRate": 0.484,
+        "closeGameRate": 0.276,
+        "games": 380,
+        "key": "10-19"
+      },
+      {
+        "averageLoserScore": 8.84,
+        "averageMargin": 26.09,
+        "averageScore": 43.77,
+        "averageWinnerScore": 34.93,
+        "blowoutRate": 0.492,
+        "closeGameRate": 0.227,
+        "games": 256,
+        "key": "20-29"
+      },
+      {
+        "averageLoserScore": 9.71,
+        "averageMargin": 21.17,
+        "averageScore": 40.59,
+        "averageWinnerScore": 30.88,
+        "blowoutRate": 0.373,
+        "closeGameRate": 0.39,
+        "games": 59,
+        "key": "30-plus"
+      }
+    ],
+    "byEffectiveDepthRatingBand": [
+      {
+        "averageLoserScore": 14.03,
+        "averageMargin": 12.47,
+        "averageScore": 40.54,
+        "averageWinnerScore": 26.5,
+        "blowoutRate": 0.147,
+        "closeGameRate": 0.408,
+        "games": 490,
+        "key": "70-74"
+      },
+      {
+        "averageLoserScore": 16.33,
+        "averageMargin": 8.58,
+        "averageScore": 41.25,
+        "averageWinnerScore": 24.92,
+        "blowoutRate": 0.125,
+        "closeGameRate": 0.458,
+        "games": 24,
+        "key": "75-79"
+      },
+      {
+        "averageLoserScore": 14.81,
+        "averageMargin": 6.23,
+        "averageScore": 35.85,
+        "averageWinnerScore": 21.04,
+        "blowoutRate": 0,
+        "closeGameRate": 0.692,
+        "games": 26,
+        "key": "80-plus"
+      },
+      {
+        "averageLoserScore": 3.55,
+        "averageMargin": 40.97,
+        "averageScore": 48.07,
+        "averageWinnerScore": 44.52,
+        "blowoutRate": 0.885,
+        "closeGameRate": 0.071,
+        "games": 468,
+        "key": "under-70"
+      }
+    ],
+    "byFatigueBand": [
+      {
+        "averageLoserScore": 9.24,
+        "averageMargin": 25.45,
+        "averageScore": 43.93,
+        "averageWinnerScore": 34.69,
+        "blowoutRate": 0.485,
+        "closeGameRate": 0.26,
+        "games": 1008,
+        "key": "0-29"
+      }
+    ],
+    "byHomeAwayWinner": [
+      {
+        "averageLoserScore": 9.36,
+        "averageMargin": 26.73,
+        "averageScore": 45.44,
+        "averageWinnerScore": 36.08,
+        "blowoutRate": 0.495,
+        "closeGameRate": 0.241,
+        "games": 485,
+        "key": "AWAY"
+      },
+      {
+        "averageLoserScore": 8.87,
+        "averageMargin": 27.11,
+        "averageScore": 44.86,
+        "averageWinnerScore": 35.99,
+        "blowoutRate": 0.532,
+        "closeGameRate": 0.192,
+        "games": 468,
+        "key": "HOME"
+      },
+      {
+        "averageLoserScore": 11.36,
+        "averageMargin": 0,
+        "averageScore": 22.73,
+        "averageWinnerScore": 11.36,
+        "blowoutRate": 0,
+        "closeGameRate": 1,
+        "games": 55,
+        "key": "TIE"
+      }
+    ],
+    "byInjuryCountBand": [
+      {
+        "averageLoserScore": 12.84,
+        "averageMargin": 25.32,
+        "averageScore": 51,
+        "averageWinnerScore": 38.16,
+        "blowoutRate": 0.52,
+        "closeGameRate": 0.2,
+        "games": 25,
+        "key": "0"
+      },
+      {
+        "averageLoserScore": 7.94,
+        "averageMargin": 25.55,
+        "averageScore": 41.42,
+        "averageWinnerScore": 33.48,
+        "blowoutRate": 0.532,
+        "closeGameRate": 0.226,
+        "games": 62,
+        "key": "1-3"
+      },
+      {
+        "averageLoserScore": 10.41,
+        "averageMargin": 24.22,
+        "averageScore": 45.03,
+        "averageWinnerScore": 34.62,
+        "blowoutRate": 0.443,
+        "closeGameRate": 0.253,
+        "games": 79,
+        "key": "4-7"
+      },
+      {
+        "averageLoserScore": 10,
+        "averageMargin": 22.8,
+        "averageScore": 42.8,
+        "averageWinnerScore": 32.8,
+        "blowoutRate": 0.427,
+        "closeGameRate": 0.307,
+        "games": 75,
+        "key": "8-11"
+      },
+      {
+        "averageLoserScore": 9.04,
+        "averageMargin": 25.83,
+        "averageScore": 43.9,
+        "averageWinnerScore": 34.87,
+        "blowoutRate": 0.49,
+        "closeGameRate": 0.261,
+        "games": 767,
+        "key": "12+"
+      }
+    ],
+    "byLongTermPhase": [
+      {
+        "averageLoserScore": 9.32,
+        "averageMargin": 24.86,
+        "averageScore": 43.49,
+        "averageWinnerScore": 34.18,
+        "blowoutRate": 0.482,
+        "closeGameRate": 0.256,
+        "games": 336,
+        "key": "early"
+      },
+      {
+        "averageLoserScore": 9.14,
+        "averageMargin": 26.19,
+        "averageScore": 44.47,
+        "averageWinnerScore": 35.33,
+        "blowoutRate": 0.485,
+        "closeGameRate": 0.265,
+        "games": 336,
+        "key": "late"
+      },
+      {
+        "averageLoserScore": 9.27,
+        "averageMargin": 25.29,
+        "averageScore": 43.84,
+        "averageWinnerScore": 34.56,
+        "blowoutRate": 0.488,
+        "closeGameRate": 0.259,
+        "games": 336,
+        "key": "middle"
+      }
+    ],
+    "byProfilePair": [
+      {
+        "averageLoserScore": 13.72,
+        "averageMargin": 7.69,
+        "averageScore": 35.14,
+        "averageWinnerScore": 21.42,
+        "blowoutRate": 0.028,
+        "closeGameRate": 0.556,
+        "games": 36,
+        "key": "equal-vs-equal"
+      },
+      {
+        "averageLoserScore": 11.79,
+        "averageMargin": 6.53,
+        "averageScore": 30.11,
+        "averageWinnerScore": 18.32,
+        "blowoutRate": 0,
+        "closeGameRate": 0.681,
+        "games": 72,
+        "key": "equal-vs-medium"
+      },
+      {
+        "averageLoserScore": 15.64,
+        "averageMargin": 18.15,
+        "averageScore": 49.43,
+        "averageWinnerScore": 33.79,
+        "blowoutRate": 0.292,
+        "closeGameRate": 0.222,
+        "games": 72,
+        "key": "equal-vs-strong"
+      },
+      {
+        "averageLoserScore": 3.25,
+        "averageMargin": 42.6,
+        "averageScore": 49.1,
+        "averageWinnerScore": 45.85,
+        "blowoutRate": 0.958,
+        "closeGameRate": 0,
+        "games": 72,
+        "key": "equal-vs-weak"
+      },
+      {
+        "averageLoserScore": 11.88,
+        "averageMargin": 5.97,
+        "averageScore": 29.72,
+        "averageWinnerScore": 17.85,
+        "blowoutRate": 0,
+        "closeGameRate": 0.694,
+        "games": 72,
+        "key": "medium-vs-equal"
+      },
+      {
+        "averageLoserScore": 12.56,
+        "averageMargin": 7.42,
+        "averageScore": 32.53,
+        "averageWinnerScore": 19.97,
+        "blowoutRate": 0.028,
+        "closeGameRate": 0.639,
+        "games": 36,
+        "key": "medium-vs-medium"
+      },
+      {
+        "averageLoserScore": 16.29,
+        "averageMargin": 14.61,
+        "averageScore": 47.19,
+        "averageWinnerScore": 30.9,
+        "blowoutRate": 0.167,
+        "closeGameRate": 0.236,
+        "games": 72,
+        "key": "medium-vs-strong"
+      },
+      {
+        "averageLoserScore": 4.32,
+        "averageMargin": 41.15,
+        "averageScore": 49.79,
+        "averageWinnerScore": 45.47,
+        "blowoutRate": 0.917,
+        "closeGameRate": 0.014,
+        "games": 72,
+        "key": "medium-vs-weak"
+      },
+      {
+        "averageLoserScore": 13.78,
+        "averageMargin": 18.94,
+        "averageScore": 46.5,
+        "averageWinnerScore": 32.72,
+        "blowoutRate": 0.333,
+        "closeGameRate": 0.181,
+        "games": 72,
+        "key": "strong-vs-equal"
+      },
+      {
+        "averageLoserScore": 16.46,
+        "averageMargin": 15.33,
+        "averageScore": 48.25,
+        "averageWinnerScore": 31.79,
+        "blowoutRate": 0.222,
+        "closeGameRate": 0.222,
+        "games": 72,
+        "key": "strong-vs-medium"
+      },
+      {
+        "averageLoserScore": 14.67,
+        "averageMargin": 5.72,
+        "averageScore": 35.06,
+        "averageWinnerScore": 20.39,
+        "blowoutRate": 0,
+        "closeGameRate": 0.694,
+        "games": 36,
+        "key": "strong-vs-strong"
+      },
+      {
+        "averageLoserScore": 2.76,
+        "averageMargin": 45.53,
+        "averageScore": 51.06,
+        "averageWinnerScore": 48.29,
+        "blowoutRate": 1,
+        "closeGameRate": 0,
+        "games": 72,
+        "key": "strong-vs-weak"
+      },
+      {
+        "averageLoserScore": 3.53,
+        "averageMargin": 43.72,
+        "averageScore": 50.78,
+        "averageWinnerScore": 47.25,
+        "blowoutRate": 0.944,
+        "closeGameRate": 0,
+        "games": 72,
+        "key": "weak-vs-equal"
+      },
+      {
+        "averageLoserScore": 3.94,
+        "averageMargin": 45.47,
+        "averageScore": 53.36,
+        "averageWinnerScore": 49.42,
+        "blowoutRate": 0.958,
+        "closeGameRate": 0.014,
+        "games": 72,
+        "key": "weak-vs-medium"
+      },
+      {
+        "averageLoserScore": 2.93,
+        "averageMargin": 45.47,
+        "averageScore": 51.33,
+        "averageWinnerScore": 48.4,
+        "blowoutRate": 0.972,
+        "closeGameRate": 0,
+        "games": 72,
+        "key": "weak-vs-strong"
+      },
+      {
+        "averageLoserScore": 4.72,
+        "averageMargin": 4.69,
+        "averageScore": 14.14,
+        "averageWinnerScore": 9.42,
+        "blowoutRate": 0,
+        "closeGameRate": 0.861,
+        "games": 36,
+        "key": "weak-vs-weak"
+      }
+    ],
+    "byWeek": [
+      {
+        "averageLoserScore": 10.53,
+        "averageMargin": 29.92,
+        "averageScore": 50.97,
+        "averageWinnerScore": 40.44,
+        "blowoutRate": 0.611,
+        "closeGameRate": 0.097,
+        "games": 72,
+        "key": "1"
+      },
+      {
+        "averageLoserScore": 8.28,
+        "averageMargin": 28.88,
+        "averageScore": 45.43,
+        "averageWinnerScore": 37.15,
+        "blowoutRate": 0.583,
+        "closeGameRate": 0.208,
+        "games": 72,
+        "key": "2"
+      },
+      {
+        "averageLoserScore": 9.32,
+        "averageMargin": 26.47,
+        "averageScore": 45.11,
+        "averageWinnerScore": 35.79,
+        "blowoutRate": 0.542,
+        "closeGameRate": 0.306,
+        "games": 72,
+        "key": "3"
+      },
+      {
+        "averageLoserScore": 7.11,
+        "averageMargin": 28.15,
+        "averageScore": 42.38,
+        "averageWinnerScore": 35.26,
+        "blowoutRate": 0.556,
+        "closeGameRate": 0.236,
+        "games": 72,
+        "key": "4"
+      },
+      {
+        "averageLoserScore": 7.92,
+        "averageMargin": 29.13,
+        "averageScore": 44.96,
+        "averageWinnerScore": 37.04,
+        "blowoutRate": 0.556,
+        "closeGameRate": 0.194,
+        "games": 72,
+        "key": "5"
+      },
+      {
+        "averageLoserScore": 8.79,
+        "averageMargin": 28.9,
+        "averageScore": 46.49,
+        "averageWinnerScore": 37.69,
+        "blowoutRate": 0.542,
+        "closeGameRate": 0.097,
+        "games": 72,
+        "key": "6"
+      },
+      {
+        "averageLoserScore": 10.46,
+        "averageMargin": 5.17,
+        "averageScore": 26.08,
+        "averageWinnerScore": 15.63,
+        "blowoutRate": 0,
+        "closeGameRate": 0.833,
+        "games": 72,
+        "key": "7"
+      },
+      {
+        "averageLoserScore": 10.5,
+        "averageMargin": 30.38,
+        "averageScore": 51.38,
+        "averageWinnerScore": 40.88,
+        "blowoutRate": 0.597,
+        "closeGameRate": 0.111,
+        "games": 72,
+        "key": "8"
+      },
+      {
+        "averageLoserScore": 7.78,
+        "averageMargin": 29.11,
+        "averageScore": 44.67,
+        "averageWinnerScore": 36.89,
+        "blowoutRate": 0.597,
+        "closeGameRate": 0.194,
+        "games": 72,
+        "key": "9"
+      },
+      {
+        "averageLoserScore": 8.76,
+        "averageMargin": 25.69,
+        "averageScore": 43.22,
+        "averageWinnerScore": 34.46,
+        "blowoutRate": 0.5,
+        "closeGameRate": 0.278,
+        "games": 72,
+        "key": "10"
+      },
+      {
+        "averageLoserScore": 7.89,
+        "averageMargin": 27.94,
+        "averageScore": 43.72,
+        "averageWinnerScore": 35.83,
+        "blowoutRate": 0.528,
+        "closeGameRate": 0.153,
+        "games": 72,
+        "key": "11"
+      },
+      {
+        "averageLoserScore": 9.36,
+        "averageMargin": 29.88,
+        "averageScore": 48.6,
+        "averageWinnerScore": 39.24,
+        "blowoutRate": 0.569,
+        "closeGameRate": 0.139,
+        "games": 72,
+        "key": "12"
+      },
+      {
+        "averageLoserScore": 10.79,
+        "averageMargin": 30.31,
+        "averageScore": 51.89,
+        "averageWinnerScore": 41.1,
+        "blowoutRate": 0.611,
+        "closeGameRate": 0.125,
+        "games": 72,
+        "key": "13"
+      },
+      {
+        "averageLoserScore": 11.92,
+        "averageMargin": 6.33,
+        "averageScore": 30.17,
+        "averageWinnerScore": 18.25,
+        "blowoutRate": 0,
+        "closeGameRate": 0.667,
+        "games": 72,
+        "key": "14"
+      }
+    ],
+    "correlations": [
+      {
+        "factor": "winnerScore",
+        "correlation": 0.909
+      },
+      {
+        "factor": "minEffectiveDepthRating",
+        "correlation": -0.678
+      },
+      {
+        "factor": "loserScore",
+        "correlation": -0.563
+      },
+      {
+        "factor": "absoluteEffectiveDepthRatingDiff",
+        "correlation": 0.555
+      },
+      {
+        "factor": "absoluteFatigueDiff",
+        "correlation": 0.11
+      },
+      {
+        "factor": "absoluteAvailabilityIndexDiff",
+        "correlation": 0.069
+      },
+      {
+        "factor": "absoluteInjuryDiff",
+        "correlation": 0.065
+      },
+      {
+        "factor": "chronologicalGameIndex",
+        "correlation": 0.023
+      },
+      {
+        "factor": "minAvailabilityIndex",
+        "correlation": -0.021
+      },
+      {
+        "factor": "totalActiveInjuries",
+        "correlation": 0.02
+      },
+      {
+        "factor": "totalStarterLossCount",
+        "correlation": -0.02
+      },
+      {
+        "factor": "maxBackupUsageRate",
+        "correlation": -0.012
+      },
+      {
+        "factor": "maxAverageFatigue",
+        "correlation": 0.002
+      }
+    ],
+    "escalation": {
+      "firstWeekWithBlowoutRateAtLeast50": 1,
+      "firstWeekWithMarginAtLeast24": 1,
+      "highestMarginWeek": 8
+    },
+    "scoreSpikePatterns": [
+      {
+        "averageMargin": 46.14,
+        "games": 370,
+        "rate": 0.367,
+        "type": "winner-42-plus"
+      },
+      {
+        "averageMargin": 34.9,
+        "games": 542,
+        "rate": 0.538,
+        "type": "loser-7-or-less"
+      },
+      {
+        "averageMargin": 49.41,
+        "games": 291,
+        "rate": 0.289,
+        "type": "winner-42-plus-and-loser-7-or-less"
+      }
+    ]
+  },
+  "generatedAt": "2026-04-26T00:00:00.000Z",
+  "metrics": {
+    "averageMargin": 25.45,
+    "averageScore": 43.93,
+    "blowoutRate": 0.485,
+    "closeGameRate": 0.26,
+    "fatigueP10": 4,
+    "fatigueMedian": 12,
+    "fatigueP90": 67,
+    "games": 1008,
+    "injuryRate": 1.283,
+    "progressionXpAverage": 57.01,
+    "scoreStdDev": 16.75,
+    "severeInjuryRate": 0.161
+  },
+  "schedule": {
+    "fairness": {
+      "averageOpponentRatingSpread": 2.29,
+      "gamesPerTeamSpread": 0,
+      "maxGamesPerOpponentPair": 36,
+      "minGamesPerOpponentPair": 36
+    },
+    "matchups": [
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL1-vs-EQL2",
+        "profiles": "EQUAL-vs-EQUAL"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL1-vs-MED1",
+        "profiles": "EQUAL-vs-MEDIUM"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL1-vs-MED2",
+        "profiles": "EQUAL-vs-MEDIUM"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL1-vs-STR1",
+        "profiles": "EQUAL-vs-STRONG"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL1-vs-STR2",
+        "profiles": "EQUAL-vs-STRONG"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL1-vs-WEK1",
+        "profiles": "EQUAL-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL1-vs-WEK2",
+        "profiles": "EQUAL-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL2-vs-MED1",
+        "profiles": "EQUAL-vs-MEDIUM"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL2-vs-MED2",
+        "profiles": "EQUAL-vs-MEDIUM"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL2-vs-STR1",
+        "profiles": "EQUAL-vs-STRONG"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL2-vs-STR2",
+        "profiles": "EQUAL-vs-STRONG"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL2-vs-WEK1",
+        "profiles": "EQUAL-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "EQL2-vs-WEK2",
+        "profiles": "EQUAL-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "MED1-vs-MED2",
+        "profiles": "MEDIUM-vs-MEDIUM"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "MED1-vs-STR1",
+        "profiles": "MEDIUM-vs-STRONG"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "MED1-vs-STR2",
+        "profiles": "MEDIUM-vs-STRONG"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "MED1-vs-WEK1",
+        "profiles": "MEDIUM-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "MED1-vs-WEK2",
+        "profiles": "MEDIUM-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "MED2-vs-STR1",
+        "profiles": "MEDIUM-vs-STRONG"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "MED2-vs-STR2",
+        "profiles": "MEDIUM-vs-STRONG"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "MED2-vs-WEK1",
+        "profiles": "MEDIUM-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "MED2-vs-WEK2",
+        "profiles": "MEDIUM-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "STR1-vs-STR2",
+        "profiles": "STRONG-vs-STRONG"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "STR1-vs-WEK1",
+        "profiles": "STRONG-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "STR1-vs-WEK2",
+        "profiles": "STRONG-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "STR2-vs-WEK1",
+        "profiles": "STRONG-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "STR2-vs-WEK2",
+        "profiles": "STRONG-vs-WEAK"
+      },
+      {
+        "awayGames": 18,
+        "games": 36,
+        "homeGames": 18,
+        "pair": "WEK1-vs-WEK2",
+        "profiles": "WEAK-vs-WEAK"
+      }
+    ],
+    "seed": "extended-season-balance",
+    "strengthOfSchedule": [
+      {
+        "averageOpponentRating": 75.43,
+        "awayGames": 126,
+        "games": 252,
+        "homeGames": 126,
+        "opponentProfiles": {
+          "EQUAL": 36,
+          "MEDIUM": 72,
+          "STRONG": 72,
+          "WEAK": 72
+        },
+        "opponentRatings": {
+          "STR2": 36,
+          "STR1": 36,
+          "WEK1": 36,
+          "MED1": 36,
+          "EQL2": 36,
+          "WEK2": 36,
+          "MED2": 36
+        },
+        "ratingDeltaAverage": -1.43,
+        "teamId": "EQL1",
+        "teamProfile": "EQUAL",
+        "teamRating": 74
+      },
+      {
+        "averageOpponentRating": 75.43,
+        "awayGames": 126,
+        "games": 252,
+        "homeGames": 126,
+        "opponentProfiles": {
+          "EQUAL": 36,
+          "MEDIUM": 72,
+          "STRONG": 72,
+          "WEAK": 72
+        },
+        "opponentRatings": {
+          "STR1": 36,
+          "WEK2": 36,
+          "MED2": 36,
+          "STR2": 36,
+          "EQL1": 36,
+          "WEK1": 36,
+          "MED1": 36
+        },
+        "ratingDeltaAverage": -1.43,
+        "teamId": "EQL2",
+        "teamProfile": "EQUAL",
+        "teamRating": 74
+      },
+      {
+        "averageOpponentRating": 75.14,
+        "awayGames": 126,
+        "games": 252,
+        "homeGames": 126,
+        "opponentProfiles": {
+          "EQUAL": 72,
+          "MEDIUM": 36,
+          "STRONG": 72,
+          "WEAK": 72
+        },
+        "opponentRatings": {
+          "WEK2": 36,
+          "MED2": 36,
+          "STR2": 36,
+          "EQL1": 36,
+          "WEK1": 36,
+          "STR1": 36,
+          "EQL2": 36
+        },
+        "ratingDeltaAverage": 0.86,
+        "teamId": "MED1",
+        "teamProfile": "MEDIUM",
+        "teamRating": 76
+      },
+      {
+        "averageOpponentRating": 75.29,
+        "awayGames": 126,
+        "games": 252,
+        "homeGames": 126,
+        "opponentProfiles": {
+          "EQUAL": 72,
+          "MEDIUM": 36,
+          "STRONG": 72,
+          "WEAK": 72
+        },
+        "opponentRatings": {
+          "WEK1": 36,
+          "MED1": 36,
+          "EQL2": 36,
+          "WEK2": 36,
+          "STR1": 36,
+          "STR2": 36,
+          "EQL1": 36
+        },
+        "ratingDeltaAverage": -0.29,
+        "teamId": "MED2",
+        "teamProfile": "MEDIUM",
+        "teamRating": 75
+      },
+      {
+        "averageOpponentRating": 74,
+        "awayGames": 126,
+        "games": 252,
+        "homeGames": 126,
+        "opponentProfiles": {
+          "EQUAL": 72,
+          "MEDIUM": 72,
+          "STRONG": 36,
+          "WEAK": 72
+        },
+        "opponentRatings": {
+          "EQL2": 36,
+          "EQL1": 36,
+          "WEK2": 36,
+          "WEK1": 36,
+          "MED2": 36,
+          "MED1": 36,
+          "STR2": 36
+        },
+        "ratingDeltaAverage": 10,
+        "teamId": "STR1",
+        "teamProfile": "STRONG",
+        "teamRating": 84
+      },
+      {
+        "averageOpponentRating": 74.29,
+        "awayGames": 126,
+        "games": 252,
+        "homeGames": 126,
+        "opponentProfiles": {
+          "EQUAL": 72,
+          "MEDIUM": 72,
+          "STRONG": 36,
+          "WEAK": 72
+        },
+        "opponentRatings": {
+          "EQL1": 36,
+          "WEK1": 36,
+          "MED1": 36,
+          "EQL2": 36,
+          "WEK2": 36,
+          "MED2": 36,
+          "STR1": 36
+        },
+        "ratingDeltaAverage": 7.71,
+        "teamId": "STR2",
+        "teamProfile": "STRONG",
+        "teamRating": 82
+      },
+      {
+        "averageOpponentRating": 76.29,
+        "awayGames": 126,
+        "games": 252,
+        "homeGames": 126,
+        "opponentProfiles": {
+          "EQUAL": 72,
+          "MEDIUM": 72,
+          "STRONG": 72,
+          "WEAK": 36
+        },
+        "opponentRatings": {
+          "MED2": 36,
+          "STR2": 36,
+          "EQL1": 36,
+          "STR1": 36,
+          "MED1": 36,
+          "EQL2": 36,
+          "WEK2": 36
+        },
+        "ratingDeltaAverage": -8.29,
+        "teamId": "WEK1",
+        "teamProfile": "WEAK",
+        "teamRating": 68
+      },
+      {
+        "averageOpponentRating": 76.14,
+        "awayGames": 126,
+        "games": 252,
+        "homeGames": 126,
+        "opponentProfiles": {
+          "EQUAL": 72,
+          "MEDIUM": 72,
+          "STRONG": 72,
+          "WEAK": 36
+        },
+        "opponentRatings": {
+          "MED1": 36,
+          "EQL2": 36,
+          "STR1": 36,
+          "MED2": 36,
+          "STR2": 36,
+          "EQL1": 36,
+          "WEK1": 36
+        },
+        "ratingDeltaAverage": -7.14,
+        "teamId": "WEK2",
+        "teamProfile": "WEAK",
+        "teamRating": 69
+      }
+    ],
+    "variant": "balanced-rotation"
+  },
+  "scenarios": [
+    {
+      "averageAwayScore": 16.75,
+      "averageFatigue": 27.56,
+      "averageHomeScore": 18.39,
+      "averageMargin": 7.69,
+      "averageProgressionXp": 60.07,
+      "averageScore": 35.14,
+      "blowoutRate": 0.028,
+      "closeGameRate": 0.556,
+      "favoriteWinRate": null,
+      "gameCount": 36,
+      "homeWinRate": 0.417,
+      "injuryRate": 1.667,
+      "name": "equal-vs-equal",
+      "severeInjuryRate": 0.278
+    },
+    {
+      "averageAwayScore": 14.79,
+      "averageFatigue": 27.43,
+      "averageHomeScore": 15.32,
+      "averageMargin": 6.53,
+      "averageProgressionXp": 60.25,
+      "averageScore": 30.11,
+      "blowoutRate": 0,
+      "closeGameRate": 0.681,
+      "favoriteWinRate": null,
+      "gameCount": 72,
+      "homeWinRate": 0.472,
+      "injuryRate": 1.306,
+      "name": "equal-vs-medium",
+      "severeInjuryRate": 0.056
+    },
+    {
+      "averageAwayScore": 33.79,
+      "averageFatigue": 28.41,
+      "averageHomeScore": 15.64,
+      "averageMargin": 18.15,
+      "averageProgressionXp": 60.42,
+      "averageScore": 49.43,
+      "blowoutRate": 0.292,
+      "closeGameRate": 0.222,
+      "favoriteWinRate": 0.931,
+      "gameCount": 72,
+      "homeWinRate": 0,
+      "injuryRate": 1.139,
+      "name": "equal-vs-strong",
+      "severeInjuryRate": 0.208
+    },
+    {
+      "averageAwayScore": 3.25,
+      "averageFatigue": 26.89,
+      "averageHomeScore": 45.85,
+      "averageMargin": 42.6,
+      "averageProgressionXp": 53.35,
+      "averageScore": 49.1,
+      "blowoutRate": 0.958,
+      "closeGameRate": 0,
+      "favoriteWinRate": 1,
+      "gameCount": 72,
+      "homeWinRate": 1,
+      "injuryRate": 1.431,
+      "name": "equal-vs-weak",
+      "severeInjuryRate": 0.222
+    },
+    {
+      "averageAwayScore": 15.81,
+      "averageFatigue": 27.53,
+      "averageHomeScore": 13.92,
+      "averageMargin": 5.97,
+      "averageProgressionXp": 60.31,
+      "averageScore": 29.72,
+      "blowoutRate": 0,
+      "closeGameRate": 0.694,
+      "favoriteWinRate": null,
+      "gameCount": 72,
+      "homeWinRate": 0.278,
+      "injuryRate": 1.403,
+      "name": "medium-vs-equal",
+      "severeInjuryRate": 0.167
+    },
+    {
+      "averageAwayScore": 15.64,
+      "averageFatigue": 27.26,
+      "averageHomeScore": 16.89,
+      "averageMargin": 7.42,
+      "averageProgressionXp": 60.51,
+      "averageScore": 32.53,
+      "blowoutRate": 0.028,
+      "closeGameRate": 0.639,
+      "favoriteWinRate": 0.472,
+      "gameCount": 36,
+      "homeWinRate": 0.417,
+      "injuryRate": 1.333,
+      "name": "medium-vs-medium",
+      "severeInjuryRate": 0.139
+    },
+    {
+      "averageAwayScore": 30.9,
+      "averageFatigue": 28.56,
+      "averageHomeScore": 16.29,
+      "averageMargin": 14.61,
+      "averageProgressionXp": 60.65,
+      "averageScore": 47.19,
+      "blowoutRate": 0.167,
+      "closeGameRate": 0.236,
+      "favoriteWinRate": 0.986,
+      "gameCount": 72,
+      "homeWinRate": 0,
+      "injuryRate": 1.208,
+      "name": "medium-vs-strong",
+      "severeInjuryRate": 0.208
+    },
+    {
+      "averageAwayScore": 4.32,
+      "averageFatigue": 26.63,
+      "averageHomeScore": 45.47,
+      "averageMargin": 41.15,
+      "averageProgressionXp": 53.58,
+      "averageScore": 49.79,
+      "blowoutRate": 0.917,
+      "closeGameRate": 0.014,
+      "favoriteWinRate": 1,
+      "gameCount": 72,
+      "homeWinRate": 1,
+      "injuryRate": 1.347,
+      "name": "medium-vs-weak",
+      "severeInjuryRate": 0.194
+    },
+    {
+      "averageAwayScore": 13.78,
+      "averageFatigue": 28.19,
+      "averageHomeScore": 32.72,
+      "averageMargin": 18.94,
+      "averageProgressionXp": 60.35,
+      "averageScore": 46.5,
+      "blowoutRate": 0.333,
+      "closeGameRate": 0.181,
+      "favoriteWinRate": 0.986,
+      "gameCount": 72,
+      "homeWinRate": 0.986,
+      "injuryRate": 1.056,
+      "name": "strong-vs-equal",
+      "severeInjuryRate": 0.194
+    },
+    {
+      "averageAwayScore": 16.6,
+      "averageFatigue": 28.24,
+      "averageHomeScore": 31.65,
+      "averageMargin": 15.33,
+      "averageProgressionXp": 60.66,
+      "averageScore": 48.25,
+      "blowoutRate": 0.222,
+      "closeGameRate": 0.222,
+      "favoriteWinRate": 0.972,
+      "gameCount": 72,
+      "homeWinRate": 0.972,
+      "injuryRate": 1.167,
+      "name": "strong-vs-medium",
+      "severeInjuryRate": 0.153
+    },
+    {
+      "averageAwayScore": 17.31,
+      "averageFatigue": 29.12,
+      "averageHomeScore": 17.75,
+      "averageMargin": 5.72,
+      "averageProgressionXp": 60.75,
+      "averageScore": 35.06,
+      "blowoutRate": 0,
+      "closeGameRate": 0.694,
+      "favoriteWinRate": 0.306,
+      "gameCount": 36,
+      "homeWinRate": 0.472,
+      "injuryRate": 1.361,
+      "name": "strong-vs-strong",
+      "severeInjuryRate": 0.25
+    },
+    {
+      "averageAwayScore": 2.76,
+      "averageFatigue": 27.17,
+      "averageHomeScore": 48.29,
+      "averageMargin": 45.53,
+      "averageProgressionXp": 53.76,
+      "averageScore": 51.06,
+      "blowoutRate": 1,
+      "closeGameRate": 0,
+      "favoriteWinRate": 1,
+      "gameCount": 72,
+      "homeWinRate": 1,
+      "injuryRate": 1.375,
+      "name": "strong-vs-weak",
+      "severeInjuryRate": 0.139
+    },
+    {
+      "averageAwayScore": 47.25,
+      "averageFatigue": 26.78,
+      "averageHomeScore": 3.53,
+      "averageMargin": 43.72,
+      "averageProgressionXp": 53.34,
+      "averageScore": 50.78,
+      "blowoutRate": 0.944,
+      "closeGameRate": 0,
+      "favoriteWinRate": 1,
+      "gameCount": 72,
+      "homeWinRate": 0,
+      "injuryRate": 1.264,
+      "name": "weak-vs-equal",
+      "severeInjuryRate": 0.167
+    },
+    {
+      "averageAwayScore": 49.42,
+      "averageFatigue": 26.63,
+      "averageHomeScore": 3.94,
+      "averageMargin": 45.47,
+      "averageProgressionXp": 53.58,
+      "averageScore": 53.36,
+      "blowoutRate": 0.958,
+      "closeGameRate": 0.014,
+      "favoriteWinRate": 0.986,
+      "gameCount": 72,
+      "homeWinRate": 0,
+      "injuryRate": 1.125,
+      "name": "weak-vs-medium",
+      "severeInjuryRate": 0.069
+    },
+    {
+      "averageAwayScore": 48.4,
+      "averageFatigue": 27.85,
+      "averageHomeScore": 2.93,
+      "averageMargin": 45.47,
+      "averageProgressionXp": 53.85,
+      "averageScore": 51.33,
+      "blowoutRate": 0.972,
+      "closeGameRate": 0,
+      "favoriteWinRate": 1,
+      "gameCount": 72,
+      "homeWinRate": 0,
+      "injuryRate": 1.375,
+      "name": "weak-vs-strong",
+      "severeInjuryRate": 0.111
+    },
+    {
+      "averageAwayScore": 7.03,
+      "averageFatigue": 25.83,
+      "averageHomeScore": 7.11,
+      "averageMargin": 4.69,
+      "averageProgressionXp": 46.74,
+      "averageScore": 14.14,
+      "blowoutRate": 0,
+      "closeGameRate": 0.861,
+      "favoriteWinRate": 0.25,
+      "gameCount": 36,
+      "homeWinRate": 0.278,
+      "injuryRate": 1.167,
+      "name": "weak-vs-weak",
+      "severeInjuryRate": 0.056
+    }
+  ],
+  "seasons": 18,
+  "strategies": [
+    {
+      "archetype": "BALANCED_MATCHUP",
+      "averageScore": 18.69,
+      "games": 900,
+      "winRate": 0.446
+    },
+    {
+      "archetype": "FAVORITE_CONTROL",
+      "averageScore": 40.56,
+      "games": 558,
+      "winRate": 0.986
+    },
+    {
+      "archetype": "UNDERDOG_VARIANCE",
+      "averageScore": 8.65,
+      "games": 558,
+      "winRate": 0.004
+    }
+  ],
+  "teams": [
+    {
+      "averageFatigue": 32.52,
+      "losses": 20,
+      "newInjuries": 154,
+      "profile": "STRONG",
+      "severeInjuries": 18,
+      "teamId": "STR1",
+      "winRate": 0.918,
+      "wins": 223
+    },
+    {
+      "averageFatigue": 30.35,
+      "losses": 12,
+      "newInjuries": 142,
+      "profile": "STRONG",
+      "severeInjuries": 22,
+      "teamId": "STR2",
+      "winRate": 0.95,
+      "wins": 230
+    },
+    {
+      "averageFatigue": 29.42,
+      "losses": 116,
+      "newInjuries": 160,
+      "profile": "MEDIUM",
+      "severeInjuries": 20,
+      "teamId": "MED1",
+      "winRate": 0.513,
+      "wins": 122
+    },
+    {
+      "averageFatigue": 28.54,
+      "losses": 134,
+      "newInjuries": 149,
+      "profile": "MEDIUM",
+      "severeInjuries": 16,
+      "teamId": "MED2",
+      "winRate": 0.439,
+      "wins": 105
+    },
+    {
+      "averageFatigue": 27.29,
+      "losses": 224,
+      "newInjuries": 187,
+      "profile": "WEAK",
+      "severeInjuries": 18,
+      "teamId": "WEK1",
+      "winRate": 0.059,
+      "wins": 14
+    },
+    {
+      "averageFatigue": 27.61,
+      "losses": 230,
+      "newInjuries": 180,
+      "profile": "WEAK",
+      "severeInjuries": 20,
+      "teamId": "WEK2",
+      "winRate": 0.038,
+      "wins": 9
+    },
+    {
+      "averageFatigue": 29.58,
+      "losses": 110,
+      "newInjuries": 154,
+      "profile": "EQUAL",
+      "severeInjuries": 22,
+      "teamId": "EQL1",
+      "winRate": 0.526,
+      "wins": 122
+    },
+    {
+      "averageFatigue": 28.81,
+      "losses": 107,
+      "newInjuries": 167,
+      "profile": "EQUAL",
+      "severeInjuries": 26,
+      "teamId": "EQL2",
+      "winRate": 0.545,
+      "wins": 128
+    }
+  ],
+  "weeksPerSeason": 14,
+  "fingerprint": "1008#43.93#25.45#1.283#0.161#balanced-rotation#2.29#0#1#winnerScore:0.909|minEffectiveDepthRating:-0.678|loserScore:-0.563|absoluteEffectiveDepthRatingDiff:0.555|absoluteFatigueDiff:0.11|absoluteAvailabilityIndexDiff:0.069|absoluteInjuryDiff:0.065|chronologicalGameIndex:0.023|minAvailabilityIndex:-0.021|totalActiveInjuries:0.02|totalStarterLossCount:-0.02|maxBackupUsageRate:-0.012|maxAverageFatigue:0.002#equal-vs-equal:35.14:1.667|equal-vs-medium:30.11:1.306|equal-vs-strong:49.43:1.139|equal-vs-weak:49.1:1.431|medium-vs-equal:29.72:1.403|medium-vs-medium:32.53:1.333|medium-vs-strong:47.19:1.208|medium-vs-weak:49.79:1.347|strong-vs-equal:46.5:1.056|strong-vs-medium:48.25:1.167|strong-vs-strong:35.06:1.361|strong-vs-weak:51.06:1.375|weak-vs-equal:50.78:1.264|weak-vs-medium:53.36:1.125|weak-vs-strong:51.33:1.375|weak-vs-weak:14.14:1.167#BALANCED_MATCHUP:900:0.446|FAVORITE_CONTROL:558:0.986|UNDERDOG_VARIANCE:558:0.004"
+}

@@ -1,0 +1,1432 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AFBM Anwenderbericht: Game Engine</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f9fc;
+        --surface: #ffffff;
+        --surface-soft: #eef4f8;
+        --ink: #16202a;
+        --muted: #5d6976;
+        --line: #d8e0e7;
+        --accent: #245f73;
+        --accent-strong: #19475c;
+        --ok: #207a52;
+        --warn: #9a5b1d;
+        --table-head: #e8f0f4;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+      }
+
+      a {
+        color: var(--accent-strong);
+      }
+
+      .page {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 36px 0 56px;
+      }
+
+      header {
+        padding: 28px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .kicker {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.2;
+      }
+
+      h1 {
+        max-width: 780px;
+        font-size: 3rem;
+        letter-spacing: 0;
+      }
+
+      header p {
+        max-width: 820px;
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      nav {
+        margin: 24px 0;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      nav h2 {
+        margin-bottom: 14px;
+        font-size: 1.1rem;
+      }
+
+      .toc {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 8px 18px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .toc a {
+        display: block;
+        padding: 8px 10px;
+        border-radius: 6px;
+        color: var(--ink);
+        text-decoration: none;
+      }
+
+      .toc a:hover,
+      .toc a:focus-visible {
+        background: var(--surface-soft);
+        outline: none;
+      }
+
+      main {
+        display: grid;
+        gap: 22px;
+      }
+
+      section {
+        padding: 26px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        scroll-margin-top: 18px;
+      }
+
+      section h2 {
+        margin-bottom: 14px;
+        font-size: 1.55rem;
+      }
+
+      section h3 {
+        margin: 22px 0 8px;
+        font-size: 1.1rem;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 14px 1.25rem;
+        padding: 0;
+      }
+
+      li + li {
+        margin-top: 5px;
+      }
+
+      .note {
+        margin-top: 14px;
+        padding: 14px 16px;
+        border-left: 4px solid var(--accent);
+        border-radius: 6px;
+        background: var(--surface-soft);
+        color: var(--ink);
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        margin: 14px 0 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 720px;
+        background: var(--surface);
+      }
+
+      caption {
+        padding: 12px 14px;
+        text-align: left;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      th,
+      td {
+        padding: 11px 14px;
+        border-top: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--table-head);
+        color: var(--ink);
+        font-size: 0.92rem;
+      }
+
+      td:first-child,
+      th:first-child {
+        width: 24%;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #e6f4ee;
+        color: var(--ok);
+        font-weight: 700;
+      }
+
+      .status::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        content: "";
+      }
+
+      .backlink {
+        display: inline-block;
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 0.92rem;
+        text-decoration: none;
+      }
+
+      .backlink:hover,
+      .backlink:focus-visible {
+        color: var(--accent-strong);
+        text-decoration: underline;
+        outline: none;
+      }
+
+      footer {
+        margin-top: 24px;
+        color: var(--muted);
+        font-size: 0.92rem;
+        text-align: center;
+      }
+
+      @media (max-width: 720px) {
+        .page {
+          width: min(100% - 20px, 1120px);
+          padding-top: 18px;
+        }
+
+        header,
+        nav,
+        section {
+          padding: 18px;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+
+        section h2 {
+          font-size: 1.35rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header id="top">
+        <p class="kicker">Anwenderbericht</p>
+        <h1>AFBM Game Engine</h1>
+        <p>
+          Dieser Bericht beschreibt den aktuellen Spielkern und den
+          vorgesehenen Ausbau zur vollstaendigen Spielsimulation aus
+          Spielersicht. Er basiert auf den erkannten Daten, Regeln und
+          Mechaniken der vorhandenen Game-Engine-Struktur.
+        </p>
+      </header>
+
+      <nav aria-labelledby="toc-title">
+        <h2 id="toc-title">Inhaltsverzeichnis</h2>
+        <ol class="toc">
+          <li><a href="#ueberblick">Ueberblick</a></li>
+          <li><a href="#spielablauf">Spielablauf</a></li>
+          <li><a href="#drive-loop">Drive Loop</a></li>
+          <li><a href="#special-teams">Special Teams</a></li>
+          <li><a href="#formationen">Formationen</a></li>
+          <li><a href="#play-library">Play Library</a></li>
+          <li><a href="#entscheidungslogik">Entscheidungslogik</a></li>
+          <li><a href="#coaching-system">Coaching System</a></li>
+          <li><a href="#x-factor-system">X-Factor System</a></li>
+          <li><a href="#spieler-attribute">Spieler und Attribute</a></li>
+          <li><a href="#outcome-engine">Outcome Engine</a></li>
+          <li><a href="#regeln">Regeln</a></li>
+          <li><a href="#penalties">Penalty-Katalog</a></li>
+          <li><a href="#realismus">Realismus</a></li>
+          <li><a href="#beispielsituationen">Beispielsituationen</a></li>
+          <li><a href="#fazit">Fazit</a></li>
+          <li><a href="#status">Statuspruefung</a></li>
+        </ol>
+      </nav>
+
+      <main>
+        <section id="ueberblick">
+          <h2>Ueberblick</h2>
+          <p>
+            Die Game Engine bildet den Football-Kern eines Spiels ab. Der
+            vorhandene Kern loest einzelne Spielzuege aus einer konkreten
+            Spielsituation heraus auf. Der erweiterte Zielzustand verbindet
+            diese Spielzuege zu Drives, Quarter-Verlauf, Possession-Wechseln,
+            Special Teams und einem nachvollziehbaren Game Loop.
+          </p>
+          <p>
+            Der erkannte Kern unterstuetzt NFL-Pro- und College-Regeln. Die
+            Engine arbeitet mit offensiven und defensiven Playbooks, prueft
+            zunaechst die Gueltigkeit der Aufstellung und berechnet danach den
+            Ausgang des Spielzugs.
+          </p>
+          <p>
+            Die Simulation wird um Teamidentitaeten erweitert. Coaching-Profile
+            bestimmen den grundsaetzlichen Stil eines Teams, waehrend
+            X-Factor-Entscheidungen den konkreten Gameplan und spaetere
+            In-Game-Anpassungen abbilden. So koennen Teams fuehlbar anders
+            spielen, ohne dass die Play Engine neu erfunden werden muss.
+          </p>
+          <p>
+            Die aktuelle Pruefung unterscheidet die beiden Regelwerke sichtbar
+            und sichert die wichtigsten Aufstellungsfamilien gegen falsche
+            Personnel-Zuordnungen ab. Dazu gehoeren unter anderem Trips aus
+            echtem 11 Personnel, Tite/Odd Nickel als 3-3-5 und Bear Nickel als
+            5-1-5.
+          </p>
+          <p class="note">
+            Die neuen Systeme bauen auf dem bestehenden Play-Kern auf. Der
+            Game Loop wiederholt die vorhandene Play Selection und Outcome
+            Engine, schreibt Field Position, Down, Distanz, Clock, Score und
+            Possession fort und nutzt Special Teams als eigene
+            Zustandsuebergaenge zwischen Drives.
+          </p>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="spielablauf">
+          <h2>Spielablauf</h2>
+          <ol>
+            <li>Vor dem Spiel werden Coaching-Profil, X-Factor-Plan, Teamstaerken und Regelwerk geladen.</li>
+            <li>Der Game State startet mit Quarter, Clock, Score, Timeouts und erstem Receiving-Team.</li>
+            <li>Ein Kickoff oder ein anderer Startgrund legt die erste Field Position fest.</li>
+            <li>Ein Drive beginnt mit Offense, Defense, Down, Distanz, Ballposition und Line to Gain.</li>
+            <li>Vor jedem Snap werden Spielsituation, Coaching-Tendenzen und aktive X-Factor-Anpassungen zusammengefuehrt.</li>
+            <li>Offense und Defense erhalten passende Playbook-Menues fuer die Situation.</li>
+            <li>Die Aufstellungen werden vor dem Snap auf Regelkonformitaet und Personnel-Fit geprueft.</li>
+            <li>Gueltige offensive und defensive Plays werden aus der Library ausgewaehlt.</li>
+            <li>Die Outcome Engine berechnet Lauf-, Pass- oder Penalty-Ergebnis.</li>
+            <li>Der Drive State schreibt First Downs, Turnover, Scoring, Clock und Possession fort.</li>
+            <li>Special Teams uebernehmen bei Kickoff, Punt, Field Goal und Extra Point.</li>
+            <li>Nach vier Quartern oder Overtime entsteht ein vollstaendiger Matchverlauf.</li>
+          </ol>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="drive-loop">
+          <h2>Drive Loop</h2>
+          <p>
+            Der Drive Loop ist die Verbindung zwischen einzelnen Plays und
+            einem echten Football-Spiel. Er nimmt das Ergebnis eines Spielzugs
+            und entscheidet, ob der Drive weitergeht, ob ein neues First Down
+            entsteht, ob Punkte erzielt wurden oder ob der Ballbesitz wechselt.
+          </p>
+          <h3>Game State</h3>
+          <p>
+            Der Game State beschreibt das gesamte Spiel: Quarter,
+            verbleibende Zeit, Spielstand, Timeouts, Possession, Defense-Team
+            und Spielphase. Er sorgt dafuer, dass ein einzelner Spielzug nicht
+            isoliert bleibt, sondern in Score, Clock und Game Script sichtbar
+            wird.
+          </p>
+          <h3>Drive State</h3>
+          <p>
+            Der Drive State beschreibt die aktuelle Angriffsserie. Er enthaelt
+            Startgrund, Startposition, Ballposition, Down, Distanz, Line to
+            Gain, gespielte Plays und das spaetere Drive-Ergebnis.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Drive-Enden und naechster Zustand</caption>
+              <thead>
+                <tr>
+                  <th>Drive-Ende</th>
+                  <th>Gameplay-Wirkung</th>
+                  <th>Naechster Zustand</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Touchdown</td>
+                  <td>6 Punkte, danach Extra Point oder 2-Point-Versuch.</td>
+                  <td>Kickoff an das andere Team.</td>
+                </tr>
+                <tr>
+                  <td>Field Goal</td>
+                  <td>3 Punkte bei Erfolg, Field-Position-Risiko bei Fehlschuss.</td>
+                  <td>Kickoff bei Erfolg, Gegnerball bei Miss.</td>
+                </tr>
+                <tr>
+                  <td>Punt</td>
+                  <td>Keine Punkte, aber Field Position wird verschoben.</td>
+                  <td>Gegnerischer Drive nach Catch, Fair Catch, Return oder Touchback.</td>
+                </tr>
+                <tr>
+                  <td>Turnover</td>
+                  <td>Interception oder Fumble beendet den Drive sofort.</td>
+                  <td>Defense wird neue Offense am berechneten Spot.</td>
+                </tr>
+                <tr>
+                  <td>Turnover on Downs</td>
+                  <td>4th Down wird nicht erreicht.</td>
+                  <td>Gegner uebernimmt an der Feldposition des Stops.</td>
+                </tr>
+                <tr>
+                  <td>Safety</td>
+                  <td>Defense erzielt 2 Punkte.</td>
+                  <td>Free Kick an das punktende Team.</td>
+                </tr>
+                <tr>
+                  <td>Halbzeit oder Spielende</td>
+                  <td>Clock laeuft aus.</td>
+                  <td>Halftime-Kickoff oder Finalstand.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Clock und Quarter</h3>
+          <p>
+            Die Clock wird aus dem Play-Ergebnis und dem Tempo abgeleitet.
+            Laufspielzuege, Sacks und completions in bounds lassen mehr Zeit
+            verstreichen. Incomplete Passes, Throwaways, Out-of-Bounds-Events
+            und Timeouts stoppen oder reduzieren die Zeit. Quarter-Wechsel
+            setzen die Clock fort, die Halbzeit erzeugt einen neuen Kickoff.
+          </p>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="special-teams">
+          <h2>Special Teams</h2>
+          <p>
+            Special Teams sind eigene Zustandsuebergaenge im Game Loop. Sie
+            sind keine normalen Offense-Defense-Plays, sondern bestimmen, wo
+            der naechste Drive startet, ob Punkte entstehen und wie viel Risiko
+            ein Team fuer Field Position eingeht.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Special-Teams-Phasen</caption>
+              <thead>
+                <tr>
+                  <th>Phase</th>
+                  <th>Moegliche Ergebnisse</th>
+                  <th>Risiko und Belohnung</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Kickoff</td>
+                  <td>Touchback, Return, kurzer Kick, Onside Kick, Muff oder Fumble.</td>
+                  <td>Touchback ist sicher. Return kann bessere Field Position bringen, erhoeht aber Fumble- und Penalty-Risiko. Onside Kick bietet Possession-Chance bei hohem Feldpositionsrisiko.</td>
+                </tr>
+                <tr>
+                  <td>Punt</td>
+                  <td>Fair Catch, Return, Inside 20, Touchback, Block oder Muff.</td>
+                  <td>Coffin Corner verbessert Field Position, kann aber Touchback oder kurzen Punt erzeugen. Power Punt gewinnt Distanz, gibt aber mehr Return-Raum.</td>
+                </tr>
+                <tr>
+                  <td>Field Goal</td>
+                  <td>Made, missed, blocked oder returnbarer Block.</td>
+                  <td>Kurze Kicks sind sicherer. Lange Kicks bringen direkte Punkte, geben bei Miss aber oft gute gegnerische Field Position.</td>
+                </tr>
+                <tr>
+                  <td>Extra Point</td>
+                  <td>PAT made, PAT missed, block oder 2-Point-Versuch.</td>
+                  <td>PAT ist sicherer. 2-Point bietet mehr Ertrag, nutzt aber die normale Goal-Line-Outcome-Logik und ist riskanter.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Return-Logik</h3>
+          <p>
+            Return-Entscheidungen vergleichen sichere Field Position mit
+            moeglichem Raumgewinn. Return Vision, Speed, Ball Security,
+            Coverage, Punt Hang Time, Kickoff Power, Score und Restzeit
+            bestimmen, ob ein Return sinnvoll ist oder ob Fair Catch und
+            Touchback die bessere Entscheidung sind.
+          </p>
+          <h3>Attribute</h3>
+          <p>
+            Kicker profitieren von Kick Power, Kick Accuracy und Consistency.
+            Punter nutzen Punt Power, Punt Accuracy und Hang Time. Returner
+            leben von Return Vision, Speed, Acceleration und Ball Security.
+            Long Snapper und Holder beeinflussen die Operation bei Field Goal,
+            Extra Point und Punt.
+          </p>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="formationen">
+          <h2>Formationen</h2>
+          <p>
+            Die Engine nutzt getrennte Bausteine fuer Personal, offensive
+            Formationen, defensive Formationen, Motion, Protection, Front,
+            Coverage und Pressure.
+          </p>
+          <p>
+            Die aktuelle Validierung prueft nicht nur den Namen eines Packages,
+            sondern auch, ob die ausgerichteten Spieler wirklich dazu passen.
+            Dadurch bleiben flexible Football-Bilder wie ein abgesetzter Tight
+            End in Trips, 3-3-5-Nickel-Strukturen und 5-1-5-Bear-Pakete
+            konsistent.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Erkannte Formations- und Strukturbausteine</caption>
+              <thead>
+                <tr>
+                  <th>Bereich</th>
+                  <th>Anzahl</th>
+                  <th>Erkannte Eintraege</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Personal Packages</td>
+                  <td>13</td>
+                  <td>11 Personnel, 12 Personnel, 20 Personnel, 4-3 Base, Nickel 4-2-5, Dime 4-1-6, Goal Line 5-3-3, Nickel 3-3-5, Bear Nickel 5-1-5, 10 Personnel, 21 Personnel, 13 Personnel, 3-4 Base</td>
+                </tr>
+                <tr>
+                  <td>Offensive Formationen</td>
+                  <td>9</td>
+                  <td>Gun Doubles, Gun Trips, Singleback Tight, Pistol Twins, Gun Bunch, Gun Empty, Pistol Trips, I Right, Heavy Tight</td>
+                </tr>
+                <tr>
+                  <td>Defensive Formationen</td>
+                  <td>10</td>
+                  <td>Nickel Over, Nickel Match, Dime Zero, Odd Fire Zone, Goal Line Bracket, Base Over 4-3, Okie 3-4, Tite Nickel, Bear Nickel, Dime Two High</td>
+                </tr>
+                <tr>
+                  <td>Motion</td>
+                  <td>6</td>
+                  <td>No Motion, Jet Motion, Orbit Motion, Return Motion, Short Zip, Bluff Motion</td>
+                </tr>
+                <tr>
+                  <td>Protection</td>
+                  <td>8</td>
+                  <td>Half Slide, Full Slide, Boot Protection, Screen Invite, Six-Man Scan, Max Protect Shot, Sprint Launch, Empty Quick</td>
+                </tr>
+                <tr>
+                  <td>Fronts</td>
+                  <td>8</td>
+                  <td>Over Front, Under Front, Odd Front, Bear Front, Goal Line Front, Tite Front, Okie Front, Hybrid Bear</td>
+                </tr>
+                <tr>
+                  <td>Coverages</td>
+                  <td>14</td>
+                  <td>Quarters Match, Cover 3 Buzz, Cover 1 Robber, Cover 0, 3 Deep Fire Zone, Simulated Two High, Red Zone Bracket, Tampa 2, Cover 2 Cloud, Cover 3 Sky, Cover 3 Match, Palms / Cover 7, Cover 6, Cover 1 Lurk</td>
+                </tr>
+                <tr>
+                  <td>Pressures</td>
+                  <td>12</td>
+                  <td>Four-Man Rush, Double A Mug, Boundary Fire Zone, Field Creeper, Red Zone Mug, Three-Man Drop Eight, Field Fire Zone, Nickel Overload, Boundary Creeper, Sim Double Mug, Cross Dog, Bear Plug</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="play-library">
+          <h2>Play Library</h2>
+          <p>
+            Die erkannte Play Library umfasst 29 offensive Plays und 26
+            defensive Plays. Die Offense ist nach Spielzugfamilien wie Lauf,
+            RPO, Quick Game, Dropback, Play Action, Movement Pass, Screens und
+            Empty Tempo gegliedert. Die Defense arbeitet mit Coverage-, Man-,
+            Pressure-, Fire-Zone-, Drop-Eight-, Run-Blitz-, Bracket-,
+            Three-High- und Red-Zone-Paketen.
+          </p>
+          <p>
+            Die Play-Anzahl wurde durch die aktuelle Ueberarbeitung nicht
+            veraendert. Aktualisiert wurde die Absicherung der vorhandenen
+            Plays: Jede aktive Play-Struktur bleibt an ihr passendes Personnel
+            und das jeweilige Regelwerk gebunden.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Offensive Plays</caption>
+              <thead>
+                <tr>
+                  <th>Typ</th>
+                  <th>Anzahl</th>
+                  <th>Erkannte Plays</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Offense</td>
+                  <td>29</td>
+                  <td>Inside Zone Split, Counter GT, Glance / Bubble RPO, Stick Spacing, Dagger, Boot Flood, RB Slip Screen, Zone Insert Bunch, Outside Zone Stretch, Duo Tight, Power O I Right, QB Draw Empty, QB Power Read Bash, Slant / Flat RPO, Zone Read Slice, Quick Slant / Flat, Quick Hitch / Out, Rub Pivot, Mesh Rail, Y Cross, Mills, Yankee Shot, Leak Over, Sprint Sail, Naked Keep Pass, WR Tunnel Screen, TE Delay Screen, Empty Stick, Empty Choice</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <caption>Defensive Plays</caption>
+              <thead>
+                <tr>
+                  <th>Typ</th>
+                  <th>Anzahl</th>
+                  <th>Erkannte Plays</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Defense</td>
+                  <td>26</td>
+                  <td>Quarters Poach, Cover 3 Buzz, Cover 1 Robber, Double A Zero, Boundary Fire Zone 3-Deep, Two-High Creeper, Goal Line Bracket, Palms Read Match, Cover 3 Match Seam Carry, Tampa 2 Pole Runner, Cover 6 Boundary Cloud, Cover 1 Lurk Rat, Press 1 Bunch Lock, Nickel Overload Zero, Field Fire Zone Smoke, Sky Sting Fire Zone, Sim Double Mug Robber, Drop 8 Tampa Fence, Drop 8 Cover 6 Fence, Bear Plug Run Blitz, Cross Dog Spill, Palms Cut Bracket, Cone Bracket Red Zone, Three High Middle Poach, Three High Boundary Spin, Bear Cage Red Zone</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <caption>Play-Familien</caption>
+              <thead>
+                <tr>
+                  <th>Seite</th>
+                  <th>Erkannte Familien</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Offense</td>
+                  <td>Zone Run, Gap Run, Designed QB Run, Option / RPO, Quick Pass, Dropback, Play Action, Movement Pass, Screen, Empty Tempo</td>
+                </tr>
+                <tr>
+                  <td>Defense</td>
+                  <td>Match Coverage, Zone Coverage, Man Coverage, Zero Pressure, Fire Zone, Simulated Pressure, Drop Eight, Run Blitz, Bracket Specialty, Three High Package, Red Zone Package</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="entscheidungslogik">
+          <h2>Entscheidungslogik</h2>
+          <p>
+            Die Play-Auswahl arbeitet situativ. Aus der aktuellen Spielsituation
+            wird ein passendes Menue gebildet. Innerhalb dieses Menues werden
+            offensive und defensive Optionen gewichtet ausgewaehlt.
+          </p>
+          <h3>Offensive Standardmenues</h3>
+          <ul>
+            <li>Base Early Down</li>
+            <li>2nd And Short Breakers</li>
+            <li>Passing Down Menu</li>
+            <li>Short Yardage</li>
+            <li>Red Zone</li>
+            <li>Two Minute</li>
+            <li>Backed Up</li>
+          </ul>
+          <h3>Defensive Standardmenues</h3>
+          <ul>
+            <li>Base Early Down</li>
+            <li>Passing Down Menu</li>
+            <li>Short Yardage</li>
+            <li>Red Zone</li>
+            <li>Two Minute</li>
+          </ul>
+          <p>
+            Die Auswahl ist nicht rein fest verdrahtet. Sie nutzt gewichtete
+            Wahrscheinlichkeiten und kann dadurch bei gleicher Situation
+            unterschiedliche gueltige Plays erzeugen.
+          </p>
+          <p>
+            Im erweiterten System kommen Coaching-Profil, X-Factor und
+            Game-State hinzu. Ein fuehrendes Team kann dadurch langsamer,
+            sicherer und lauforientierter werden, waehrend ein Team mit
+            Rueckstand schneller, passlastiger und aggressiver reagiert.
+          </p>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="coaching-system">
+          <h2>Coaching System</h2>
+          <p>
+            Das Coaching System gibt Teams eine dauerhafte Identitaet. Es
+            beschreibt, wie ein Team normalerweise spielt, bevor ein konkreter
+            Wochenplan oder eine In-Game-Anpassung dazukommt. Dadurch wirken
+            Teams nicht nur durch Spielerwerte unterschiedlich, sondern auch
+            durch Philosophie.
+          </p>
+          <h3>Playcalling-Tendenzen</h3>
+          <p>
+            Ein Coach kann lauflastig, passlastig, vertikal, quick-game-lastig,
+            RPO-orientiert oder play-action-stark sein. Defensiv koennen Teams
+            mehr Blitzing, mehr Zone Coverage, mehr Man Coverage, mehr
+            Two-High-Strukturen oder mehr Run Blitz bevorzugen.
+          </p>
+          <h3>Risiko-Verhalten</h3>
+          <p>
+            Das Risiko-Profil steuert 4th-Down-Aggressivitaet, lange Field
+            Goals, Blitz-Risiko, Turnover-Toleranz und Special-Teams-Tricks.
+            Ein aggressiver Coach sucht eher explosive Plays und Takeaways,
+            nimmt aber mehr Sacks, Penalties und Big Plays gegen sich in Kauf.
+          </p>
+          <h3>Tempo</h3>
+          <p>
+            Tempo beschreibt, ob ein Team grundsaetzlich langsam, normal oder
+            schnell spielt. Es beeinflusst Play-Anzahl, Clock Drain,
+            No-Huddle-Anteile, Two-Minute-Faehigkeit und Fatigue. Fuehrende
+            Teams koennen mit hohem Clock-Kill-Wert das Spiel verkuerzen.
+          </p>
+          <h3>Anpassungsfaehigkeit</h3>
+          <p>
+            Anpassungsfaehigkeit entscheidet, wie schnell ein Team auf
+            wiederkehrende Muster reagiert. Ein flexibler Coach reduziert
+            erfolglose Play-Familien, greift erkannte Schwachstellen an und
+            passt zur Halbzeit staerker an. Ein starrer Coach bleibt laenger
+            bei seiner urspruenglichen Identitaet.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Coach-DNA und Gameplay-Wirkung</caption>
+              <thead>
+                <tr>
+                  <th>Profilbereich</th>
+                  <th>Wirkt auf</th>
+                  <th>Spuerbares Ergebnis</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Playcalling</td>
+                  <td>Play Selection, Familiengewichtung, Run/Pass-Split.</td>
+                  <td>Teams spielen erkennbare Offense- und Defense-Stile.</td>
+                </tr>
+                <tr>
+                  <td>Risiko</td>
+                  <td>4th Downs, tiefe Paesse, Blitzes, lange Field Goals.</td>
+                  <td>Mehr Explosivitaet oder mehr Sicherheit je nach Coach.</td>
+                </tr>
+                <tr>
+                  <td>Tempo</td>
+                  <td>Clock, Drive-Laenge, Hurry-Up, Fatigue.</td>
+                  <td>Teams kontrollieren oder beschleunigen das Spiel unterschiedlich.</td>
+                </tr>
+                <tr>
+                  <td>Anpassung</td>
+                  <td>Drive Reviews, Halftime, Counter Calls.</td>
+                  <td>Gute Coaches reagieren schneller auf gegnerische Muster.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note">
+            Coaching ist nicht dasselbe wie X-Factor. Coaching ist die
+            langfristige Team-DNA. X-Factor ist der konkrete Gameplan und die
+            dynamische Anpassung im Spiel.
+          </p>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="x-factor-system">
+          <h2>X-Factor System</h2>
+          <p>
+            Das X-Factor System beschreibt den Gameplan eines Teams. Es
+            startet mit Entscheidungen vor dem Spiel und kann waehrend des
+            Spiels dynamisch angepasst werden. X-Factor ersetzt keine
+            Spielsituation und keine Spielerwerte, sondern setzt eine
+            strategische Richtung. Dadurch kann ein Team zum Beispiel
+            lauflastiger, passlastiger, vorsichtiger, aggressiver oder
+            matchup-orientierter auftreten.
+          </p>
+          <p>
+            Die Entscheidungen wirken an zwei Stellen: Sie veraendern die
+            Gewichtung der Plays bei der Auswahl und sie beeinflussen bestimmte
+            Ergebniswahrscheinlichkeiten im Spielzug. Die Effekte sind
+            begrenzt, damit ein X-Factor-Plan einen Stil vorgibt, aber keine
+            sicheren Ergebnisse erzeugt.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Pre-Game-Entscheidungen</caption>
+              <thead>
+                <tr>
+                  <th>Entscheidung</th>
+                  <th>Moegliche Ausrichtungen</th>
+                  <th>Wirkung im Spiel</th>
+                  <th>Strategische Nutzung</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Offensiver Fokus</td>
+                  <td>Run First, Balanced, Pass First</td>
+                  <td>Verschiebt die offensive Play-Auswahl in Richtung Lauf- oder Passfamilien.</td>
+                  <td>Run First passt, wenn Ballkontrolle und Rhythmus wichtig sind. Pass First passt, wenn schnelle Raumgewinne oder Passing-Down-Antworten gesucht werden.</td>
+                </tr>
+                <tr>
+                  <td>Defensiver Fokus</td>
+                  <td>Stop Run, Balanced, Limit Pass</td>
+                  <td>Verschiebt defensive Menues in Richtung Run-Fit, Coverage oder passorientierter Antworten.</td>
+                  <td>Stop Run hilft gegen lauflastige Gegner. Limit Pass hilft gegen Teams mit starkem Quarterback oder vielen Receiver-Konzepten.</td>
+                </tr>
+                <tr>
+                  <td>Aggressivitaet</td>
+                  <td>Conservative, Balanced, Aggressive</td>
+                  <td>Beeinflusst Risiko und Belohnung bei Play-Auswahl und Ergebnis. Aggressivitaet foerdert explosive oder druckvolle Varianten, erhoeht aber auch Risiko.</td>
+                  <td>Conservative eignet sich fuer Fuehrungen, Ballkontrolle und geringe Fehlerquote. Aggressive eignet sich, wenn ein Team Druck machen oder Rueckstand aufholen muss.</td>
+                </tr>
+                <tr>
+                  <td>Tempo</td>
+                  <td>Slow, Normal, Hurry Up</td>
+                  <td>Slow bevorzugt kontrollierte Sequenzen. Hurry Up beguenstigt schnelle Pass-, Screen-, RPO- und Empty-Tempo-Konzepte.</td>
+                  <td>Slow eignet sich, um das Spiel zu beruhigen. Hurry Up eignet sich fuer Rhythmus, Druck auf die Defense oder spaete Spielsituationen.</td>
+                </tr>
+                <tr>
+                  <td>Protection Plan</td>
+                  <td>Max Protect, Standard, Fast Release</td>
+                  <td>Max Protect reduziert Druck und Sacks, kostet aber Potenzial fuer explosive Paesse. Fast Release senkt Druck durch schnelle Wuerfe und verschiebt Raumgewinn eher zu kurzen Paessen und Yards after Catch.</td>
+                  <td>Max Protect ist sinnvoll gegen starken Pass Rush. Fast Release ist sinnvoll, wenn der Ball schnell aus der Hand soll oder kurze Antworten gebraucht werden.</td>
+                </tr>
+                <tr>
+                  <td>Offensiver Matchup-Fokus</td>
+                  <td>Feature WR, Feature TE, Feature RB, Protect QB, Balanced</td>
+                  <td>Beguenstigt Plays, die den ausgewaehlten Schwerpunkt staerker nutzen. Protect QB reduziert Druck, Feature RB staerkt Lauf- und Screen-Anteile.</td>
+                  <td>Nutze den Fokus, um die beste eigene Waffe haeufiger in guenstige Situationen zu bringen oder einen Quarterback besser zu schuetzen.</td>
+                </tr>
+                <tr>
+                  <td>Defensiver Matchup-Fokus</td>
+                  <td>Double WR1, Spy QB, Bracket TE, Attack Weak OL, Balanced</td>
+                  <td>Beguenstigt defensive Antworten auf bestimmte gegnerische Staerken oder Schwaechen. Spy QB hilft gegen Quarterback-Laeufe, Attack Weak OL erhoeht Druck und Run-Stress.</td>
+                  <td>Waehle den Fokus passend zur groessten Bedrohung des Gegners: Top-Receiver, mobiler Quarterback, Tight End oder schwache Offensive Line.</td>
+                </tr>
+                <tr>
+                  <td>Turnover Plan</td>
+                  <td>Protect Ball, Balanced, Hunt Turnovers</td>
+                  <td>Protect Ball senkt Turnover-Risiko und reduziert etwas Varianz. Hunt Turnovers erhoeht Takeaway-Chancen, bringt aber mehr Risiko in die Spielzuege.</td>
+                  <td>Protect Ball passt zu sicheren Gameplans. Hunt Turnovers passt, wenn die Defense bewusst auf Momentum-Wechsel spielt.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Strategische Einordnung</h3>
+          <p>
+            Ein X-Factor-Plan sollte zur Spielsituation, zum eigenen Kader und
+            zum Gegner passen. Ein laufstarkes Team kann Run First mit Feature
+            RB kombinieren. Ein Team gegen starken Pass Rush kann Protect QB
+            oder Max Protect waehlen. Gegen einen mobilen Quarterback ist Spy
+            QB eine passende defensive Vorbereitung.
+          </p>
+          <p>
+            Mehrere Schwerpunkte koennen zusammenwirken. Eine aggressive
+            Pass-First-Ausrichtung kann explosive Plays beguenstigen, bleibt
+            aber riskanter. Eine konservative Protect-Ball-Ausrichtung senkt
+            Fehlerwahrscheinlichkeit, nimmt dafuer etwas explosiven Spielraum
+            heraus.
+          </p>
+          <h3>In-Game-Anpassungen</h3>
+          <p>
+            Die Erweiterung macht X-Factor nicht nur zu einer Pre-Game-Wahl.
+            Der Game Loop kann nach Drives, zur Halbzeit und in kritischen
+            Situationen einen wirksamen X-Factor-Plan berechnen. Dieser
+            wirksame Plan wird dann wie bisher an Play Selection und Outcome
+            Engine uebergeben.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Dynamische X-Factor-Ausloeser</caption>
+              <thead>
+                <tr>
+                  <th>Moment</th>
+                  <th>Typische Anpassung</th>
+                  <th>Gameplay-Effekt</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Halftime</td>
+                  <td>Maximal zwei groessere Anpassungen, etwa Stop Run, Fast Release, Limit Pass oder Feature WR.</td>
+                  <td>Teams reagieren auf die erste Halbzeit, ohne ihren gesamten Stil zu verlieren.</td>
+                </tr>
+                <tr>
+                  <td>Drive Review</td>
+                  <td>Kleine Korrekturen nach wiederholtem Druck, ineffektivem Laufspiel, erfolgreichen Deep Shots oder Turnover-Problemen.</td>
+                  <td>Der naechste Drive fuehlt sich angepasst an, bleibt aber glaubwuerdig.</td>
+                </tr>
+                <tr>
+                  <td>Kritische Situation</td>
+                  <td>Kurzfristige Overrides fuer Red Zone, 3rd Down, 4th Down, Two Minute, Rueckstand oder Fuehrung.</td>
+                  <td>Teams spielen in High-Leverage-Situationen bewusster und nicht wie in neutralen Downs.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Beispiele fuer dynamische Entscheidungen</h3>
+          <ul>
+            <li>Bei Rueckstand im vierten Quarter steigt Tempo, Pass-Fokus und defensive Aggressivitaet.</li>
+            <li>Bei Fuehrung werden Run First, Slow Tempo und Protect Ball wahrscheinlicher.</li>
+            <li>Wenn der Quarterback stark unter Druck steht, greifen Fast Release, Max Protect oder Protect QB staerker.</li>
+            <li>Wenn ein bestimmter Receiver dominiert, kann Feature WR oder Double WR1 aktiviert werden.</li>
+            <li>Wenn ein mobiler Quarterback das Spiel kontrolliert, wird Spy QB wichtiger.</li>
+          </ul>
+          <p class="note">
+            Die Komplexitaet bleibt begrenzt: wenige aktive Anpassungen,
+            klare Dauer und Nutzung der bestehenden X-Factor-Felder. Dadurch
+            wird das Spiel dynamischer, ohne eine zweite Entscheidungslogik
+            neben der vorhandenen Engine aufzubauen.
+          </p>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="spieler-attribute">
+          <h2>Spieler und Attribute</h2>
+          <p>
+            Spielerwerte fliessen in die Ergebnisberechnung ein. Die Attribute
+            sind nach allgemeinen Faehigkeiten und Positionsgruppen gegliedert.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Erkannte Attributgruppen</caption>
+              <thead>
+                <tr>
+                  <th>Gruppe</th>
+                  <th>Attribute</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Allgemein</td>
+                  <td>Speed, Acceleration, Agility, Strength, Awareness, Toughness, Durability, Discipline, Intelligence, Leadership</td>
+                </tr>
+                <tr>
+                  <td>Quarterback</td>
+                  <td>Throw Power, Throw Accuracy Short, Throw Accuracy Medium, Throw Accuracy Deep, Pocket Presence, Decision Making, Play Action, Scrambling, Mobility</td>
+                </tr>
+                <tr>
+                  <td>Ball Carrier</td>
+                  <td>Vision, Ball Security, Elusiveness, Break Tackle, Pass Protection, Short Yardage Power</td>
+                </tr>
+                <tr>
+                  <td>Receiving</td>
+                  <td>Catching, Hands, Route Running, Release, Separation, Contested Catch, Jumping, Run After Catch, Blocking</td>
+                </tr>
+                <tr>
+                  <td>Offensive Line</td>
+                  <td>Pass Block, Run Block, Hand Technique, Footwork, Anchor</td>
+                </tr>
+                <tr>
+                  <td>Defensive Front</td>
+                  <td>Tackling, Pursuit, Block Shedding, Pass Rush, Power Moves, Finesse Moves, Play Recognition, Hit Power</td>
+                </tr>
+                <tr>
+                  <td>Coverage</td>
+                  <td>Man Coverage, Zone Coverage, Press, Ball Skills, LB Man Coverage, LB Zone Coverage, Coverage Range, LB Coverage</td>
+                </tr>
+                <tr>
+                  <td>Special Teams</td>
+                  <td>Kick Power, Kick Accuracy, Punt Power, Punt Accuracy, Kickoff Power, Kick Consistency, Punt Hang Time, Return Vision, Snap Accuracy, Snap Velocity</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="outcome-engine">
+          <h2>Outcome Engine</h2>
+          <p>
+            Die Outcome Engine berechnet den konkreten Ausgang eines Spielzugs.
+            Vor dem eigentlichen Ergebnis wird geprueft, ob der Spielzug
+            regelgueltig ist. Ist er ungueltig, entsteht ein Penalty-Ergebnis.
+            Ist er gueltig, wird der Spielzug als Lauf- oder Passspielzug
+            berechnet.
+          </p>
+          <h3>Laufspielzuege</h3>
+          <p>
+            Bei Laufspielzuegen werden Box Count, Defensive Front, Run Fit,
+            Leverage, Blocking, Ball-Carrier-Werte und defensive Tackling- bzw.
+            Frontwerte einbezogen. Moegliche Ergebnisse sind Run Stop, Run
+            Success, Explosive Run und Fumble.
+          </p>
+          <h3>Passspielzuege</h3>
+          <p>
+            Bei Passspielzuegen wirken Pressure gegen Protection,
+            Quarterback-Werte, Route- und Receiver-Werte, Coverage,
+            Verteidigerwerte, Wurftiefe und Yards after Catch zusammen.
+            Moegliche Ergebnisse sind Complete Pass, Explosive Pass,
+            Incomplete Pass, Sack, Interception, Fumble und Throwaway.
+          </p>
+          <h3>Zufall und Varianz</h3>
+          <p>
+            Die Berechnung enthaelt kontrollierte Varianz. Gleiche Strukturen
+            koennen dadurch unterschiedliche Ergebnisse erzeugen, bleiben aber
+            ueber gesetzte Seeds wiederholbar.
+          </p>
+          <h3>X-Factor-Einfluss</h3>
+          <p>
+            Der wirksame X-Factor-Plan kann Ergebniswahrscheinlichkeiten
+            verschieben. Er besteht aus Pre-Game-Plan, Coaching-Kontext und
+            In-Game-Anpassungen. Max Protect und Protect QB senken zum
+            Beispiel Druck und Sack-Gefahr. Protect Ball reduziert
+            Turnover-Risiko. Hunt Turnovers erhoeht Takeaway-Chancen, laesst
+            aber bewusst mehr Risiko zu. Run First und Feature RB koennen
+            Laufspielzuege beguenstigen, waehrend Stop Run die Chance auf
+            gestoppte Laeufe erhoeht.
+          </p>
+          <h3>Special-Teams-Resolver</h3>
+          <p>
+            Kickoff, Punt, Field Goal und Extra Point nutzen eigene
+            Spezialresolver. Sie greifen auf Kicking-, Punting-, Return-,
+            Coverage- und Operation-Werte zu und liefern dem Game Loop den
+            naechsten Ballbesitz, die neue Field Position und moegliche Punkte.
+          </p>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="regeln">
+          <h2>Regeln</h2>
+          <p>
+            Die Engine besitzt eine Vorabpruefung fuer die Gueltigkeit eines
+            Spielzugs. Diese Pruefung verhindert ungueltige Kombinationen oder
+            wandelt sie in ein Penalty-Ergebnis um.
+          </p>
+          <p>
+            Die Vorabpruefung wurde ergaenzt, damit ungueltige Strukturen noch
+            klarer erkannt werden. Sie prueft jetzt ausdruecklich, ob die
+            tatsaechlich ausgerichteten Spieler zum angesagten Personnel
+            passen und ob die bekannten Sonderpakete korrekt bleiben.
+          </p>
+          <h3>Gepruefte Regeln</h3>
+          <ul>
+            <li>Spieleranzahl auf Offense und Defense</li>
+            <li>Gueltigkeit des Personnel Packages</li>
+            <li>Abgleich von angesagtem Package und realer Positionsverteilung</li>
+            <li>Mindestens sieben Spieler an der Line of Scrimmage</li>
+            <li>Hoechstens vier Spieler im Backfield</li>
+            <li>Mindestens fuenf eligible Receiver</li>
+            <li>Eligible Ends und ineligible Interior Linemen</li>
+            <li>Anzahl und Ausrichtung von Motion</li>
+            <li>Motion an der Line of Scrimmage</li>
+            <li>Shift Reset und Mindest-Set-Zeit</li>
+            <li>Ineligible Downfield</li>
+            <li>Unterstuetztes Regelwerk</li>
+          </ul>
+          <p>
+            Die Downfield-Grenze unterscheidet zwischen Regelwerken: NFL Pro
+            nutzt eine Grenze von 1 Yard, College eine Grenze von 3 Yards.
+            Beide Regelwerke werden getrennt geprueft, damit ein legaler oder
+            illegaler Snap nicht versehentlich aus dem falschen Regelprofil
+            bewertet wird.
+          </p>
+          <h3>Zusaetzlich abgesicherte Fehlerbilder</h3>
+          <ul>
+            <li>zu viele Spieler im Backfield</li>
+            <li>zu wenige eligible Receiver</li>
+            <li>mehr als ein Spieler in Motion beim Snap</li>
+            <li>Motion von einem Spieler auf der Line of Scrimmage</li>
+            <li>Motion ohne vorher gesetzte Formation</li>
+            <li>falsche Personnel-Zuordnung bei Trips, Tite/Odd Nickel oder Bear Nickel</li>
+          </ul>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="penalties">
+          <h2>Penalty-Katalog</h2>
+          <p>
+            Das erweiterte Penalty-System trennt zwischen Regelpruefung,
+            Penalty-Ausloesung und Enforcement. Die vorhandene Pre-Snap-
+            Legality bleibt bestehen. Neu ist, dass erkannte Fehler und
+            Live-Ball-Risiken in konkrete Strafen mit Yardage, Down-Wirkung
+            und moeglichem automatischem First Down uebersetzt werden.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Vollstaendiger Penalty-Katalog fuer den Gameplay Loop</caption>
+              <thead>
+                <tr>
+                  <th>Penalty</th>
+                  <th>Ausloeser</th>
+                  <th>Gameplay-Enforcement</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>False Start</td>
+                  <td>Offense bewegt sich illegal vor dem Snap, Shift ist nicht gesetzt oder ein Lineman zuckt frueh.</td>
+                  <td>5 Yards gegen die Offense, kein Play, Down wiederholen.</td>
+                </tr>
+                <tr>
+                  <td>Offside</td>
+                  <td>Defense steht beim Snap in oder jenseits der Neutral Zone.</td>
+                  <td>5 Yards gegen die Defense, meistens no play, optional Free-Play-Logik.</td>
+                </tr>
+                <tr>
+                  <td>Neutral Zone Infraction</td>
+                  <td>Defender springt in die Neutral Zone und verursacht eine offensive Reaktion.</td>
+                  <td>5 Yards gegen die Defense, kein Play, Down wiederholen.</td>
+                </tr>
+                <tr>
+                  <td>Encroachment</td>
+                  <td>Defender beruehrt Offense vor dem Snap.</td>
+                  <td>5 Yards gegen die Defense, kein Play.</td>
+                </tr>
+                <tr>
+                  <td>Illegal Formation</td>
+                  <td>Zu wenige Spieler an der Line, zu viele im Backfield oder unpassende Eligibility-Struktur.</td>
+                  <td>5 Yards gegen die Offense, Down wiederholen.</td>
+                </tr>
+                <tr>
+                  <td>Illegal Shift</td>
+                  <td>Mehrere Spieler shiften und die Offense wird nicht rechtzeitig wieder gesetzt.</td>
+                  <td>5 Yards gegen die Offense, Down wiederholen.</td>
+                </tr>
+                <tr>
+                  <td>Illegal Motion</td>
+                  <td>Zu viele Motion-Spieler, Motion an der Line oder Motion Richtung Line of Scrimmage.</td>
+                  <td>5 Yards gegen die Offense, Down wiederholen.</td>
+                </tr>
+                <tr>
+                  <td>Ineligible Downfield</td>
+                  <td>Ineligible Lineman ist bei einem Forward Pass zu weit downfield.</td>
+                  <td>5 Yards gegen die Offense, Down wiederholen.</td>
+                </tr>
+                <tr>
+                  <td>Offensive Holding</td>
+                  <td>Pass Protection oder Run Block verliert klar und haelt, um Sack oder Tackle zu verhindern.</td>
+                  <td>10 Yards gegen die Offense, Down wiederholen.</td>
+                </tr>
+                <tr>
+                  <td>Defensive Holding</td>
+                  <td>Coverage haelt Receiver vor dem Catch Point oder abseits des Balles.</td>
+                  <td>5 Yards gegen die Defense, automatisches First Down.</td>
+                </tr>
+                <tr>
+                  <td>Defensive Pass Interference</td>
+                  <td>Ball ist in der Luft und der Defender verhindert den Catch Point illegal.</td>
+                  <td>NFL: Spot Foul, College: 15-Yard-Cap, automatisches First Down.</td>
+                </tr>
+                <tr>
+                  <td>Offensive Pass Interference</td>
+                  <td>Receiver blockt, pusht oder setzt einen illegalen Pick vor dem Catch Point.</td>
+                  <td>10 Yards gegen die Offense, Down wiederholen.</td>
+                </tr>
+                <tr>
+                  <td>Illegal Contact</td>
+                  <td>Defense kontaktet Receiver jenseits der erlaubten Zone vor dem Pass.</td>
+                  <td>5 Yards gegen die Defense, automatisches First Down.</td>
+                </tr>
+                <tr>
+                  <td>Personal Foul</td>
+                  <td>Schwerer Kontakt ausserhalb normaler Spielzughaerte.</td>
+                  <td>15 Yards, bei Defense automatisches First Down.</td>
+                </tr>
+                <tr>
+                  <td>Roughing the Passer</td>
+                  <td>Zu spaeter oder gefaehrlicher Hit gegen den Quarterback nach dem Wurf.</td>
+                  <td>15 Yards gegen die Defense, automatisches First Down.</td>
+                </tr>
+                <tr>
+                  <td>Facemask</td>
+                  <td>Tackler greift ins Facemask oder reisst den Kopfbereich.</td>
+                  <td>15 Yards vom passenden Enforcement Spot.</td>
+                </tr>
+                <tr>
+                  <td>Unnecessary Roughness</td>
+                  <td>Late Hit, Out-of-Bounds-Hit oder Dead-Ball-Kontakt.</td>
+                  <td>15 Yards, oft vom succeeding spot.</td>
+                </tr>
+                <tr>
+                  <td>Roughing the Kicker</td>
+                  <td>Kontakt gegen Kicker oder Punter nach Kick oder Punt.</td>
+                  <td>15 Yards gegen die Defense, automatisches First Down.</td>
+                </tr>
+                <tr>
+                  <td>Kick Catch Interference</td>
+                  <td>Returner wird beim Catch eines Kicks oder Punts behindert.</td>
+                  <td>15 Yards, Field Position fuer das Receiving Team.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Integration in die Outcome Engine</h3>
+          <p>
+            Vor dem Play werden klare Pre-Snap-Strafen wie False Start,
+            Illegal Formation, Illegal Motion oder Offside geprueft. Danach
+            loest die Outcome Engine den Spielzug normal auf. Anschliessend
+            kann eine Live-Ball-Strafe wie Holding, Pass Interference oder
+            Personal Foul an das Ergebnis angehaengt werden.
+          </p>
+          <p>
+            Der Drive Reducer setzt die Strafe um: Yardage, Spot-Foul,
+            Half-the-Distance, automatisches First Down, Loss of Down oder
+            Down-Wiederholung. Dadurch bleibt die Outcome Engine fuer das
+            sportliche Play verantwortlich, waehrend der Game Loop den
+            regeltechnischen Zustand sauber fortschreibt.
+          </p>
+          <h3>Risiko-Modell</h3>
+          <p>
+            Penalties entstehen nicht zufaellig ohne Kontext. Holding steigt
+            bei starkem Pass Rush und schwacher Protection. Pass Interference
+            steigt bei tiefen Routen, enger Coverage und schwachem Ball-Timing.
+            False Starts steigen bei Crowd Noise, Pressure-Looks und schlechter
+            Discipline. Personal Fouls steigen bei hoher Aggressivitaet, Hit
+            Power und spaeten Spielsituationen.
+          </p>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="realismus">
+          <h2>Realismus</h2>
+          <p>
+            Der Realismus entsteht durch die Kombination aus Play Design,
+            Situation, Spielerattributen, defensiver Antwort und kontrollierter
+            Varianz. Die Engine unterscheidet zwischen Lauf- und Passlogik,
+            beruecksichtigt Protection gegen Pressure und trennt Coverage-,
+            Front- und Personnel-Entscheidungen.
+          </p>
+          <p>
+            Der Drive Loop erweitert diesen Realismus auf Spielniveau. Ein
+            8-Yard-Run ist nicht nur ein guter Play, sondern kann ein neues
+            First Down, bessere Field Position, Clock Drain oder Red-Zone-
+            Eintritt bedeuten. Ein Sack kann einen Punt erzwingen. Ein
+            Turnover kann sofort die Spielrichtung veraendern.
+          </p>
+          <p>
+            Coaching und dynamische X-Factor-Anpassungen erzeugen Teamidentitaet
+            und Reaktion. Ein vertikales Team sucht andere Antworten als ein
+            Run-Control-Team. Ein fuehrendes Team kann das Spiel verkuerzen,
+            waehrend ein Team mit Rueckstand mehr Tempo, Passspiel und Blitzing
+            sucht.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Messbare Realismus-Hebel</caption>
+              <thead>
+                <tr>
+                  <th>Hebel</th>
+                  <th>Wirkung im Spiel</th>
+                  <th>Messbare Kennzahl</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Situative Varianz</td>
+                  <td>Down, Distanz, Field Zone und Clock beeinflussen Risiko und Ergebnisbreite.</td>
+                  <td>Yards pro Play, Explosive Rate, Negative-Play-Rate nach Situation.</td>
+                </tr>
+                <tr>
+                  <td>Matchups</td>
+                  <td>Protection gegen Pressure, Route gegen Coverage und Runner gegen Front werden staerker sichtbar.</td>
+                  <td>Sack Rate, Completion Rate, Stuff Rate, Passes Defended.</td>
+                </tr>
+                <tr>
+                  <td>Game Script</td>
+                  <td>Fuehrung, Rueckstand und Restzeit verschieben Playcalling und Tempo.</td>
+                  <td>Run/Pass-Split nach Score, Time of Possession, Comeback-Rate.</td>
+                </tr>
+                <tr>
+                  <td>Fatigue</td>
+                  <td>Lange Drives und hohes Tempo verschlechtern Tackling, Pass Rush, Route Sharpness und Ball Security.</td>
+                  <td>Late-Drive-Yards, Missed-Tackle-Rate, Pressure-Decline, Fumbles.</td>
+                </tr>
+                <tr>
+                  <td>Penalties</td>
+                  <td>Discipline, Aggressivitaet, Crowd Noise und Matchup-Stress erzeugen Drive-Killer oder automatische First Downs.</td>
+                  <td>Penalties pro Spiel, Penalty-Yards, Drive-Kill-Rate.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="beispielsituationen">
+          <h2>Beispielsituationen</h2>
+          <h3>1. Early Down im Mittelfeld</h3>
+          <p>
+            Die Offense kann aus einem Base-Early-Down-Menue waehlen, etwa Zone
+            Run, Gap Run, RPO oder kurze Paesse. Die Defense kann mit Base- oder
+            Match-Strukturen reagieren. Das Ergebnis entsteht aus Box Count,
+            Blocking, Ball-Carrier-Werten, Coverage und situativer Gewichtung.
+          </p>
+          <h3>2. Drive-Fortschritt nach erfolgreichem Lauf</h3>
+          <p>
+            Ein 7-Yard-Lauf auf 2nd and 6 erzeugt ein neues First Down. Der
+            Drive State setzt Down wieder auf 1, aktualisiert die Line to Gain
+            und laesst die Clock weiterlaufen. Das Team gewinnt nicht nur
+            Yards, sondern Kontrolle ueber Tempo und Field Position.
+          </p>
+          <h3>3. Third and Long</h3>
+          <p>
+            Die Offense wird in Richtung Passing-Down-Menue gelenkt. Die
+            Defense kann Pressure, Drop Eight, Match Coverage oder Man Coverage
+            einsetzen. Die Passlogik beruecksichtigt Pressure, Protection,
+            Quarterback-Entscheidungen, Route-Separation und Coverage.
+          </p>
+          <p>
+            Mit einem Fast-Release- oder Max-Protect-Plan kann die Offense den
+            Pass Rush gezielter abfedern. Die Defense kann mit Limit Pass,
+            Double WR1 oder Hunt Turnovers staerker auf Coverage und Takeaways
+            ausgerichtet werden.
+          </p>
+          <h3>4. Red Zone</h3>
+          <p>
+            Beide Seiten koennen auf Red-Zone-Menues zugreifen. Die Defense hat
+            Bracket- und Goal-Line-Optionen. Die Offense kann Rub-, Quick-,
+            Power- oder Play-Action-Konzepte verwenden. Das Ergebnis bleibt
+            regel- und attributsabhaengig.
+          </p>
+          <h3>5. Special Teams nach Touchdown</h3>
+          <p>
+            Nach einem Touchdown folgt ein Extra Point oder ein 2-Point-
+            Versuch. Danach erzeugt ein Kickoff die neue Startposition des
+            Gegners. Touchback, Return oder Onside Kick koennen den naechsten
+            Drive deutlich anders beginnen lassen.
+          </p>
+          <h3>6. Punt als Field-Position-Entscheidung</h3>
+          <p>
+            Auf 4th and 9 an der gegnerischen 43 kann ein Team zwischen Punt,
+            langem Field Goal oder aggressivem Ausspielen abwaegen. Der Punt
+            kann den Gegner tief einsperren, ein Touchback nimmt diesen Vorteil
+            aber wieder weg.
+          </p>
+          <h3>7. Ungueltige Pre-Snap-Struktur</h3>
+          <p>
+            Wenn eine Aufstellung gegen erkannte Regeln verstoesst, entsteht
+            kein normales Lauf- oder Passergebnis. Die Engine erzeugt in diesem
+            Fall ein konkretes Penalty-Ergebnis wie Illegal Formation, Illegal
+            Motion oder False Start.
+          </p>
+          <h3>8. Falsches Personnel trotz passendem Play-Namen</h3>
+          <p>
+            Wenn ein Play als 11 Personnel, 3-3-5 oder 5-1-5 gefuehrt wird,
+            muessen auch die ausgerichteten Spieler zu diesem Paket passen. Ein
+            Trips-Bild mit falscher WR/TE-Verteilung oder eine Bear-Nickel-
+            Struktur mit falscher Frontbesetzung wird dadurch nicht still als
+            normaler Spielzug behandelt.
+          </p>
+          <h3>9. Holding und Pass Interference</h3>
+          <p>
+            Wenn ein Edge Rusher die Protection klar schlaegt, steigt die
+            Chance auf Offensive Holding. Bei tiefem Pass gegen enge Coverage
+            steigt die Chance auf Defensive Pass Interference. Beide Strafen
+            veraendern Down, Distanz und Field Position spuerbar.
+          </p>
+          <h3>10. Pre-Game-Schwerpunkt gegen starken Pass Rush</h3>
+          <p>
+            Erwartet die Offense viel Druck, kann sie Max Protect, Fast Release
+            oder Protect QB waehlen. Dadurch werden schnelle Antworten,
+            abgesicherte Protection und weniger riskante Passausgaenge
+            wahrscheinlicher, ohne dass erfolgreiche Paesse garantiert werden.
+          </p>
+          <h3>11. In-Game-Anpassung bei Rueckstand</h3>
+          <p>
+            Liegt ein Team im vierten Quarter zurueck, kann der wirksame
+            X-Factor-Plan auf Hurry Up, Pass First und aggressivere Defense
+            kippen. Dadurch entstehen mehr Plays, mehr Blitzes und mehr
+            Varianz, aber auch hoeheres Turnover- und Penalty-Risiko.
+          </p>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="fazit">
+          <h2>Fazit</h2>
+          <p>
+            Die Game Engine bildet einen regelgeprueften,
+            situationsabhaengigen Football-Kern ab. Sie verbindet Playbooks,
+            Formationen, Spielerattribute, Coaching-Identitaet, X-Factor-
+            Plaene, Spielsituation und kontrollierte Varianz zu konkreten
+            Ergebnissen.
+          </p>
+          <p>
+            Der geplante Ausbau macht aus dem vorhandenen Play-Kern eine
+            vollstaendig spielbare Simulation: Drives entstehen aus
+            aufeinanderfolgenden Plays, Special Teams verschieben Field
+            Position, Penalties veraendern Down und Distanz, Coaches geben
+            Teams Identitaet und X-Factor-Anpassungen sorgen fuer dynamische
+            Reaktionen im Spiel.
+          </p>
+          <p>
+            Wichtig bleibt: Diese Systeme bauen auf der bestehenden Engine auf.
+            Die Play Selection und Outcome Engine bleiben der Kern. Der neue
+            Game Loop fuehrt die Ergebnisse zusammen und macht sie fuer den
+            Matchverlauf sichtbar.
+          </p>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+
+        <section id="status">
+          <h2>Statuspruefung</h2>
+          <ul>
+            <li>HTML-Struktur: vollstaendig angelegt.</li>
+            <li>Inhaltsverzeichnis: vorhanden.</li>
+            <li>Sprungmarken: vorhanden.</li>
+            <li>Formationstabelle: vorhanden.</li>
+            <li>Play-Tabellen: vorhanden.</li>
+            <li>Drive Loop: Startposition, First Downs, Turnover, Scoring, Clock und Possession-Wechsel erklaert.</li>
+            <li>Special Teams: Kickoff, Punt, Field Goal, Extra Point und Return-Logik eingearbeitet.</li>
+            <li>Penalty-Katalog: Pre-Snap, Holding, Pass Interference, Offside-Erweiterungen und Personal Fouls beschrieben.</li>
+            <li>Coaching System: Teamidentitaet, Risiko, Tempo und Anpassungsfaehigkeit erklaert.</li>
+            <li>X-Factor System: Pre-Game-Plan und In-Game-Anpassungen mit Halftime, Drives und kritischen Situationen erklaert.</li>
+            <li>Validierungsverbesserungen zu Rulesets, Motion, Eligible Receivern und Personnel-Abgleich eingearbeitet.</li>
+            <li>Gameplay-Fokus: alle Systeme sind aus Anwendersicht und mit sichtbarer Wirkung beschrieben.</li>
+          </ul>
+          <p><span class="status">Status: Gruen</span></p>
+          <a class="backlink" href="#top">Zurueck zum Inhaltsverzeichnis</a>
+        </section>
+      </main>
+
+      <footer>
+        AFBM Anwenderbericht zur Game Engine
+      </footer>
+    </div>
+  </body>
+</html>

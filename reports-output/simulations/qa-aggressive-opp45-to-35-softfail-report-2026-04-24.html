@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Aggressive Soft Fail Report 2026-04-24</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 28px; color: #1f2a2a; background: #f6f1e8; }
+    section { background: #fffdf8; border: 1px solid #ded4c6; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #e3dacd; vertical-align: top; }
+    th { background: #efe5d8; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .green { background: #dcfce7; color: #166534; }
+    .red { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>Aggressive Soft Fail Report</h1>
+    <p>50-Spiele-Validierung fuer AGGRESSIVE Coaches in OPP45_TO_35 bei 4th & 3-5 mit Conversion-Boost, Soft-Fail und Post-Convert-Stabilisierung.</p>
+    <p><span class="pill red">ROT</span></p>
+  </section>
+  <section>
+    <h2>Vorher / Nachher</h2>
+    <table><thead><tr><th>Metrik</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody><tr><td>Punkte / Spiel</td><td>48</td><td>51.8</td></tr><tr><td>Total Yards / Spiel</td><td>909.1</td><td>913.5</td></tr><tr><td>Punts / Team-Spiel</td><td>4.95</td><td>4.78</td></tr><tr><td>FG-Attempts / Team-Spiel</td><td>2.84</td><td>2.86</td></tr><tr><td>Touchdowns / Team-Spiel</td><td>2.67</td><td>2.9</td></tr><tr><td>TURNOVER_ON_DOWNS / Team-Spiel</td><td>2.84</td><td>2.87</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Korridor-Erfolg</h2>
+    <table><thead><tr><th>Kennzahl</th><th>Wert</th></tr></thead><tbody><tr><td>Targeted Attempts</td><td>209</td></tr><tr><td>GO_FOR_IT Erfolgsrate</td><td>83.7%</td></tr><tr><td>Soft-Fail-Anteil</td><td>10%</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>TOD nach Zone</h2>
+    <table><thead><tr><th>Zone</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>OPP35_TO_20</td><td>108</td><td>37.6</td></tr><tr><td>OPP45_TO_40</td><td>86</td><td>30</td></tr><tr><td>OPP40_TO_35</td><td>81</td><td>28.2</td></tr><tr><td>MIDFIELD</td><td>5</td><td>1.7</td></tr><tr><td>RED_ZONE_20</td><td>4</td><td>1.4</td></tr><tr><td>BACKED_UP</td><td>3</td><td>1</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Korridor-Outcomes</h2>
+    <table><thead><tr><th>Zone :: Resolution :: Folge-Outcome</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>OPP40_TO_35 :: CONVERTED :: TOUCHDOWN</td><td>47</td><td>22.5</td></tr><tr><td>OPP45_TO_40 :: CONVERTED :: TOUCHDOWN</td><td>39</td><td>18.7</td></tr><tr><td>OPP45_TO_40 :: CONVERTED :: TURNOVER_ON_DOWNS</td><td>29</td><td>13.9</td></tr><tr><td>OPP40_TO_35 :: CONVERTED :: TURNOVER_ON_DOWNS</td><td>23</td><td>11</td></tr><tr><td>OPP45_TO_40 :: FAILED :: TURNOVER_ON_DOWNS</td><td>18</td><td>8.6</td></tr><tr><td>OPP40_TO_35 :: FAILED :: TURNOVER_ON_DOWNS</td><td>16</td><td>7.7</td></tr><tr><td>OPP40_TO_35 :: CONVERTED :: FIELD_GOAL_MADE</td><td>6</td><td>2.9</td></tr><tr><td>OPP40_TO_35 :: CONVERTED :: FIELD_GOAL_MISSED</td><td>6</td><td>2.9</td></tr><tr><td>OPP45_TO_40 :: SOFT_FAIL_SNEAK_CONVERT :: TOUCHDOWN</td><td>3</td><td>1.4</td></tr><tr><td>OPP45_TO_40 :: SOFT_FAIL_AUTO_FIRST :: TOUCHDOWN</td><td>3</td><td>1.4</td></tr><tr><td>OPP45_TO_40 :: CONVERTED :: FIELD_GOAL_MISSED</td><td>3</td><td>1.4</td></tr><tr><td>OPP45_TO_40 :: SOFT_FAIL_AUTO_FIRST :: TURNOVER_ON_DOWNS</td><td>2</td><td>1</td></tr><tr><td>OPP45_TO_40 :: SOFT_FAIL_SNEAK_CONVERT :: TURNOVER_ON_DOWNS</td><td>2</td><td>1</td></tr><tr><td>OPP40_TO_35 :: SOFT_FAIL_SNEAK_CONVERT :: TURNOVER_ON_DOWNS</td><td>2</td><td>1</td></tr><tr><td>OPP45_TO_40 :: SOFT_FAIL_PLAY_EXTENSION :: TOUCHDOWN</td><td>2</td><td>1</td></tr><tr><td>OPP40_TO_35 :: SOFT_FAIL_SNEAK_CONVERT :: FIELD_GOAL_MISSED</td><td>1</td><td>0.5</td></tr><tr><td>OPP45_TO_40 :: CONVERTED :: FIELD_GOAL_MADE</td><td>1</td><td>0.5</td></tr><tr><td>OPP40_TO_35 :: SOFT_FAIL_PLAY_EXTENSION :: TURNOVER_ON_DOWNS</td><td>1</td><td>0.5</td></tr><tr><td>OPP40_TO_35 :: SOFT_FAIL_PLAY_EXTENSION :: FIELD_GOAL_MADE</td><td>1</td><td>0.5</td></tr><tr><td>OPP40_TO_35 :: SOFT_FAIL_PLAY_EXTENSION :: FIELD_GOAL_MISSED</td><td>1</td><td>0.5</td></tr><tr><td>OPP40_TO_35 :: SOFT_FAIL_SNEAK_CONVERT :: FIELD_GOAL_MADE</td><td>1</td><td>0.5</td></tr><tr><td>OPP40_TO_35 :: SOFT_FAIL_AUTO_FIRST :: TOUCHDOWN</td><td>1</td><td>0.5</td></tr><tr><td>OPP40_TO_35 :: SOFT_FAIL_SNEAK_CONVERT :: TOUCHDOWN</td><td>1</td><td>0.5</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Punts nach Zone</h2>
+    <table><thead><tr><th>Zone</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>MIDFIELD</td><td>147</td><td>30.8</td></tr><tr><td>OPP45_TO_40</td><td>139</td><td>29.1</td></tr><tr><td>OPP40_TO_35</td><td>122</td><td>25.5</td></tr><tr><td>BACKED_UP</td><td>70</td><td>14.6</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Field Goals nach Zone</h2>
+    <table><thead><tr><th>Zone</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>OPP35_TO_20</td><td>251</td><td>87.8</td></tr><tr><td>OPP40_TO_35</td><td>23</td><td>8</td></tr><tr><td>RED_ZONE_20</td><td>8</td><td>2.8</td></tr><tr><td>OPP45_TO_40</td><td>4</td><td>1.4</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Beispiel-Drives</h2>
+    <table><thead><tr><th>Quarter</th><th>Off</th><th>Ball</th><th>Dist</th><th>Resolution</th><th>Soft-Fails</th><th>Result</th><th>Summary</th></tr></thead><tbody><tr><td>Q1</td><td>NYT</td><td>59</td><td>4</td><td>CONVERTED</td><td>0</td><td>TOUCHDOWN</td><td>NYT bleibt bei 4th &amp; 4 drauf und erzielt den Touchdown.</td></tr><tr><td>Q1</td><td>BOS</td><td>59</td><td>5</td><td>SOFT_FAIL_AUTO_FIRST</td><td>1</td><td>TURNOVER_ON_DOWNS</td><td>NYT stoppt BOS auch nach konvertiertem 4th Down noch in Plus Territory.</td></tr><tr><td>Q3</td><td>BOS</td><td>56</td><td>5</td><td>CONVERTED</td><td>0</td><td>TURNOVER_ON_DOWNS</td><td>NYT stoppt BOS auch nach konvertiertem 4th Down noch in Plus Territory.</td></tr><tr><td>Q3</td><td>NYT</td><td>64</td><td>4</td><td>CONVERTED</td><td>0</td><td>TOUCHDOWN</td><td>NYT bleibt bei 4th &amp; 4 drauf und erzielt den Touchdown.</td></tr><tr><td>Q1</td><td>NYT</td><td>59</td><td>4</td><td>CONVERTED</td><td>0</td><td>TURNOVER_ON_DOWNS</td><td>BOS stoppt NYT auch nach konvertiertem 4th Down noch in Plus Territory.</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Empfehlung</h2>
+    <p>Der Soft-Fail-Pfad reduziert TOD noch nicht genug oder verschiebt die Rate zu stark. Als naechstes sollte nur die Post-Convert-Stabilisierung in diesem Korridor weiter verfeinert werden.</p>
+  </section>
+</body>
+</html>

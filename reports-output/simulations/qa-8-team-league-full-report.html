@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>8-Team Liga Simulation - Vollbericht</title>
+  <style>
+    :root {
+      --bg: #f5f7f6;
+      --panel: #ffffff;
+      --ink: #172124;
+      --muted: #5f6f72;
+      --line: #d5dfdc;
+      --soft: #edf4f1;
+      --accent: #1f6f78;
+      --accent-2: #6b4e9b;
+      --good: #17613d;
+      --warn: #94620f;
+      --bad: #9b2d25;
+      --shadow: 0 14px 36px rgba(23, 33, 36, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.48;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 840px;
+      font-size: 34px;
+      line-height: 1.1;
+    }
+
+    h2 {
+      margin-top: 38px;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    h3 {
+      margin-top: 20px;
+      font-size: 17px;
+    }
+
+    p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: start;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 12px;
+      border: 1px solid rgba(23, 97, 61, 0.28);
+      border-radius: 8px;
+      background: #edf8f1;
+      color: var(--good);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .toc,
+    .note,
+    .card,
+    .example-detail {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .toc {
+      margin-top: 18px;
+      padding: 16px;
+    }
+
+    .toc h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .toc-grid,
+    .cards {
+      display: grid;
+      gap: 12px;
+    }
+
+    .toc-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      margin-top: 10px;
+    }
+
+    .toc-grid a {
+      display: block;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfb;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .cards {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 16px;
+    }
+
+    .card,
+    .note {
+      padding: 14px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .value {
+      margin-top: 4px;
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .good {
+      color: var(--good);
+    }
+
+    .warn {
+      color: var(--warn);
+    }
+
+    .bad {
+      color: var(--bad);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--soft);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .table-scroll {
+      width: 100%;
+      margin-top: 12px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      background: #e7efeb;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .example-detail {
+      margin-top: 12px;
+      padding: 12px 14px;
+    }
+
+    .example-detail summary {
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .checklist li {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      font-weight: 800;
+    }
+
+    @media (max-width: 1000px) {
+      .hero,
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .toc-grid,
+      .cards,
+      .checklist {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      main {
+        padding: 22px 14px 48px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .toc-grid,
+      .cards,
+      .checklist {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <h1>8-Team Liga Simulation - Vollbericht</h1>
+        <p>Teamuebersicht, Spielplan, Simulationsergebnisse, Statistik und Rating-Impact auf Basis der gespeicherten 560 Engine-Spiele.</p>
+      </div>
+      <div class="status">Status: GR&Uuml;N</div>
+    </header>
+
+    <nav class="toc" aria-label="Inhaltsverzeichnis">
+      <h2>Inhaltsverzeichnis</h2>
+      <div class="toc-grid">
+        <a href="#teams">1. Teamuebersicht</a>
+        <a href="#schedule">2. Spielplan</a>
+        <a href="#results">3. Ergebnisse</a>
+        <a href="#statistics">4. Statistik</a>
+        <a href="#impact">5. Rating-Impact</a>
+        <a href="#conclusion">6. Fazit</a>
+      </div>
+    </nav>
+
+    <section>
+      <div class="cards">
+        <div class="card">
+          <div class="label">Teams</div>
+          <div class="value">8</div>
+          <p>2 schwach, 3 mittel, 3 stark.</p>
+        </div>
+        <div class="card">
+          <div class="label">Matchups</div>
+          <div class="value">28</div>
+          <p>Jedes Team gegen jedes andere.</p>
+        </div>
+        <div class="card">
+          <div class="label">Spiele</div>
+          <div class="value">560</div>
+          <p>20 Spiele pro Matchup.</p>
+        </div>
+        <div class="card">
+          <div class="label">Avg Total Score</div>
+          <div class="value">45.44</div>
+          <p>Punkte pro Spiel gesamt.</p>
+        </div>
+      </div>
+      <div class="note">
+        Quelle: <code>reports/qa-8-team-league-results.json</code>. Dieser Bericht startet keine neue Simulation, sondern bereitet die vorhandenen Rohdaten verstaendlich auf.
+      </div>
+    </section>
+
+    <section id="teams">
+      <h2>1. Teamuebersicht</h2>
+      <p>Die Liga besteht aus klar getrennten Staerkestufen. Positionsratings zeigen die erwartete Qualitaet je Unit.</p>
+      
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Team</th><th>Stufe</th><th>OVR</th><th>QB</th><th>RB</th><th>WR</th><th>OL</th><th>DL</th><th>LB</th><th>DB</th><th>ST</th><th>Begruendung</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>CAN Canton Anchors</strong></td><td><span class="tag">schwach</span></td><td>61</td><td>59</td><td>63</td><td>60</td><td>62</td><td>61</td><td>60</td><td>62</td><td>64</td><td>Unterdurchschnittlich in fast allen Units, keine klare Elite-Staerke.</td></tr><tr><td><strong>OMA Omaha Rails</strong></td><td><span class="tag">schwach</span></td><td>65</td><td>66</td><td>64</td><td>65</td><td>66</td><td>63</td><td>65</td><td>64</td><td>67</td><td>Stabiler als Canton, aber ohne starke Unit und mit begrenzter Defense.</td></tr><tr><td><strong>POR Portland Bridges</strong></td><td><span class="tag">mittel</span></td><td>73</td><td>74</td><td>72</td><td>75</td><td>73</td><td>71</td><td>72</td><td>74</td><td>73</td><td>Solides Passspiel, ausgeglichene Struktur, aber keine dominante Line.</td></tr><tr><td><strong>MEM Memphis Pilots</strong></td><td><span class="tag">mittel</span></td><td>76</td><td>75</td><td>78</td><td>76</td><td>77</td><td>75</td><td>76</td><td>74</td><td>76</td><td>Gute Balance und leicht laufstaerkeres Profil.</td></tr><tr><td><strong>ORL Orlando Voltage</strong></td><td><span class="tag">mittel</span></td><td>79</td><td>81</td><td>76</td><td>80</td><td>78</td><td>77</td><td>78</td><td>79</td><td>78</td><td>Oberes Mittelfeld mit gutem QB/WR-Kern und stabiler Defense.</td></tr><tr><td><strong>SDG San Diego Sentinels</strong></td><td><span class="tag">stark</span></td><td>84</td><td>86</td><td>82</td><td>85</td><td>84</td><td>83</td><td>84</td><td>85</td><td>82</td><td>Playoff-Niveau mit starkem QB und guter Secondary.</td></tr><tr><td><strong>CHI Chicago Monarchs</strong></td><td><span class="tag">stark</span></td><td>88</td><td>87</td><td>89</td><td>86</td><td>90</td><td>89</td><td>88</td><td>86</td><td>87</td><td>Sehr starke Lines und physisch dominanter Stil.</td></tr><tr><td><strong>NYT New York Titans</strong></td><td><span class="tag">stark</span></td><td>91</td><td>93</td><td>88</td><td>92</td><td>90</td><td>89</td><td>91</td><td>92</td><td>90</td><td>Elite-Team mit Top-QB, starker Secondary und kaum Schwaechen.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    </section>
+
+    <section id="schedule">
+      <h2>2. Spielplan</h2>
+      <p>Alle 28 eindeutigen Paarungen wurden geplant. Jede Paarung hat 20 Spiele mit 10/10 Home-Away-Split.</p>
+      
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Team A</th><th>Team B</th><th>Spiele</th><th>Home Split A/B</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>CAN Canton Anchors</td><td>OMA Omaha Rails</td><td>20</td><td>10/10</td></tr><tr><td>2</td><td>CAN Canton Anchors</td><td>POR Portland Bridges</td><td>20</td><td>10/10</td></tr><tr><td>3</td><td>CAN Canton Anchors</td><td>MEM Memphis Pilots</td><td>20</td><td>10/10</td></tr><tr><td>4</td><td>CAN Canton Anchors</td><td>ORL Orlando Voltage</td><td>20</td><td>10/10</td></tr><tr><td>5</td><td>CAN Canton Anchors</td><td>SDG San Diego Sentinels</td><td>20</td><td>10/10</td></tr><tr><td>6</td><td>CAN Canton Anchors</td><td>CHI Chicago Monarchs</td><td>20</td><td>10/10</td></tr><tr><td>7</td><td>CAN Canton Anchors</td><td>NYT New York Titans</td><td>20</td><td>10/10</td></tr><tr><td>8</td><td>OMA Omaha Rails</td><td>POR Portland Bridges</td><td>20</td><td>10/10</td></tr><tr><td>9</td><td>OMA Omaha Rails</td><td>MEM Memphis Pilots</td><td>20</td><td>10/10</td></tr><tr><td>10</td><td>OMA Omaha Rails</td><td>ORL Orlando Voltage</td><td>20</td><td>10/10</td></tr><tr><td>11</td><td>OMA Omaha Rails</td><td>SDG San Diego Sentinels</td><td>20</td><td>10/10</td></tr><tr><td>12</td><td>OMA Omaha Rails</td><td>CHI Chicago Monarchs</td><td>20</td><td>10/10</td></tr><tr><td>13</td><td>OMA Omaha Rails</td><td>NYT New York Titans</td><td>20</td><td>10/10</td></tr><tr><td>14</td><td>POR Portland Bridges</td><td>MEM Memphis Pilots</td><td>20</td><td>10/10</td></tr><tr><td>15</td><td>POR Portland Bridges</td><td>ORL Orlando Voltage</td><td>20</td><td>10/10</td></tr><tr><td>16</td><td>POR Portland Bridges</td><td>SDG San Diego Sentinels</td><td>20</td><td>10/10</td></tr><tr><td>17</td><td>POR Portland Bridges</td><td>CHI Chicago Monarchs</td><td>20</td><td>10/10</td></tr><tr><td>18</td><td>POR Portland Bridges</td><td>NYT New York Titans</td><td>20</td><td>10/10</td></tr><tr><td>19</td><td>MEM Memphis Pilots</td><td>ORL Orlando Voltage</td><td>20</td><td>10/10</td></tr><tr><td>20</td><td>MEM Memphis Pilots</td><td>SDG San Diego Sentinels</td><td>20</td><td>10/10</td></tr><tr><td>21</td><td>MEM Memphis Pilots</td><td>CHI Chicago Monarchs</td><td>20</td><td>10/10</td></tr><tr><td>22</td><td>MEM Memphis Pilots</td><td>NYT New York Titans</td><td>20</td><td>10/10</td></tr><tr><td>23</td><td>ORL Orlando Voltage</td><td>SDG San Diego Sentinels</td><td>20</td><td>10/10</td></tr><tr><td>24</td><td>ORL Orlando Voltage</td><td>CHI Chicago Monarchs</td><td>20</td><td>10/10</td></tr><tr><td>25</td><td>ORL Orlando Voltage</td><td>NYT New York Titans</td><td>20</td><td>10/10</td></tr><tr><td>26</td><td>SDG San Diego Sentinels</td><td>CHI Chicago Monarchs</td><td>20</td><td>10/10</td></tr><tr><td>27</td><td>SDG San Diego Sentinels</td><td>NYT New York Titans</td><td>20</td><td>10/10</td></tr><tr><td>28</td><td>CHI Chicago Monarchs</td><td>NYT New York Titans</td><td>20</td><td>10/10</td></tr>
+        </tbody>
+      </table>
+    </div>
+    </section>
+
+    <section id="results">
+      <h2>3. Simulationsergebnisse</h2>
+      <p>Die Tabelle zeigt Records und Durchschnittswerte pro Team ueber jeweils 140 Spiele.</p>
+      
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Team</th><th>Stufe</th><th>OVR</th><th>Record</th><th>Win %</th><th>Punkte</th><th>Gegenpunkte</th><th>Diff</th><th>Yards</th><th>Yards geg.</th><th>Turnovers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Chicago Monarchs</strong></td><td><span class="tag">stark</span></td><td>88</td><td>92-40-8</td><td>68.6%</td><td>27.81</td><td>19.26</td><td>8.54</td><td>442.5</td><td>397.1</td><td>0.44</td></tr><tr><td><strong>New York Titans</strong></td><td><span class="tag">stark</span></td><td>91</td><td>90-38-12</td><td>68.6%</td><td>26.75</td><td>22.39</td><td>4.36</td><td>448.4</td><td>418.9</td><td>0.46</td></tr><tr><td><strong>San Diego Sentinels</strong></td><td><span class="tag">stark</span></td><td>84</td><td>88-44-8</td><td>65.7%</td><td>24.69</td><td>20.01</td><td>4.68</td><td>427.5</td><td>402.5</td><td>0.41</td></tr><tr><td><strong>Portland Bridges</strong></td><td><span class="tag">mittel</span></td><td>73</td><td>61-69-10</td><td>47.1%</td><td>23.39</td><td>23.54</td><td>-0.15</td><td>426.2</td><td>421.9</td><td>0.44</td></tr><tr><td><strong>Orlando Voltage</strong></td><td><span class="tag">mittel</span></td><td>79</td><td>60-68-12</td><td>47.1%</td><td>22.84</td><td>23.96</td><td>-1.12</td><td>422.8</td><td>416.6</td><td>0.40</td></tr><tr><td><strong>Memphis Pilots</strong></td><td><span class="tag">mittel</span></td><td>76</td><td>60-68-12</td><td>47.1%</td><td>20.89</td><td>22.77</td><td>-1.88</td><td>389.4</td><td>404.1</td><td>0.40</td></tr><tr><td><strong>Canton Anchors</strong></td><td><span class="tag">schwach</span></td><td>61</td><td>37-94-9</td><td>29.6%</td><td>16.81</td><td>24.55</td><td>-7.74</td><td>378.9</td><td>426.6</td><td>0.42</td></tr><tr><td><strong>Omaha Rails</strong></td><td><span class="tag">schwach</span></td><td>65</td><td>31-98-11</td><td>26.1%</td><td>18.60</td><td>25.30</td><td>-6.70</td><td>388.1</td><td>436.1</td><td>0.45</td></tr>
+        </tbody>
+      </table>
+    </div>
+      <h3>Matchup-Ergebnisse</h3>
+      <p>Record A-B-T bedeutet Siege von Team A, Siege von Team B und Unentschieden.</p>
+      
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Matchup</th><th>Record A-B-T</th><th>Avg Score</th><th>Avg Diff A-B</th><th>Avg Yards</th><th>Avg Turnovers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Canton Anchors vs Omaha Rails</td><td>12-6-2</td><td>20.45-19.45</td><td>1.00</td><td>396.6-395.6</td><td>0.45-0.35</td></tr><tr><td>Canton Anchors vs Portland Bridges</td><td>4-15-1</td><td>15.85-23.05</td><td>-7.20</td><td>392.8-430.6</td><td>0.25-0.45</td></tr><tr><td>Canton Anchors vs Memphis Pilots</td><td>9-10-1</td><td>18.75-20.05</td><td>-1.30</td><td>377.6-395.9</td><td>0.45-0.45</td></tr><tr><td>Canton Anchors vs Orlando Voltage</td><td>4-14-2</td><td>18.25-25.50</td><td>-7.25</td><td>375.9-426.9</td><td>0.15-0.55</td></tr><tr><td>Canton Anchors vs San Diego Sentinels</td><td>4-15-1</td><td>16.20-26.85</td><td>-10.65</td><td>372.6-428.4</td><td>0.25-0.30</td></tr><tr><td>Canton Anchors vs Chicago Monarchs</td><td>1-18-1</td><td>9.70-30.15</td><td>-20.45</td><td>352.4-448.4</td><td>0.75-0.40</td></tr><tr><td>Canton Anchors vs New York Titans</td><td>3-16-1</td><td>18.50-26.80</td><td>-8.30</td><td>384.4-460.3</td><td>0.65-0.40</td></tr><tr><td>Omaha Rails vs Portland Bridges</td><td>8-12-0</td><td>22.60-27.80</td><td>-5.20</td><td>401.5-447.5</td><td>0.50-0.20</td></tr><tr><td>Omaha Rails vs Memphis Pilots</td><td>4-13-3</td><td>14.15-19.20</td><td>-5.05</td><td>363.9-401.8</td><td>0.35-0.55</td></tr><tr><td>Omaha Rails vs Orlando Voltage</td><td>5-14-1</td><td>21.75-26.40</td><td>-4.65</td><td>407.4-452.1</td><td>0.55-0.45</td></tr><tr><td>Omaha Rails vs San Diego Sentinels</td><td>2-16-2</td><td>16.40-26.80</td><td>-10.40</td><td>375.3-430.9</td><td>0.40-0.45</td></tr><tr><td>Omaha Rails vs Chicago Monarchs</td><td>4-13-3</td><td>16.85-26.40</td><td>-9.55</td><td>370.2-454.0</td><td>0.50-0.65</td></tr><tr><td>Omaha Rails vs New York Titans</td><td>2-18-0</td><td>19.00-30.05</td><td>-11.05</td><td>403.0-469.9</td><td>0.50-0.40</td></tr><tr><td>Portland Bridges vs Memphis Pilots</td><td>7-10-3</td><td>21.25-23.85</td><td>-2.60</td><td>410.4-398.7</td><td>0.30-0.55</td></tr><tr><td>Portland Bridges vs Orlando Voltage</td><td>10-8-2</td><td>25.05-22.05</td><td>3.00</td><td>438.7-433.4</td><td>0.55-0.35</td></tr><tr><td>Portland Bridges vs San Diego Sentinels</td><td>5-14-1</td><td>21.55-26.95</td><td>-5.40</td><td>419.3-435.4</td><td>0.30-0.20</td></tr><tr><td>Portland Bridges vs Chicago Monarchs</td><td>8-12-0</td><td>22.35-26.80</td><td>-4.45</td><td>413.6-445.3</td><td>0.55-0.45</td></tr><tr><td>Portland Bridges vs New York Titans</td><td>4-13-3</td><td>22.65-26.65</td><td>-4.00</td><td>423.4-446.6</td><td>0.75-0.40</td></tr><tr><td>Memphis Pilots vs Orlando Voltage</td><td>7-11-2</td><td>20.35-24.00</td><td>-3.65</td><td>387.9-397.4</td><td>0.10-0.30</td></tr><tr><td>Memphis Pilots vs San Diego Sentinels</td><td>8-10-2</td><td>16.15-20.60</td><td>-4.45</td><td>370.6-406.2</td><td>0.35-0.50</td></tr><tr><td>Memphis Pilots vs Chicago Monarchs</td><td>6-13-1</td><td>23.70-29.80</td><td>-6.10</td><td>377.0-430.3</td><td>0.30-0.50</td></tr><tr><td>Memphis Pilots vs New York Titans</td><td>6-14-0</td><td>22.95-30.85</td><td>-7.90</td><td>394.1-443.1</td><td>0.50-0.50</td></tr><tr><td>Orlando Voltage vs San Diego Sentinels</td><td>5-15-0</td><td>21.55-26.50</td><td>-4.95</td><td>414.4-432.8</td><td>0.60-0.35</td></tr><tr><td>Orlando Voltage vs Chicago Monarchs</td><td>5-14-1</td><td>19.50-27.95</td><td>-8.45</td><td>400.1-421.1</td><td>0.30-0.50</td></tr><tr><td>Orlando Voltage vs New York Titans</td><td>3-13-4</td><td>20.90-27.90</td><td>-7.00</td><td>435.3-452.6</td><td>0.25-0.40</td></tr><tr><td>San Diego Sentinels vs Chicago Monarchs</td><td>7-13-0</td><td>20.60-25.35</td><td>-4.75</td><td>423.1-442.4</td><td>0.50-0.35</td></tr><tr><td>San Diego Sentinels vs New York Titans</td><td>11-7-2</td><td>24.50-22.85</td><td>1.65</td><td>435.9-422.9</td><td>0.60-0.45</td></tr><tr><td>Chicago Monarchs vs New York Titans</td><td>9-9-2</td><td>28.20-22.15</td><td>6.05</td><td>456.1-443.4</td><td>0.20-0.70</td></tr>
+        </tbody>
+      </table>
+    </div>
+    </section>
+
+    <section id="statistics">
+      <h2>4. Statistische Analyse</h2>
+      <div class="two-col">
+        <div>
+          <h3>Siegquoten nach Staerkestufe</h3>
+          
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Stufe</th><th>Teams</th><th>Record</th><th>Win %</th><th>Avg Punktdiff</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="tag">schwach</span></td><td>2</td><td>68-192-20</td><td>27.8%</td><td>-7.22</td></tr><tr><td><span class="tag">mittel</span></td><td>3</td><td>181-205-34</td><td>47.1%</td><td>-1.05</td></tr><tr><td><span class="tag">stark</span></td><td>3</td><td>270-122-28</td><td>67.6%</td><td>5.86</td></tr>
+        </tbody>
+      </table>
+    </div>
+        </div>
+        <div>
+          <h3>Erwartung vs. Realitaet</h3>
+          
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Erwartung</th><th>Realitaet</th><th>Bewertung</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Starke Teams gewinnen am haeufigsten</td><td>Stark: 67.6% Win %</td><td>Erfuellt</td></tr><tr><td>Mittlere Teams liegen nahe an .500</td><td>Mittel: 47.1% Win %</td><td>Erfuellt</td></tr><tr><td>Schwache Teams verlieren klar haeufiger</td><td>Schwach: 27.9% Win %</td><td>Erfuellt</td></tr><tr><td>Upsets existieren, aber bleiben begrenzt</td><td>16 Weak-over-Strong-Siege in 120 Spielen</td><td>Plausibel</td></tr><tr><td>Kleine Ratingdifferenzen sind nicht deterministisch</td><td>4-7 OVR Abstand: nur 52.0% Erfolg fuer hoeheres OVR</td><td>Erfuellt</td></tr>
+        </tbody>
+      </table>
+    </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Auffaelligkeiten:</strong> Chicago hat trotz niedrigerem Overall als New York die beste Punktdifferenz. Orlando hat als bestes Mittel-Team dieselbe Win % wie Portland und Memphis. Beides ist bei 140 Spielen pro Team beobachtenswert, aber nicht automatisch ein Fehler, weil Matchup-Profile und Seed-Varianz kleine Ratingunterschiede ueberlagern koennen.
+      </div>
+      <h3>Weak-over-Strong Upsets</h3>
+      <p>Schwache Teams schlugen starke Teams 16-mal in 120 Weak-vs-Strong-Spielen. Die ersten 12 Beispiele:</p>
+      
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Spiel</th><th>Upset-Gewinner</th><th>Score</th><th>Yards</th><th>Turnovers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>can-vs-sdg-03</code></td><td>Canton Anchors</td><td>Canton Anchors 14-10 San Diego Sentinels</td><td>345-420</td><td>0-1</td></tr><tr><td><code>can-vs-sdg-05</code></td><td>Canton Anchors</td><td>Canton Anchors 24-21 San Diego Sentinels</td><td>375-464</td><td>0-0</td></tr><tr><td><code>can-vs-sdg-10</code></td><td>Canton Anchors</td><td>Canton Anchors 20-3 San Diego Sentinels</td><td>361-360</td><td>1-1</td></tr><tr><td><code>can-vs-sdg-13</code></td><td>Canton Anchors</td><td>San Diego Sentinels 17-21 Canton Anchors</td><td>387-346</td><td>0-0</td></tr><tr><td><code>can-vs-chi-06</code></td><td>Canton Anchors</td><td>Canton Anchors 7-3 Chicago Monarchs</td><td>367-453</td><td>1-0</td></tr><tr><td><code>can-vs-nyt-03</code></td><td>Canton Anchors</td><td>Canton Anchors 34-26 New York Titans</td><td>360-479</td><td>0-0</td></tr><tr><td><code>can-vs-nyt-09</code></td><td>Canton Anchors</td><td>Canton Anchors 31-19 New York Titans</td><td>323-399</td><td>2-0</td></tr><tr><td><code>can-vs-nyt-15</code></td><td>Canton Anchors</td><td>New York Titans 31-35 Canton Anchors</td><td>623-428</td><td>2-0</td></tr><tr><td><code>oma-vs-sdg-15</code></td><td>Omaha Rails</td><td>San Diego Sentinels 12-14 Omaha Rails</td><td>403-360</td><td>0-0</td></tr><tr><td><code>oma-vs-sdg-16</code></td><td>Omaha Rails</td><td>San Diego Sentinels 19-20 Omaha Rails</td><td>472-352</td><td>1-1</td></tr><tr><td><code>oma-vs-chi-01</code></td><td>Omaha Rails</td><td>Omaha Rails 24-13 Chicago Monarchs</td><td>364-434</td><td>0-0</td></tr><tr><td><code>oma-vs-chi-06</code></td><td>Omaha Rails</td><td>Omaha Rails 17-14 Chicago Monarchs</td><td>370-403</td><td>0-0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    </section>
+
+    <section id="impact">
+      <h2>5. Rating-Impact Analyse</h2>
+      <div class="note">
+        <strong>Kernaussage:</strong> Teamrating und Siegquote haengen sehr stark zusammen. Gleichzeitig sind kleine Ratingunterschiede nicht deterministisch. Ratings verschieben Wahrscheinlichkeiten, aber einzelne Spiele koennen durch Seed-Verlauf, Drive-Enden, Field Goals, Turnovers und Red-Zone-Effizienz kippen.
+      </div>
+      <div class="two-col">
+        <div>
+          <h3>Korrelationen</h3>
+          
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Rating</th><th>Korrelation mit Win %</th><th>Korrelation mit Punktdiff</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Overall</code></td><td>0.966</td><td>0.935</td></tr><tr><td><code>QB</code></td><td>0.945</td><td>0.910</td></tr><tr><td><code>RB</code></td><td>0.970</td><td>0.947</td></tr><tr><td><code>WR</code></td><td>0.956</td><td>0.915</td></tr><tr><td><code>OL</code></td><td>0.969</td><td>0.953</td></tr><tr><td><code>DL</code></td><td>0.975</td><td>0.954</td></tr><tr><td><code>LB</code></td><td>0.964</td><td>0.934</td></tr><tr><td><code>DB</code></td><td>0.969</td><td>0.923</td></tr><tr><td><code>ST</code></td><td>0.960</td><td>0.928</td></tr>
+        </tbody>
+      </table>
+    </div>
+        </div>
+        <div>
+          <h3>Sensitivitaet</h3>
+          
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>OVR-Abstand</th><th>Matchups</th><th>Spiele</th><th>Hoeheres OVR Erfolg</th><th>Avg Score-Diff</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>0-3</td><td>3</td><td>60</td><td>55.8%</td><td>4.10</td></tr><tr><td>4-7</td><td>5</td><td>100</td><td>52.0%</td><td>3.07</td></tr><tr><td>8-14</td><td>9</td><td>180</td><td>69.4%</td><td>5.94</td></tr><tr><td>15+</td><td>11</td><td>220</td><td>75.5%</td><td>8.66</td></tr>
+        </tbody>
+      </table>
+    </div>
+        </div>
+      </div>
+      <h3>Konkrete Matchup-Beispiele</h3>
+      <p>Diese Beispiele zeigen gleiche Paarungen ueber je 20 Seeds. So wird sichtbar, wann Ratings klar dominieren und wann Varianz eine Serie kippen kann.</p>
+      
+        <details class="example-detail">
+          <summary>
+            Canton Anchors vs San Diego Sentinels -
+            OVR Diff -23,
+            Record 4-15-1,
+            Avg Score 16.20-26.85
+          </summary>
+          <p>
+            Dieses feste Matchup wurde 20-mal gespielt, davon 10-mal mit Team A zuhause und 10-mal mit Team B zuhause.
+            Es zeigt, wie Ratingvorteile als Wahrscheinlichkeit wirken, aber einzelne Seeds trotzdem kippen koennen.
+          </p>
+          
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Seed</th><th>Score</th><th>Winner</th><th>Yards</th><th>Turnovers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><code>qa-8-team-league-can-vs-sdg-01</code></td><td>Canton Anchors 17-27 San Diego Sentinels</td><td>San Diego Sentinels</td><td>403-407</td><td>1-0</td></tr><tr><td>2</td><td><code>qa-8-team-league-can-vs-sdg-02</code></td><td>Canton Anchors 10-27 San Diego Sentinels</td><td>San Diego Sentinels</td><td>391-416</td><td>1-1</td></tr><tr><td>3</td><td><code>qa-8-team-league-can-vs-sdg-03</code></td><td>Canton Anchors 14-10 San Diego Sentinels</td><td>Canton Anchors</td><td>345-420</td><td>0-1</td></tr><tr><td>4</td><td><code>qa-8-team-league-can-vs-sdg-04</code></td><td>Canton Anchors 17-37 San Diego Sentinels</td><td>San Diego Sentinels</td><td>354-400</td><td>0-0</td></tr><tr><td>5</td><td><code>qa-8-team-league-can-vs-sdg-05</code></td><td>Canton Anchors 24-21 San Diego Sentinels</td><td>Canton Anchors</td><td>375-464</td><td>0-0</td></tr><tr><td>6</td><td><code>qa-8-team-league-can-vs-sdg-06</code></td><td>Canton Anchors 10-30 San Diego Sentinels</td><td>San Diego Sentinels</td><td>407-463</td><td>0-0</td></tr><tr><td>7</td><td><code>qa-8-team-league-can-vs-sdg-07</code></td><td>Canton Anchors 14-38 San Diego Sentinels</td><td>San Diego Sentinels</td><td>332-381</td><td>0-0</td></tr><tr><td>8</td><td><code>qa-8-team-league-can-vs-sdg-08</code></td><td>Canton Anchors 21-21 San Diego Sentinels</td><td>Tie</td><td>409-514</td><td>0-0</td></tr><tr><td>9</td><td><code>qa-8-team-league-can-vs-sdg-09</code></td><td>Canton Anchors 7-17 San Diego Sentinels</td><td>San Diego Sentinels</td><td>351-417</td><td>0-2</td></tr><tr><td>10</td><td><code>qa-8-team-league-can-vs-sdg-10</code></td><td>Canton Anchors 20-3 San Diego Sentinels</td><td>Canton Anchors</td><td>361-360</td><td>1-1</td></tr><tr><td>11</td><td><code>qa-8-team-league-can-vs-sdg-11</code></td><td>San Diego Sentinels 50-7 Canton Anchors</td><td>San Diego Sentinels</td><td>461-374</td><td>0-1</td></tr><tr><td>12</td><td><code>qa-8-team-league-can-vs-sdg-12</code></td><td>San Diego Sentinels 24-10 Canton Anchors</td><td>San Diego Sentinels</td><td>482-435</td><td>0-0</td></tr><tr><td>13</td><td><code>qa-8-team-league-can-vs-sdg-13</code></td><td>San Diego Sentinels 17-21 Canton Anchors</td><td>Canton Anchors</td><td>387-346</td><td>0-0</td></tr><tr><td>14</td><td><code>qa-8-team-league-can-vs-sdg-14</code></td><td>San Diego Sentinels 38-28 Canton Anchors</td><td>San Diego Sentinels</td><td>416-342</td><td>0-0</td></tr><tr><td>15</td><td><code>qa-8-team-league-can-vs-sdg-15</code></td><td>San Diego Sentinels 33-28 Canton Anchors</td><td>San Diego Sentinels</td><td>396-347</td><td>0-0</td></tr><tr><td>16</td><td><code>qa-8-team-league-can-vs-sdg-16</code></td><td>San Diego Sentinels 37-0 Canton Anchors</td><td>San Diego Sentinels</td><td>472-367</td><td>1-0</td></tr><tr><td>17</td><td><code>qa-8-team-league-can-vs-sdg-17</code></td><td>San Diego Sentinels 40-35 Canton Anchors</td><td>San Diego Sentinels</td><td>443-388</td><td>0-0</td></tr><tr><td>18</td><td><code>qa-8-team-league-can-vs-sdg-18</code></td><td>San Diego Sentinels 20-3 Canton Anchors</td><td>San Diego Sentinels</td><td>413-367</td><td>0-0</td></tr><tr><td>19</td><td><code>qa-8-team-league-can-vs-sdg-19</code></td><td>San Diego Sentinels 13-10 Canton Anchors</td><td>San Diego Sentinels</td><td>380-377</td><td>0-1</td></tr><tr><td>20</td><td><code>qa-8-team-league-can-vs-sdg-20</code></td><td>San Diego Sentinels 34-28 Canton Anchors</td><td>San Diego Sentinels</td><td>476-380</td><td>0-0</td></tr>
+        </tbody>
+      </table>
+    </div>
+        </details>
+        <details class="example-detail">
+          <summary>
+            Canton Anchors vs Chicago Monarchs -
+            OVR Diff -27,
+            Record 1-18-1,
+            Avg Score 9.70-30.15
+          </summary>
+          <p>
+            Dieses feste Matchup wurde 20-mal gespielt, davon 10-mal mit Team A zuhause und 10-mal mit Team B zuhause.
+            Es zeigt, wie Ratingvorteile als Wahrscheinlichkeit wirken, aber einzelne Seeds trotzdem kippen koennen.
+          </p>
+          
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Seed</th><th>Score</th><th>Winner</th><th>Yards</th><th>Turnovers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><code>qa-8-team-league-can-vs-chi-01</code></td><td>Canton Anchors 17-54 Chicago Monarchs</td><td>Chicago Monarchs</td><td>344-504</td><td>0-1</td></tr><tr><td>2</td><td><code>qa-8-team-league-can-vs-chi-02</code></td><td>Canton Anchors 0-16 Chicago Monarchs</td><td>Chicago Monarchs</td><td>335-386</td><td>2-0</td></tr><tr><td>3</td><td><code>qa-8-team-league-can-vs-chi-03</code></td><td>Canton Anchors 6-23 Chicago Monarchs</td><td>Chicago Monarchs</td><td>311-406</td><td>0-0</td></tr><tr><td>4</td><td><code>qa-8-team-league-can-vs-chi-04</code></td><td>Canton Anchors 7-33 Chicago Monarchs</td><td>Chicago Monarchs</td><td>460-573</td><td>0-1</td></tr><tr><td>5</td><td><code>qa-8-team-league-can-vs-chi-05</code></td><td>Canton Anchors 7-24 Chicago Monarchs</td><td>Chicago Monarchs</td><td>319-441</td><td>2-1</td></tr><tr><td>6</td><td><code>qa-8-team-league-can-vs-chi-06</code></td><td>Canton Anchors 7-3 Chicago Monarchs</td><td>Canton Anchors</td><td>367-453</td><td>1-0</td></tr><tr><td>7</td><td><code>qa-8-team-league-can-vs-chi-07</code></td><td>Canton Anchors 3-52 Chicago Monarchs</td><td>Chicago Monarchs</td><td>324-447</td><td>1-1</td></tr><tr><td>8</td><td><code>qa-8-team-league-can-vs-chi-08</code></td><td>Canton Anchors 16-36 Chicago Monarchs</td><td>Chicago Monarchs</td><td>315-409</td><td>1-0</td></tr><tr><td>9</td><td><code>qa-8-team-league-can-vs-chi-09</code></td><td>Canton Anchors 10-10 Chicago Monarchs</td><td>Tie</td><td>342-409</td><td>0-1</td></tr><tr><td>10</td><td><code>qa-8-team-league-can-vs-chi-10</code></td><td>Canton Anchors 0-44 Chicago Monarchs</td><td>Chicago Monarchs</td><td>327-472</td><td>2-0</td></tr><tr><td>11</td><td><code>qa-8-team-league-can-vs-chi-11</code></td><td>Chicago Monarchs 24-14 Canton Anchors</td><td>Chicago Monarchs</td><td>415-362</td><td>0-0</td></tr><tr><td>12</td><td><code>qa-8-team-league-can-vs-chi-12</code></td><td>Chicago Monarchs 24-14 Canton Anchors</td><td>Chicago Monarchs</td><td>408-338</td><td>0-1</td></tr><tr><td>13</td><td><code>qa-8-team-league-can-vs-chi-13</code></td><td>Chicago Monarchs 27-0 Canton Anchors</td><td>Chicago Monarchs</td><td>443-366</td><td>0-0</td></tr><tr><td>14</td><td><code>qa-8-team-league-can-vs-chi-14</code></td><td>Chicago Monarchs 30-14 Canton Anchors</td><td>Chicago Monarchs</td><td>418-336</td><td>0-0</td></tr><tr><td>15</td><td><code>qa-8-team-league-can-vs-chi-15</code></td><td>Chicago Monarchs 35-7 Canton Anchors</td><td>Chicago Monarchs</td><td>497-319</td><td>0-0</td></tr><tr><td>16</td><td><code>qa-8-team-league-can-vs-chi-16</code></td><td>Chicago Monarchs 45-7 Canton Anchors</td><td>Chicago Monarchs</td><td>470-365</td><td>0-2</td></tr><tr><td>17</td><td><code>qa-8-team-league-can-vs-chi-17</code></td><td>Chicago Monarchs 37-17 Canton Anchors</td><td>Chicago Monarchs</td><td>472-426</td><td>1-1</td></tr><tr><td>18</td><td><code>qa-8-team-league-can-vs-chi-18</code></td><td>Chicago Monarchs 12-3 Canton Anchors</td><td>Chicago Monarchs</td><td>434-374</td><td>2-1</td></tr><tr><td>19</td><td><code>qa-8-team-league-can-vs-chi-19</code></td><td>Chicago Monarchs 30-17 Canton Anchors</td><td>Chicago Monarchs</td><td>426-345</td><td>0-0</td></tr><tr><td>20</td><td><code>qa-8-team-league-can-vs-chi-20</code></td><td>Chicago Monarchs 44-28 Canton Anchors</td><td>Chicago Monarchs</td><td>484-374</td><td>0-1</td></tr>
+        </tbody>
+      </table>
+    </div>
+        </details>
+        <details class="example-detail">
+          <summary>
+            Portland Bridges vs Orlando Voltage -
+            OVR Diff -6,
+            Record 10-8-2,
+            Avg Score 25.05-22.05
+          </summary>
+          <p>
+            Dieses feste Matchup wurde 20-mal gespielt, davon 10-mal mit Team A zuhause und 10-mal mit Team B zuhause.
+            Es zeigt, wie Ratingvorteile als Wahrscheinlichkeit wirken, aber einzelne Seeds trotzdem kippen koennen.
+          </p>
+          
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Seed</th><th>Score</th><th>Winner</th><th>Yards</th><th>Turnovers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><code>qa-8-team-league-por-vs-orl-01</code></td><td>Portland Bridges 20-7 Orlando Voltage</td><td>Portland Bridges</td><td>464-455</td><td>0-1</td></tr><tr><td>2</td><td><code>qa-8-team-league-por-vs-orl-02</code></td><td>Portland Bridges 24-17 Orlando Voltage</td><td>Portland Bridges</td><td>372-399</td><td>2-0</td></tr><tr><td>3</td><td><code>qa-8-team-league-por-vs-orl-03</code></td><td>Portland Bridges 33-38 Orlando Voltage</td><td>Orlando Voltage</td><td>446-403</td><td>1-0</td></tr><tr><td>4</td><td><code>qa-8-team-league-por-vs-orl-04</code></td><td>Portland Bridges 28-28 Orlando Voltage</td><td>Tie</td><td>460-429</td><td>0-0</td></tr><tr><td>5</td><td><code>qa-8-team-league-por-vs-orl-05</code></td><td>Portland Bridges 21-17 Orlando Voltage</td><td>Portland Bridges</td><td>431-387</td><td>1-0</td></tr><tr><td>6</td><td><code>qa-8-team-league-por-vs-orl-06</code></td><td>Portland Bridges 31-26 Orlando Voltage</td><td>Portland Bridges</td><td>401-457</td><td>0-2</td></tr><tr><td>7</td><td><code>qa-8-team-league-por-vs-orl-07</code></td><td>Portland Bridges 16-17 Orlando Voltage</td><td>Orlando Voltage</td><td>381-419</td><td>0-1</td></tr><tr><td>8</td><td><code>qa-8-team-league-por-vs-orl-08</code></td><td>Portland Bridges 38-10 Orlando Voltage</td><td>Portland Bridges</td><td>436-400</td><td>0-0</td></tr><tr><td>9</td><td><code>qa-8-team-league-por-vs-orl-09</code></td><td>Portland Bridges 21-16 Orlando Voltage</td><td>Portland Bridges</td><td>425-474</td><td>1-0</td></tr><tr><td>10</td><td><code>qa-8-team-league-por-vs-orl-10</code></td><td>Portland Bridges 24-31 Orlando Voltage</td><td>Orlando Voltage</td><td>473-429</td><td>1-1</td></tr><tr><td>11</td><td><code>qa-8-team-league-por-vs-orl-11</code></td><td>Orlando Voltage 17-28 Portland Bridges</td><td>Portland Bridges</td><td>442-451</td><td>0-1</td></tr><tr><td>12</td><td><code>qa-8-team-league-por-vs-orl-12</code></td><td>Orlando Voltage 44-27 Portland Bridges</td><td>Orlando Voltage</td><td>527-525</td><td>0-1</td></tr><tr><td>13</td><td><code>qa-8-team-league-por-vs-orl-13</code></td><td>Orlando Voltage 7-31 Portland Bridges</td><td>Portland Bridges</td><td>392-447</td><td>0-0</td></tr><tr><td>14</td><td><code>qa-8-team-league-por-vs-orl-14</code></td><td>Orlando Voltage 21-21 Portland Bridges</td><td>Tie</td><td>403-420</td><td>1-0</td></tr><tr><td>15</td><td><code>qa-8-team-league-por-vs-orl-15</code></td><td>Orlando Voltage 10-31 Portland Bridges</td><td>Portland Bridges</td><td>442-435</td><td>0-1</td></tr><tr><td>16</td><td><code>qa-8-team-league-por-vs-orl-16</code></td><td>Orlando Voltage 24-14 Portland Bridges</td><td>Orlando Voltage</td><td>426-400</td><td>1-0</td></tr><tr><td>17</td><td><code>qa-8-team-league-por-vs-orl-17</code></td><td>Orlando Voltage 31-17 Portland Bridges</td><td>Orlando Voltage</td><td>465-493</td><td>0-0</td></tr><tr><td>18</td><td><code>qa-8-team-league-por-vs-orl-18</code></td><td>Orlando Voltage 24-14 Portland Bridges</td><td>Orlando Voltage</td><td>435-428</td><td>0-1</td></tr><tr><td>19</td><td><code>qa-8-team-league-por-vs-orl-19</code></td><td>Orlando Voltage 21-34 Portland Bridges</td><td>Portland Bridges</td><td>463-453</td><td>0-0</td></tr><tr><td>20</td><td><code>qa-8-team-league-por-vs-orl-20</code></td><td>Orlando Voltage 35-28 Portland Bridges</td><td>Orlando Voltage</td><td>420-433</td><td>0-1</td></tr>
+        </tbody>
+      </table>
+    </div>
+        </details>
+        <details class="example-detail">
+          <summary>
+            San Diego Sentinels vs New York Titans -
+            OVR Diff -7,
+            Record 11-7-2,
+            Avg Score 24.50-22.85
+          </summary>
+          <p>
+            Dieses feste Matchup wurde 20-mal gespielt, davon 10-mal mit Team A zuhause und 10-mal mit Team B zuhause.
+            Es zeigt, wie Ratingvorteile als Wahrscheinlichkeit wirken, aber einzelne Seeds trotzdem kippen koennen.
+          </p>
+          
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Seed</th><th>Score</th><th>Winner</th><th>Yards</th><th>Turnovers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><code>qa-8-team-league-sdg-vs-nyt-01</code></td><td>San Diego Sentinels 24-20 New York Titans</td><td>San Diego Sentinels</td><td>380-403</td><td>0-2</td></tr><tr><td>2</td><td><code>qa-8-team-league-sdg-vs-nyt-02</code></td><td>San Diego Sentinels 31-31 New York Titans</td><td>Tie</td><td>457-407</td><td>0-1</td></tr><tr><td>3</td><td><code>qa-8-team-league-sdg-vs-nyt-03</code></td><td>San Diego Sentinels 14-13 New York Titans</td><td>San Diego Sentinels</td><td>407-435</td><td>0-0</td></tr><tr><td>4</td><td><code>qa-8-team-league-sdg-vs-nyt-04</code></td><td>San Diego Sentinels 14-7 New York Titans</td><td>San Diego Sentinels</td><td>338-361</td><td>1-0</td></tr><tr><td>5</td><td><code>qa-8-team-league-sdg-vs-nyt-05</code></td><td>San Diego Sentinels 34-40 New York Titans</td><td>New York Titans</td><td>484-448</td><td>0-0</td></tr><tr><td>6</td><td><code>qa-8-team-league-sdg-vs-nyt-06</code></td><td>San Diego Sentinels 45-41 New York Titans</td><td>San Diego Sentinels</td><td>465-514</td><td>1-1</td></tr><tr><td>7</td><td><code>qa-8-team-league-sdg-vs-nyt-07</code></td><td>San Diego Sentinels 17-3 New York Titans</td><td>San Diego Sentinels</td><td>408-365</td><td>1-1</td></tr><tr><td>8</td><td><code>qa-8-team-league-sdg-vs-nyt-08</code></td><td>San Diego Sentinels 24-23 New York Titans</td><td>San Diego Sentinels</td><td>430-385</td><td>1-0</td></tr><tr><td>9</td><td><code>qa-8-team-league-sdg-vs-nyt-09</code></td><td>San Diego Sentinels 26-26 New York Titans</td><td>Tie</td><td>479-472</td><td>0-0</td></tr><tr><td>10</td><td><code>qa-8-team-league-sdg-vs-nyt-10</code></td><td>San Diego Sentinels 35-34 New York Titans</td><td>San Diego Sentinels</td><td>513-481</td><td>0-1</td></tr><tr><td>11</td><td><code>qa-8-team-league-sdg-vs-nyt-11</code></td><td>New York Titans 37-36 San Diego Sentinels</td><td>New York Titans</td><td>444-435</td><td>0-1</td></tr><tr><td>12</td><td><code>qa-8-team-league-sdg-vs-nyt-12</code></td><td>New York Titans 10-21 San Diego Sentinels</td><td>San Diego Sentinels</td><td>378-365</td><td>0-0</td></tr><tr><td>13</td><td><code>qa-8-team-league-sdg-vs-nyt-13</code></td><td>New York Titans 21-17 San Diego Sentinels</td><td>New York Titans</td><td>442-506</td><td>0-0</td></tr><tr><td>14</td><td><code>qa-8-team-league-sdg-vs-nyt-14</code></td><td>New York Titans 24-21 San Diego Sentinels</td><td>New York Titans</td><td>400-446</td><td>0-0</td></tr><tr><td>15</td><td><code>qa-8-team-league-sdg-vs-nyt-15</code></td><td>New York Titans 27-3 San Diego Sentinels</td><td>New York Titans</td><td>418-402</td><td>1-1</td></tr><tr><td>16</td><td><code>qa-8-team-league-sdg-vs-nyt-16</code></td><td>New York Titans 20-9 San Diego Sentinels</td><td>New York Titans</td><td>391-425</td><td>1-1</td></tr><tr><td>17</td><td><code>qa-8-team-league-sdg-vs-nyt-17</code></td><td>New York Titans 17-34 San Diego Sentinels</td><td>San Diego Sentinels</td><td>385-434</td><td>1-1</td></tr><tr><td>18</td><td><code>qa-8-team-league-sdg-vs-nyt-18</code></td><td>New York Titans 20-44 San Diego Sentinels</td><td>San Diego Sentinels</td><td>479-504</td><td>0-2</td></tr><tr><td>19</td><td><code>qa-8-team-league-sdg-vs-nyt-19</code></td><td>New York Titans 23-24 San Diego Sentinels</td><td>San Diego Sentinels</td><td>479-458</td><td>0-1</td></tr><tr><td>20</td><td><code>qa-8-team-league-sdg-vs-nyt-20</code></td><td>New York Titans 20-17 San Diego Sentinels</td><td>New York Titans</td><td>370-383</td><td>0-1</td></tr>
+        </tbody>
+      </table>
+    </div>
+        </details>
+    </section>
+
+    <section id="conclusion">
+      <h2>6. Fazit</h2>
+      <div class="note">
+        Die Ergebnisse sind fuer Anwender gut nachvollziehbar: starke Teams gewinnen am haeufigsten, mittlere Teams liegen im Mittelfeld und schwache Teams verlieren deutlich haeufiger. Upsets sind vorhanden, aber nicht dominant. Die Rating-Wirkung ist deshalb klar erkennbar und plausibel.
+      </div>
+      <div class="note">
+        Keine signifikante Abweichung deutet unmittelbar auf einen Engine-Fehler hin. Die naechsten sinnvollen Analysen waeren isolierte Positionsgruppen-Tests, weil die Units in dieser Liga bewusst gemeinsam mit der Teamstaerke steigen.
+      </div>
+      <h3>Statuspruefung</h3>
+      <ul class="checklist">
+        <li>Vollstaendig: <span class="good">Ja</span></li>
+        <li>Verstaendlich: <span class="good">Ja</span></li>
+        <li>Sauber strukturiert: <span class="good">Ja</span></li>
+        <li>8 Teams enthalten: <span class="good">Ja</span></li>
+        <li>28 Matchups enthalten: <span class="good">Ja</span></li>
+        <li>560 Spiele ausgewertet: <span class="good">Ja</span></li>
+      </ul>
+      <div class="note">
+        Finale Bewertung: <strong class="good">GR&Uuml;N</strong>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

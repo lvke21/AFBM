@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>QA New Engine Balance Report</title>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; margin: 0; background: #f7f8fa; color: #17202a; }
+    header { background: #17202a; color: #fff; padding: 28px 36px; }
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 24px 48px; }
+    section { background: #fff; border: 1px solid #d9dee7; border-radius: 8px; padding: 22px; margin: 0 0 18px; }
+    h1, h2, h3 { margin: 0 0 14px; }
+    p { line-height: 1.55; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+    th, td { border-bottom: 1px solid #e6e9ef; padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #eef2f7; font-weight: 700; }
+    .badge { display: inline-block; border-radius: 999px; padding: 4px 10px; font-weight: 700; font-size: 12px; }
+    .green { background: #d9f7df; color: #145c2a; }
+    .red { background: #ffe1df; color: #8f1d17; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .card { border: 1px solid #d9dee7; border-radius: 8px; padding: 14px; background: #fbfcfe; }
+    .muted { color: #5f6b7a; }
+    code { background: #eef2f7; border-radius: 4px; padding: 2px 5px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>QA New Engine Balance Report</h1>
+    <p>Datum: 2026-04-25 · 8 Teams · jedes Matchup 20 Spiele · 560 Spiele gesamt</p>
+    <span class="badge green">Status: GRUEN</span>
+  </header>
+  <main>
+    <section>
+      <h2>Executive Summary</h2>
+      <p>Die neue Engine wurde mit einer 8-Team-Liga und isolierten Spezialtests fuer Pass Rush, Press Coverage, Blitz-Counter, Run Lanes, QB Command, Chemistry und Coaching gemessen.</p>
+      <table><thead><tr><th>Pruefung</th><th>Status</th></tr></thead><tbody><tr><td>scheduleComplete</td><td>GRUEN</td></tr><tr><td>favoritesWinMoreOften</td><td>GRUEN</td></tr><tr><td>upsetsExist</td><td>GRUEN</td></tr><tr><td>noExtremeExploit</td><td>GRUEN</td></tr><tr><td>specialFactorsMeasurable</td><td>GRUEN</td></tr><tr><td>scoringPlausible</td><td>GRUEN</td></tr><tr><td>turnoversPlausible</td><td>GRUEN</td></tr></tbody></table>
+    </section>
+
+    <section>
+      <h2>Liga-Kennzahlen</h2>
+      <table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody><tr><td>totalGames</td><td>560</td></tr><tr><td>expectedGames</td><td>560</td></tr><tr><td>favoriteGames</td><td>510</td></tr><tr><td>favoriteWins</td><td>369</td></tr><tr><td>favoriteWinRate</td><td>0.7235</td></tr><tr><td>upsets</td><td>141</td></tr><tr><td>upsetRate</td><td>0.2765</td></tr><tr><td>maxTeamWinPct</td><td>0.7679</td></tr><tr><td>minTeamWinPct</td><td>0.2357</td></tr><tr><td>avgTotalScore</td><td>32.13</td></tr><tr><td>avgTotalYards</td><td>818.18</td></tr><tr><td>avgTurnoversPerGame</td><td>1.6</td></tr><tr><td>avgExplosivePlaysPerGame</td><td>8.34</td></tr><tr><td>avgSacksPerGame</td><td>2.33</td></tr></tbody></table>
+    </section>
+
+    <section>
+      <h2>Teamuebersicht</h2>
+      <table><thead><tr><th>Team</th><th>Stufe</th><th>OVR</th><th>QB</th><th>RB</th><th>WR</th><th>OL</th><th>DL</th><th>LB</th><th>DB</th><th>Profil</th></tr></thead><tbody><tr><td>Canton Anchors</td><td>SCHWACH</td><td>61</td><td>58</td><td>65</td><td>58</td><td>61</td><td>62</td><td>60</td><td>59</td><td>Schwaches Team mit limitiertem Passspiel und nur solidem Laufspiel.</td></tr><tr><td>Omaha Rails</td><td>SCHWACH</td><td>65</td><td>67</td><td>61</td><td>66</td><td>66</td><td>61</td><td>64</td><td>67</td><td>Unteres Niveau, aber mit brauchbarer QB/ST-Achse.</td></tr><tr><td>Portland Bridges</td><td>MITTEL</td><td>73</td><td>77</td><td>69</td><td>79</td><td>70</td><td>68</td><td>72</td><td>75</td><td>Passlastiges Mittel-Team mit schwacher Front.</td></tr><tr><td>Memphis Pilots</td><td>MITTEL</td><td>76</td><td>72</td><td>82</td><td>72</td><td>81</td><td>78</td><td>77</td><td>72</td><td>Lauf- und Line-Profil mit begrenzter Pass-Explosivitaet.</td></tr><tr><td>Orlando Voltage</td><td>MITTEL</td><td>79</td><td>80</td><td>73</td><td>78</td><td>75</td><td>81</td><td>80</td><td>83</td><td>Defensiv starkes oberes Mittel-Team.</td></tr><tr><td>San Diego Sentinels</td><td>STARK</td><td>84</td><td>87</td><td>82</td><td>86</td><td>83</td><td>83</td><td>84</td><td>85</td><td>Starkes, breit ausbalanciertes Team.</td></tr><tr><td>Chicago Monarchs</td><td>STARK</td><td>88</td><td>84</td><td>91</td><td>84</td><td>92</td><td>92</td><td>88</td><td>84</td><td>Trench- und Run-Power mit starkem Pass Rush.</td></tr><tr><td>New York Titans</td><td>STARK</td><td>91</td><td>95</td><td>85</td><td>94</td><td>88</td><td>87</td><td>89</td><td>94</td><td>Elite-Passing, sehr starke Secondary und kaum klare Schwaechen.</td></tr></tbody></table>
+    </section>
+
+    <section>
+      <h2>Win Records</h2>
+      <table><thead><tr><th>Team</th><th>Stufe</th><th>OVR</th><th>W</th><th>L</th><th>T</th><th>Win %</th><th>PF</th><th>PA</th><th>Diff</th><th>Yards For</th><th>Sacks</th><th>Turnovers</th><th>Explosive</th></tr></thead><tbody><tr><td>Chicago Monarchs</td><td>STARK</td><td>88</td><td>101</td><td>26</td><td>13</td><td>76.8%</td><td>2471</td><td>1431</td><td>1040</td><td>57433</td><td>142</td><td>86</td><td>705</td></tr><tr><td>San Diego Sentinels</td><td>STARK</td><td>84</td><td>99</td><td>32</td><td>9</td><td>73.9%</td><td>2917</td><td>2155</td><td>762</td><td>65007</td><td>178</td><td>120</td><td>740</td></tr><tr><td>New York Titans</td><td>STARK</td><td>91</td><td>87</td><td>39</td><td>14</td><td>67.1%</td><td>2748</td><td>2113</td><td>635</td><td>63108</td><td>169</td><td>133</td><td>685</td></tr><tr><td>Memphis Pilots</td><td>MITTEL</td><td>76</td><td>63</td><td>66</td><td>11</td><td>48.9%</td><td>2289</td><td>2253</td><td>36</td><td>59079</td><td>158</td><td>118</td><td>643</td></tr><tr><td>Orlando Voltage</td><td>MITTEL</td><td>79</td><td>53</td><td>75</td><td>12</td><td>42.1%</td><td>1800</td><td>1958</td><td>-158</td><td>55741</td><td>162</td><td>113</td><td>517</td></tr><tr><td>Portland Bridges</td><td>MITTEL</td><td>73</td><td>46</td><td>79</td><td>15</td><td>38.2%</td><td>2232</td><td>2681</td><td>-449</td><td>57811</td><td>164</td><td>105</td><td>568</td></tr><tr><td>Omaha Rails</td><td>SCHWACH</td><td>65</td><td>33</td><td>91</td><td>16</td><td>29.3%</td><td>1886</td><td>2742</td><td>-856</td><td>54855</td><td>186</td><td>105</td><td>512</td></tr><tr><td>Canton Anchors</td><td>SCHWACH</td><td>61</td><td>28</td><td>102</td><td>10</td><td>23.6%</td><td>1649</td><td>2659</td><td>-1010</td><td>45148</td><td>144</td><td>116</td><td>303</td></tr></tbody></table>
+    </section>
+
+    <section>
+      <h2>Staerkegruppen</h2>
+      <table><thead><tr><th>Stufe</th><th>Teams</th><th>Avg Win %</th><th>Avg Point Diff</th><th>Avg Yards/G</th><th>Avg Sacks/G</th><th>Avg Turnovers/G</th></tr></thead><tbody><tr><td>SCHWACH</td><td>2</td><td>26.4%</td><td>-933</td><td>357.15</td><td>1.18</td><td>0.79</td></tr><tr><td>MITTEL</td><td>3</td><td>43.1%</td><td>-190.33</td><td>411.03</td><td>1.15</td><td>0.8</td></tr><tr><td>STARK</td><td>3</td><td>72.6%</td><td>812.33</td><td>441.78</td><td>1.16</td><td>0.81</td></tr></tbody></table>
+    </section>
+
+    <section>
+      <h2>Spezialtests</h2>
+      <table><thead><tr><th>Test</th><th>Kategorie</th><th>Status</th><th>Interpretation</th></tr></thead><tbody><tr><td>Starker Pass Rush vs schwache OL</td><td>Pass Protection</td><td>GRUEN</td><td>Elite Rush gegen schwache Protection erzeugt sichtbar mehr Druck und Katastrophenrisiko.</td></tr><tr><td>Schwacher Pass Rush vs starke OL</td><td>Pass Protection</td><td>GRUEN</td><td>Starke OL reduziert Pressure und erlaubt stabilere Passversuche.</td></tr><tr><td>Press-heavy Defense vs Elite WR</td><td>Coverage</td><td>GRUEN</td><td>Press gewinnt nicht automatisch; Elite-WR kann Press bestrafen.</td></tr><tr><td>Blitz-heavy Defense vs Screen Gameplan</td><td>Gameplan</td><td>GRUEN</td><td>Screen/Quick-Timing kontert Blitz messbar, aber ohne Druck komplett zu neutralisieren.</td></tr><tr><td>Starke OL/RB Run Offense vs schwache Box</td><td>Run Game</td><td>GRUEN</td><td>Starke Run-Unit erzeugt bessere Lane Quality und Open-Lane-Chancen.</td></tr><tr><td>Schwache OL vs starke Run Defense</td><td>Run Game</td><td>GRUEN</td><td>Starke Box erhöht Stuff- und Negative-Play-Risiko sichtbar.</td></tr><tr><td>Hoher QB Command vs niedriger QB Command</td><td>QB Decision</td><td>GRUEN</td><td>QB Command/Awareness/Decision reduziert Sack-Risiko und verbessert Druckmanagement.</td></tr><tr><td>Gute Chemistry vs schlechte Chemistry</td><td>Chemistry</td><td>GRUEN</td><td>Stabile Gruppen erhalten kleine messbare Vorteile, ohne Haupt-Ratings zu ersetzen.</td></tr><tr><td>Coaching-Einfluss nach negativen Events</td><td>Coaching</td><td>GRUEN</td><td>Guter Head Coach stabilisiert nach negativen Sequenzen messbar staerker.</td></tr></tbody></table>
+      <h3>Messwerte</h3>
+      
+        <div class="card">
+          <h3>Starker Pass Rush vs schwache OL</h3>
+          <p class="muted">Elite Rush gegen schwache Protection erzeugt sichtbar mehr Druck und Katastrophenrisiko.</p>
+          <table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody><tr><td>pressureLevel</td><td>0.916</td></tr><tr><td>openBlitzLaneRisk</td><td>0.389</td></tr><tr><td>pocketStability</td><td>0.05</td></tr><tr><td>sackRate</td><td>0.37</td></tr><tr><td>throwawayRate</td><td>0.45</td></tr><tr><td>scrambleRate</td><td>0.09</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h3>Schwacher Pass Rush vs starke OL</h3>
+          <p class="muted">Starke OL reduziert Pressure und erlaubt stabilere Passversuche.</p>
+          <table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody><tr><td>pressureLevel</td><td>0.102</td></tr><tr><td>doubleTeamChance</td><td>0.343</td></tr><tr><td>pocketStability</td><td>0.822</td></tr><tr><td>sackRate</td><td>0.02</td></tr><tr><td>passAttemptRate</td><td>0.95</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h3>Press-heavy Defense vs Elite WR</h3>
+          <p class="muted">Press gewinnt nicht automatisch; Elite-WR kann Press bestrafen.</p>
+          <table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody><tr><td>pressWinRate</td><td>0.44</td></tr><tr><td>releaseOrStackRate</td><td>0.56</td></tr><tr><td>avgTimingDisruption</td><td>0.232</td></tr><tr><td>avgBigPlayRiskDelta</td><td>0.061</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h3>Blitz-heavy Defense vs Screen Gameplan</h3>
+          <p class="muted">Screen/Quick-Timing kontert Blitz messbar, aber ohne Druck komplett zu neutralisieren.</p>
+          <table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody><tr><td>deepPressureLevel</td><td>0.765</td></tr><tr><td>screenPressureLevel</td><td>0.496</td></tr><tr><td>deepSackRate</td><td>0.17</td></tr><tr><td>screenSackRate</td><td>0.04</td></tr><tr><td>screenPassAttemptRate</td><td>0.92</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h3>Starke OL/RB Run Offense vs schwache Box</h3>
+          <p class="muted">Starke Run-Unit erzeugt bessere Lane Quality und Open-Lane-Chancen.</p>
+          <table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody><tr><td>blockerCount</td><td>7</td></tr><tr><td>boxDefenderCount</td><td>6</td></tr><tr><td>laneQuality</td><td>0.911</td></tr><tr><td>openLaneChance</td><td>0.556</td></tr><tr><td>stuffedRisk</td><td>0.13</td></tr><tr><td>expectedYardsModifier</td><td>4.21</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h3>Schwache OL vs starke Run Defense</h3>
+          <p class="muted">Starke Box erhöht Stuff- und Negative-Play-Risiko sichtbar.</p>
+          <table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody><tr><td>blockerCount</td><td>6</td></tr><tr><td>boxDefenderCount</td><td>8</td></tr><tr><td>laneQuality</td><td>0.05</td></tr><tr><td>stuffedRisk</td><td>0.76</td></tr><tr><td>negativeYardageRisk</td><td>0.46</td></tr><tr><td>expectedYardsModifier</td><td>-5.82</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h3>Hoher QB Command vs niedriger QB Command</h3>
+          <p class="muted">QB Command/Awareness/Decision reduziert Sack-Risiko und verbessert Druckmanagement.</p>
+          <table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody><tr><td>highCommandAvgDecisionTime</td><td>0.5</td></tr><tr><td>lowCommandAvgDecisionTime</td><td>0.45</td></tr><tr><td>highCommandSackRisk</td><td>0.637</td></tr><tr><td>lowCommandSackRisk</td><td>0.766</td></tr><tr><td>highCommandThrowawayRate</td><td>0.46</td></tr><tr><td>lowCommandSackRate</td><td>0.3</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h3>Gute Chemistry vs schlechte Chemistry</h3>
+          <p class="muted">Stabile Gruppen erhalten kleine messbare Vorteile, ohne Haupt-Ratings zu ersetzen.</p>
+          <table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody><tr><td>stableLineChemistry</td><td>41.23</td></tr><tr><td>rotatingLineChemistry</td><td>36.44</td></tr><tr><td>stablePassProtectionBonus</td><td>-0.49</td></tr><tr><td>rotatingPassProtectionBonus</td><td>-0.76</td></tr><tr><td>stableCatchWindowModifier</td><td>-0.008</td></tr><tr><td>rotatingCatchWindowModifier</td><td>-0.014</td></tr><tr><td>stableCoverageSupportModifier</td><td>-0.006</td></tr><tr><td>rotatingCoverageSupportModifier</td><td>-0.01</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h3>Coaching-Einfluss nach negativen Events</h3>
+          <p class="muted">Guter Head Coach stabilisiert nach negativen Sequenzen messbar staerker.</p>
+          <table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody><tr><td>goodCoachStabilization</td><td>0.671</td></tr><tr><td>poorCoachStabilization</td><td>-0.881</td></tr><tr><td>goodCoachErrorChainRisk</td><td>0.324</td></tr><tr><td>poorCoachErrorChainRisk</td><td>0.42</td></tr><tr><td>goodCoachCollapseRisk</td><td>0.123</td></tr><tr><td>poorCoachCollapseRisk</td><td>0.26</td></tr></tbody></table>
+        </div>
+    </section>
+
+    <section>
+      <h2>Matchup-Zusammenfassung</h2>
+      <table><thead><tr><th>Matchup</th><th>Spiele</th><th>Record</th><th>Score A</th><th>Score B</th><th>Yards A</th><th>Yards B</th><th>Sacks A</th><th>Sacks B</th><th>Turnovers A</th><th>Turnovers B</th></tr></thead><tbody><tr><td>Canton Anchors vs Omaha Rails</td><td>20</td><td>6-11-3</td><td>14.7</td><td>16.85</td><td>397.6</td><td>431.65</td><td>1.2</td><td>1.45</td><td>0.9</td><td>0.65</td></tr><tr><td>Canton Anchors vs Portland Bridges</td><td>20</td><td>8-10-2</td><td>15</td><td>17.1</td><td>352.9</td><td>450.6</td><td>0.85</td><td>1.2</td><td>0.9</td><td>0.95</td></tr><tr><td>Canton Anchors vs Memphis Pilots</td><td>20</td><td>8-12-0</td><td>13.1</td><td>17.7</td><td>355.3</td><td>468.85</td><td>1.25</td><td>1.2</td><td>0.75</td><td>0.85</td></tr><tr><td>Canton Anchors vs Orlando Voltage</td><td>20</td><td>2-16-2</td><td>8.4</td><td>17.35</td><td>310.5</td><td>432.35</td><td>1.15</td><td>0.8</td><td>0.75</td><td>0.9</td></tr><tr><td>Canton Anchors vs San Diego Sentinels</td><td>20</td><td>1-19-0</td><td>11.55</td><td>21.6</td><td>311.4</td><td>457.95</td><td>1.15</td><td>1.25</td><td>0.85</td><td>0.65</td></tr><tr><td>Canton Anchors vs Chicago Monarchs</td><td>20</td><td>2-17-1</td><td>7.5</td><td>20.5</td><td>239.7</td><td>422.9</td><td>0.65</td><td>0.75</td><td>0.85</td><td>0.55</td></tr><tr><td>Canton Anchors vs New York Titans</td><td>20</td><td>1-17-2</td><td>12.2</td><td>21.85</td><td>290</td><td>463.15</td><td>0.95</td><td>1.45</td><td>0.8</td><td>1.1</td></tr><tr><td>Omaha Rails vs Portland Bridges</td><td>20</td><td>6-10-4</td><td>17.1</td><td>22.35</td><td>445.95</td><td>488.5</td><td>1.5</td><td>1.55</td><td>1.05</td><td>0.6</td></tr><tr><td>Omaha Rails vs Memphis Pilots</td><td>20</td><td>5-15-0</td><td>10.7</td><td>16.55</td><td>379.35</td><td>485</td><td>1.3</td><td>1.2</td><td>0.5</td><td>0.7</td></tr><tr><td>Omaha Rails vs Orlando Voltage</td><td>20</td><td>5-12-3</td><td>11.8</td><td>16.2</td><td>374.1</td><td>491.7</td><td>1.7</td><td>1.3</td><td>0.7</td><td>1.2</td></tr><tr><td>Omaha Rails vs San Diego Sentinels</td><td>20</td><td>4-13-3</td><td>16.6</td><td>22.55</td><td>405.95</td><td>538.8</td><td>1.25</td><td>1.15</td><td>0.75</td><td>1.2</td></tr><tr><td>Omaha Rails vs Chicago Monarchs</td><td>20</td><td>0-18-2</td><td>10.45</td><td>20.55</td><td>318.75</td><td>461.2</td><td>1.05</td><td>1.15</td><td>0.65</td><td>0.5</td></tr><tr><td>Omaha Rails vs New York Titans</td><td>20</td><td>2-17-1</td><td>10.8</td><td>24.2</td><td>387</td><td>525.55</td><td>1.05</td><td>1.5</td><td>0.95</td><td>0.7</td></tr><tr><td>Portland Bridges vs Memphis Pilots</td><td>20</td><td>5-12-3</td><td>17.65</td><td>21.5</td><td>400.6</td><td>475</td><td>1.05</td><td>0.75</td><td>0.9</td><td>1</td></tr><tr><td>Portland Bridges vs Orlando Voltage</td><td>20</td><td>11-8-1</td><td>13.4</td><td>14.55</td><td>389.45</td><td>461.85</td><td>1.1</td><td>0.95</td><td>0.8</td><td>0.95</td></tr><tr><td>Portland Bridges vs San Diego Sentinels</td><td>20</td><td>5-15-0</td><td>15.5</td><td>23.75</td><td>419.3</td><td>508.1</td><td>1.15</td><td>1.45</td><td>0.55</td><td>0.7</td></tr><tr><td>Portland Bridges vs Chicago Monarchs</td><td>20</td><td>1-18-1</td><td>8.15</td><td>18.8</td><td>315.2</td><td>435.05</td><td>0.95</td><td>0.8</td><td>0.55</td><td>0.75</td></tr><tr><td>Portland Bridges vs New York Titans</td><td>20</td><td>4-12-4</td><td>17.45</td><td>23.35</td><td>426.9</td><td>493.95</td><td>1.2</td><td>1</td><td>0.9</td><td>0.8</td></tr><tr><td>Memphis Pilots vs Orlando Voltage</td><td>20</td><td>11-8-1</td><td>13</td><td>13.65</td><td>399.15</td><td>366.05</td><td>1.25</td><td>0.9</td><td>1.2</td><td>0.4</td></tr><tr><td>Memphis Pilots vs San Diego Sentinels</td><td>20</td><td>5-12-3</td><td>20.15</td><td>20.3</td><td>406.85</td><td>437.95</td><td>1.05</td><td>1.35</td><td>0.6</td><td>0.9</td></tr><tr><td>Memphis Pilots vs Chicago Monarchs</td><td>20</td><td>4-13-3</td><td>12.3</td><td>17.1</td><td>329.7</td><td>385.35</td><td>1.3</td><td>1.6</td><td>0.5</td><td>0.45</td></tr><tr><td>Memphis Pilots vs New York Titans</td><td>20</td><td>4-15-1</td><td>13.25</td><td>20.15</td><td>389.4</td><td>426.3</td><td>1.15</td><td>0.95</td><td>1.05</td><td>1</td></tr><tr><td>Orlando Voltage vs San Diego Sentinels</td><td>20</td><td>1-17-2</td><td>9.85</td><td>20.05</td><td>371.9</td><td>463.2</td><td>1.6</td><td>1.4</td><td>1</td><td>1.3</td></tr><tr><td>Orlando Voltage vs Chicago Monarchs</td><td>20</td><td>3-16-1</td><td>6.75</td><td>13.1</td><td>295.7</td><td>370.85</td><td>1.2</td><td>1</td><td>0.5</td><td>0.65</td></tr><tr><td>Orlando Voltage vs New York Titans</td><td>20</td><td>5-13-2</td><td>11.65</td><td>18.15</td><td>367.5</td><td>451</td><td>1.35</td><td>1.2</td><td>0.7</td><td>0.95</td></tr><tr><td>San Diego Sentinels vs Chicago Monarchs</td><td>20</td><td>9-10-1</td><td>14.15</td><td>16.65</td><td>389.55</td><td>409.1</td><td>0.95</td><td>1.05</td><td>0.5</td><td>0.65</td></tr><tr><td>San Diego Sentinels vs New York Titans</td><td>20</td><td>14-6-0</td><td>23.45</td><td>17.45</td><td>454.8</td><td>432.75</td><td>1.35</td><td>1.3</td><td>0.75</td><td>1.2</td></tr><tr><td>Chicago Monarchs vs New York Titans</td><td>20</td><td>9-7-4</td><td>16.85</td><td>12.25</td><td>387.2</td><td>362.7</td><td>0.75</td><td>1.05</td><td>0.75</td><td>0.9</td></tr></tbody></table>
+    </section>
+
+    <section>
+      <h2>Bewertung</h2>
+      <p>Favoriten gewinnen im Gesamtlauf haeufiger, Upsets bleiben vorhanden. Die Spezialtests zeigen messbare Effekte der neuen Faktoren: Protection und Pressure veraendern Sack-/Throwaway-Zweige, Screen-Timing wirkt als Blitz-Counter, Press kann gewinnen oder bestraft werden, Run-Lane-Qualitaet verschiebt Stuff- und Open-Lane-Raten, Chemistry und Coaching bleiben kleine Modifier.</p>
+      <p>Rohdaten: <code>reports/qa-new-engine-balance-results.json</code></p>
+    </section>
+  </main>
+</body>
+</html>

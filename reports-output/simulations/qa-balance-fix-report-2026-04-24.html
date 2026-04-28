@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Balance Fix Report 2026-04-24</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 28px; color: #1f2a2a; background: #f6f1e8; }
+    section { background: #fffdf8; border: 1px solid #ded4c6; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; }
+    h1, h2 { margin: 0 0 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #e3dacd; vertical-align: top; }
+    th { background: #efe5d8; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .green { background: #dcfce7; color: #166534; }
+    .red { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>Balance Fix Report</h1>
+    <p>50-Spiele-Validierung nach Stat-Yards-Audit und gezielter Korrektur von Mittelfeld-Yards, 4th & short in der Zone gegnerische 35-20 sowie Punts/FGs nach Feldzone.</p>
+    <p><span class="pill red">ROT</span></p>
+  </section>
+  <section>
+    <h2>Stat-Yards-Audit</h2>
+    <table><thead><tr><th>Pruefung</th><th>Ergebnis</th></tr></thead><tbody><tr><td>Status</td><td>OK</td></tr><tr><td>Detail</td><td>Team Total Yards = Passing + Rushing; Player-Rollups stimmen; Return-Yards werden nicht in Total Offense eingerechnet; Drive-Summen sind konsistent.</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Vorher / Nachher</h2>
+    <table><thead><tr><th>Metrik</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody><tr><td>Punkte / Spiel</td><td>48.3</td><td>41.5</td></tr><tr><td>Total Yards / Spiel</td><td>988.3</td><td>912.6</td></tr><tr><td>Punts / Team-Spiel</td><td>6.16</td><td>6.05</td></tr><tr><td>FG-Attempts / Team-Spiel</td><td>2.91</td><td>2.67</td></tr><tr><td>Touchdowns / Team-Spiel</td><td>2.62</td><td>2.22</td></tr><tr><td>Turnover on Downs / Team-Spiel</td><td>2.79</td><td>2.44</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>4th-Down-Entscheidungen nach Field Zone</h2>
+    <table><thead><tr><th>Zone :: Decision</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>OPP45_TO_35 :: PUNT</td><td>376</td><td>28.1</td></tr><tr><td>OPP35_TO_20 :: GO_FOR_IT</td><td>264</td><td>19.7</td></tr><tr><td>OPP45_TO_35 :: GO_FOR_IT</td><td>248</td><td>18.5</td></tr><tr><td>OPP35_TO_20 :: FIELD_GOAL</td><td>198</td><td>14.8</td></tr><tr><td>MIDFIELD :: PUNT</td><td>155</td><td>11.6</td></tr><tr><td>BACKED_UP :: PUNT</td><td>74</td><td>5.5</td></tr><tr><td>RED_ZONE_20 :: GO_FOR_IT</td><td>8</td><td>0.6</td></tr><tr><td>RED_ZONE_20 :: FIELD_GOAL</td><td>7</td><td>0.5</td></tr><tr><td>MIDFIELD :: GO_FOR_IT</td><td>4</td><td>0.3</td></tr><tr><td>BACKED_UP :: GO_FOR_IT</td><td>4</td><td>0.3</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Turnover on Downs nach Field Zone</h2>
+    <table><thead><tr><th>Zone</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>OPP45_TO_35</td><td>136</td><td>55.7</td></tr><tr><td>OPP35_TO_20</td><td>98</td><td>40.2</td></tr><tr><td>BACKED_UP</td><td>4</td><td>1.6</td></tr><tr><td>RED_ZONE_20</td><td>4</td><td>1.6</td></tr><tr><td>MIDFIELD</td><td>2</td><td>0.8</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Punts nach Field Zone</h2>
+    <table><thead><tr><th>Zone</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>OPP45_TO_35</td><td>376</td><td>62.1</td></tr><tr><td>MIDFIELD</td><td>155</td><td>25.6</td></tr><tr><td>BACKED_UP</td><td>74</td><td>12.2</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Field Goals nach Field Zone</h2>
+    <table><thead><tr><th>Zone</th><th>Count</th><th>Anteil %</th></tr></thead><tbody><tr><td>OPP35_TO_20</td><td>245</td><td>91.8</td></tr><tr><td>OPP45_TO_35</td><td>15</td><td>5.6</td></tr><tr><td>RED_ZONE_20</td><td>7</td><td>2.6</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Beispiel-Drives</h2>
+    <table><thead><tr><th>Quarter</th><th>Off</th><th>Start</th><th>Peak</th><th>Ball</th><th>Dist</th><th>Coach</th><th>Decision</th><th>Result</th><th>Summary</th></tr></thead><tbody><tr><td>Q1</td><td>NYT</td><td>20</td><td>67</td><td>67</td><td>6</td><td>AGGRESSIVE</td><td>FIELD_GOAL</td><td>FIELD_GOAL_MADE</td><td>NYT kickt das Field Goal aus 50 Yards nach 4th &amp; 6.</td></tr><tr><td>Q1</td><td>BOS</td><td>25</td><td>61</td><td>61</td><td>3</td><td>AGGRESSIVE</td><td>PUNT</td><td>PUNT</td><td>BOS puntet bei 4th &amp; 3 von der 61-Yard-Linie nach 7 Plays und 33 Yards.</td></tr><tr><td>Q1</td><td>NYT</td><td>21</td><td>61</td><td>61</td><td>5</td><td>AGGRESSIVE</td><td>PUNT</td><td>PUNT</td><td>NYT puntet bei 4th &amp; 5 von der 61-Yard-Linie nach 4 Plays und 37 Yards.</td></tr><tr><td>Q1</td><td>BOS</td><td>28</td><td>54</td><td>54</td><td>5</td><td>AGGRESSIVE</td><td>PUNT</td><td>PUNT</td><td>BOS puntet bei 4th &amp; 5 von der 54-Yard-Linie nach 7 Plays und 28 Yards.</td></tr><tr><td>Q1</td><td>NYT</td><td>24</td><td>60</td><td>60</td><td>4</td><td>AGGRESSIVE</td><td>GO_FOR_IT</td><td>TURNOVER_ON_DOWNS</td><td>BOS stoppt NYT bei 4th &amp; 4; Turnover on Downs.</td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Empfehlung</h2>
+    <p>Als naechstes die Mittelfeld-Yards und die Zahl brauchbarer, aber punktloser Drives weiter reduzieren, ohne die Red-Zone-Finishes erneut anzutasten.</p>
+  </section>
+  
+</body>
+</html>
