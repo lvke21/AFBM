@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Post Game Motivation Report</title>
+    <style>
+      :root {
+        background: #f5f7fa;
+        color: #172033;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 24px;
+      }
+
+      p,
+      li {
+        line-height: 1.65;
+      }
+
+      .lead {
+        max-width: 860px;
+        color: #526070;
+        font-size: 17px;
+      }
+
+      .panel,
+      table {
+        border: 1px solid #d9e0ea;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .panel {
+        margin-top: 22px;
+        padding: 18px;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7ebf0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef3f8;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #e9eef5;
+        padding: 2px 5px;
+      }
+
+      .good {
+        color: #166534;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Post Game Motivation Report</h1>
+      <p class="lead">
+        Aufgabe: Nach dem Match Report soll sofort ein klarer Verbesserungsimpuls entstehen. Der
+        Nutzer soll nicht fragen: Was jetzt? Sondern denken: Das fixe ich als Naechstes.
+      </p>
+
+      <section class="panel">
+        <h2>Executive Summary</h2>
+        <p>
+          Direkt unter dem Score erscheint jetzt ein einzelnes Ziel fuer die naechste Woche. Das
+          Ziel wird aus dem groessten sichtbaren Problem im Report abgeleitet und fuehrt direkt zur
+          passenden Aktion: Depth Chart oder Roster.
+        </p>
+      </section>
+
+      <section>
+        <h2>Zielregeln</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Signal</th>
+              <th>Ziel</th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2+ Turnovers</td>
+              <td>Turnovers reduzieren</td>
+              <td>Depth Chart pruefen</td>
+            </tr>
+            <tr>
+              <td>Deutlich weniger Passing Yards als der Gegner</td>
+              <td>Passing stabilisieren</td>
+              <td>QB und Receiver pruefen</td>
+            </tr>
+            <tr>
+              <td>Gegner mit mindestens 40 Yards Vorsprung</td>
+              <td>Defense verbessern</td>
+              <td>Roster ansehen</td>
+            </tr>
+            <tr>
+              <td>Red-Zone-Trips ohne Touchdown</td>
+              <td>Red Zone schaerfen</td>
+              <td>Red-Zone-Rollen pruefen</td>
+            </tr>
+            <tr>
+              <td>Kein dominanter Bruch</td>
+              <td>Staerke bestaetigen</td>
+              <td>Aufstellung bestaetigen</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Umsetzung</h2>
+        <ul>
+          <li><code>src/components/match/post-game-report-model.ts</code> erzeugt <code>motivationGoal</code> als genau ein Ziel.</li>
+          <li><code>src/components/match/post-game-motivation-panel.tsx</code> rendert Ziel, Kurzbegruendung und CTA.</li>
+          <li><code>src/app/app/savegames/[savegameId]/game/report/page.tsx</code> platziert das Panel direkt unter dem Score.</li>
+          <li><code>src/components/match/post-game-report-model.test.ts</code> prueft Turnover-, Defense- und Default-Ziele.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Validierung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npx tsc --noEmit --pretty false</code></td>
+              <td class="good">Bestanden</td>
+            </tr>
+            <tr>
+              <td>
+                <code
+                  >npx vitest run src/components/match/post-game-report-model.test.ts
+                  src/components/match/post-game-continuation-model.test.ts</code
+                >
+              </td>
+              <td class="good">Bestanden: 2 Dateien, 10 Tests.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>Bewertung</h2>
+        <p class="good">
+          Status: Ziel erreicht. Direkt nach dem Score gibt es eine konkrete Aufgabe und einen
+          direkten Weg zur naechsten Entscheidung. Der Report endet damit nicht in Analyse, sondern
+          in Motivation.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

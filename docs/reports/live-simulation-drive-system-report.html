@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Simulation Drive System Report</title>
+    <style>
+      :root {
+        --bg: #07111f;
+        --surface: #101b2d;
+        --panel: #162235;
+        --panel-2: #0d1727;
+        --line: rgba(255, 255, 255, 0.12);
+        --text: #edf4ff;
+        --muted: #9fb0c8;
+        --accent: #4fb3ff;
+        --success: #35d07f;
+        --warning: #f6c65b;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 20px 56px;
+      }
+
+      header,
+      section {
+        margin-bottom: 18px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      h1,
+      h2 {
+        margin: 0 0 12px;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      h2 {
+        font-size: 21px;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 12px;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      code {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        color: #d8ecff;
+        padding: 2px 6px;
+      }
+
+      .badge {
+        display: inline-flex;
+        min-height: 26px;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .green {
+        background: var(--success);
+        color: #062916;
+      }
+
+      .yellow {
+        background: var(--warning);
+        color: #2c2100;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .accent {
+        color: var(--accent);
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-2);
+        padding: 16px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      @media (max-width: 820px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="muted">Stand: 2026-04-27</p>
+        <h1>Live Simulation Drive System Report</h1>
+        <p>
+          Die Live Simulation wurde von manueller Score-Eingabe auf eine minimale,
+          drive-basierte Spielstruktur umgestellt. Ziel war ein glaubwuerdiger Spielverlauf
+          ohne Play-Calling-Engine oder komplexe AI.
+        </p>
+        <span class="badge green">Status: Gruen</span>
+      </header>
+
+      <section>
+        <h2>Umsetzung</h2>
+        <ul>
+          <li><code>startGameForUser</code> erzeugt beim Match-Start automatisch eine deterministische Simulation.</li>
+          <li>Die Simulation besteht aus 4 Quarters mit je bis zu 4 Drives.</li>
+          <li>Jeder Drive hat Possession, Clock-Label, Start an der eigenen 25, Ergebnis, Yards, Plays und Score-Verlauf.</li>
+          <li>Moegliche Drive-Ergebnisse: Touchdown, Field Goal, Punt, Turnover.</li>
+          <li>Team Rating beeinflusst die Ergebniswahrscheinlichkeit leicht; Varianz bleibt bewusst einfach.</li>
+          <li>Der Live Screen zeigt Drive Timeline, Score, Possession-Kontext, Momentum und letzten Drive.</li>
+          <li>Die manuelle Score-Eingabe wurde entfernt. Der Report wird aus der gespeicherten Simulation erzeugt.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Drive-Logik</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Baustein</th>
+              <th>Verhalten</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Seed</td>
+              <td><code>minimal-drive:&lt;matchId&gt;:w&lt;week&gt;:&lt;homeOVR&gt;-&lt;awayOVR&gt;</code></td>
+            </tr>
+            <tr>
+              <td>Clock</td>
+              <td>Drive-basiert: Quarter-Clock startet bei 15:00 und laeuft pro Drive herunter.</td>
+            </tr>
+            <tr>
+              <td>Possession</td>
+              <td>Start-Possession per Seed, danach Wechsel nach jedem Drive.</td>
+            </tr>
+            <tr>
+              <td>Outcome</td>
+              <td>Leichte Rating-Kante plus Seed-Varianz entscheidet zwischen TD, FG, Punt und Turnover.</td>
+            </tr>
+            <tr>
+              <td>Stats</td>
+              <td>Team-Stats werden aus Drives aggregiert: Yards, First Downs, Turnovers, Red Zone, Explosive Plays.</td>
+            </tr>
+            <tr>
+              <td>Abschluss</td>
+              <td><code>finishGameForUser</code> uebernimmt den gespeicherten Score und aktualisiert Match/Season-Stats.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Beispiel-Spielverlauf</h2>
+        <p class="muted">Deterministisches Beispiel: <code>minimal-drive:example-match:w1:74-71</code></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Drive</th>
+              <th>Zeit</th>
+              <th>Offense</th>
+              <th>Ergebnis</th>
+              <th>Score</th>
+              <th>Beschreibung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Q1 15:00</td>
+              <td>NYT</td>
+              <td>Touchdown</td>
+              <td>0-7</td>
+              <td>Big Play, Red Zone, Touchdown nach 6 Plays und 80 Yards.</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Q1 11:47</td>
+              <td>BOS</td>
+              <td>Punt</td>
+              <td>0-7</td>
+              <td>Defense erzwingt nach 6 Plays einen Punt.</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Q1 8:20</td>
+              <td>NYT</td>
+              <td>Punt</td>
+              <td>0-7</td>
+              <td>Big Play bewegt die Chains, aber der Drive endet mit Punt.</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Q2 12:49</td>
+              <td>BOS</td>
+              <td>Touchdown</td>
+              <td>7-7</td>
+              <td>BOS antwortet mit 10 Plays und 74 Yards.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="accent">Finales Beispielergebnis: BOS 14 - 20 NYT.</p>
+      </section>
+
+      <section>
+        <h2>Geaenderte Dateien</h2>
+        <ul>
+          <li><code>src/modules/savegames/application/minimal-drive-simulation.ts</code></li>
+          <li><code>src/modules/savegames/application/minimal-drive-simulation.test.ts</code></li>
+          <li><code>src/modules/savegames/application/week-flow.service.ts</code></li>
+          <li><code>src/modules/savegames/application/week-flow.service.test.ts</code></li>
+          <li><code>src/app/app/savegames/[savegameId]/week-actions.ts</code></li>
+          <li><code>src/app/app/savegames/[savegameId]/week-actions.test.ts</code></li>
+          <li><code>src/components/match/live-control-panel.tsx</code></li>
+          <li><code>src/components/match/live-simulation-model.ts</code></li>
+          <li><code>e2e/week-loop.spec.ts</code></li>
+          <li><code>e2e/live-storyline.spec.ts</code></li>
+          <li><code>e2e/first-10-minutes.spec.ts</code></li>
+          <li><code>e2e/match-report-consequences.spec.ts</code></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Validierung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npx vitest run ...</code></td>
+              <td><span class="badge green">6 Files, 52 Tests passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx tsc --noEmit</code></td>
+              <td><span class="badge green">Passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npm run lint</code></td>
+              <td><span class="badge green">Passed</span></td>
+            </tr>
+            <tr>
+              <td><code>E2E_PORT=3123 npm run test:e2e:week-loop</code></td>
+              <td><span class="badge green">1 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>E2E_PORT=3124 npx playwright test e2e/live-storyline.spec.ts</code></td>
+              <td><span class="badge green">1 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>E2E_PORT=3126 npx playwright test e2e/first-10-minutes.spec.ts</code></td>
+              <td><span class="badge green">1 passed</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="muted">
+          Hinweis: Ein erster First-10-Minutes-Lauf wurde nach einem bereits fortgeschriebenen
+          E2E-Save gestartet und traf dadurch nicht PRE_WEEK an. Nach frischem Seed lief der Smoke gruen.
+        </p>
+      </section>
+
+      <section>
+        <h2>Bekannte Grenzen</h2>
+        <ul>
+          <li>Keine echte Play-by-Play-Simulation; jeder Eintrag ist ein Drive-Event.</li>
+          <li>Keine Play-Calling-AI und keine Snap-Level-Entscheidungen.</li>
+          <li>Spieler-Stats bleiben weiterhin grob bzw. nicht voll abgeleitet.</li>
+          <li>Alle Drives werden beim Start erzeugt; der Live Screen zeigt den Ablauf, aber keine echte Zeitprogression.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

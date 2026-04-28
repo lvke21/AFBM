@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UI Language Polish Report</title>
+    <style>
+      :root {
+        background: #f5f7fa;
+        color: #172033;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 24px;
+      }
+
+      p,
+      li {
+        line-height: 1.65;
+      }
+
+      .lead {
+        max-width: 860px;
+        color: #526070;
+        font-size: 17px;
+      }
+
+      .panel,
+      table {
+        border: 1px solid #d9e0ea;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .panel {
+        margin-top: 22px;
+        padding: 18px;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7ebf0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef3f8;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #e9eef5;
+        padding: 2px 5px;
+      }
+
+      .good {
+        color: #166534;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>UI Language Polish Report</h1>
+      <p class="lead">
+        Aufgabe: Technische Begriffe im Spieltag-, Aufstellungs- und Report-Flow durch kurze,
+        spielerische Sprache ersetzen. Ziel ist, dass Nutzer die Situation wie eine GM-Entscheidung
+        lesen, nicht wie einen Systemzustand.
+      </p>
+
+      <section class="panel">
+        <h2>Executive Summary</h2>
+        <p>
+          Die sichtbarsten technischen Labels wurden im Game Preview, Depth Chart, Match Start,
+          Live Screen, Match Report, Inbox und Dashboard geglaettet. Interne Kennzeichnungen wie
+          <code>DEV_AUTO_FILL</code> bleiben intern erhalten; die UI spricht nun von
+          <strong>Ersatzspielern</strong>, <strong>Aufstellungsrisiko</strong> und
+          <strong>Spieltag-Bereitschaft</strong>.
+        </p>
+      </section>
+
+      <section>
+        <h2>Wortwechsel</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Vorher</th>
+              <th>Nachher</th>
+              <th>Wirkung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Auto-Fill</code></td>
+              <td>Ersatzspieler im Einsatz</td>
+              <td>Erklaert die Spielsituation ohne technischen Mechanismus.</td>
+            </tr>
+            <tr>
+              <td><code>Lineup unvollstaendig - Performance kann leiden</code></td>
+              <td>Dein Team ist nicht optimal aufgestellt. Ersatzspieler muessen einspringen.</td>
+              <td>Kurz, klar und als Football-Risiko lesbar.</td>
+            </tr>
+            <tr>
+              <td><code>Weak Position Group</code></td>
+              <td>Ersatzspieler im Einsatz</td>
+              <td>Der Match Report nennt eine Ursache statt eines Analyse-Labels.</td>
+            </tr>
+            <tr>
+              <td><code>Depth Chart Readiness</code></td>
+              <td>Spieltag-Bereitschaft</td>
+              <td>Der Screen fuehlt sich naeher am naechsten Spiel an.</td>
+            </tr>
+            <tr>
+              <td><code>Core Open</code>, <code>Conflicts</code>, <code>Assigned</code></td>
+              <td>Starter fehlen, Doppelt besetzt, Im Einsatz</td>
+              <td>Metriken sind ohne Systemwissen verstaendlich.</td>
+            </tr>
+            <tr>
+              <td><code>Locked</code>, <code>Start Ready</code>, <code>Match Control</code></td>
+              <td>Noch nicht bereit, Bereit, Kickoff</td>
+              <td>Status-Badges lesen sich wie Spielzustand statt UI-Schalter.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Geaenderte Bereiche</h2>
+        <ul>
+          <li><code>src/components/match/game-preview-model.ts</code> - Preview-Warnungen und Aufstellungssignale.</li>
+          <li><code>src/components/team/depth-chart-model.ts</code> - Readiness-Titel, Summary und Metriklabels.</li>
+          <li><code>src/components/team/depth-chart-view.tsx</code> - Warnungen fuer doppelte Rollen und fehlende Starter.</li>
+          <li><code>src/components/match/post-game-report-model.ts</code> - Report-Ursachen fuer Ersatzspieler und Aufstellungseffekt.</li>
+          <li><code>src/components/match/start-match-action-area.tsx</code> - Kickoff-CTA ohne harte Systemblocker-Sprache.</li>
+          <li><code>src/components/inbox/*</code> und <code>src/components/goals/*</code> - Aufgaben in Entscheidungssprache.</li>
+          <li><code>src/components/dashboard/*</code> - kurze Statuslabels wie GM Buero, Bereit und Naechster Schritt.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Validierung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npx tsc --noEmit --pretty false</code></td>
+              <td class="good">Bestanden</td>
+            </tr>
+            <tr>
+              <td>
+                <code
+                  >npx vitest run src/components/match/game-preview-model.test.ts
+                  src/components/team/depth-chart-model.test.ts
+                  src/components/match/post-game-report-model.test.ts
+                  src/components/inbox/roster-decision-model.test.ts
+                  src/components/dashboard/dashboard-model.test.ts</code
+                >
+              </td>
+              <td class="good">Bestanden: 5 Dateien, 61 Tests.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>Bewertung</h2>
+        <p class="good">
+          Status: Ziel erreicht fuer die geprueften Hauptflows. Der Nutzer sieht nun eher
+          Spieltagssprache und konkrete GM-Konsequenzen als technische Fallback- oder
+          Systembegriffe.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live To Report Transition Report</title>
+    <style>
+      :root {
+        background: #f5f7fa;
+        color: #172033;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 24px;
+      }
+
+      p,
+      li {
+        line-height: 1.65;
+      }
+
+      .lead {
+        max-width: 860px;
+        color: #526070;
+        font-size: 17px;
+      }
+
+      .panel,
+      table {
+        border: 1px solid #d9e0ea;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .panel {
+        margin-top: 22px;
+        padding: 18px;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7ebf0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef3f8;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #e9eef5;
+        padding: 2px 5px;
+      }
+
+      .good {
+        color: #166534;
+        font-weight: 700;
+      }
+
+      .warn {
+        color: #925900;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Live To Report Transition Report</h1>
+      <p class="lead">
+        Aufgabe: Der Wechsel von Live Simulation zum Match Report sollte nicht mehr wie ein
+        harter Sprung wirken. Der Nutzer soll zuerst spueren: Das Spiel ist gerade zu Ende
+        gegangen.
+      </p>
+
+      <section class="panel">
+        <h2>Executive Summary</h2>
+        <p>
+          Der Live-Screen zeigt nach dem letzten sichtbaren Drive jetzt einen klaren
+          Schlusspfiff-Moment. Erst danach erscheint die aktive Report-Aktion. Der Uebergang
+          besteht aus <strong>Final Whistle</strong>, <strong>Spiel beendet</strong>,
+          <strong>Final Score</strong> und zwei kurzen Aussagen zum Ausgang.
+        </p>
+      </section>
+
+      <section>
+        <h2>Umsetzung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Aenderung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Game End Moment</td>
+              <td>
+                Nach vollstaendigem Playback erscheint ein hervorgehobener Block mit
+                <code>Final Whistle</code> und <code>Spiel beendet</code>.
+              </td>
+            </tr>
+            <tr>
+              <td>Abschluss</td>
+              <td>
+                Der Block zeigt den finalen Score gross und nennt 1-2 Key Statements:
+                Spielausgang, Abstand und den letzten wichtigen Drive.
+              </td>
+            </tr>
+            <tr>
+              <td>Report Transition</td>
+              <td>
+                Der Button <code>Zum Match Report</code> bleibt bis zum Playback-Ende deaktiviert
+                und steht erst nach dem Schlusspfiff unter dem Abschlussblock.
+              </td>
+            </tr>
+            <tr>
+              <td>Kein harter Direktlink</td>
+              <td>
+                Solange das Match noch nicht als abgeschlossen gespeichert ist, erscheint statt
+                eines direkten Report-Links nur <code>Report nach Schlusspfiff</code>.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Geaenderte Dateien</h2>
+        <ul>
+          <li><code>src/components/match/live-simulation-flow.tsx</code> - sichtbarer Schlusspfiff-Block und Report-Handoff.</li>
+          <li><code>src/components/match/live-to-report-transition-model.ts</code> - finale Key Statements aus sichtbarem Score und Drive-Kontext.</li>
+          <li><code>src/components/match/live-to-report-transition-model.test.ts</code> - Tests fuer Gewinner, enge Spiele und Fallback ohne Drives.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Validierung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npx tsc --noEmit --pretty false</code></td>
+              <td class="good">Bestanden</td>
+            </tr>
+            <tr>
+              <td>
+                <code
+                  >npx vitest run src/components/match/live-to-report-transition-model.test.ts
+                  src/components/match/live-simulation-model.test.ts
+                  src/components/match/game-center-model.test.ts</code
+                >
+              </td>
+              <td class="good">Bestanden: 3 Dateien, 12 Tests.</td>
+            </tr>
+            <tr>
+              <td>
+                <code
+                  >npx playwright test e2e/first-10-minutes.spec.ts --project=chromium
+                  --workers=1</code
+                >
+              </td>
+              <td class="warn">
+                Nicht bis zum Live-Uebergang gekommen. Der Test erwartet noch den alten
+                Week-Loop-Button <code>Woche vorbereiten</code> innerhalb von
+                <code>#week-loop</code>, waehrend der neue Time-to-Fun-Flow diese Aktion bereits
+                oben als Primary Action ausfuehrt.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>Bewertung</h2>
+        <p class="good">
+          Status: Ziel fuer den Live-Screen umgesetzt. Der Report wird nicht mehr unmittelbar als
+          naechster Systemschritt praesentiert, sondern folgt auf einen klaren Spielabschluss mit
+          Final Score und kurzen Schlussaussagen.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

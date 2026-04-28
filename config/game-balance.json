@@ -1,0 +1,913 @@
+{
+  "version": 1,
+  "drive": {
+    "count": {
+      "offensivePlaysPerDriveRange": [4, 11],
+      "baseDrivesPerTeam": 11,
+      "maxDrives": 96,
+      "plannedDrivesVariance": [-1, 2]
+    },
+    "startFieldPosition": {
+      "normalChance": 0.72,
+      "normalRange": [20, 35],
+      "backedUpChance": 0.18,
+      "backedUpRange": [16, 28],
+      "goodReturnRange": [30, 42]
+    },
+    "fieldPositionEstimate": {
+      "yardMultiplier": 1.03,
+      "randomRange": [-4, 5],
+      "min": 1,
+      "max": 97
+    },
+    "playLogCompression": {
+      "thresholds": [
+        { "clockPlaysMin": 11, "reduction": 3 },
+        { "clockPlaysMin": 9, "reduction": 2 },
+        { "clockPlaysMin": 7, "reduction": 1 }
+      ],
+      "officialPlaysMin": 4,
+      "officialPlaysMax": 9
+    },
+    "fourthDownDistance": {
+      "baseRange": [1, 8],
+      "driveQualityHighThreshold": 12,
+      "driveQualityMediumThreshold": 4,
+      "driveQualityHighAdjustment": -1,
+      "driveQualityMediumAdjustment": 0,
+      "driveQualityLowAdjustment": 2,
+      "totalYardsHighThreshold": 45,
+      "totalYardsMediumThreshold": 28,
+      "totalYardsHighAdjustment": -1,
+      "totalYardsMediumAdjustment": 1,
+      "totalYardsLowAdjustment": 4,
+      "min": 1,
+      "max": 15
+    },
+    "terminalPrep": {
+      "fieldPositionMin": 55,
+      "fieldPositionMaxExclusive": 80,
+      "distanceMin": 3,
+      "distanceMax": 5,
+      "opp35To20ShortenChance": 0.34,
+      "opp45To35ShortenChance": 0.24,
+      "shortDistanceChance": 0.86,
+      "shortDistanceRange": [1, 2],
+      "longFallbackMin": 5
+    },
+    "quality": {
+      "passGameWeight": 0.18,
+      "runGameWeight": 0.16,
+      "totalYardsWeight": 0.08,
+      "randomRange": [-14, 14]
+    },
+    "firstDownYardsDivisor": 17
+  },
+  "clock": {
+    "regulationSeconds": 3600,
+    "quarterSeconds": 900,
+    "twoMinuteWarningSecond": 120,
+    "kneelDown": {
+      "eligibleLeadMin": 1,
+      "eligibleQuarter": 4,
+      "eligibleSecondsRemainingMax": 95,
+      "secondsPerKneel": 39,
+      "playsMin": 1,
+      "playsMax": 3
+    },
+    "betweenPlays": {
+      "normalRange": [36, 51],
+      "twoMinuteRange": [8, 18],
+      "clockKillRange": [40, 51]
+    },
+    "liveBallSeconds": {
+      "kneelRange": [2, 4],
+      "runRange": [8, 13],
+      "passCompleteRange": [7, 12],
+      "passIncompleteRange": [5, 7],
+      "sackRange": [8, 12],
+      "fieldGoalRange": [5, 7],
+      "puntRange": [9, 12]
+    },
+    "clockStop": {
+      "normalRunOutOfBoundsChance": 0.1,
+      "twoMinuteRunOutOfBoundsChance": 0.35,
+      "normalCompleteOutOfBoundsChance": 0.18,
+      "twoMinuteCompleteOutOfBoundsChance": 0.5,
+      "normalTimeoutChance": 0.05,
+      "twoMinuteTimeoutChance": 0.22,
+      "lateTimeoutWindowSeconds": 90
+    },
+    "modes": {
+      "twoMinuteTrailingSecondsMax": 120,
+      "clockKillLeadSecondsMax": 240,
+      "garbageTimeLeadMin": 17,
+      "garbageTimeSecondsMax": 900
+    }
+  },
+  "environment": {
+    "homeFieldEdge": 2.5,
+    "passExplosiveYards": 20,
+    "rushExplosiveYards": 12
+  },
+  "snapShares": {
+    "starter": 1,
+    "rotation": 0.55,
+    "reserve": 0.3
+  },
+  "rotations": {
+    "rushContributors": 3,
+    "targetContributors": 6,
+    "tackleContributors": 5,
+    "passRushContributors": 3,
+    "coverageContributors": 4
+  },
+  "overtime": {
+    "clockSeconds": 600,
+    "maxRounds": 4,
+    "tiebreakRollRange": [-6, 6],
+    "possession": {
+      "driveEdgePassWeight": 0.24,
+      "driveEdgeRunWeight": 0.21,
+      "driveEdgeBallSecurityWeight": 0.08,
+      "driveEdgeRandomRange": [-12, 12],
+      "passingYardsRange": [12, 28],
+      "passingDiffDivisor": 6,
+      "passingYardsMin": 0,
+      "passingYardsMax": 55,
+      "rushingYardsRange": [4, 14],
+      "rushingDiffDivisor": 8,
+      "rushingYardsMin": 0,
+      "rushingYardsMax": 24,
+      "firstDownYardsDivisor": 18,
+      "possessionTimeRange": [85, 155],
+      "touchdownDriveEdgeMin": 18,
+      "fieldGoalDriveEdgeMin": 5,
+      "touchdownPlays": 5,
+      "touchdownPassAttempts": 3,
+      "touchdownCompletions": 2,
+      "touchdownRushAttempts": 2,
+      "fieldGoalPlays": 4,
+      "fieldGoalPassAttempts": 2,
+      "fieldGoalCompletions": 1,
+      "fieldGoalRushAttempts": 2,
+      "turnoverPassAttempts": 1,
+      "emptyDrivePlays": 4,
+      "emptyDrivePassAttempts": 2,
+      "emptyDriveRushAttempts": 2,
+      "passingLongestMinimum": 12,
+      "passingLongestPenalty": 4,
+      "rushingLongestMinimum": 4,
+      "receivingYacShare": 0.24,
+      "rushingFieldGoalLongestMinimum": 3,
+      "fieldGoalPassingShare": 0.7,
+      "nonPassingTdReceivingShare": 0.35,
+      "fieldGoalDistanceBase": 32,
+      "fieldGoalDistanceRandomRange": [0, 18],
+      "fieldGoalDistanceMin": 28,
+      "fieldGoalDistanceMax": 54,
+      "turnoverBaseChance": 0.12,
+      "turnoverDiffDivisor": 260,
+      "turnoverMin": 0.05,
+      "turnoverMax": 0.24
+    },
+    "tiebreak": {
+      "passGameWeight": 0.25,
+      "runGameWeight": 0.2,
+      "kickingWeight": 0.18,
+      "ballSecurityWeight": 0.08,
+      "homeFieldWeight": 0.4,
+      "fieldGoalDistanceBase": 31,
+      "fieldGoalDistanceRandomRange": [0, 14],
+      "fieldGoalDistanceMin": 28,
+      "fieldGoalDistanceMax": 48,
+      "plays": 3,
+      "passAttempts": 1,
+      "rushAttempts": 2,
+      "totalYards": 24
+    }
+  },
+  "teamMetrics": {
+    "passGame": {
+      "receiverCount": 3,
+      "receiverWeight": 0.37,
+      "tightEndCount": 1,
+      "tightEndWeight": 0.12,
+      "offensiveLineCount": 5,
+      "offensiveLineWeight": 0.18,
+      "quarterbackWeight": 0.33
+    },
+    "runGame": {
+      "runningBackCount": 2,
+      "runningBackWeight": 0.37,
+      "fullbackCount": 1,
+      "fullbackWeight": 0.05,
+      "offensiveLineCount": 5,
+      "offensiveLineWeight": 0.35,
+      "primaryBackWeight": 0.25
+    },
+    "passDefense": {
+      "passRusherCount": 4,
+      "passRushWeight": 0.38,
+      "coverageCount": 5,
+      "coverageWeight": 0.62
+    },
+    "runDefense": {
+      "defensiveLineCount": 4,
+      "defensiveLineWeight": 0.45,
+      "linebackerCount": 3,
+      "linebackerWeight": 0.55
+    },
+    "ballSecurity": {
+      "fallback": 70,
+      "quarterbackWeight": 0.55,
+      "primaryBackWeight": 0.45
+    },
+    "takeawayPressure": {
+      "coverageCount": 5
+    },
+    "specialists": {
+      "kickingAttributeDivisor": 4,
+      "kickingFallback": 55,
+      "puntingAttributeDivisor": 5,
+      "puntingFallback": 55,
+      "snapOperationFallback": 60,
+      "kickReturnFallback": 58,
+      "puntReturnFallback": 56
+    }
+  },
+  "playerImpact": {
+    "readiness": {
+      "base": 1,
+      "moraleCenter": 50,
+      "moraleDivisor": 250,
+      "fatigueCenter": 18,
+      "fatigueDivisor": 280,
+      "mentalFallback": 70,
+      "mentalCenter": 70,
+      "mentalDivisor": 400,
+      "min": 0.52,
+      "max": 1.18
+    },
+    "skills": {
+      "linebackerCoverage": {
+        "manWeight": 0.8,
+        "zoneWeight": 1.1,
+        "coverageWeight": 0.7,
+        "rangeWeight": 0.9,
+        "playRecognitionWeight": 1,
+        "awarenessWeight": 1,
+        "divisor": 5.5
+      },
+      "coverage": {
+        "manWeight": 1,
+        "zoneWeight": 1,
+        "ballSkillsWeight": 1,
+        "rangeWeight": 1,
+        "playRecognitionWeight": 1,
+        "divisor": 5
+      },
+      "ballHawkDivisor": 5,
+      "receivingHandsDivisor": 4,
+      "quarterbackMobilityDivisor": 4,
+      "specialistConsistencyDivisor": 3,
+      "snapSkillDivisor": 4,
+      "tacklingSkillDivisor": 3,
+      "returnSkillDivisor": 6
+    }
+  },
+  "coaching": {
+    "riskProfile": {
+      "passGameVsDefenseDivisor": 260,
+      "runGameVsDefenseDivisor": 360,
+      "ballSecurityCenter": 70,
+      "ballSecurityDivisor": 420,
+      "kickingCenter": 72,
+      "kickingDivisor": 480,
+      "aggressionLeanMin": -0.12,
+      "aggressionLeanMax": 0.12,
+      "conservativeBaseShare": 0.06,
+      "conservativeLeanMultiplier": 0.24,
+      "conservativeShareMin": 0.04,
+      "conservativeShareMax": 0.12,
+      "aggressiveBaseShare": 0.6,
+      "aggressiveLeanMultiplier": 0.32,
+      "aggressiveShareMin": 0.5,
+      "aggressiveShareMax": 0.68
+    },
+    "goForItBias": {
+      "aggressive": 0.36,
+      "balanced": 0.18,
+      "conservative": -0.18,
+      "shortYardage": 0.26,
+      "mediumYardage": 0.09,
+      "trailingLate": 0.28,
+      "desperateLate": 0.22,
+      "needTouchdownLate": 0.18,
+      "garbageTimeLeadPenalty": 0.26,
+      "plusTerritory": 0.08,
+      "ownTerritoryPenalty": -0.08,
+      "plusForty": 0.08,
+      "plusThirtyFive": 0.12,
+      "redZone": 0.12,
+      "mediumLongPenalty": 0.24,
+      "veryLongPenalty": 0.08,
+      "min": -0.45,
+      "max": 0.8
+    }
+  },
+  "playSuccess": {
+    "passPreference": {
+      "base": 0.48,
+      "passRunDiffDivisor": 180,
+      "qbRunnerDiffDivisor": 300,
+      "mobilityCenter": 72,
+      "mobilityDivisor": 550,
+      "min": 0.35,
+      "max": 0.7
+    },
+    "sackPressure": {
+      "base": 0.21,
+      "passDefenseDiffDivisor": 260,
+      "mobilityCenter": 70,
+      "mobilityDivisor": 700,
+      "pocketPresenceCenter": 70,
+      "pocketPresenceDivisor": 900,
+      "min": 0.08,
+      "max": 0.32,
+      "twoSackChance": 0.18,
+      "extraPressureChance": 0.45
+    },
+    "completionRate": {
+      "base": 0.45,
+      "shortAccuracyCenter": 70,
+      "shortAccuracyDivisor": 280,
+      "handsCenter": 70,
+      "handsDivisor": 320,
+      "decisionCenter": 70,
+      "decisionDivisor": 620,
+      "passDefenseCenter": 72,
+      "passDefenseDivisor": 150,
+      "pressurePenalty": 0.035,
+      "min": 0.25,
+      "max": 0.71
+    },
+    "dropRate": {
+      "base": 0.045,
+      "handsCenter": 72,
+      "handsDivisor": 210,
+      "passDefenseCenter": 72,
+      "passDefenseDivisor": 650,
+      "min": 0.02,
+      "max": 0.16
+    },
+    "scramble": {
+      "base": 0.06,
+      "mobilityCenter": 70,
+      "mobilityDivisor": 210,
+      "sackPressureBonus": 0.12,
+      "chanceMin": 0.02,
+      "chanceMax": 0.32,
+      "yardRange": [3, 8],
+      "yardMobilityCenter": 72,
+      "yardMobilityDivisor": 8,
+      "yardsMin": 1,
+      "yardsMax": 14
+    },
+    "runStuff": {
+      "base": 0.26,
+      "runDefenseDiffDivisor": 240,
+      "min": 0.14,
+      "max": 0.48,
+      "tackleForLossChance": 0.4,
+      "tackleForLossYardRange": [1, 4]
+    },
+    "penalty": {
+      "holdingBase": 0.07,
+      "disciplineCenter": 78,
+      "disciplineDivisor": 220,
+      "holdingMin": 0.03,
+      "holdingMax": 0.16,
+      "secondaryDisciplineDivisor": 190,
+      "secondaryMin": 0.04,
+      "secondaryMax": 0.18
+    },
+    "turnover": {
+      "base": 0.16,
+      "takeawayBallSecurityDivisor": 320,
+      "disciplineCenter": 70,
+      "disciplineDivisor": 600,
+      "mobilityCenter": 70,
+      "mobilityDivisor": 850,
+      "handsCenter": 70,
+      "handsDivisor": 1100,
+      "min": 0.065,
+      "max": 0.22
+    }
+  },
+  "yardage": {
+    "passing": {
+      "completionYardsRange": [2, 5],
+      "passDefenseDiffMultiplier": 0.1,
+      "bonusCompletionChance": 0.025,
+      "bonusYardsRange": [8, 13],
+      "midfieldDrivePenalty": 1,
+      "min": 0,
+      "max": 31
+    },
+    "rushing": {
+      "attemptYardsRange": [0, 4],
+      "runDefenseDiffMultiplier": 0.07,
+      "min": 0,
+      "max": 21
+    },
+    "sackYardsLostRange": [4, 9],
+    "midfieldCompression": {
+      "startMin": 20,
+      "startMax": 35,
+      "rawYardsMin": 30,
+      "rawYardsMax": 48,
+      "highRawYardsThreshold": 42,
+      "playsThreshold": 8,
+      "compressionMin": 1,
+      "compressionMax": 5,
+      "extendedStartMax": 38,
+      "extendedRawYardsMinExclusive": 48,
+      "extendedRawYardsMax": 58,
+      "extendedStopSignalsMin": 3,
+      "extendedCompression": 3,
+      "passingReductionShare": 0.58
+    },
+    "failedDriveTrim": {
+      "startMin": 20,
+      "startMax": 40,
+      "totalYardsMin": 34,
+      "highYardsThreshold": 46,
+      "mediumYardsThreshold": 40,
+      "highTrim": 5,
+      "mediumTrim": 4,
+      "lowTrim": 2,
+      "failedResultBonus": 1,
+      "madeFieldGoalPenalty": 1,
+      "min": 1,
+      "max": 5,
+      "compactTotalYardsMin": 18,
+      "compactHighYardsThreshold": 30,
+      "compactHighTrimMax": 2,
+      "compactLowTrimMax": 1,
+      "passingTrimShare": 0.6
+    }
+  },
+  "scoring": {
+    "touchdown": {
+      "driveRedZoneTotalYardsThreshold": 42,
+      "driveRedZoneQualityThreshold": 20,
+      "fieldPositionThreshold": 87,
+      "driveQualityThreshold": 13,
+      "redZoneFieldPositionThreshold": 82,
+      "redZoneDriveQualityThreshold": 21,
+      "redZoneBreakthroughChance": 0.08,
+      "passingTouchdownChance": 0.62,
+      "points": 6
+    },
+    "extraPoint": {
+      "baseChance": 0.92,
+      "kickingCenter": 72,
+      "kickingDivisor": 180,
+      "consistencyCenter": 70,
+      "consistencyDivisor": 220,
+      "snapOperationCenter": 70,
+      "snapOperationDivisor": 220,
+      "min": 0.75,
+      "max": 0.995,
+      "overtimeBaseChance": 0.91,
+      "overtimeMin": 0.74,
+      "postConvertChance": 0.93
+    },
+    "kickoffTouchback": {
+      "baseChance": 0.28,
+      "powerCenter": 70,
+      "powerDivisor": 130,
+      "min": 0.15,
+      "max": 0.78
+    },
+    "redZoneTripFieldPosition": 80
+  },
+  "fieldGoal": {
+    "points": 3,
+    "bucket": {
+      "shortMaxExclusive": 40,
+      "midMaxExclusive": 50
+    },
+    "kickDistance": {
+      "constant": 117,
+      "min": 20,
+      "max": 64
+    },
+    "strongKickerThreshold": 146,
+    "comfort": {
+      "base": 44,
+      "kickingCenter": 70,
+      "kickingDivisor": 2.6,
+      "strongKickerBonus": 3,
+      "min": 38,
+      "max": 51
+    },
+    "viable": {
+      "base": 50,
+      "kickingCenter": 70,
+      "kickingDivisor": 2.1,
+      "strongKickerBonus": 4,
+      "min": 40,
+      "max": 58
+    },
+    "longRiskPenalty": {
+      "distance50": 0.44,
+      "distance47": 0.36,
+      "distance44": 0.24,
+      "distance40": 0.14
+    },
+    "decline": {
+      "distanceMin": 47,
+      "lateTrailingSeconds": 420,
+      "lateTieSeconds": 180,
+      "distance53Pressure": 0.9,
+      "distance50Pressure": 0.78,
+      "distance47Pressure": 0.5,
+      "fieldPosition65Pressure": 0.08,
+      "fieldPosition72Pressure": 0.06,
+      "deepFieldPositionPressure": -0.05,
+      "aggressiveCoachPressure": 0.08,
+      "conservativeCoachPressure": -0.04,
+      "leadingSevenPressure": 0.08,
+      "leadingPressure": 0.04,
+      "trailingPressure": -0.06,
+      "strongKickerPressure": -0.08,
+      "weakKickerPressure": 0.06,
+      "min": 0.12,
+      "max": 0.95
+    },
+    "makeChance": {
+      "base": 0.48,
+      "kickingCenter": 65,
+      "kickingDivisor": 120,
+      "consistencyCenter": 70,
+      "consistencyDivisor": 180,
+      "snapOperationCenter": 68,
+      "snapOperationDivisor": 220,
+      "distanceCenter": 35,
+      "distanceDivisor": 90,
+      "longPlusTerritoryDistanceMin": 48,
+      "longPlusTerritoryPenalty": 0.1,
+      "min": 0.25,
+      "max": 0.92
+    },
+    "opp35To20FinishMakeChance": {
+      "base": 0.5,
+      "kickingCenter": 68,
+      "kickingDivisor": 140,
+      "consistencyCenter": 70,
+      "consistencyDivisor": 210,
+      "distanceCenter": 40,
+      "distanceDivisor": 85,
+      "min": 0.18,
+      "max": 0.88
+    },
+    "postConvertMakeChance": {
+      "base": 0.46,
+      "kickingCenter": 68,
+      "kickingDivisor": 130,
+      "consistencyCenter": 70,
+      "consistencyDivisor": 190,
+      "distanceCenter": 35,
+      "distanceDivisor": 68,
+      "min": 0.14,
+      "max": 0.89
+    },
+    "overtimeMakeChance": {
+      "base": 0.52,
+      "kickingCenter": 68,
+      "kickingDivisor": 110,
+      "consistencyCenter": 70,
+      "consistencyDivisor": 180,
+      "snapOperationCenter": 68,
+      "snapOperationDivisor": 220,
+      "distanceCenter": 38,
+      "distanceDivisor": 90,
+      "min": 0.28,
+      "max": 0.96
+    }
+  },
+  "fourthDown": {
+    "zones": {
+      "midfieldMin": 50,
+      "opp45Min": 55,
+      "opp40Min": 60,
+      "opp35Min": 65,
+      "redZoneMin": 80
+    },
+    "distanceBuckets": {
+      "shortMax": 2,
+      "mediumMin": 3,
+      "mediumMax": 4,
+      "decisionMediumMax": 5,
+      "mediumLongMin": 5,
+      "veryLongMin": 10
+    },
+    "fieldPositionThresholds": {
+      "needTouchdownGoMin": 58,
+      "garbagePuntMaxExclusive": 60,
+      "plus35LongPuntMaxExclusive": 70,
+      "mediumLongPuntMaxExclusive": 78,
+      "genericPlusShortGoMin": 58,
+      "lateFieldGoalMin": 74
+    },
+    "gameState": {
+      "trailingLateSeconds": 360,
+      "desperateLateScoreMax": -4,
+      "desperateLateSeconds": 180,
+      "endgameFieldGoalTrailingMin": -3,
+      "endgameFieldGoalSeconds": 150,
+      "needTouchdownMin": -8,
+      "needTouchdownMax": -4,
+      "needTouchdownSeconds": 180,
+      "garbageTimeLeadMin": 17,
+      "garbageTimeSeconds": 900
+    },
+    "probabilities": {
+      "needTouchdownLateGoBase": 0.68,
+      "needTouchdownLateBiasMultiplier": 0.25,
+      "desperateOrShortPlusGoBase": 0.55,
+      "opp45To40BalancedMediumGoBase": 0.54,
+      "opp45To40BalancedBiasMultiplier": 0.45,
+      "opp40To35ConservativeShortFgChance": 0.55,
+      "opp40To35BalancedMediumGoBase": 0.44,
+      "opp40To35BalancedBiasMultiplier": 0.4,
+      "plus35ConservativeShortFgChance": 0.74,
+      "plus35BalancedShortFgChance": 0.52,
+      "plus35AggressiveShortFgChance": 0.24,
+      "plus35ShortGoBase": 0.54,
+      "plus35MediumGoBase": 0.48,
+      "plus35LongStrongKickerFgChance": 0.42,
+      "midfieldAggressiveFourthAnd1Go": 0.36,
+      "midfieldAggressiveFourthAnd2Go": 0.24,
+      "midfieldBalancedFourthAnd1Go": 0.14,
+      "midfieldBalancedFourthAnd2Go": 0.08,
+      "plusFortyShortOrAggressiveMediumGoBase": 0.48,
+      "redZoneGoBase": 0.42,
+      "lateGenericGoBase": 0.42,
+      "genericPlusShortGoBase": 0.38
+    }
+  },
+  "goForItResolution": {
+    "directPlusTerritoryBoost": {
+      "opp35Short": 0.12,
+      "opp35Medium": 0.08,
+      "opp45Short": 0.09,
+      "targetedAggressive": 0.08
+    },
+    "conversionChance": {
+      "base": 0.69,
+      "yardsToGoPenalty": 0.11,
+      "runDiffDivisor": 240,
+      "passDiffDivisor": 320,
+      "opp35Bonus": 0.02,
+      "aggressiveCoachBonus": 0.03,
+      "conservativeCoachPenalty": -0.03,
+      "min": 0.12,
+      "capOpp35Short": 0.86,
+      "capOpp45Short": 0.84,
+      "capPlusMedium": 0.78,
+      "capDefault": 0.74
+    },
+    "softFail": {
+      "targetedAggressiveChance": 0.34,
+      "defensivePenaltyThreshold": 0.18,
+      "sneakConvertThreshold": 0.62,
+      "managedDirectShortOpp35Chance": 0.12,
+      "managedDirectShortOpp45Chance": 0.1,
+      "managedDirectMediumOpp35Chance": 0.07,
+      "managedDirectMediumOpp45Chance": 0.05,
+      "maxSoftFailsPerDrive": 1
+    },
+    "postConvert": {
+      "defensivePenaltyBonusRange": [3, 6],
+      "sneakConvertBonusRange": [1, 3],
+      "playExtensionBonusRange": [2, 4],
+      "managedDirectBonusRange": [1, 3],
+      "defaultExtraYards": 9,
+      "defaultFallbackMax": 6,
+      "runDiffDivisor": 20,
+      "targetedBonusYardsRange": [2, 5],
+      "yardsMax": 18,
+      "protectedFieldPositionBonusRange": [3, 8],
+      "playsAfterConvertRange": [2, 4],
+      "opp35To20PlaysAfterEntryRange": [2, 3],
+      "tdBase": 0.08,
+      "tdFp92Bonus": 0.32,
+      "tdFp86Bonus": 0.18,
+      "tdFp80Bonus": 0.08,
+      "tdShortBonus": 0.04,
+      "tdTargetedBonus": 0.05,
+      "tdRunDiffDivisor": 360,
+      "tdPassDiffDivisor": 380,
+      "tdAggressiveBonus": 0.04,
+      "tdConservativePenalty": -0.03,
+      "tdMin": 0.07,
+      "tdMax": 0.6,
+      "protectedTdFp70Bonus": 0.12,
+      "protectedTdDefaultBonus": 0.06,
+      "protectedTdMax": 0.74,
+      "settleFgBase": 0.18,
+      "settleFgFp85Bonus": 0.2,
+      "settleFgFp78Bonus": 0.12,
+      "settleFgFp72Bonus": 0.06,
+      "settleFgConservativeBonus": 0.18,
+      "settleFgBalancedBonus": 0.08,
+      "settleFgAggressivePenalty": -0.04,
+      "settleFgLeadBonus": 0.06,
+      "settleFgMin": 0.08,
+      "settleFgMax": 0.72
+    },
+    "opp35To20Finish": {
+      "exceptionalTodChance": 0.05,
+      "managedExceptionalExitShare": 0.45,
+      "fieldGoalDistanceMin": 37,
+      "fieldGoalDistanceMax": 52,
+      "forcedTdBase": 0.38,
+      "forcedTdFp74Bonus": 0.12,
+      "forcedTdTargetedBonus": 0.05,
+      "forcedTdRunDiffDivisor": 420,
+      "forcedTdPassDiffDivisor": 440,
+      "forcedTdMin": 0.28,
+      "forcedTdMax": 0.62
+    },
+    "opp35To20FinishDecline": {
+      "enteredBase": 0.42,
+      "originatedBase": 0.22,
+      "distance47Bonus": 0.18,
+      "distance44Bonus": 0.12,
+      "defaultDistanceBonus": 0.04,
+      "shallowFieldPositionThreshold": 72,
+      "shallowFieldPositionBonus": 0.08,
+      "leadingBonus": 0.06,
+      "trailingPenalty": -0.06,
+      "aggressiveBonus": 0.06,
+      "conservativePenalty": -0.04,
+      "strongKickerPenalty": -0.04,
+      "min": 0.05,
+      "max": 0.82
+    },
+    "secondFourth": {
+      "distanceRange": [1, 6],
+      "baseChance": 0.22,
+      "fp75Penalty": 0.1,
+      "fp68Penalty": 0.05,
+      "min": 0.08,
+      "max": 0.24,
+      "aggressiveShortGoChance": 0.18,
+      "fgBase": 0.62,
+      "fgFp72Bonus": 0.14,
+      "fgDistance4Bonus": 0.08,
+      "fgMin": 0.42,
+      "fgMax": 0.9
+    },
+    "settledFinish": {
+      "fieldGoalFieldPositionMin": 72,
+      "fieldGoalDistanceMin": 19,
+      "fieldGoalDistanceMax": 56,
+      "settleBase": 0.1,
+      "distance38Bonus": 0.18,
+      "distance45Bonus": 0.08,
+      "distance50Penalty": -0.02,
+      "longDistancePenalty": -0.14,
+      "conservativeBonus": 0.12,
+      "aggressivePenalty": -0.06,
+      "leadingBonus": 0.08,
+      "trailingPenalty": -0.05,
+      "min": 0.05,
+      "max": 0.48,
+      "conservativeSettledBonus": 0.1
+    },
+    "lateDriveKiller": {
+      "base": 0.18,
+      "fp80Bonus": 0.12,
+      "fp72Bonus": 0.06,
+      "aggressiveBonus": 0.02,
+      "nonAggressivePenalty": -0.02,
+      "targetedPenalty": -0.08,
+      "min": 0.1,
+      "max": 0.38,
+      "fieldPositionMin": 70,
+      "fieldGoalDistanceMin": 22,
+      "fieldGoalDistanceMax": 52,
+      "managedCollapseExitChance": 0.58
+    },
+    "managedDirectExit": {
+      "opp45Base": 0.24,
+      "opp35Base": 0.18,
+      "mediumBonus": 0.12,
+      "shortBonus": 0.05,
+      "longDistanceBonus": 0.06,
+      "leadingBonus": 0.04,
+      "min": 0.16,
+      "max": 0.46
+    }
+  },
+  "punt": {
+    "suppressLowValue": {
+      "opp45To35Chance": 0.44,
+      "opp40To35Chance": 0.5,
+      "midfieldChance": 0.25,
+      "distanceMin": 6,
+      "distanceMax": 9,
+      "midfieldDistanceMin": 5
+    },
+    "hangTimeBaseTenths": 41,
+    "hangTimePowerCenter": 70,
+    "hangTimePowerDivisor": 3,
+    "hangTimeRandomRange": [-2, 3],
+    "hangTimeMin": 36,
+    "hangTimeMax": 56,
+    "defaultHangTime": 68,
+    "distanceRange": [39, 56],
+    "powerCenter": 70,
+    "powerDivisor": 3,
+    "consistencyCenter": 70,
+    "consistencyDivisor": 10,
+    "snapOperationCenter": 70,
+    "snapOperationDivisor": 15,
+    "distanceMin": 32,
+    "distanceMax": 67,
+    "returnYardsRange": [2, 9],
+    "netPuntMin": 24,
+    "netPuntConsistencyDivisor": 12,
+    "inside20": {
+      "baseChance": 0.24,
+      "accuracyCenter": 70,
+      "accuracyDivisor": 180,
+      "hangTimeDivisor": 210,
+      "consistencyDivisor": 220,
+      "min": 0.12,
+      "max": 0.62
+    },
+    "touchback": {
+      "baseChance": 0.12,
+      "accuracyCenter": 70,
+      "accuracyDivisor": 250,
+      "consistencyCenter": 70,
+      "consistencyDivisor": 400,
+      "min": 0.03,
+      "max": 0.2
+    },
+    "fairCatch": {
+      "baseChance": 0.12,
+      "hangTimeCenter": 43,
+      "hangTimeDivisor": 45,
+      "accuracyCenter": 70,
+      "accuracyDivisor": 220,
+      "puntReturnCenter": 70,
+      "puntReturnDivisor": 300,
+      "min": 0.05,
+      "max": 0.58
+    }
+  },
+  "returns": {
+    "kickoff": {
+      "baseReturnRange": [16, 27],
+      "returnSkillCenter": 68,
+      "visionDivisor": 7,
+      "handsCenter": 70,
+      "handsDivisor": 10,
+      "kickoffPowerCenter": 75,
+      "kickoffPowerDivisor": 8,
+      "yardsMin": 12,
+      "yardsMax": 46,
+      "fumbleBase": 0.006,
+      "ballSecurityCenter": 72,
+      "ballSecurityDivisor": 500,
+      "handsFumbleCenter": 72,
+      "handsFumbleDivisor": 750,
+      "fumbleMin": 0.002,
+      "fumbleMax": 0.035
+    },
+    "punt": {
+      "baseReturnRange": [2, 14],
+      "returnSkillCenter": 68,
+      "visionDivisor": 8,
+      "handsCenter": 70,
+      "handsDivisor": 12,
+      "hangTimeCenter": 70,
+      "hangTimeDivisor": 8,
+      "yardsMin": 0,
+      "yardsMax": 28,
+      "fumbleBase": 0.008,
+      "ballSecurityCenter": 72,
+      "ballSecurityDivisor": 450,
+      "handsFumbleCenter": 72,
+      "handsFumbleDivisor": 700,
+      "fumbleMin": 0.003,
+      "fumbleMax": 0.04
+    }
+  }
+}

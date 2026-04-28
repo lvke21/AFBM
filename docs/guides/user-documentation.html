@@ -1,0 +1,1485 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AFBM Manager - Anwenderdokumentation und Projektbewertung</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7f5;
+        --paper: #ffffff;
+        --ink: #17201b;
+        --muted: #5d6b63;
+        --line: #dce5df;
+        --accent: #116b4f;
+        --accent-soft: #e6f3ee;
+        --warn: #8a5b12;
+        --warn-soft: #fff5db;
+        --bad: #9b2f2f;
+        --bad-soft: #fde9e9;
+        --blue: #24577a;
+        --blue-soft: #e7f0f6;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 16px/1.62 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 36px 0 64px;
+      }
+
+      header,
+      section {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 28px;
+        margin-bottom: 18px;
+      }
+
+      header {
+        border-top: 6px solid var(--accent);
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        letter-spacing: 0;
+      }
+
+      h2 {
+        font-size: 1.55rem;
+        margin-bottom: 12px;
+      }
+
+      h3 {
+        font-size: 1.08rem;
+        margin: 18px 0 8px;
+      }
+
+      p {
+        margin: 8px 0;
+      }
+
+      ul,
+      ol {
+        margin: 10px 0 0;
+        padding-left: 22px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        font-size: 0.95rem;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 10px 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .subtitle {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 1.08rem;
+        max-width: 820px;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #f9fbfa;
+        padding: 6px 10px;
+        color: var(--muted);
+        font-size: 0.88rem;
+        font-weight: 650;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
+        margin-top: 14px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        background: #fbfdfc;
+      }
+
+      .card strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .example {
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        padding: 14px 16px;
+        border-radius: 6px;
+        margin-top: 14px;
+      }
+
+      .note {
+        background: var(--blue-soft);
+        border: 1px solid #cfe1eb;
+        border-radius: 8px;
+        padding: 14px 16px;
+        color: #17394f;
+        margin-top: 14px;
+      }
+
+      .warning {
+        background: var(--warn-soft);
+        border: 1px solid #efd69c;
+        border-radius: 8px;
+        padding: 14px 16px;
+        color: #5b3b08;
+        margin-top: 14px;
+      }
+
+      .status {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        background: #fbfdfc;
+      }
+
+      .metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 1.45rem;
+      }
+
+      .progress {
+        height: 12px;
+        border-radius: 999px;
+        background: #e5ebe7;
+        overflow: hidden;
+        margin: 10px 0;
+      }
+
+      .progress div {
+        height: 100%;
+        background: var(--accent);
+        width: 70%;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-top: 14px;
+      }
+
+      .ok {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .risk {
+        color: var(--bad);
+        font-weight: 700;
+      }
+
+      .small {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .loop {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .loop-step {
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fbfdfc;
+      }
+
+      .loop-step span {
+        display: inline-flex;
+        width: 28px;
+        height: 28px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: var(--accent);
+        color: white;
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+
+      .summary-list {
+        columns: 2;
+        column-gap: 28px;
+      }
+
+      .toc {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 8px 18px;
+        margin-top: 18px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .toc a {
+        color: var(--accent);
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .toc a:hover {
+        text-decoration: underline;
+      }
+
+      .feedback-table td:first-child {
+        width: 55%;
+      }
+
+      .answer-line {
+        display: inline-block;
+        min-width: 120px;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+      }
+
+      @media (max-width: 760px) {
+        .summary-list {
+          columns: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>AFBM Manager</h1>
+        <p class="subtitle">
+          Anwenderfreundliche Dokumentation der Football-Manager-Software mit Projektkennzahlen,
+          Fortschrittsbewertung und realistischem Blick auf den aktuellen Produktstand.
+        </p>
+        <div class="meta">
+          <span class="pill">Zielgruppe: Auftraggeber und Nicht-Techniker</span>
+          <span class="pill">Fokus: sichtbare Features und Entscheidungen</span>
+          <span class="pill">Status: erste spielbare Produktbasis</span>
+        </div>
+        <div class="note">
+          <strong>Lesehinweis:</strong>
+          Die Kapitel 1 bis 13 erklaeren das Spiel aus Anwendersicht. Die Kapitel 14 bis 29
+          bewerten Produktpositionierung, Zielgruppe, Risiken und naechste Schritte fuer
+          Auftraggeber und Entscheider.
+        </div>
+      </header>
+
+      <section>
+        <h2>Inhaltsuebersicht</h2>
+        <ul class="toc">
+          <li><a href="#kapitel-1">1. Einleitung</a></li>
+          <li><a href="#kapitel-2">2. Team Management</a></li>
+          <li><a href="#kapitel-3">3. Spieler und Ratings</a></li>
+          <li><a href="#kapitel-4">4. Spielerrollen</a></li>
+          <li><a href="#kapitel-5">5. Player Value / Value Score</a></li>
+          <li><a href="#kapitel-6">6. Transfers und Trades</a></li>
+          <li><a href="#kapitel-7">7. Roster-Entscheidungen</a></li>
+          <li><a href="#kapitel-8">8. Spielvorbereitung</a></li>
+          <li><a href="#kapitel-9">9. Spielsimulation</a></li>
+          <li><a href="#kapitel-10">10. Strategische Entscheidungen</a></li>
+          <li><a href="#kapitel-13">13. Projektstatus</a></li>
+          <li><a href="#kapitel-16">16. Core Game Loop</a></li>
+          <li><a href="#kapitel-24">24. Erweiterungspotenzial</a></li>
+          <li><a href="#kapitel-27">27. Roadmap</a></li>
+          <li><a href="#kapitel-29">29. Executive Summary</a></li>
+          <li><a href="#feedback">Feedback und Bewertung</a></li>
+        </ul>
+      </section>
+
+      <section id="kapitel-1">
+        <h2>1. Einleitung</h2>
+        <p>
+          AFBM Manager ist ein American-Football-Manager-Spiel. Der Spieler uebernimmt die Rolle
+          eines Teamverantwortlichen und trifft Entscheidungen rund um Kader, Aufstellung,
+          Spielerentwicklung, Finanzen, Transfers und Spielvorbereitung.
+        </p>
+        <p>
+          Das Ziel ist nicht nur, einzelne Spiele zu gewinnen. Der Spieler soll ein Team ueber eine
+          Saison hinweg fuehren, Staerken ausbauen, Schwachstellen erkennen und langfristig bessere
+          Entscheidungen treffen.
+        </p>
+        <div class="example">
+          <strong>Grundprinzip:</strong>
+          Ein guter Manager stellt nicht automatisch die Spieler mit dem hoechsten Gesamtwert auf.
+          Er prueft, wer zur Rolle passt, wer Entwicklungspotenzial hat, wer zu teuer ist und ob
+          die Aufstellung fuer den naechsten Spieltag bereit ist.
+        </div>
+      </section>
+
+      <section id="kapitel-2">
+        <h2>2. Team Management</h2>
+        <p>
+          Das Team Management ist der zentrale Arbeitsbereich fuer Kaderentscheidungen. Hier sieht
+          der Spieler, welche Spieler im Team sind, welche Positionen besetzt sind und wo akuter
+          Handlungsbedarf besteht.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <strong>Roster</strong>
+            Der Roster ist der Kader. Er zeigt alle Spieler des Teams mit Position, Status,
+            Bewertung, Vertrag und Rolle.
+          </div>
+          <div class="card">
+            <strong>Depth Chart</strong>
+            Die Depth Chart ist die Aufstellung nach Position. Sie legt fest, wer Starter ist und
+            wer als Ersatz oder Rotation bereitsteht.
+          </div>
+          <div class="card">
+            <strong>Starter</strong>
+            Starter sind die wichtigsten aktiven Spieler einer Position. Sie haben den groessten
+            Einfluss auf die Leistung im Spiel.
+          </div>
+          <div class="card">
+            <strong>Rotation, Backup, Inaktiv</strong>
+            Rotation und Backups geben Tiefe. Inaktive Spieler sind nicht fuer den Spieltag
+            vorgesehen und sollten bewusst gesetzt werden.
+          </div>
+        </div>
+        <p>
+          Diese Entscheidungen sind wichtig, weil die Simulation auf der tatsaechlichen Aufstellung
+          und Kaderqualitaet aufbaut. Ein guter Spieler hilft nur, wenn er sinnvoll eingesetzt wird.
+        </p>
+      </section>
+
+      <section id="kapitel-3">
+        <h2>3. Spieler und Ratings</h2>
+        <p>
+          Jeder Spieler wird ueber mehrere gut verstaendliche Merkmale bewertet. Sie helfen dabei,
+          kurzfristige Leistung und langfristigen Wert zu unterscheiden.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Merkmal</th>
+              <th>Bedeutung</th>
+              <th>Nutzen fuer Entscheidungen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Overall Rating (OVR)</td>
+              <td>Aktuelle Gesamtstaerke eines Spielers auf seiner Position.</td>
+              <td>Hilft, sofortige sportliche Qualitaet einzuschaetzen.</td>
+            </tr>
+            <tr>
+              <td>Potential</td>
+              <td>Moegliche Entwicklung eines Spielers.</td>
+              <td>Wichtig fuer junge Spieler und langfristigen Teamaufbau.</td>
+            </tr>
+            <tr>
+              <td>Alter</td>
+              <td>Einordnung zwischen Entwicklung, Prime und moeglichem Leistungsabfall.</td>
+              <td>Hilft bei Vertrags- und Entwicklungsentscheidungen.</td>
+            </tr>
+            <tr>
+              <td>Archetyp</td>
+              <td>Spielertyp, zum Beispiel kraftvoller Runner oder passstarker Quarterback.</td>
+              <td>Erklaert, wie ein Spieler eingesetzt werden sollte.</td>
+            </tr>
+            <tr>
+              <td>Scheme Fit</td>
+              <td>Wie gut ein Spieler zur Teamidentitaet passt.</td>
+              <td>Zeigt, ob Leistung und System zusammenpassen.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="two-col">
+          <div class="example">
+            <strong>Junger Spieler mit Potential</strong>
+            Ein 22-jaehriger Wide Receiver mit mittlerem OVR, aber hohem Potential, ist vielleicht
+            noch kein Starter. Er kann trotzdem wertvoll sein, wenn er eine Entwicklungsrolle bekommt.
+          </div>
+          <div class="example">
+            <strong>Erfahrener Starter</strong>
+            Ein 29-jaehriger Linebacker mit hohem OVR und gutem Scheme Fit ist ein verlaesslicher
+            Soforthelfer, auch wenn sein Entwicklungsspielraum kleiner ist.
+          </div>
+          <div class="example">
+            <strong>Spezialist</strong>
+            Ein Kicker, Punter oder Return-Spieler ist nicht wegen jeder Statistik wertvoll,
+            sondern wegen einer klaren Spezialaufgabe.
+          </div>
+        </div>
+      </section>
+
+      <section id="kapitel-4">
+        <h2>4. Spielerrollen</h2>
+        <p>
+          Spielerrollen uebersetzen viele Einzelwerte in einfache Labels. Sie helfen, schnell zu
+          verstehen, warum ein Spieler fuer das Team wichtig ist.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <strong>Starter Fit</strong>
+            Ein Spieler passt aktuell gut in die Startaufstellung. Er kombiniert ausreichende
+            Qualitaet mit passender Rolle oder Systemnaehe.
+          </div>
+          <div class="card">
+            <strong>Development Player</strong>
+            Ein Spieler ist vor allem wegen seiner Zukunft interessant. Er braucht Spielzeit,
+            Fokus oder eine klare Rolle.
+          </div>
+          <div class="card">
+            <strong>Depth Player</strong>
+            Ein Spieler sorgt fuer Kadertiefe. Er ist wichtig als Absicherung, aber nicht zwingend
+            als erste Option.
+          </div>
+          <div class="card">
+            <strong>Specialist</strong>
+            Ein Spieler hat eine konkrete Spezialaufgabe, etwa Special Teams, Kicking, Punting oder
+            Return-Spiel.
+          </div>
+        </div>
+        <p>
+          Der Nutzen liegt in der schnelleren Entscheidung: Soll der Spieler starten, entwickelt
+          werden, als Backup bleiben oder wegen seiner Spezialrolle behalten werden?
+        </p>
+      </section>
+
+      <section id="kapitel-5">
+        <h2>5. Player Value / Value Score</h2>
+        <p>
+          Der Value Score bewertet, ob ein Spieler fuer seine Rolle, Qualitaet, Passung und Kosten
+          ein guter Deal ist. Es geht also nicht nur darum, wie stark ein Spieler ist, sondern ob er
+          den Preis und die Kaderrolle rechtfertigt.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Label</th>
+              <th>Bedeutung</th>
+              <th>Typische Entscheidung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Great Value</td>
+              <td>Sehr guter Gegenwert aus Leistung, Kosten, Fit und Team Need.</td>
+              <td>Verpflichten, behalten oder gezielt entwickeln.</td>
+            </tr>
+            <tr>
+              <td>Fair Value</td>
+              <td>Angemessener Wert ohne klaren Rabatt oder grosses Risiko.</td>
+              <td>Solide Option, aber nicht blind ueberbezahlen.</td>
+            </tr>
+            <tr>
+              <td>Expensive</td>
+              <td>Der Spieler ist fuer Rolle oder Leistung teuer.</td>
+              <td>Vertrag pruefen, Trade erwaegen, Alternativen suchen.</td>
+            </tr>
+            <tr>
+              <td>Low Fit</td>
+              <td>Der Spieler passt schlecht zum Team oder Bedarf.</td>
+              <td>Nur verpflichten, wenn es einen besonderen Grund gibt.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="example">
+          <strong>Beispiel:</strong>
+          Ein guenstiger 24-jaehriger Cornerback mit gutem Scheme Fit und mittlerem OVR kann
+          wertvoller sein als ein teurer Veteran, der zwar etwas staerker ist, aber kaum ins System
+          passt.
+        </div>
+      </section>
+
+      <section id="kapitel-6">
+        <h2>6. Transfers und Trades</h2>
+        <p>
+          Trades erlauben einfache Spielerwechsel. Die aktuelle Version ist bewusst uebersichtlich:
+          Der Spieler kann einen Spieler gegen einen anderen Spieler tauschen oder mit einem
+          einfachen Zukunftswert arbeiten.
+        </p>
+        <p>Eine Trade-Bewertung beruecksichtigt vor allem:</p>
+        <ul>
+          <li>den Value Score der beteiligten Spieler,</li>
+          <li>den Bedarf des anderen Teams,</li>
+          <li>die Gehalts- und Budgetwirkung,</li>
+          <li>die erlaubte Kadergroesse.</li>
+        </ul>
+        <div class="two-col">
+          <div class="example">
+            <strong>Fairer Trade</strong>
+            Das eigene Team gibt einen Wide Receiver ab, den es nicht dringend braucht. Das andere
+            Team hat genau auf dieser Position Bedarf. Im Gegenzug kommt ein Cornerback, der beim
+            eigenen Team eine Luecke schliesst.
+          </div>
+          <div class="warning">
+            <strong>Schlechter Trade</strong>
+            Das eigene Team moechte einen sehr wertvollen Starter bekommen, gibt aber nur einen
+            teuren Backup ohne Bedarf beim anderen Team ab. Ein solches Angebot wird wahrscheinlich
+            abgelehnt.
+          </div>
+        </div>
+      </section>
+
+      <section id="kapitel-7">
+        <h2>7. Roster-Entscheidungen</h2>
+        <p>
+          Die Roster Decision Inbox zeigt wenige, priorisierte Hinweise. Sie soll nicht alle Daten
+          wiederholen, sondern konkrete Entscheidungen sichtbar machen.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <strong>Starter fehlt</strong>
+            Eine Position hat keinen klaren ersten Spieler. Empfehlung: Depth Chart pruefen und
+            Slot 1 setzen.
+          </div>
+          <div class="card">
+            <strong>Spieler zu teuer</strong>
+            Ein Backup bindet zu viel Budget. Empfehlung: Vertrag, Trade oder Ersatz pruefen.
+          </div>
+          <div class="card">
+            <strong>Trade-Chance</strong>
+            Ein Spieler oder Need passt zu einer moeglichen Kaderentscheidung. Empfehlung: Trade
+            Desk oeffnen.
+          </div>
+          <div class="card">
+            <strong>Development ohne Rolle</strong>
+            Ein junger Spieler hat Potential, aber keine klare Aufgabe. Empfehlung: Rolle oder
+            Entwicklungsfokus setzen.
+          </div>
+        </div>
+      </section>
+
+      <section id="kapitel-8">
+        <h2>8. Spielvorbereitung</h2>
+        <p>
+          Vor einem Spiel sollte der Spieler pruefen, ob die Aufstellung bereit ist. Besonders
+          wichtig sind klare Starter, keine Slot-Konflikte und eine sinnvolle Verteilung zwischen
+          Starter, Rotation und Backup.
+        </p>
+        <div class="note">
+          <strong>Readiness:</strong>
+          Eine gute Depth-Chart-Readiness bedeutet, dass die wichtigsten Positionen besetzt sind und das
+          Team ohne offensichtliche Aufstellungsprobleme in den Spieltag geht.
+        </div>
+        <p>
+          Falsche Entscheidungen koennen das Spiel indirekt verschlechtern: Ein starker Spieler auf
+          der falschen Rolle, ein leerer Starter-Slot oder ein ignorierter Backup kann das Team
+          weniger stabil machen.
+        </p>
+      </section>
+
+      <section id="kapitel-9">
+        <h2>9. Spielsimulation auf hoher Ebene</h2>
+        <p>
+          Spiele werden automatisch simuliert. Der Spieler steuert nicht jeden einzelnen Spielzug,
+          beeinflusst aber die Voraussetzungen: Kaderqualitaet, Aufstellung, Rollen, Scheme Fit und
+          Teamzustand.
+        </p>
+        <p>
+          Vereinfacht gesagt: Gute Spieler, klare Aufstellungen und passende Rollen erhoehen die
+          Chance auf bessere Leistungen. Trotzdem bleibt Football unsicher. Auch ein gutes Team kann
+          Fehler machen, und ein Underdog kann durch gute Entscheidungen konkurrenzfaehiger wirken.
+        </p>
+        <div class="warning">
+          Die Simulation wird hier bewusst ohne Formeln erklaert. Fuer den Anwender ist entscheidend:
+          Entscheidungen vor dem Spiel sollen nachvollziehbar sein und nach dem Spiel bewertet
+          werden koennen.
+        </div>
+      </section>
+
+      <section id="kapitel-10">
+        <h2>10. Strategische Entscheidungen</h2>
+        <p>
+          Das Spiel lebt vom Abwaegen. Viele Entscheidungen haben eine kurzfristige und eine
+          langfristige Seite.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <strong>Kurzfristig gewinnen</strong>
+            Erfahrene Starter, sichere Rollen und direkte Kaderverbesserungen helfen sofort.
+          </div>
+          <div class="card">
+            <strong>Langfristig aufbauen</strong>
+            Junge Spieler mit Potential brauchen Geduld, Rollen und Entwicklungschancen.
+          </div>
+          <div class="card">
+            <strong>Kosten gegen Leistung</strong>
+            Ein teurer Star ist nur dann sinnvoll, wenn er genug Wirkung bringt und das Budget
+            nicht blockiert.
+          </div>
+          <div class="card">
+            <strong>Fit gegen reines Rating</strong>
+            Ein Spieler mit etwas niedrigerem OVR kann die bessere Entscheidung sein, wenn er zum
+            Team passt.
+          </div>
+        </div>
+      </section>
+
+      <section id="kapitel-11">
+        <h2>11. Typische Spielerfehler</h2>
+        <ul>
+          <li><strong>Nur auf OVR achten:</strong> Potential, Fit, Kosten und Rolle sind ebenfalls wichtig.</li>
+          <li><strong>Depth Chart ignorieren:</strong> Gute Spieler helfen weniger, wenn die Aufstellung unklar ist.</li>
+          <li><strong>Zu viele teure Spieler sammeln:</strong> Budgetdruck verhindert spaetere Verbesserungen.</li>
+          <li><strong>Entwicklung vernachlaessigen:</strong> Junge Spieler brauchen eine erkennbare Aufgabe.</li>
+          <li><strong>Specialists unterschaetzen:</strong> Special Teams koennen Spiele stabilisieren.</li>
+          <li><strong>Trades erzwingen:</strong> Ein Trade muss auch fuer das andere Team sinnvoll sein.</li>
+        </ul>
+      </section>
+
+      <section id="kapitel-12">
+        <h2>12. Quick Start Guide</h2>
+        <ol>
+          <li><strong>Kader pruefen:</strong> Schaue dir Roster, OVR, Potential, Alter, Rollen und Value an.</li>
+          <li><strong>Depth Chart setzen:</strong> Stelle sicher, dass wichtige Positionen klare Starter haben.</li>
+          <li><strong>Rollen verstehen:</strong> Nutze Starter Fit, Development, Depth und Specialist als Entscheidungshilfe.</li>
+          <li><strong>Value pruefen:</strong> Behalte Great Value-Spieler im Blick und hinterfrage teure Backups.</li>
+          <li><strong>Spiel vorbereiten:</strong> Kontrolliere Readiness und behebe Warnungen.</li>
+          <li><strong>Spiel starten:</strong> Simuliere das Match und bewerte danach Ergebnis, Fortschritt und offene Aufgaben.</li>
+        </ol>
+      </section>
+
+      <section id="kapitel-13">
+        <h2>13. Projektstatus und Kennzahlen</h2>
+
+        <h3>13.1 Codeumfang</h3>
+        <p>
+          Die folgenden Werte wurden aus dem lokalen Projektbestand ermittelt. Gezählt wurden
+          nicht-leere, nicht-kommentarhafte Zeilen in TypeScript/TSX/MJS/Prisma-Dateien. HTML- und
+          Markdown-Dokumentation wurde nicht als Code gezaehlt.
+        </p>
+        <div class="status">
+          <div class="metric">
+            <span>Gesamtumfang inklusive Tests und Skripten</span>
+            <strong>ca. 105.000 LoC</strong>
+          </div>
+          <div class="metric">
+            <span>Anwendung, Spiellogik und Datenmodell</span>
+            <strong>ca. 63.800 LoC</strong>
+          </div>
+          <div class="metric">
+            <span>Tests</span>
+            <strong>ca. 19.800 LoC</strong>
+          </div>
+          <div class="metric">
+            <span>QA-, Seed- und Simulationsskripte</span>
+            <strong>ca. 21.500 LoC</strong>
+          </div>
+        </div>
+        <p class="small">
+          Einordnung: Fuer ein Einzelprojekt ist das ein mittelgrosser bis grosser Prototyp. Fuer
+          ein kommerzielles Sport-Management-Spiel ist es eine solide erste Produktbasis, aber noch
+          nicht der Umfang eines voll ausgebauten Releases.
+        </p>
+
+        <h3>13.2 Entwicklungsaufwand (Schaetzung)</h3>
+        <p>
+          <strong>Schaetzung:</strong> Der bisherige Entwicklungswert liegt plausibel bei etwa
+          <strong>450 bis 750 Stunden</strong>. Diese Spanne beruecksichtigt den sichtbaren
+          Featureumfang, die Simulation, Kaderlogik, UI, Tests, Balancing-Auswertungen und
+          Dokumentation.
+        </p>
+        <p class="small">
+          Die Zahl ist keine Zeiterfassung. Sie ist eine fundierte Aufwandsschaetzung auf Basis von
+          Umfang, Komplexitaet und vorhandenen Artefakten.
+        </p>
+
+        <h3>13.3 Projektfortschritt</h3>
+        <p>
+          <strong>Realistische Bewertung fuer eine erste spielbare Version:</strong>
+          <strong>ca. 70&nbsp;%</strong>.
+        </p>
+        <div class="progress"><div></div></div>
+        <div class="two-col">
+          <div class="card">
+            <strong class="ok">Vorhanden</strong>
+            <ul>
+              <li>Grundlegender Game Loop mit Savegame, Saison und Woche</li>
+              <li>Automatische Spielsimulation</li>
+              <li>Roster Management und Depth Chart</li>
+              <li>Spielerrollen und Value Score</li>
+              <li>Free Agency und einfache Trades</li>
+              <li>Decision Inbox und Spielvorbereitung</li>
+              <li>sichtbare Team-, Spieler-, Match- und Finanzbereiche</li>
+            </ul>
+          </div>
+          <div class="card">
+            <strong class="risk">Fehlt oder braucht Ausbau</strong>
+            <ul>
+              <li>mehr UX-Feinschliff und bessere Fuehrung fuer neue Spieler</li>
+              <li>laengeres Balancing ueber viele Saisons</li>
+              <li>mehr Content, Teams, Events und langfristige Storylines</li>
+              <li>stabilere Release-Prozesse und Fehlerbehandlung</li>
+              <li>mehr Komfort in Trades, Vertragen und Offseason-Entscheidungen</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>13.4 Spielbar vs. produktionsreif</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Bewertung</th>
+              <th>Einordnung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Technisch spielbar</td>
+              <td><span class="ok">Ja, als erste spielbare Version</span></td>
+              <td>Der Spieler kann ein Team verwalten, Spiele vorbereiten, simulieren und Kaderentscheidungen treffen.</td>
+            </tr>
+            <tr>
+              <td>Produktionsreif</td>
+              <td><span class="risk">Noch nicht vollstaendig</span></td>
+              <td>Fuer einen oeffentlichen Release fehlen Feinschliff, Langzeitbalancing, Content-Tiefe und Release-Haertung.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>13.5 Risiken und offene Punkte</h3>
+        <ul>
+          <li><strong>Balancing-Risiko:</strong> Sportmanager brauchen viele Langzeittests, damit Strategien nicht zu dominant werden.</li>
+          <li><strong>Komplexitaetsrisiko:</strong> Roster, Value, Rollen und Trades muessen einfach bleiben, damit neue Spieler nicht ueberfordert werden.</li>
+          <li><strong>Content-Risiko:</strong> Ohne mehr Ereignisse, Teamgeschichten und Saisonvarianten kann die Langzeitmotivation begrenzt sein.</li>
+          <li><strong>Release-Risiko:</strong> Produktionsreife braucht robuste Fehlerfaelle, klare Onboarding-Flows und dauerhafte Testabdeckung.</li>
+          <li><strong>Produktklarheit:</strong> Die vorhandenen Systeme sind stark, muessen aber fuer Endnutzer noch konsistenter erklaert und gefuehrt werden.</li>
+        </ul>
+      </section>
+
+      <section id="kapitel-14">
+        <h2>14. Produktuebersicht und Positionierung</h2>
+        <p>
+          AFBM Manager ist ein entscheidungsorientierter Football Manager. Im Mittelpunkt steht
+          nicht die direkte Steuerung auf dem Spielfeld, sondern die Frage: Welche Entscheidungen
+          machen ein Team besser?
+        </p>
+        <p>
+          Im Vergleich zu klassischen Football-Managern reduziert das Spiel bewusst manche
+          Komplexitaet, damit Entscheidungen schneller verstanden werden. Im Vergleich zu modernen
+          Sports Games liegt der Fokus weniger auf Action, Inszenierung oder Controller-Fertigkeit,
+          sondern auf Analyse, Abwaegung und Teamaufbau.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <strong>Simulationstiefe</strong>
+            Spielerqualitaet, Aufstellung, Rollen und Fit wirken zusammen. Das Spiel vermittelt
+            sportliche Zusammenhaenge, ohne den Spieler mit Formeln zu belasten.
+          </div>
+          <div class="card">
+            <strong>Bedienbarkeit</strong>
+            Labels wie Starter Fit, Great Value oder Expensive helfen, komplexe Informationen
+            schnell zu verstehen.
+          </div>
+          <div class="card">
+            <strong>Entscheidungsorientierung</strong>
+            Jede wichtige Ansicht fuehrt zu einer Handlung: aufstellen, entwickeln, traden,
+            verpflichten oder beobachten.
+          </div>
+        </div>
+      </section>
+
+      <section id="kapitel-15">
+        <h2>15. Zielgruppe</h2>
+        <p>
+          Das Spiel spricht Spieler an, die gerne planen, vergleichen und Entscheidungen ueber Zeit
+          wirken sehen. Es ist besonders geeignet fuer Nutzer, die Football moegen, aber kein
+          extrem komplexes Tabellenprodukt lernen wollen.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Zielgruppe</th>
+              <th>Was spricht sie an?</th>
+              <th>Wichtiger Nutzen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Kernzielgruppe: Football-Fans mit Management-Interesse</td>
+              <td>Roster, Depth Chart, Trades, Spielerentwicklung und Spielsimulation.</td>
+              <td>Das Gefuehl, ein Team wirklich zu formen.</td>
+            </tr>
+            <tr>
+              <td>Casual Manager-Spieler</td>
+              <td>Klare Hinweise, Rollenlabels und schnelle Entscheidungen.</td>
+              <td>Management ohne ueberfordernde Detailtiefe.</td>
+            </tr>
+            <tr>
+              <td>Strategie-Spieler</td>
+              <td>Kurzfristige und langfristige Abwaegungen.</td>
+              <td>Planung, Risiko und Optimierung ueber mehrere Wochen.</td>
+            </tr>
+            <tr>
+              <td>Auftraggeber und Produkt-Stakeholder</td>
+              <td>Ein skalierbares Spielsystem mit sichtbaren Erweiterungspfaden.</td>
+              <td>Gute Grundlage fuer ein wachsendes Managementprodukt.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="kapitel-16">
+        <h2>16. Core Game Loop</h2>
+        <p>
+          Der wichtigste Spielzyklus ist einfach zu verstehen und kann immer wieder durchlaufen
+          werden. Dadurch entsteht Fortschritt: Der Spieler lernt aus Ergebnissen und passt sein
+          Team an.
+        </p>
+        <div class="loop">
+          <div class="loop-step">
+            <span>1</span>
+            <strong>Team analysieren</strong>
+            <p>Kader, Rollen, Value, Needs und Aufstellung pruefen.</p>
+          </div>
+          <div class="loop-step">
+            <span>2</span>
+            <strong>Entscheidungen treffen</strong>
+            <p>Starter setzen, Spieler entwickeln, Free Agents oder Trades bewerten.</p>
+          </div>
+          <div class="loop-step">
+            <span>3</span>
+            <strong>Spiel simulieren</strong>
+            <p>Das Spiel laeuft auf Basis von Teamqualitaet und Vorbereitung.</p>
+          </div>
+          <div class="loop-step">
+            <span>4</span>
+            <strong>Ergebnis auswerten</strong>
+            <p>Score, Leistung, Fortschritt und offene Probleme verstehen.</p>
+          </div>
+          <div class="loop-step">
+            <span>5</span>
+            <strong>Team anpassen</strong>
+            <p>Neue Erkenntnisse in Roster, Depth Chart und Strategie uebertragen.</p>
+          </div>
+        </div>
+        <div class="example">
+          <strong>Warum dieser Loop wichtig ist:</strong>
+          Er macht aus einzelnen Spielen eine Management-Erfahrung. Der Spieler erkennt Muster,
+          reagiert darauf und baut sein Team Schritt fuer Schritt um.
+        </div>
+      </section>
+
+      <section id="kapitel-17">
+        <h2>17. Entscheidungstiefe</h2>
+        <p>
+          Die Entscheidungstiefe entsteht nicht durch viele isolierte Menues, sondern durch Systeme,
+          die sich gegenseitig erklaeren.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <strong>Depth Chart</strong>
+            Entscheidet, wer auf dem Feld die wichtigste Rolle bekommt. Fehler hier wirken direkt
+            auf die Spielvorbereitung.
+          </div>
+          <div class="card">
+            <strong>Roles</strong>
+            Erklaeren, warum ein Spieler in einer bestimmten Funktion sinnvoll ist.
+          </div>
+          <div class="card">
+            <strong>Value</strong>
+            Hilft, Leistung, Fit, Bedarf und Kosten gemeinsam zu bewerten.
+          </div>
+          <div class="card">
+            <strong>Trades und Free Agency</strong>
+            Machen Value und Team Needs zu konkreten Kaderentscheidungen.
+          </div>
+        </div>
+        <p>
+          Dadurch hat der Spieler echte Wahlmoeglichkeiten: sofort staerker werden, Budget sparen,
+          junge Spieler entwickeln oder gezielt eine Schwachstelle schliessen.
+        </p>
+      </section>
+
+      <section id="kapitel-18">
+        <h2>18. Realismus vs. Spielbarkeit</h2>
+        <p>
+          Das Spiel ist dort realistisch, wo Managemententscheidungen spuerbar und plausibel sein
+          muessen. Es ist bewusst vereinfacht, wo echte Football-Komplexitaet den Spielfluss
+          bremsen wuerde.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Realistisch</th>
+              <th>Bewusst vereinfacht</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Kaderrollen, Starter, Backups und Positionsbedarf.</td>
+              <td>Keine vollstaendige Vertrags- und Verhandlungsjuristerei.</td>
+            </tr>
+            <tr>
+              <td>Spielerwert haengt von Leistung, Fit, Alter und Kosten ab.</td>
+              <td>Trades sind in V1 auf einfache Angebotsformen reduziert.</td>
+            </tr>
+            <tr>
+              <td>Aufstellung und Teamqualitaet beeinflussen Spiele.</td>
+              <td>Keine manuelle Steuerung jedes Spielzugs durch den Nutzer.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note">
+          Fuer Auftraggeber ist diese Balance wichtig: Das Produkt kann Tiefe zeigen, ohne nur fuer
+          Hardcore-Nutzer bedienbar zu sein.
+        </div>
+      </section>
+
+      <section id="kapitel-19">
+        <h2>19. Unique Selling Points</h2>
+        <ul>
+          <li><strong>Klare Entscheidungsfuehrung:</strong> Das Spiel sagt nicht nur, was ein Spieler wert ist, sondern warum.</li>
+          <li><strong>Reduzierte Komplexitaet:</strong> Football-Management wird in handhabbare Entscheidungen uebersetzt.</li>
+          <li><strong>Schnelle Iteration:</strong> Analyse, Entscheidung, Simulation und Auswertung koennen in kurzen Zyklen passieren.</li>
+          <li><strong>Underdog- und Fortschrittslogik:</strong> Auch schwache Teams bekommen sinnvolle Ziele jenseits von Siegen.</li>
+          <li><strong>Gute Erweiterbarkeit:</strong> Rollen, Value, Trades, Inbox und Simulation koennen Schritt fuer Schritt vertieft werden.</li>
+        </ul>
+      </section>
+
+      <section id="kapitel-20">
+        <h2>20. System-Zusammenspiel</h2>
+        <p>
+          Die wichtigsten Spielsysteme bilden eine Kette. Eine Information fuehrt zur naechsten
+          Entscheidung.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <strong>Ratings</strong>
+            Zeigen die aktuelle und moegliche Qualitaet eines Spielers.
+          </div>
+          <div class="card">
+            <strong>Roles</strong>
+            Uebersetzen Ratings, Alter und Fit in eine einfache Bedeutung.
+          </div>
+          <div class="card">
+            <strong>Value</strong>
+            Bewertet, ob Rolle, Kosten und Bedarf zusammenpassen.
+          </div>
+          <div class="card">
+            <strong>Depth Chart</strong>
+            Macht aus Bewertung eine konkrete Aufstellungsentscheidung.
+          </div>
+          <div class="card">
+            <strong>Trades</strong>
+            Nutzen Value und Need, um Kaderprobleme zu loesen.
+          </div>
+        </div>
+        <div class="example">
+          <strong>Ursache-Wirkung:</strong>
+          Ein junger Spieler mit hohem Potential wird als Development Player erkannt. Wenn er keine
+          Rolle hat, meldet die Inbox ein Problem. Der Spieler kann ihm einen Platz im Depth Chart
+          oder Entwicklungsfokus geben.
+        </div>
+      </section>
+
+      <section id="kapitel-21">
+        <h2>21. Beispiel-Szenarien</h2>
+        <div class="two-col">
+          <div class="example">
+            <strong>Szenario 1: Schwaches Team verbessern</strong>
+            Das Team verliert oft knapp. Die Inbox zeigt offene Starter-Slots und einen hohen Need
+            auf Cornerback. Der Spieler setzt erst die Depth Chart sauber, sucht danach einen
+            Great-Value-Free-Agent und bewertet einen Trade fuer einen teuren Backup. Ergebnis:
+            Das Team muss nicht sofort Favorit werden, wirkt aber strukturierter.
+          </div>
+          <div class="example">
+            <strong>Szenario 2: Junger Spieler entwickeln</strong>
+            Ein 22-jaehriger Receiver hat hohes Potential, aber noch keinen Starterwert. Das Spiel
+            markiert ihn als Development Player. Der Spieler gibt ihm eine klare Backup- oder
+            Rotationsrolle und beobachtet seine Entwicklung ueber mehrere Wochen.
+          </div>
+          <div class="warning">
+            <strong>Szenario 3: Falsche Entscheidungen</strong>
+            Der Spieler achtet nur auf OVR, ignoriert Scheme Fit und laesst einen Starter-Slot
+            offen. Im Spiel wirkt das Team instabil. Nach dem Spiel zeigen Auswertung und Inbox,
+            dass die Vorbereitung nicht sauber war.
+          </div>
+        </div>
+      </section>
+
+      <section id="kapitel-22">
+        <h2>22. Spieler-Erfahrung (UX)</h2>
+        <p>
+          Das Spielgefuehl ist eher ruhig, analytisch und entscheidungsorientiert. Der Spieler soll
+          nicht durch Animationen oder Aktion getrieben werden, sondern durch klare Fragen:
+        </p>
+        <ul>
+          <li>Wer sollte starten?</li>
+          <li>Wer passt ins System?</li>
+          <li>Wer ist zu teuer?</li>
+          <li>Welche Position braucht Hilfe?</li>
+          <li>Was ist die beste naechste Entscheidung?</li>
+        </ul>
+        <p>
+          Die UI ist auf schnelle Orientierung ausgelegt. Labels, Warnungen und kompakte
+          Entscheidungshilfen reduzieren den Aufwand, aus vielen Daten eine Handlung abzuleiten.
+        </p>
+      </section>
+
+      <section id="kapitel-23">
+        <h2>23. Balance und Game Design</h2>
+        <p>
+          Die Balance ist darauf ausgelegt, dass nicht ein einzelner Wert alles entscheidet. OVR ist
+          wichtig, aber nicht allein ausschlaggebend.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <strong>OVR</strong>
+            Zeigt direkte Staerke, darf aber nicht alle Entscheidungen dominieren.
+          </div>
+          <div class="card">
+            <strong>Fit</strong>
+            Belohnt Spieler, die zum Team passen.
+          </div>
+          <div class="card">
+            <strong>Alter und Potential</strong>
+            Sorgen fuer langfristige Planung.
+          </div>
+          <div class="card">
+            <strong>Kosten</strong>
+            Verhindern, dass die beste Loesung immer nur der teuerste Spieler ist.
+          </div>
+        </div>
+        <p>
+          Dadurch entsteht strategische Vielfalt: Ein Team kann kurzfristig gewinnen, guenstig
+          umbauen oder junge Spieler entwickeln.
+        </p>
+      </section>
+
+      <section id="kapitel-24">
+        <h2>24. Erweiterungspotenzial</h2>
+        <p>
+          Das Projekt besitzt gute Ansatzpunkte fuer Ausbau, ohne die bestehende Basis wegwerfen zu
+          muessen.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Ausbau</th>
+              <th>Mehrwert</th>
+              <th>Prioritaet</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Komplexere Trades</td>
+              <td>Mehr GM-Tiefe durch Picks, mehrere Spieler und bessere Gegenangebote.</td>
+              <td>Mittel bis hoch</td>
+            </tr>
+            <tr>
+              <td>Mehr Player Stats</td>
+              <td>Bessere Auswertung von Leistung, Trends und Entwicklung.</td>
+              <td>Hoch</td>
+            </tr>
+            <tr>
+              <td>Detailliertere Simulation</td>
+              <td>Mehr Football-Glaubwuerdigkeit und Storytelling im Match.</td>
+              <td>Mittel</td>
+            </tr>
+            <tr>
+              <td>UI-Ausbau und Onboarding</td>
+              <td>Schnelleres Verstehen fuer neue Spieler und bessere Conversion.</td>
+              <td>Sehr hoch</td>
+            </tr>
+            <tr>
+              <td>Langfristiger Content</td>
+              <td>Mehr Motivation ueber mehrere Saisons.</td>
+              <td>Hoch</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="kapitel-25">
+        <h2>25. Technische Reife ohne Code-Sicht</h2>
+        <p>
+          Aus Produktsicht wirkt das System bereits vergleichsweise stabil und strukturiert. Es
+          gibt klare Bereiche fuer Kader, Spieler, Simulation, Saison, Finanzen und Entscheidungen.
+          Die sichtbaren Features greifen nachvollziehbar ineinander.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <strong>Stabilitaet</strong>
+            Die wichtigsten Spielflows sind vorhanden und testbar. Fuer Release-Reife braucht es
+            mehr Langzeittests und Fehlerfall-Haertung.
+          </div>
+          <div class="card">
+            <strong>Modularitaet</strong>
+            Die Produktbereiche sind klar trennbar. Das erleichtert spaetere Erweiterungen.
+          </div>
+          <div class="card">
+            <strong>Erweiterbarkeit</strong>
+            Neue Rollen, Value-Regeln, Trade-Typen oder Inbox-Hinweise lassen sich konzeptionell
+            gut ergaenzen.
+          </div>
+        </div>
+      </section>
+
+      <section id="kapitel-26">
+        <h2>26. Erweiterte Risikobewertung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Risiko</th>
+              <th>Beschreibung</th>
+              <th>Empfohlene Gegenmassnahme</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Produkt-Risiko</td>
+              <td>Das Spiel koennte fuer Casual-Spieler noch zu datenlastig wirken.</td>
+              <td>Onboarding, Tooltips, bessere Erstschritte und Beispielentscheidungen.</td>
+            </tr>
+            <tr>
+              <td>UX-Risiko</td>
+              <td>Viele Systeme sind vorhanden, aber neue Spieler brauchen Fuehrung.</td>
+              <td>Klare Start-Checkliste, visuelle Prioritaeten und bessere Leerzustaende.</td>
+            </tr>
+            <tr>
+              <td>Balancing-Risiko</td>
+              <td>Einzelne Strategien koennten langfristig zu stark oder zu schwach sein.</td>
+              <td>Mehr Saison-Simulationen, Vergleichsreports und Zielkorridore.</td>
+            </tr>
+            <tr>
+              <td>Scope-Risiko</td>
+              <td>Football-Management kann sehr schnell zu gross werden.</td>
+              <td>V1 bewusst auf Kernloop, Roster, Simulation und klare Entscheidungen begrenzen.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="kapitel-27">
+        <h2>27. Roadmap-Empfehlung</h2>
+        <ol>
+          <li>
+            <strong>Stabilitaet:</strong> Kernflows ueber mehrere Saisons pruefen, Fehlerfaelle
+            haerten, Regressionstests fuer Spielwoche, Roster und Trades ausbauen.
+          </li>
+          <li>
+            <strong>UX:</strong> Onboarding, Entscheidungserklaerungen, Tooltips und bessere
+            visuelle Priorisierung fuer neue Spieler ergaenzen.
+          </li>
+          <li>
+            <strong>Content:</strong> mehr Teamszenarien, Spieler-Stories, Saisonereignisse,
+            historische Auswertungen und langfristige Ziele.
+          </li>
+          <li>
+            <strong>Features:</strong> komplexere Trades, tiefere Vertrage, detailliertere
+            Spielberichte und mehr Offseason-Systeme.
+          </li>
+        </ol>
+        <div class="note">
+          Empfehlung fuer Auftraggeber: Erst den bestehenden Kernloop sehr gut machen, dann neue
+          Featuretiefe ergaenzen. Das reduziert Risiko und verbessert die Produktklarheit.
+        </div>
+      </section>
+
+      <section id="kapitel-28">
+        <h2>28. Zusammenfassung fuer Auftraggeber</h2>
+        <p>
+          Das Projekt hat eine belastbare Grundlage fuer einen Football Manager erreicht. Es gibt
+          bereits eine erkennbare Produktidee, einen funktionierenden Management-Loop und mehrere
+          Systeme, die echte Entscheidungen erzeugen: Roster, Depth Chart, Rollen, Value Score,
+          Free Agency, Trades, Inbox, Spielvorbereitung und Simulation.
+        </p>
+        <p>
+          Besonders stark ist die Ausrichtung auf Verstaendlichkeit. Komplexe Football-Daten werden
+          nicht nur angezeigt, sondern in nutzbare Aussagen uebersetzt. Ein Spieler sieht nicht nur
+          Werte, sondern bekommt Hinweise: Wer passt? Wer ist teuer? Wer sollte entwickelt werden?
+          Wo fehlt ein Starter?
+        </p>
+        <p>
+          Der aktuelle Stand ist vielversprechend, aber noch nicht produktionsreif. Fuer eine erste
+          oeffentliche Version sollten Stabilitaet, UX-Fuehrung, Balancing und Content-Tiefe
+          priorisiert werden. Die vorhandene Basis rechtfertigt weitere Investition, weil der
+          Kernnutzen bereits sichtbar ist und die naechsten Schritte klar ableitbar sind.
+        </p>
+      </section>
+
+      <section id="kapitel-29">
+        <h2>29. Executive Summary</h2>
+        <ul class="summary-list">
+          <li>AFBM Manager ist ein entscheidungsorientierter Football Manager.</li>
+          <li>Der Spieler fuehrt ein Team ueber Kader, Aufstellung, Entwicklung und Simulation.</li>
+          <li>Die wichtigsten sichtbaren Systeme sind bereits vorhanden.</li>
+          <li>Rollen und Value Score machen komplexe Daten verstaendlich.</li>
+          <li>Trades und Free Agency bieten erste echte Kaderstrategie.</li>
+          <li>Die Decision Inbox fuehrt Spieler zu den wichtigsten Aufgaben.</li>
+          <li>Das Projekt ist technisch spielbar, aber noch nicht voll produktionsreif.</li>
+          <li>Der Fortschritt fuer eine erste spielbare Version liegt bei ca. 70&nbsp;%.</li>
+          <li>Groesste naechste Hebel: Stabilitaet, UX, Balancing und Content.</li>
+          <li>Die Produktbasis ist vielversprechend und skalierbar.</li>
+        </ul>
+      </section>
+
+      <section id="feedback">
+        <h2>Feedback und Bewertung durch Auftraggeber</h2>
+        <p>
+          Dieser Abschnitt bindet Auftraggeber aktiv in die Bewertung ein. Ziel ist eine klare,
+          ehrliche Rueckmeldung: Ist das Produkt verstaendlich, wirkt es wertvoll, und welche
+          naechsten Schritte sind aus Auftraggebersicht am wichtigsten?
+        </p>
+        <div class="note">
+          <strong>Anleitung:</strong>
+          Bitte beantworten Sie jede Frage mit <strong>Ja</strong> oder <strong>Nein</strong>.
+          Wenn die Antwort <strong>Nein</strong> lautet, notieren Sie bitte kurz den Grund. Die
+          Rueckmeldung soll ehrlich sein und nicht beschoenigt werden. Nur so lassen sich Produkt,
+          UX und Prioritaeten sinnvoll verbessern.
+        </div>
+
+        <h3>5.1 Verstaendnis des Produkts</h3>
+        <table class="feedback-table">
+          <tbody>
+            <tr>
+              <td>Ist das Grundprinzip des Spiels klar?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Verstehen Sie die Rolle des Spielers als General Manager?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Ist der Core Game Loop nachvollziehbar?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.2 Team Management</h3>
+        <table class="feedback-table">
+          <tbody>
+            <tr>
+              <td>Ist der Aufbau des Kaders verstaendlich?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Ist das Depth Chart nachvollziehbar?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Sind die Auswirkungen von Entscheidungen klar?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.3 Spieler und Ratings</h3>
+        <table class="feedback-table">
+          <tbody>
+            <tr>
+              <td>Sind Ratings verstaendlich erklaert?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Ist klar, was einen guten Spieler ausmacht?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Sind die Beispiele hilfreich?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.4 Rollen und Value</h3>
+        <table class="feedback-table">
+          <tbody>
+            <tr>
+              <td>Sind Spielerrollen verstaendlich?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Ist der Value Score nachvollziehbar?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Hilft der Value Score bei Entscheidungen?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.5 Transfers und Trades</h3>
+        <table class="feedback-table">
+          <tbody>
+            <tr>
+              <td>Ist das Trade-System verstaendlich?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Sind Annahme und Ablehnung logisch nachvollziehbar?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.6 Spielvorbereitung und Simulation</h3>
+        <table class="feedback-table">
+          <tbody>
+            <tr>
+              <td>Ist klar, wie man sich auf ein Spiel vorbereitet?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Ist verstaendlich, was die Simulation beeinflusst?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.7 Nutzerfuehrung und UX</h3>
+        <table class="feedback-table">
+          <tbody>
+            <tr>
+              <td>Fuehlen sich Entscheidungen klar gefuehrt an?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Wirkt das System verstaendlich statt ueberladen?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.8 Projektstatus</h3>
+        <table class="feedback-table">
+          <tbody>
+            <tr>
+              <td>Ist der Fortschritt realistisch dargestellt?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Sind die Kennzahlen nachvollziehbar?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.9 Gesamtbewertung</h3>
+        <table class="feedback-table">
+          <tbody>
+            <tr>
+              <td>Haben Sie ein klares Verstaendnis des Produkts?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Wirkt das Projekt vielversprechend?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+            <tr>
+              <td>Wuerden Sie auf Basis dieser Doku eine Weiterentwicklung unterstuetzen?</td>
+              <td><span class="answer-line">Ja / Nein</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.10 Offenes Feedback</h3>
+        <div class="grid">
+          <div class="card">
+            <strong>Was ist unklar?</strong>
+            Bitte nennen Sie Begriffe, Abschnitte oder Produktbereiche, die noch Erklaerung brauchen.
+          </div>
+          <div class="card">
+            <strong>Was fehlt?</strong>
+            Bitte nennen Sie Inhalte, Features oder Entscheidungen, die aus Ihrer Sicht ergaenzt werden sollten.
+          </div>
+          <div class="card">
+            <strong>Was wirkt besonders stark?</strong>
+            Bitte nennen Sie die groessten Staerken des Produkts oder der Dokumentation.
+          </div>
+          <div class="card">
+            <strong>Was sollte priorisiert werden?</strong>
+            Bitte nennen Sie die wichtigsten naechsten Schritte aus Ihrer Sicht.
+          </div>
+        </div>
+        <div class="warning">
+          Bitte fuellen Sie den separaten Fragebogen
+          <strong>docs/guides/auftraggeber-feedback.md</strong> aus und stellen Sie die Datei zur
+          Auswertung bereit.
+        </div>
+      </section>
+
+      <section>
+        <h2>Abschlussbewertung</h2>
+        <p>
+          AFBM Manager besitzt bereits die wichtigsten Grundlagen eines Football-Managers: Team,
+          Spieler, Saison, Simulation, Kadersteuerung, Rollen, Value-Bewertung und einfache
+          Transferentscheidungen. Aus Anwendersicht ist das Projekt damit deutlich ueber einen
+          reinen Technikprototyp hinaus.
+        </p>
+        <p>
+          Der naechste sinnvolle Schritt ist, die Spielerfuehrung zu verbessern: Onboarding,
+          bessere Erklaerungen im UI, stabilere Balancing-Auswertung und mehr langfristige
+          Management-Entscheidungen.
+        </p>
+        <p><strong>Status: Gruen</strong></p>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Real User Playtest Report</title>
+    <style>
+      :root {
+        background: #f5f7fa;
+        color: #172033;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 24px;
+      }
+
+      h3 {
+        margin-top: 22px;
+        font-size: 18px;
+      }
+
+      p,
+      li {
+        line-height: 1.65;
+      }
+
+      .lead {
+        max-width: 850px;
+        color: #526070;
+        font-size: 17px;
+      }
+
+      .panel,
+      table {
+        border: 1px solid #d9e0ea;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .panel {
+        margin-top: 22px;
+        padding: 18px;
+      }
+
+      .status {
+        border-left: 8px solid #c2410c;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .card {
+        border-left: 4px solid #64748b;
+        background: #fff;
+        padding: 14px;
+      }
+
+      .card strong {
+        display: block;
+      }
+
+      .card span {
+        color: #657383;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7ebf0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef3f8;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #e9eef5;
+        padding: 2px 5px;
+      }
+
+      .red {
+        color: #9b1c1c;
+        font-weight: 700;
+      }
+
+      .warn {
+        color: #925900;
+        font-weight: 700;
+      }
+
+      .good {
+        color: #166534;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Real User Playtest Report</h1>
+      <p class="lead">
+        Rolle: UX Researcher + QA Lead. Ziel war ein echter Playtest mit 2-3 neuen Nutzern ohne
+        Vorwissen, ohne Eingreifen, mit 2-3 gespielten Wochen pro Nutzer und Think-Aloud-
+        Beobachtung.
+      </p>
+
+      <section class="panel status">
+        <h2 style="margin-top: 0">Executive Summary</h2>
+        <p>
+          <strong class="red">Status: Nicht durchgefuehrt.</strong> In dieser Arbeitsumgebung
+          konnten keine echten externen neuen Nutzer rekrutiert, beobachtet oder befragt werden.
+          Deshalb enthaelt dieser Report keine erfundenen Nutzerzitate und keine gefaelschten
+          Playtest-Ergebnisse. Die korrekte QA-Entscheidung lautet: Das Spiel ist technisch fuer
+          einen Real-User-Playtest vorbereitet, aber die Frage, ob neue Nutzer freiwillig
+          weiterspielen, ist noch nicht real validiert.
+        </p>
+      </section>
+
+      <h2>Warum Kein Gruenes Ergebnis?</h2>
+      <ul>
+        <li>Es gab keine realen Testpersonen mit unbekanntem Vorwissen.</li>
+        <li>Es gab keine unbeeinflusste Beobachtung des ersten Verstehens.</li>
+        <li>Es gab keine echten Think-Aloud-Aussagen.</li>
+        <li>Die kritische Frage „Wuerdest du freiwillig weiterspielen?“ wurde keinem echten Nutzer gestellt.</li>
+      </ul>
+
+      <h2>Testprotokoll Fuer Den Echten Playtest</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>Teilnehmer</strong>
+          <span>2-3 neue Nutzer, keine Projektkenntnis, idealerweise Management-/Sportspiel-Interesse, aber kein internes Wissen.</span>
+        </div>
+        <div class="card">
+          <strong>Dauer</strong>
+          <span>45-60 Minuten pro Person: Onboarding, 2-3 Wochen Spielzeit, kurze Nachbefragung.</span>
+        </div>
+        <div class="card">
+          <strong>Moderation</strong>
+          <span>Kein Eingreifen. Nur Startanweisung, Erinnerung an lautes Denken und Abschlussfrage.</span>
+        </div>
+        <div class="card">
+          <strong>Erfolgskriterium</strong>
+          <span>Mindestens 2 von 3 Nutzern verstehen den Loop, treffen echte Entscheidungen und wollen freiwillig weiterspielen.</span>
+        </div>
+      </div>
+
+      <h2>Aufgaben Pro Nutzer</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Phase</th>
+            <th>Aufgabe</th>
+            <th>Beobachtung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Start</td>
+            <td>Dashboard oeffnen und selbst herausfinden, was als Naechstes zu tun ist.</td>
+            <td>Versteht der Nutzer den Week Loop ohne Erklaerung?</td>
+          </tr>
+          <tr>
+            <td>Entscheidung 1</td>
+            <td>Depth Chart oder Lineup pruefen und eine sinnvolle Aenderung treffen.</td>
+            <td>Erkennt der Nutzer Alternativen und Trade-offs?</td>
+          </tr>
+          <tr>
+            <td>Woche spielen</td>
+            <td>Prepare Week -> Game Preview -> Live -> Match Report durchlaufen.</td>
+            <td>Reagiert der Nutzer auf Live-Momente und versteht Auto-Score?</td>
+          </tr>
+          <tr>
+            <td>Entscheidung 2</td>
+            <td>Aus Report oder Team Impact eine Folgeentscheidung ableiten.</td>
+            <td>Nutzt der Nutzer Report-Informationen handlungsorientiert?</td>
+          </tr>
+          <tr>
+            <td>Woche 2-3</td>
+            <td>Noch ein bis zwei Wochen ohne Hilfe spielen.</td>
+            <td>Wird der Loop selbststaendig wiederholt?</td>
+          </tr>
+          <tr>
+            <td>Abschluss</td>
+            <td>Frage: „Wuerdest du freiwillig weiterspielen?“</td>
+            <td>Ja/Nein plus konkrete Begruendung.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Beobachtungsbogen</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Kriterium</th>
+            <th>Bewertung</th>
+            <th>Notizen</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Loop-Verstaendnis</td>
+            <td><code>klar / teilweise / unklar</code></td>
+            <td>Findet der Nutzer den naechsten Schritt ohne Moderator-Hilfe?</td>
+          </tr>
+          <tr>
+            <td>Live-Momente</td>
+            <td><code>reagiert / bemerkt / ignoriert</code></td>
+            <td>Kommentiert der Nutzer Turnover, Touchdown, Big Play oder Score-Entwicklung?</td>
+          </tr>
+          <tr>
+            <td>Report-Nutzung</td>
+            <td><code>handlungsrelevant / gelesen / ignoriert</code></td>
+            <td>Kann der Nutzer aus dem Report eine naechste Entscheidung ableiten?</td>
+          </tr>
+          <tr>
+            <td>Entscheidungsqualitaet</td>
+            <td><code>echt / oberflaechlich / zufaellig</code></td>
+            <td>Nennt der Nutzer einen Grund fuer Lineup-, Development- oder Depth-Chart-Entscheidungen?</td>
+          </tr>
+          <tr>
+            <td>Motivation</td>
+            <td><code>will weiter / unsicher / bricht ab</code></td>
+            <td>Antwort auf die kritische Frage und spontane Emotion.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Ergebnisfelder Fuer 3 Nutzer</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nutzer</th>
+            <th>2-3 Wochen gespielt?</th>
+            <th>2 Entscheidungen?</th>
+            <th>Loop verstanden?</th>
+            <th>Will weiterspielen?</th>
+            <th>Kommentar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Nutzer A</td>
+            <td class="warn">Ausstehend</td>
+            <td class="warn">Ausstehend</td>
+            <td class="warn">Ausstehend</td>
+            <td class="warn">Ausstehend</td>
+            <td>Keine echte Session vorhanden.</td>
+          </tr>
+          <tr>
+            <td>Nutzer B</td>
+            <td class="warn">Ausstehend</td>
+            <td class="warn">Ausstehend</td>
+            <td class="warn">Ausstehend</td>
+            <td class="warn">Ausstehend</td>
+            <td>Keine echte Session vorhanden.</td>
+          </tr>
+          <tr>
+            <td>Nutzer C</td>
+            <td class="warn">Optional</td>
+            <td class="warn">Optional</td>
+            <td class="warn">Optional</td>
+            <td class="warn">Optional</td>
+            <td>Dritter Nutzer empfohlen, falls die ersten zwei widerspruechliche Ergebnisse liefern.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Aktueller Produktstatus Vor Real-Test</h2>
+      <ul>
+        <li class="good">Technischer Week Loop ist per E2E mehrfach validiert.</li>
+        <li class="good">Live Simulation zeigt Drive-Playback, Score-Entwicklung und Event-Dramaturgie.</li>
+        <li class="good">Match Report erklaert Ursachen, Lineup-Impact und mehrere Positionsgruppen.</li>
+        <li class="warn">Echte Erstnutzer-Verstaendlichkeit und freiwillige Motivation sind noch offen.</li>
+      </ul>
+
+      <h2>QA Entscheidung</h2>
+      <p>
+        <strong class="red">Real-User-Playtest nicht bestanden, weil nicht ausgefuehrt.</strong>
+        Das ist kein Produkturteil gegen das Spiel, sondern ein Evidenzurteil. Der naechste
+        korrekte Schritt ist, 2-3 echte Nutzer mit diesem Protokoll zu testen und erst danach die
+        kritische Frage „Wuerdest du freiwillig weiterspielen?“ als validiert zu bewerten.
+      </p>
+    </main>
+  </body>
+</html>

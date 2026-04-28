@@ -1,0 +1,15 @@
+node_modules/
+.env*
+!.env.example
+.next/
+dist/
+coverage/
+firebase-emulator-data
+reports-output/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.local
+*.log
+.DS_Store
+prisma/dev.db

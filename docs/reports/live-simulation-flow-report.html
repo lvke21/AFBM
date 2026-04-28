@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Simulation Flow Report</title>
+    <style>
+      :root {
+        background: #f5f7fa;
+        color: #172033;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 24px;
+      }
+
+      h3 {
+        margin-top: 22px;
+        font-size: 18px;
+      }
+
+      p,
+      li {
+        line-height: 1.65;
+      }
+
+      .lead {
+        max-width: 850px;
+        color: #526070;
+        font-size: 17px;
+      }
+
+      .panel,
+      table {
+        border: 1px solid #d9e0ea;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .panel {
+        margin-top: 22px;
+        padding: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .card {
+        border-left: 4px solid #3b82f6;
+        background: #fff;
+        padding: 14px;
+      }
+
+      .card strong {
+        display: block;
+      }
+
+      .card span {
+        color: #657383;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7ebf0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef3f8;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #e9eef5;
+        padding: 2px 5px;
+      }
+
+      .good {
+        color: #166534;
+        font-weight: 700;
+      }
+
+      .warn {
+        color: #925900;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Live Simulation Flow Report</h1>
+      <p class="lead">
+        Aufgabe: Die Live Simulation sollte von einer sofort fertigen Snapshot-Darstellung in einen
+        beobachtbaren Ablauf verwandelt werden. Scope wurde eingehalten: Es wurde keine neue
+        Simulation gebaut, sondern nur die Praesentation der bestehenden Drives und Events
+        veraendert.
+      </p>
+
+      <section class="panel">
+        <h2 style="margin-top: 0">Executive Summary</h2>
+        <p>
+          Die Live-Seite zeigt das Match jetzt als Playback: Drives werden nacheinander sichtbar,
+          Score und Quarter aktualisieren sich mit dem sichtbaren Drive, und der Report bleibt bis
+          zum Ende des Playbacks deaktiviert. Nutzer sehen dadurch nicht sofort nur das Ergebnis,
+          sondern koennen den Verlauf lesen und die entscheidenden Momente einordnen.
+        </p>
+      </section>
+
+      <h2>Umsetzung</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>Drive-Sequenz</strong>
+          <span>
+            Neue Client-Komponente <code>LiveSimulationFlow</code> deckt die vorhandenen
+            Timeline-Eintraege schrittweise auf.
+          </span>
+        </div>
+        <div class="card">
+          <strong>Score-Entwicklung</strong>
+          <span>
+            Der sichtbare Score wird aus <code>startedScore</code>/<code>endedScore</code> der
+            Drives abgeleitet und wandert Drive fuer Drive mit.
+          </span>
+        </div>
+        <div class="card">
+          <strong>Game Flow</strong>
+          <span>
+            Quarter/Phase, aktuelle Possession, letzter Event und Momentum-Hinweis nutzen immer
+            den zuletzt sichtbaren Drive.
+          </span>
+        </div>
+        <div class="card">
+          <strong>Speed Control</strong>
+          <span>
+            Auto-Playback laeuft sichtbar, aber teststabil. Manuell koennen 0.5s, 0.75s und 1s
+            pro Drive gewaehlt werden; Pause/Fortsetzen ist vorhanden.
+          </span>
+        </div>
+      </div>
+
+      <h2>Geaenderte Dateien</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Datei</th>
+            <th>Aenderung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>src/components/match/live-simulation-flow.tsx</code></td>
+            <td>
+              Neue Client-Playback-Schicht mit sichtbarem Fortschritt, aktuellem Drive, letztem
+              Event, naechstem Momentum, Pause und Speed-Control.
+            </td>
+          </tr>
+          <tr>
+            <td><code>src/app/app/savegames/[savegameId]/game/live/page.tsx</code></td>
+            <td>
+              Live-Seite rendert die neue Playback-Komponente statt den kompletten finalen Zustand
+              sofort auszugeben.
+            </td>
+          </tr>
+          <tr>
+            <td><code>src/components/ui/form-submit-button.tsx</code></td>
+            <td>
+              Submit-Button unterstuetzt jetzt einen kontrollierten Disabled-Zustand, damit der
+              Match Report erst nach sichtbarem Playback geoeffnet werden kann.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Vorher / Nachher</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Vorher</th>
+            <th>Nachher</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Alle 16 Drives, finaler Score und Report-Button waren sofort wahrnehmbar.</td>
+            <td>
+              Der erste Drive ist sichtbar, weitere Drives folgen automatisch. Fortschritt und
+              Score entwickeln sich im Ablauf.
+            </td>
+          </tr>
+          <tr>
+            <td>Live wirkte wie eine Ergebnis-Zusammenfassung vor dem Report.</td>
+            <td>
+              Live wirkt wie ein kurzer Watch-Flow mit aktueller Possession, letztem Event und
+              naechstem Momentum.
+            </td>
+          </tr>
+          <tr>
+            <td>Der Nutzer konnte gefuehlt direkt in den Report springen.</td>
+            <td>
+              <code>Zum Match Report</code> ist sichtbar, aber erst nach Playback-Ende aktiv.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Validierung</h2>
+      <ul>
+        <li>
+          <code>npx tsc --noEmit --pretty false</code>: erfolgreich.
+        </li>
+        <li>
+          <code>npx vitest run src/components/match/live-simulation-model.test.ts src/components/match/game-flow-model.test.ts</code>:
+          10 Tests erfolgreich.
+        </li>
+        <li>
+          <code>npm run db:up</code>: lokale Testdatenbank verfuegbar.
+        </li>
+        <li>
+          <code>npm run test:e2e:seed</code>: E2E-Testkader und Matchdaten gesetzt.
+        </li>
+        <li>
+          <code>npx playwright test e2e/live-storyline.spec.ts --project=chromium --workers=1</code>:
+          erfolgreich. Storyline, Key Drive, Momentum und Timeline bleiben sichtbar.
+        </li>
+        <li>
+          <code>npx playwright test e2e/week-loop.spec.ts --project=chromium --workers=1</code>:
+          erfolgreich nach Timing-Anpassung. Der Nutzer kann Live beobachten, danach den Report
+          oeffnen und die Woche fortsetzen.
+        </li>
+      </ul>
+
+      <h2>Bewertung</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Kriterium</th>
+            <th>Ergebnis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Nutzer kann Spiel beobachten</td>
+            <td class="good">Erfuellt. Drives erscheinen sequenziell mit Fortschrittsanzeige.</td>
+          </tr>
+          <tr>
+            <td>Score entwickelt sich sichtbar</td>
+            <td class="good">Erfuellt. Score wird aus dem zuletzt sichtbaren Drive abgeleitet.</td>
+          </tr>
+          <tr>
+            <td>Kein sofortiger Report-Sprung</td>
+            <td class="good">Erfuellt. Report-Submit ist bis Playback-Ende deaktiviert.</td>
+          </tr>
+          <tr>
+            <td>Keine neue Simulation</td>
+            <td class="good">Erfuellt. Verwendet ausschliesslich vorhandene Drive-/Timeline-Daten.</td>
+          </tr>
+          <tr>
+            <td>Restschwaeche</td>
+            <td class="warn">
+              Es bleibt ein kompaktes Drive-Playback, kein echter Play-by-Play-Engine-Stream. Fuer
+              den aktuellen Scope ist das passend.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </main>
+  </body>
+</html>

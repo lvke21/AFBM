@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AFBM Gameplay Expansion - Abschlussbericht AP13-AP18</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --soft: #f8fafc;
+        --text: #182133;
+        --muted: #5d687a;
+        --line: #d9e2ec;
+        --accent: #0f766e;
+        --accent-soft: #e6f5f3;
+        --good: #146c43;
+        --warn: #9a6500;
+        --risk: #a51d2d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #eef3f8 0%, var(--bg) 100%);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.58;
+      }
+
+      main {
+        max-width: 1220px;
+        margin: 0 auto;
+        padding: 32px 18px 72px;
+      }
+
+      header,
+      section {
+        margin-bottom: 18px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        box-shadow: 0 14px 34px rgba(23, 32, 51, 0.07);
+        padding: 24px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 12px;
+        line-height: 1.2;
+      }
+
+      h1 {
+        color: var(--accent);
+        font-size: clamp(2rem, 4vw, 3.1rem);
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      h3 {
+        font-size: 1.08rem;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul {
+        margin: 0 0 0 20px;
+        padding: 0;
+      }
+
+      li {
+        margin: 4px 0;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 12px;
+        border-collapse: collapse;
+        font-size: 0.93rem;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef6f5;
+      }
+
+      code {
+        border-radius: 6px;
+        background: #eef2f7;
+        padding: 1px 5px;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.92em;
+      }
+
+      .lede {
+        max-width: 980px;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .meta,
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--soft);
+        padding: 6px 10px;
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 650;
+      }
+
+      .pill.good {
+        border-color: #b7dec9;
+        background: #edf8f1;
+        color: var(--good);
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--soft);
+        padding: 16px;
+      }
+
+      .good {
+        color: var(--good);
+        font-weight: 750;
+      }
+
+      .warn {
+        color: var(--warn);
+        font-weight: 750;
+      }
+
+      .risk {
+        color: var(--risk);
+        font-weight: 750;
+      }
+
+      .summary {
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+      }
+
+      @media (max-width: 860px) {
+        .grid.two,
+        .grid.three {
+          grid-template-columns: 1fr;
+        }
+
+        header,
+        section {
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Gameplay Expansion - Abschlussbericht AP13 bis AP18</h1>
+        <p class="lede">
+          Nach dem stabilen Fundament aus AP1 bis AP12 erweitert AP13 bis AP18 die AFBM-Simulation um
+          nachvollziehbare Spielerentwicklung, Fatigue, Injuries, AI-Strategie, Balance-Pruefung und
+          besseres UI-Feedback. Der Schwerpunkt liegt auf mehr Gameplay-Tiefe, ohne die bestehende
+          Architektur durch grosse Migrationen oder eine neue Engine zu destabilisieren.
+        </p>
+        <div class="meta">
+          <span class="pill good">Status: Gruen</span>
+          <span class="pill">Datum: 2026-04-26</span>
+          <span class="pill">Scope: AP13-AP18</span>
+          <span class="pill">Prisma bleibt Default</span>
+          <span class="pill">Kein Firestore-Cutover</span>
+        </div>
+      </header>
+
+      <section class="summary">
+        <h2>Gesamtbewertung</h2>
+        <p>
+          Die Gameplay-Erweiterung ist erfolgreich abgeschlossen. Entscheidungen im Wochenplan, im
+          Development Focus und im Gameplan haben jetzt sichtbare Konsequenzen: Spieler entwickeln sich,
+          Fatigue beeinflusst Leistung und Einsatzanteile, Match-Belastung kann Injuries ausloesen, AI-Teams
+          reagieren strategisch auf Matchups, und Batch-Tests pruefen die Plausibilitaet der Simulation.
+        </p>
+        <p>
+          Die Erweiterung bleibt bewusst kontrolliert: keine komplexe Karriere-Simulation, kein Medical-Staff-System,
+          keine ML-KI, keine Playcalling-Neuschreibung und keine Firestore-Produktivmigration. Das System ist
+          gameplay-relevanter geworden, aber weiterhin testbar und release-faehig.
+        </p>
+      </section>
+
+      <section>
+        <h2>1. Zusammenfassung AP13-AP18</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>AP</th>
+              <th>Name</th>
+              <th>Ergebnis</th>
+              <th>Kernbeitrag</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>AP13</td>
+              <td>Player Progression System</td>
+              <td class="good">Gruen</td>
+              <td>XP-basierte Entwicklung aus Training und Spielen, positionsspezifische Attribute, klare Caps.</td>
+            </tr>
+            <tr>
+              <td>AP14</td>
+              <td>Fatigue &amp; Recovery vertiefen</td>
+              <td class="good">Gruen</td>
+              <td>Weekly Plan und Match-Belastung wirken auf Fatigue, Recovery, Readiness und Snap-Anteile.</td>
+            </tr>
+            <tr>
+              <td>AP15</td>
+              <td>Injury System</td>
+              <td class="good">Gruen</td>
+              <td>Kontrolliertes Injury-Risiko aus Fatigue, Snaps, Injury Risk und Spielerattributen.</td>
+            </tr>
+            <tr>
+              <td>AP16</td>
+              <td>AI Team Behavior</td>
+              <td class="good">Gruen</td>
+              <td>CPU-Teams waehlen einfache Strategien aus Staerke, Gegner, Fatigue und Injuries.</td>
+            </tr>
+            <tr>
+              <td>AP17</td>
+              <td>Simulation Balancing</td>
+              <td class="good">Gruen</td>
+              <td>Deterministische Batch-Szenarien pruefen Winrates, Scores, Upsets, Blowouts und Fatigue-Effekt.</td>
+            </tr>
+            <tr>
+              <td>AP18</td>
+              <td>UX &amp; Feedback verbessern</td>
+              <td class="good">Gruen</td>
+              <td>Week Panel und Match Report erklaeren Entscheidungen, Effekte und fehlende Daten besser.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>2. Neue Spielerentscheidungen</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>Weekly Plan</h3>
+            <p>
+              Manager entscheiden zwischen <code>RECOVERY</code>, <code>BALANCED</code> und <code>INTENSE</code>.
+              Diese Wahl ist nicht mehr kosmetisch: Recovery spart Frische, Intense erzeugt Entwicklungschancen
+              mit klaren Kosten.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Development Focus</h3>
+            <p>
+              Fokus-Spieler erhalten zusaetzliche XP-Chancen. Der optimale Kandidat ist nicht nur der beste Spieler,
+              sondern ein Spieler mit Potenzial, Rolle, Snaps und tragbarer Fatigue.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Gameplan / X-Factor</h3>
+            <p>
+              Vor Spielen koennen Fokus, Tempo, Protection, Aggression, Turnover-Plan und Matchup-Schwerpunkte
+              gesetzt werden. Diese Entscheidungen beeinflussen Play-Auswahl, Risiko und Outcome-Modifikatoren.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Roster- und Week-Management</h3>
+            <p>
+              Verletzte oder ermuede Spieler werden zu echten Management-Signalen. Wer zu aggressiv trainiert oder
+              Spieler dauerhaft hoch belastet, nimmt Leistungsabfall und Injury-Risiko in Kauf.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>3. Konsequenzen von Entscheidungen</h2>
+        <ul>
+          <li><strong>Intense Training</strong> foerdert Entwicklung, kostet aber Fatigue und etwas Morale.</li>
+          <li><strong>Recovery</strong> senkt Fatigue deutlich und stabilisiert die Spieltagsfrische.</li>
+          <li><strong>Development Focus</strong> kann aus XP echte Attributsteigerungen machen, bleibt aber durch Potential und Caps begrenzt.</li>
+          <li><strong>Hohe Match-Belastung</strong> erhoeht Fatigue und kann spaeter das Injury-Risiko steigern.</li>
+          <li><strong>Injuries</strong> wirken auf Availability: Questionable/Doubtful koennen limitieren, Out/IR nehmen Spieler heraus.</li>
+          <li><strong>Gameplan und AI-Strategie</strong> verschieben Risiko, Tempo, Protection und Matchup-Fokus, ohne die Engine zu uebersteuern.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>4. Zusammenspiel der Systeme</h2>
+        <div class="grid three">
+          <div class="card">
+            <h3>Progression + Weekly Plan</h3>
+            <p>
+              Training, Rolle, Potenzial, Development Trait, Morale und Fatigue fliessen in XP ein. Weekly Plan und
+              Development Focus bilden dadurch eine klare Manager-Schleife: planen, entwickeln, beobachten.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Fatigue + Injuries</h3>
+            <p>
+              Fatigue senkt Readiness und Snap-Anteile moderat. Match-Belastung und Fatigue erhoehen Injury-Risiko,
+              aber nur bei tatsaechlicher Spiel-Exposure. Injuries werden zeitlich begrenzt und im Wochenwechsel freigegeben.
+            </p>
+          </div>
+          <div class="card">
+            <h3>AI + Balancing</h3>
+            <p>
+              CPU-Teams waehlen Strategien wie Favorite Control, Underdog Variance oder Protect Weakened. AP17 prueft,
+              ob diese Systeme zusammen plausible Winrates, Scores und Upsets erzeugen.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>5. Sichtbarkeit in UI und Reports</h2>
+        <p>
+          AP18 macht die neuen Systeme an den wichtigsten Stellen sichtbar, ohne eine neue grosse Oberflaeche zu bauen.
+        </p>
+        <ul>
+          <li><strong>Week Loop Panel:</strong> erklaert Weekly Plan, Player Progression, Fatigue/Injuries, Gameplan und Post-Game-Recovery.</li>
+          <li><strong>Weekly-Plan-Formular:</strong> zeigt die aktuellen Auswirkungen: Recovery -16 Fatigue/+3 Morale, Balanced +2 Fatigue, Intense +10 Fatigue/-2 Morale.</li>
+          <li><strong>Match Report:</strong> enthaelt eine Feedback Summary zu Ergebnis, Gameplan/X-Factor, AI/Gameplan, Teamwirkung und Drive-Erklaerung.</li>
+          <li><strong>Why you won/lost:</strong> bewertet Turnovers, Red Zone, Ratings/Matchups, Pressure und Gameplan als Schluesselfaktoren.</li>
+          <li><strong>Fehlende Daten:</strong> werden explizit erklaert, statt zu leeren oder fehlerhaften UI-Zustaenden zu fuehren.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>6. Testergebnisse</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Abdeckung</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>AP13 Progression</td>
+              <td>XP, Attributgrenzen, Weekly Training, Game Progression, History</td>
+              <td class="good">Gruen</td>
+            </tr>
+            <tr>
+              <td>AP14 Fatigue/Recovery</td>
+              <td>Match-Belastung, Recovery, Weekly Plan, Readiness, Snap-Multiplikatoren</td>
+              <td class="good">Gruen</td>
+            </tr>
+            <tr>
+              <td>AP15 Injuries</td>
+              <td>Risikoformel, RNG, Dauer, Return, Availability, Week Loop Regression</td>
+              <td class="good">Gruen</td>
+            </tr>
+            <tr>
+              <td>AP16 AI</td>
+              <td>Favorit, Underdog, Balanced, Weakened Team, Match Context, Simulation</td>
+              <td class="good">Gruen</td>
+            </tr>
+            <tr>
+              <td>AP17 Balancing</td>
+              <td>80er-Batches fuer Strong/Weak, Medium/Medium, Strong/Medium, Weakened Strong</td>
+              <td class="good">Gruen</td>
+            </tr>
+            <tr>
+              <td>AP18 UX</td>
+              <td>Dashboard-Model, Match-Report-Model, Game Flow, fehlende Daten</td>
+              <td class="good">Gruen</td>
+            </tr>
+            <tr>
+              <td>End-to-End</td>
+              <td><code>npm run test:e2e:week-loop</code> fuer alle AP13-AP18-Gates</td>
+              <td class="good">Gruen</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Hinweis: Der Browser-E2E musste wiederholt ausserhalb der Sandbox ausgefuehrt werden, weil <code>tsx</code>
+          in der Sandbox keine lokale IPC-Pipe unter <code>/var/folders/.../T/tsx-501/*.pipe</code> oeffnen durfte.
+          Die lauffaehige lokale Umgebung mit PostgreSQL/Playwright war jeweils gruen.
+        </p>
+      </section>
+
+      <section>
+        <h2>7. Bekannte Einschraenkungen</h2>
+        <ul>
+          <li>XP wird nicht als langfristiger Kontostand persistiert; Fortschritt erscheint ueber Attribut- und History-Ereignisse.</li>
+          <li>Fatigue-Verlaeufe und Injury-Eintritte haben noch keine eigene Verlaufsgrafik oder Medical-UI.</li>
+          <li>Injuries sind bewusst einfach: keine Reha-Phasen, Medical Staff, Vertragsfolgen oder Langzeitfolgen.</li>
+          <li>AI besitzt keine langfristige Coaching-Identitaet, kein Lernen und keine Teamhistorie.</li>
+          <li>AP17-Balancing nutzt deterministische, kleine Batches; es ersetzt keine vollstaendige Saisonkalibrierung.</li>
+          <li>AI-Archetypen werden nicht historisch im Match Report gespeichert, wenn keine belastbaren Gameplan-Daten vorhanden sind.</li>
+          <li>Firestore-Cutover ist weiterhin kein Ziel; Prisma bleibt der produktive Default.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>8. Empfohlene naechste Gameplay-Schritte</h2>
+        <ol>
+          <li>
+            <strong>Saisonweite Kalibrierung:</strong> 1.000+ Spiele und komplette Saisonlaeufe fuer Winrates,
+            Playoff-Verhalten, Injury-Haeufigkeit, Fatigue-Verlaeufe und Score-Distribution.
+          </li>
+          <li>
+            <strong>Player Development UI:</strong> Progression-History, XP-Quellen und Attributveraenderungen
+            sichtbarer machen.
+          </li>
+          <li>
+            <strong>Injury/Medical Feedback:</strong> einfache Injury Timeline, Return Estimate und Game-Day-Risk
+            fuer betroffene Spieler.
+          </li>
+          <li>
+            <strong>AI Personality Light:</strong> konservative, aggressive oder balanced Coaching-Tendenzen pro Team,
+            ohne ML oder schweres Playcalling-Refactoring.
+          </li>
+          <li>
+            <strong>Balance Dashboard:</strong> AP17-Batchdaten als internes QA-/Designer-Reportformat verfuegbar machen.
+          </li>
+          <li>
+            <strong>Report-Historisierung:</strong> AI-Strategie, Injury-Ereignisse und Development-Gains im Match-/Week-Report
+            langfristig besser nachvollziehbar speichern.
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Release-Einschaetzung</h2>
+        <p>
+          <span class="good">Status: Gruen.</span> AP13 bis AP18 sind vollstaendig beruecksichtigt, die technische
+          Umsetzung ist durch Unit-, Simulation-, Typecheck-, Lint- und Week-Loop-Tests abgesichert. Die neue
+          Gameplay-Tiefe ist fuer Spieler verstaendlicher und strategisch relevanter, bleibt aber in ihrer ersten
+          Ausbaustufe bewusst konservativ.
+        </p>
+        <p>
+          Empfehlung: Die Erweiterung ist bereit fuer interne Spieltests und laengere Saison-Balancing-Laeufe. Vor
+          produktiver Aktivierung groesserer Gameplay-Kampagnen sollten die bekannten Grenzen, insbesondere Langzeit-
+          Balancing, Injury-Historisierung und Progression-Transparenz, priorisiert beobachtet werden.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

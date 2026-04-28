@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Self Playtest Report</title>
+    <style>
+      :root {
+        --bg: #07111f;
+        --surface: #101b2d;
+        --panel: #162235;
+        --panel-2: #0d1727;
+        --line: rgba(255, 255, 255, 0.12);
+        --text: #edf4ff;
+        --muted: #9fb0c8;
+        --accent: #4fb3ff;
+        --success: #35d07f;
+        --warning: #f6c65b;
+        --danger: #ff6b6b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 40px 20px 56px;
+      }
+
+      header,
+      section {
+        margin-bottom: 18px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 12px;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      h2 {
+        font-size: 21px;
+      }
+
+      h3 {
+        font-size: 16px;
+        color: #d8ecff;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 12px;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-2);
+      }
+
+      .badge {
+        display: inline-flex;
+        min-height: 26px;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .green {
+        background: var(--success);
+        color: #062916;
+      }
+
+      .yellow {
+        background: var(--warning);
+        color: #2c2100;
+      }
+
+      .red {
+        background: var(--danger);
+        color: #350606;
+      }
+
+      .outline {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .accent {
+        color: var(--accent);
+      }
+
+      .callout {
+        margin-top: 12px;
+        padding: 14px 16px;
+        border-left: 4px solid var(--warning);
+        background: rgba(246, 198, 91, 0.08);
+      }
+
+      @media (max-width: 820px) {
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 26px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="muted">Stand: 2026-04-27 · Perspektive: neuer Erstnutzer</p>
+        <h1>Self Playtest Report</h1>
+        <p>
+          Ich habe das Spiel bewusst nicht wie ein Entwickler bewertet: kein Code gelesen,
+          keine internen Annahmen genutzt, Entscheidungen nur auf Basis sichtbarer UI getroffen.
+          Unklare Stellen wurden nicht aufgeloest, sondern als UX-Problem markiert.
+        </p>
+        <span class="badge yellow">Gesamtstatus: Gelb</span>
+        <p class="muted">
+          Ich verstehe das Grundprinzip und sehe ein interessantes Manager-Geruest.
+          Freiwillig weiterspielen wuerde ich aktuell aber eher nicht, weil der zentrale
+          Spielmoment zu wenig wie ein echtes Spiel wirkt.
+        </p>
+      </header>
+
+      <section>
+        <h2>Executive Summary</h2>
+        <div class="grid grid-3">
+          <div class="card">
+            <h3>Wuerde ich weiterspielen?</h3>
+            <p><span class="badge red">Nein, nicht freiwillig</span></p>
+            <p class="muted">
+              Ich wuerde nach zwei Wochen stoppen, weil Live Game und Ergebnis zu wenig
+              Spannung und Ursache-Wirkung erzeugen.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Was funktioniert?</h3>
+            <p><span class="badge green">Manager-Rahmen klar</span></p>
+            <p class="muted">
+              Dashboard, Next Best Action, Contracts und Development geben Orientierung.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Groesster Bruch</h3>
+            <p><span class="badge red">Live Simulation</span></p>
+            <p class="muted">
+              Keine Drives, keine echten Ereignisse, Score manuell eingeben. Das nimmt dem
+              Spiel den emotionalen Kern.
+            </p>
+          </div>
+        </div>
+        <div class="callout">
+          Ehrliches Fazit: Das Spiel wirkt wie ein gutes Manager-UI-Fundament, aber noch
+          nicht wie ein Spiel, das mich nach zwei Wochen aus eigenem Antrieb weiterzieht.
+        </div>
+      </section>
+
+      <section>
+        <h2>Ablauf</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Phase</th>
+              <th>Was ich getan habe</th>
+              <th>Beobachtung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>First Impression</td>
+              <td>Startseite geoeffnet, Savegame-Hub gesucht, Savegame geoeffnet.</td>
+              <td>
+                Erste sichtbare Aktion nach ca. 2.8 Sekunden: "Zum Savegame-Hub".
+                Start fuehlt sich noch technisch an, nicht direkt wie Spielstart.
+              </td>
+            </tr>
+            <tr>
+              <td>Erste Woche</td>
+              <td>Dashboard -> Woche vorbereiten -> Game Preview -> Live -> Match Report.</td>
+              <td>
+                Dashboard und Preview fuehren gut. Live bricht, weil ich den Score selbst
+                eintragen muss. Report ist klar, aber ohne echte Detaildaten.
+              </td>
+            </tr>
+            <tr>
+              <td>Entscheidungen</td>
+              <td>Depth Chart angesehen, Development Focus auf Evan Stone gesetzt, Contracts geprueft.</td>
+              <td>
+                Development-Focus fuehlt sich wie eine echte Aktion an. Depth Chart bietet
+                im Startzustand kaum echte Wahl, weil fast keine Alternativen vorhanden sind.
+              </td>
+            </tr>
+            <tr>
+              <td>Zweite Woche</td>
+              <td>Woche 2 vorbereitet, Match gestartet, Live angesehen, Score abgeschlossen, Report gelesen.</td>
+              <td>
+                Der Loop wiederholt sich verstaendlich, aber wird nicht spannender. Manager
+                Impact wird erwaehnt, kann aber ohne Plays kaum erlebt werden.
+              </td>
+            </tr>
+            <tr>
+              <td>Stop Moment</td>
+              <td>Nach dem zweiten Report entschieden, ob ich freiwillig weiterspielen wuerde.</td>
+              <td>
+                Nein. Ich wuerde warten, bis das Spiel Ergebnisse selbst erzeugt und besser
+                erklaert, warum etwas passiert ist.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Beobachtungen</h2>
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Was war sofort klar?</h3>
+            <ul>
+              <li>Ich bin Manager der Boston Guardians.</li>
+              <li>Das Dashboard zeigt eine "Next Best Action".</li>
+              <li>Ich muss die Woche vorbereiten und dann das Spiel starten.</li>
+              <li>Contracts/Cap zeigt, wer auslaeuft und was Cap Space bedeutet.</li>
+              <li>Development Focus ist eine sichtbare Spielerentscheidung.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Was war verwirrend?</h3>
+            <ul>
+              <li>Login/Start fuehlt sich technisch an und war lokal nicht reibungslos.</li>
+              <li>Technische Labels wie DERIVED, UI-FIXTURE, FALLBACK und READ stoeren Immersion.</li>
+              <li>Nach einem Sieg zeigt der Team Record weiter 0-0.</li>
+              <li>Noah Reed faellt von 75 auf 61 OVR, wird aber als "entwickelt sich gut" beschrieben.</li>
+              <li>Die Live Simulation fordert mich auf, den Score selbst zu finalisieren.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Was hat sich gut angefuehlt?</h3>
+            <ul>
+              <li>Das Dashboard gibt mir Richtung statt mich allein zu lassen.</li>
+              <li>Der Match Report sagt mir nach dem Spiel, worauf ich achten soll.</li>
+              <li>Development Focus gibt direkt positives Feedback.</li>
+              <li>Contracts machen finanzielle Risiken schnell sichtbar.</li>
+              <li>Woche 2 zeigt zumindest Form- und Fortschrittssignale aus Woche 1.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Was war langweilig?</h3>
+            <ul>
+              <li>Live Game ohne Drives, Clock, Possession oder Events.</li>
+              <li>Manuelles Score-Eintragen statt Spielverlauf beobachten.</li>
+              <li>Match Report ohne Team Stats, Key Moments oder Player of the Game.</li>
+              <li>Depth Chart ohne echte Konkurrenz um Starterplaetze.</li>
+              <li>Woche 2 spielt sich fast gleich wie Woche 1.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Bewertungen</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Bewertung</th>
+              <th>Begruendung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Dashboard</td>
+              <td><span class="badge green">klar</span></td>
+              <td>
+                Next Best Action funktioniert. Zu viele Zusatzbereiche und technische Labels
+                nehmen aber etwas Fokus.
+              </td>
+            </tr>
+            <tr>
+              <td>Live Simulation</td>
+              <td><span class="badge red">langweilig</span></td>
+              <td>
+                Es fuehlt sich nicht wie ein laufendes Spiel an. Ohne Drives und mit manueller
+                Score-Eingabe entsteht keine echte Spannung.
+              </td>
+            </tr>
+            <tr>
+              <td>Match Report</td>
+              <td><span class="badge yellow">mittel</span></td>
+              <td>
+                Der Report ist gut strukturiert und gibt Next Steps, kann aber nicht wirklich
+                erklaeren, warum Sieg oder Niederlage passiert sind.
+              </td>
+            </tr>
+            <tr>
+              <td>Entscheidungen</td>
+              <td><span class="badge yellow">mittel</span></td>
+              <td>
+                Development und Contracts wirken entscheidungsnah. Depth Chart und Match Impact
+                bleiben wegen fehlender Alternativen und fehlender Plays zu abstrakt.
+              </td>
+            </tr>
+            <tr>
+              <td>Navigation</td>
+              <td><span class="badge green">klar</span></td>
+              <td>
+                Core Actions sind gut auffindbar. Der Savegame-Einstieg und Login-Kontext sind
+                dagegen noch nicht erstnutzerfreundlich.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Keine echten Entscheidungen</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Stelle</th>
+              <th>Was ich getan habe</th>
+              <th>Warum es sich nicht voll wie Entscheidung anfuehlte</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Depth Chart</td>
+              <td>Positionsgruppen angesehen.</td>
+              <td>
+                Fast alle Positionen sind leer oder haben nur einen Spieler. Ich kann keine
+                echte Starter-vs-Backup-Abwaegung treffen.
+              </td>
+            </tr>
+            <tr>
+              <td>Live Game</td>
+              <td>Score eingetragen und Spiel abgeschlossen.</td>
+              <td>
+                Das ist keine Managerentscheidung, sondern wirkt wie manuelles Ergebnis-Setzen.
+              </td>
+            </tr>
+            <tr>
+              <td>Contracts</td>
+              <td>Auslaufende Vertraege geprueft.</td>
+              <td>
+                Ich sehe Risiken, aber die konkrete Vertragsaktion wirkt finanziell gross und
+                ich weiss nicht, ob ich sie wirklich ausloesen sollte.
+              </td>
+            </tr>
+            <tr>
+              <td>Gameplan</td>
+              <td>Default-Balanced gelassen.</td>
+              <td>
+                Viele Optionen klingen sinnvoll, aber ohne sichtbare Gegnerdetails ist "Balanced"
+                die sichere Durchklick-Entscheidung.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Top 5 Probleme</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Rang</th>
+              <th>Problem</th>
+              <th>Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Live Simulation erzeugt keinen echten Spielverlauf</td>
+              <td>Ohne Drives, Plays, Score-Entwicklung oder Ereignisse entsteht kaum Emotion.</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Score muss manuell eingegeben werden</td>
+              <td>Das zerstoert das Gefuehl, dass meine Entscheidungen das Spiel beeinflussen.</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Match Report hat zu viele fehlende Detaildaten</td>
+              <td>Ich kann nicht erklaeren, warum ich gewonnen oder verloren habe.</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Depth Chart hat im Startzustand kaum echte Alternativen</td>
+              <td>Lineup Management wirkt wichtig, aber ich kann nichts Sinnvolles optimieren.</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Datenvertrauen wird durch Widersprueche geschwaecht</td>
+              <td>Record 0-0 nach Spielen, positive Texte bei starkem OVR-Abfall und technische Labels wirken unsauber.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Top 5 Staerken</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Rang</th>
+              <th>Staerke</th>
+              <th>Warum sie traegt</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Dashboard mit klarer Next Best Action</td>
+              <td>Ich weiss meistens, was der naechste Schritt ist.</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Core Navigation ist gut strukturiert</td>
+              <td>Game Flow, Roster, Depth Chart, Contracts und Development sind schnell auffindbar.</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Contracts/Cap ist verstaendlich</td>
+              <td>Auslaufende Vertraege, Cap Space und Risiken sind schnell sichtbar.</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Development Focus gibt direktes Feedback</td>
+              <td>Ich spuere, dass ich einen Spieler priorisiert habe.</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Match Report gibt einen naechsten Fokus</td>
+              <td>Auch ohne Detaildaten bekomme ich nach dem Spiel eine Richtung fuer die naechste Woche.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Ehrliches Fazit</h2>
+        <p>
+          Ich wuerde das Spiel aktuell nicht abbrechen, weil ich verloren bin. Ich verstehe
+          den Loop und sehe, dass hier ein Football-Manager entstehen kann. Ich wuerde aber
+          nach zwei Wochen nicht freiwillig weiterspielen, weil der wichtigste Moment,
+          das Spiel selbst, noch nicht als Spiel funktioniert.
+        </p>
+        <p>
+          Der beste Teil ist der Manager-Rahmen: Dashboard, Development, Contracts und
+          Next Steps. Der schwache Teil ist die emotionale Auszahlung: Live Game und
+          Match Report koennen mein Ergebnis nicht glaubwuerdig erklaeren.
+        </p>
+        <p class="accent">
+          Entscheidung: nicht weiterspielen. Gesamtstatus: Gelb.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

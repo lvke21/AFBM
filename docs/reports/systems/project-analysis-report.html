@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FBManager - Vollständiger Projektanalyse-Bericht</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --panel-soft: #f8fafc;
+        --text: #172033;
+        --muted: #5b667a;
+        --line: #d9e0ea;
+        --accent: #0f766e;
+        --accent-soft: #e7f5f3;
+        --good: #116b3a;
+        --warn: #9a6500;
+        --bad: #a51d2d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #eef3f8 0%, var(--bg) 100%);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.62;
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 32px 18px 72px;
+      }
+
+      header,
+      section {
+        margin-bottom: 18px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        box-shadow: 0 14px 34px rgba(23, 32, 51, 0.07);
+        padding: 24px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 12px;
+        line-height: 1.2;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        color: var(--accent);
+      }
+
+      h2 {
+        font-size: 1.55rem;
+      }
+
+      h3 {
+        font-size: 1.12rem;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 0 20px;
+        padding: 0;
+      }
+
+      li {
+        margin: 4px 0;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 12px;
+        border-collapse: collapse;
+        font-size: 0.94rem;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef6f5;
+      }
+
+      code {
+        border-radius: 6px;
+        background: #eef2f7;
+        padding: 1px 5px;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.92em;
+      }
+
+      .lede {
+        max-width: 900px;
+        color: var(--muted);
+        font-size: 1.06rem;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .badge {
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        font-weight: 650;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel-soft);
+        padding: 16px;
+      }
+
+      .note {
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        padding: 12px 14px;
+        color: #174a45;
+      }
+
+      .status-good {
+        color: var(--good);
+        font-weight: 800;
+      }
+
+      .status-warn {
+        color: var(--warn);
+        font-weight: 800;
+      }
+
+      .status-bad {
+        color: var(--bad);
+        font-weight: 800;
+      }
+
+      .small {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .rank {
+        font-weight: 800;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>FBManager - Vollständiger Projektanalyse-Bericht</h1>
+        <p class="lede">
+          Dieser Bericht fasst die bisherigen Architektur-, Datenmodell-, Firestore-,
+          Game-Engine-, Rating-, Flow-, Test-, Performance- und UX-Analysen zusammen. Er
+          ist sowohl für Entwickler als auch für fachliche Entscheider geschrieben.
+        </p>
+        <div class="meta">
+          <span class="badge">Projekt: American Football Manager / FBManager</span>
+          <span class="badge">Datum: 2026-04-26</span>
+          <span class="badge">Status Analyse: Grün</span>
+        </div>
+      </header>
+
+      <section id="projektuebersicht">
+        <h2>1. Projektübersicht</h2>
+        <p>
+          FBManager ist ein webbasierter American-Football-Manager. Der Spieler übernimmt
+          ein Team, verwaltet Kader, Verträge, Schemes, Depth Chart und Wochenfortschritt
+          und kann simulierte Matches mit Reports auswerten.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <h3>Kernspiel</h3>
+            <ul>
+              <li>Savegames mit eigener Liga, Teams, Seasons, Weeks und Matches.</li>
+              <li>Team-Management mit Roster, Verträgen, Cap Space und Free Agency.</li>
+              <li>Week Loop mit Vorbereitung, Spielstart, Abschluss und Fortschritt.</li>
+              <li>Match Reports mit Score, Drive Log, Box Score und Ursachenanalyse.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Technischer Stand</h3>
+            <ul>
+              <li>Next.js App mit Server Actions und API Routes.</li>
+              <li>Prisma ist weiterhin der Default- und Fallback-Datenpfad.</li>
+              <li>Firestore wurde schrittweise vorbereitet und emulatorgeschützt.</li>
+              <li>Repository-Abstraktion existiert für spätere Backend-Umschaltung.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="architektur">
+        <h2>2. Architektur</h2>
+        <p>
+          Die Struktur folgt grob einer modularen Architektur. Fachbereiche liegen unter
+          <code>src/modules</code>, UI unter <code>src/components</code> und
+          <code>src/app</code>, Persistenz unter Infrastructure- und Repository-Modulen.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Aufgabe</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>src/app</code></td>
+              <td>Routes, Pages, Server Actions, API Routes</td>
+              <td>Gut als Next.js Entry Layer, aber Actions enthalten teils fachliche Orchestrierung.</td>
+            </tr>
+            <tr>
+              <td><code>src/modules/*/domain</code></td>
+              <td>Typen, Regeln, Bewertungslogik</td>
+              <td>Sauberer fachlicher Kern, besonders bei Gameplay und Ratings.</td>
+            </tr>
+            <tr>
+              <td><code>src/modules/*/application</code></td>
+              <td>Use Cases, Services, Simulation, Flow</td>
+              <td>Stark, aber einige Services sind sehr groß und datenbanknah.</td>
+            </tr>
+            <tr>
+              <td><code>src/modules/*/infrastructure</code></td>
+              <td>Prisma-Repositories und Persistenzdetails</td>
+              <td>Sinnvolle Trennung, aber historisch nicht überall konsequent.</td>
+            </tr>
+            <tr>
+              <td><code>src/server/repositories</code></td>
+              <td>Neue Abstraktion für Prisma/Firestore</td>
+              <td>Wichtig für Migration, noch nicht vollständig für alle Datenbereiche ausgereift.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          Wichtigste Architektur-Erkenntnis: Die App ist kein chaotischer Prototyp mehr,
+          aber noch kein vollständig cleanes Ports-and-Adapters-System. Die Repository-Schicht
+          ist der richtige Weg, muss jedoch für Stats, Reports und komplexe Simulation weiter
+          gehärtet werden.
+        </p>
+      </section>
+
+      <section id="datenmodell">
+        <h2>3. Datenmodell</h2>
+        <p>
+          Das aktuelle Modell ist stark savegame-zentriert. Fast alle Laufzeitdaten hängen
+          an einem Savegame beziehungsweise einer League. Das ist fachlich richtig, aber
+          relational gedacht: Prisma nutzt Joins, Includes, Transaktionen und normalisierte
+          Stat-Tabellen.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <h3>Prisma-Kernobjekte</h3>
+            <ul>
+              <li>User/Auth-Daten</li>
+              <li>SaveGame, Season, Week, Match</li>
+              <li>Team, Player, RosterProfile, Contract</li>
+              <li>Player-/Team-/Match-/Season-Stats</li>
+              <li>Draft, Scouting, Inbox, Finance Events</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Firestore-Zielobjekte</h3>
+            <ul>
+              <li><code>users</code>, <code>leagues</code>, <code>leagueMembers</code></li>
+              <li><code>teams</code>, <code>players</code></li>
+              <li><code>seasons</code>, <code>weeks</code>, <code>matches</code></li>
+              <li><code>gameEvents</code>, <code>playerStats</code>, <code>teamStats</code></li>
+              <li><code>reports</code> und spätere Read Models</li>
+            </ul>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Thema</th>
+              <th>Risiko</th>
+              <th>Empfehlung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Joins</td>
+              <td>Firestore kann relationale Includes nicht wie Prisma ausführen.</td>
+              <td>Read Models und Denormalisierung für Team-, Player-, Match- und Season-Views.</td>
+            </tr>
+            <tr>
+              <td>Stats</td>
+              <td>Doppelte Zählung bei erneutem Matchabschluss möglich.</td>
+              <td>Ledger + idempotente Aggregates mit <code>simulationRunId</code>.</td>
+            </tr>
+            <tr>
+              <td>Game State</td>
+              <td>Race Conditions bei parallelen State-Transitions.</td>
+              <td>Serverseitige Transaktionen, erlaubte Statuswechsel und Emulator-/Production-Guards.</td>
+            </tr>
+            <tr>
+              <td>Reads</td>
+              <td>N+1-Abfragen bei Teams, Roster, Player Details und Match Weeks.</td>
+              <td>Zusammengefasste Overview-Dokumente und Query-Scopes.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="game-engine">
+        <h2>4. Game Engine</h2>
+        <p>
+          Die Game Engine ist deutlich tiefer als eine reine Würfelsimulation. Sie berücksichtigt
+          Spielerattribute, Positionsrollen, Readiness, Fatigue, Morale, Matchups, Play Selection,
+          Protection, Run Lanes, Coverage, Pressure, QB-Entscheidungszeit und X-Factor-Pläne.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <h3>Einflussfaktoren</h3>
+            <ul>
+              <li>Quarterback: Accuracy, Decision, Pocket Presence, Mobility, Arm Strength.</li>
+              <li>Receiver: Route Running, Separation, Hands, Ball Skills, YAC.</li>
+              <li>Runner: Vision, Acceleration, Balance, Ball Security, Power.</li>
+              <li>Offensive Line: Pass Protection, Run Blocking, Communication.</li>
+              <li>Defense: Coverage, Pass Rush, Run Fit, Pursuit, Tackling.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Mechaniken</h3>
+            <ul>
+              <li>Play Calls werden situations- und matchupabhängig bewertet.</li>
+              <li>Passspiel wird über Pressure, Sack, Completion, Interception und Explosivität modelliert.</li>
+              <li>Laufspiel wird über Lane, Blocking, Stuff Rate, Fumble und Explosivität modelliert.</li>
+              <li>Reports erklären ausgewählte Entscheidungen in normaler Football-Sprache.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">
+          Die Engine hat viel Substanz. Die größte Design-Lücke ist, dass einige starke
+          Mechaniken noch nicht vollständig als Spielerentscheidung sichtbar sind.
+        </p>
+      </section>
+
+      <section id="ratingsystem">
+        <h2>5. Ratingsystem - anwenderverständlich erklärt</h2>
+        <p>
+          Ratings sind Zahlen, die beschreiben, wie gut ein Spieler bestimmte Football-Aufgaben
+          lösen kann. Ein einzelnes Overall-Rating ist nur eine Zusammenfassung. Die Simulation
+          verwendet darunter viele Einzelwerte.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Rating</th>
+              <th>Bedeutung im Spiel</th>
+              <th>Beispiel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>QB Decision</td>
+              <td>Wie schnell und sauber der Quarterback die richtige Option erkennt.</td>
+              <td>Ein QB mit hoher Decision wirft eher rechtzeitig zum offenen Receiver.</td>
+            </tr>
+            <tr>
+              <td>Pass Protection</td>
+              <td>Wie gut die Offensive Line Druck verhindert.</td>
+              <td>Gute Protection senkt Pressure- und Sack-Wahrscheinlichkeit.</td>
+            </tr>
+            <tr>
+              <td>Separation</td>
+              <td>Wie gut sich ein Receiver vom Verteidiger löst.</td>
+              <td>Mehr Separation erhöht Completion- und Big-Play-Chancen.</td>
+            </tr>
+            <tr>
+              <td>Ball Security</td>
+              <td>Wie sicher ein Spieler den Ball schützt.</td>
+              <td>Ein RB mit schwacher Ball Security verliert bei aggressiver Defense eher den Ball.</td>
+            </tr>
+            <tr>
+              <td>Play Recognition</td>
+              <td>Wie schnell ein Defender Spielzüge erkennt.</td>
+              <td>Linebacker reagieren schneller auf Runs, Screens oder kurze Pässe.</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>Konkrete Spielsituationen</h3>
+        <div class="grid">
+          <div class="card">
+            <h3>3rd & 7, starker Pass Rush</h3>
+            <p>
+              Hat die Offensive Line schwache Protection, steigt der Druck auf den QB.
+              Ein QB mit guter Decision kann trotzdem schnell werfen. Ein Gameplan mit
+              <code>FAST_RELEASE</code> hilft zusätzlich, kostet aber Tiefe im Passspiel.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Red Zone, enger Raum</h3>
+            <p>
+              In der Red Zone werden Separation, Hands, Ball Skills und TE/WR-Matchups wichtig.
+              Ein Plan wie <code>FEATURE_TE</code> kann helfen, sichere Targets zu priorisieren.
+            </p>
+          </div>
+          <div class="card">
+            <h3>4th & Short</h3>
+            <p>
+              Power, Run Blocking, Box Control und Coaching Risk beeinflussen, ob die Engine
+              konservativ puntet, ein Field Goal versucht oder aggressiv ausspielt.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="game-flow">
+        <h2>6. Game Flow</h2>
+        <p>
+          Der zentrale Wochenfluss ist eine State Machine. Der Spieler bewegt das Savegame
+          von der Vorbereitung über das Spiel bis zur nächsten Woche.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>State</th>
+              <th>Bedeutung</th>
+              <th>Aktion</th>
+              <th>Risiko</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>PRE_WEEK</code></td>
+              <td>Woche ist noch nicht vorbereitet.</td>
+              <td>Woche vorbereiten.</td>
+              <td>Zu wenig Entscheidungen vor der Vorbereitung.</td>
+            </tr>
+            <tr>
+              <td><code>READY</code></td>
+              <td>Match kann gestartet werden.</td>
+              <td>Gameplan prüfen, Spiel starten.</td>
+              <td>Gameplan noch zu grob.</td>
+            </tr>
+            <tr>
+              <td><code>GAME_RUNNING</code></td>
+              <td>Match läuft oder wartet auf Abschluss.</td>
+              <td>Spiel abschließen.</td>
+              <td>Bei mehreren offenen Matches kann Fortschritt blockieren.</td>
+            </tr>
+            <tr>
+              <td><code>POST_GAME</code></td>
+              <td>Ergebnis ist gespeichert.</td>
+              <td>Report lesen, Woche fortschreiben.</td>
+              <td>Stats/Aggregates müssen idempotent sein.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Der Flow ist verständlich und testbar. Für größere Ligen braucht er aber robuste
+          Multi-Match-Logik, klare Deadlock-Vermeidung und langfristig einen Background-Job
+          für Week Simulation.
+        </p>
+      </section>
+
+      <section id="testing">
+        <h2>7. Testing & Qualität</h2>
+        <p>
+          Das Projekt besitzt bereits viele Unit-, Service-, UI-Model- und Firestore-Emulator-Tests.
+          Besonders positiv sind die Tests für Gameplay-Mechaniken, Repository-Umschaltung und
+          Firestore-Guards.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Testbereich</th>
+              <th>Stärke</th>
+              <th>Lücke</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Unit Tests</td>
+              <td>Viele Fachlogiken sind direkt getestet.</td>
+              <td>Einige Integrationseffekte entstehen erst im kompletten Week Flow.</td>
+            </tr>
+            <tr>
+              <td>Firestore Emulator</td>
+              <td>Seed, Reset, Rules und mehrere Repository-Flows vorhanden.</td>
+              <td>Produktionsreife Parity ist noch nicht vollständig bewiesen.</td>
+            </tr>
+            <tr>
+              <td>E2E</td>
+              <td>Fixtures und minimale Flows existieren.</td>
+              <td>Browser-E2E und Prisma-vs-Firestore-Vergleich sind kritische Restlücken.</td>
+            </tr>
+            <tr>
+              <td>Game Engine</td>
+              <td>Play Selection, Outcome, Chemistry, Protection und Reports sind gut abgedeckt.</td>
+              <td>Balance-Tests sollten um Langzeit-Saisons und Extremroster erweitert werden.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          Qualitätsstatus: gut für Weiterentwicklung, aber noch nicht ausreichend für eine
+          vollständige produktive Firebase-Ablösung.
+        </p>
+      </section>
+
+      <section id="performance">
+        <h2>8. Performance</h2>
+        <p>
+          Die Performance ist für kleine Demo-Ligen ausreichend. Skalierungsrisiken entstehen
+          vor allem durch Firestore-N+1-Reads, teure Aggregate-Rebuilds, synchrone Simulation
+          und große Schreibblöcke.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Engpass</th>
+              <th>Auswirkung</th>
+              <th>Optimierung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Team-/Roster-/Match-N+1 Reads</td>
+              <td>Viele Firestore Reads pro Seite.</td>
+              <td>Read Models und zusammengefasste Overview-Dokumente.</td>
+            </tr>
+            <tr>
+              <td>Aggregate-Rebuilds</td>
+              <td>Kosten wachsen mit Season, Spielerzahl und Matchanzahl.</td>
+              <td>Ledger + Delta-Updates + Idempotenzschlüssel.</td>
+            </tr>
+            <tr>
+              <td>Synchrone Simulation</td>
+              <td>Lange Requests und blockierter Serverprozess möglich.</td>
+              <td>Background Jobs, Chunking pro Match, Status-Polling.</td>
+            </tr>
+            <tr>
+              <td>Firestore Batch-Limits</td>
+              <td>Play-by-Play kann 500 Writes pro Batch überschreiten.</td>
+              <td>Batch-Chunking oder Admin BulkWriter-Strategie.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="gameplay-ux">
+        <h2>9. Gameplay & UX</h2>
+        <p>
+          Die Spielererfahrung ist bereits als GM-Spiel erkennbar: Team verwalten, Cap prüfen,
+          Free Agents bewerten, Depth Chart setzen, Schemes wählen, Woche spielen und Reports
+          lesen. Die größte Chance liegt darin, die vorhandene Engine-Tiefe stärker als
+          Spielerentscheidung nutzbar zu machen.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <h3>Stärken</h3>
+            <ul>
+              <li>Dashboard und Week Loop sind gut verständlich.</li>
+              <li>Team Needs und Free-Agent-Ranking geben klare GM-Hinweise.</li>
+              <li>Reports erklären Spielausgänge statt nur Zahlen zu zeigen.</li>
+              <li>Depth Chart und Development Focus geben echte Steuerung.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Fehlende Tiefe</h3>
+            <ul>
+              <li>X-Factor-Pläne sind technisch vorhanden, aber nicht voll ausgespielt.</li>
+              <li>Gameplan ist sichtbar, aber noch zu grob.</li>
+              <li>Training, Recovery, Scouting und Morale sind noch keine starken Wochenentscheidungen.</li>
+              <li>Feedback nach dem Spiel sollte klarer auf Spielerentscheidungen zeigen.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">
+          Für Nicht-Entwickler gesagt: Das Spiel hat bereits einen Motor mit vielen feinen
+          Zahnrädern. Die UI muss dem Spieler nun mehr Hebel geben, um diese Zahnräder bewusst
+          zu bewegen.
+        </p>
+      </section>
+
+      <section id="top10">
+        <h2>10. Top 10 Verbesserungen nach Impact</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Priorität</th>
+              <th>Problem</th>
+              <th>Begründung</th>
+              <th>Art</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="rank">1</td>
+              <td>Firestore-Parity nicht produktionsreif</td>
+              <td>Ohne vollständige Parity darf Prisma nicht ersetzt werden.</td>
+              <td>Großes Feature</td>
+            </tr>
+            <tr>
+              <td class="rank">2</td>
+              <td>Stats, Reports und Read Models</td>
+              <td>Höchstes Datenrisiko wegen Aggregates, Kosten und Idempotenz.</td>
+              <td>Großes Feature</td>
+            </tr>
+            <tr>
+              <td class="rank">3</td>
+              <td>Week-/Match-State-Flow</td>
+              <td>Multi-Match-Wochen können blockieren oder inkonsistent wirken.</td>
+              <td>Großes Feature</td>
+            </tr>
+            <tr>
+              <td class="rank">4</td>
+              <td>Synchrone Simulation</td>
+              <td>Skaliert schlecht bei mehreren Savegames oder größeren Ligen.</td>
+              <td>Großes Feature</td>
+            </tr>
+            <tr>
+              <td class="rank">5</td>
+              <td>Firestore-N+1 Reads</td>
+              <td>Kostet Performance und Geld bei Team-, Roster- und Matchseiten.</td>
+              <td>Quick Win + Architektur</td>
+            </tr>
+            <tr>
+              <td class="rank">6</td>
+              <td>Aggregate nicht ausreichend idempotent</td>
+              <td>Wiederholte Matchabschlüsse dürfen Stats nie doppelt zählen.</td>
+              <td>Großes Feature</td>
+            </tr>
+            <tr>
+              <td class="rank">7</td>
+              <td>X-Factor/Gameplan nicht voll spielbar</td>
+              <td>Großer Gameplay-Gewinn, weil Engine-Mechanik bereits existiert.</td>
+              <td>Quick Win</td>
+            </tr>
+            <tr>
+              <td class="rank">8</td>
+              <td>E2E-/Parity-Testlücken</td>
+              <td>Migration braucht beweisbare Gleichheit der Kernresultate.</td>
+              <td>Großes Feature</td>
+            </tr>
+            <tr>
+              <td class="rank">9</td>
+              <td>Architekturgrenzen nicht überall konsequent</td>
+              <td>Einige Services sind zu datenbanknah oder zu breit.</td>
+              <td>Fortlaufende Architekturarbeit</td>
+            </tr>
+            <tr>
+              <td class="rank">10</td>
+              <td>Entscheidungsfeedback in der UX</td>
+              <td>Spieler sollen sehen, warum ihre Entscheidung Wirkung hatte.</td>
+              <td>Quick Win</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Quick Wins</h3>
+        <ul>
+          <li>X-Factor-UI für Pre-Game-Pläne ergänzen.</li>
+          <li>Gameplan-Optionen mit Vorteilen und Risiken erklären.</li>
+          <li>Team-/Roster-/Match-Listen von Detail-Nachlade-Patterns befreien.</li>
+          <li>Query-Scopes konsequent setzen: <code>leagueId</code>, <code>seasonId</code>, <code>scope</code>.</li>
+          <li>Reports um “Deine Entscheidung bewirkte...” erweitern.</li>
+        </ul>
+
+        <h3>Große Features</h3>
+        <ul>
+          <li>Vollständige Prisma-vs-Firestore-Parity-Suite.</li>
+          <li>Idempotente Stats- und Aggregate-Pipeline.</li>
+          <li>Background Job System für Week Simulation.</li>
+          <li>Robuste Multi-Match-State-Machine.</li>
+          <li>Produktionsreife Firestore Read Models.</li>
+        </ul>
+      </section>
+
+      <section id="status">
+        <h2>Statusprüfung</h2>
+        <table>
+          <tbody>
+            <tr>
+              <th>Vollständig?</th>
+              <td>
+                <span class="status-good">Grün.</span> Die bisherigen Analysen zu Architektur,
+                Datenmodell, Firestore, Game Engine, Ratings, Flow, Tests, Performance und UX
+                sind zusammengeführt.
+              </td>
+            </tr>
+            <tr>
+              <th>Verständlich?</th>
+              <td>
+                <span class="status-good">Grün.</span> Technische Begriffe werden mit Beispielen
+                und konkreten Spielsituationen erklärt.
+              </td>
+            </tr>
+            <tr>
+              <th>Technisch korrekt?</th>
+              <td>
+                <span class="status-good">Grün.</span> Der Bericht folgt dem aktuellen Projektstand:
+                Prisma bleibt Default/Fallback, Firestore ist vorbereitet, aber produktiv noch nicht
+                final gleichwertig.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="small">
+          Gesamtstatus dieses Berichts: <span class="status-good">Grün</span>.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Micro Polish Report</title>
+    <style>
+      :root {
+        background: #f5f7fa;
+        color: #172033;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 24px;
+      }
+
+      p,
+      li {
+        line-height: 1.65;
+      }
+
+      .lead {
+        max-width: 860px;
+        color: #526070;
+        font-size: 17px;
+      }
+
+      .panel,
+      table {
+        border: 1px solid #d9e0ea;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .panel {
+        margin-top: 22px;
+        padding: 18px;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7ebf0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef3f8;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #e9eef5;
+        padding: 2px 5px;
+      }
+
+      .good {
+        color: #166534;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Micro Polish Report</h1>
+      <p class="lead">
+        Aufgabe: Den kompletten Spiel-Flow mehrfach als UX-Reviewer spielen, kleine Reibungen
+        finden und nur kleine, risikoarme Fixes umsetzen.
+      </p>
+
+      <section class="panel">
+        <h2>Executive Summary</h2>
+        <p>
+          Drei komplette Week-Loop-Durchlaeufe wurden gespielt: Dashboard, Vorbereitung, Depth
+          Chart, Game Setup, Live, Match Report und naechste Woche. Die groessten kleinen Reibungen
+          waren gemischte deutsche/englische Labels, ein zu frueh wie klickbar wirkender
+          Report-Button im Live-Screen und E2E-Pfade, die noch den alten Week-Loop-CTA erwarteten.
+        </p>
+      </section>
+
+      <section>
+        <h2>Gefundene Reibungen</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Beobachtung</th>
+              <th>Fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Im Live-Screen war der Report-Button sichtbar, bevor der Schlusspfiff erreicht war.</td>
+              <td>Buttontext zeigt vor Ende nun <code>Report nach Schlusspfiff</code>; erst danach <code>Zum Match Report</code>.</td>
+            </tr>
+            <tr>
+              <td>Game-Flow-Navigation mischte <code>Game Flow</code>, <code>Finished</code>, <code>Pre</code>.</td>
+              <td>Labels auf <code>Spielablauf</code>, <code>Beendet</code>, <code>Vor dem Spiel</code> umgestellt.</td>
+            </tr>
+            <tr>
+              <td>Dashboard und Match-Karten nutzten noch <code>Record</code>, <code>Week</code>, <code>Away</code>, <code>User Team</code>.</td>
+              <td>In <code>Bilanz</code>, <code>Woche</code>, <code>Auswaerts</code>, <code>Dein Team</code> geglaettet.</td>
+            </tr>
+            <tr>
+              <td>Game Setup hatte Analysebegriffe wie <code>Team Comparison</code>, <code>Matchup Context</code>.</td>
+              <td>Zu <code>Teamvergleich</code> und <code>Duell vor dem Kickoff</code> vereinfacht.</td>
+            </tr>
+            <tr>
+              <td>Report-Ursachenbereich wirkte noch wie ein Analyse-Tool.</td>
+              <td><code>Causal Match Report</code> wurde zu <code>Warum das Spiel so lief</code> und <code>Die wichtigsten Ursachen</code>.</td>
+            </tr>
+            <tr>
+              <td>Validierung suchte noch alte Einstiegspfade und alte Labels.</td>
+              <td><code>week-loop.spec.ts</code> und <code>first-10-minutes.spec.ts</code> auf den aktuellen Primary-Action-Flow aktualisiert.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Geaenderte Bereiche</h2>
+        <ul>
+          <li><code>src/components/match/*</code> - Live-, Setup-, Report- und Game-Flow-Labels geglaettet.</li>
+          <li><code>src/components/dashboard/*</code> - Dashboard- und Matchkarten-Sprache vereinheitlicht.</li>
+          <li><code>src/components/layout/navigation-model.ts</code> - Navigation/Breadcrumbs fuer Spielablauf konsistent gemacht.</li>
+          <li><code>e2e/week-loop.spec.ts</code> und <code>e2e/first-10-minutes.spec.ts</code> - aktuelle UX-Pfade validieren.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Validierung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npx tsc --noEmit --pretty false</code></td>
+              <td class="good">Bestanden</td>
+            </tr>
+            <tr>
+              <td>
+                <code
+                  >npx vitest run src/components/match/game-flow-model.test.ts
+                  src/components/match/live-simulation-model.test.ts
+                  src/components/match/post-game-report-model.test.ts
+                  src/components/dashboard/dashboard-model.test.ts
+                  src/components/layout/navigation-model.test.ts</code
+                >
+              </td>
+              <td class="good">Bestanden: 5 Dateien, 52 Tests.</td>
+            </tr>
+            <tr>
+              <td>Kompletter Week Loop, Durchlauf 1</td>
+              <td class="good">Bestanden: <code>e2e/week-loop.spec.ts</code>, 39.7s.</td>
+            </tr>
+            <tr>
+              <td>Kompletter Week Loop, Durchlauf 2</td>
+              <td class="good">Bestanden: <code>e2e/week-loop.spec.ts</code>, 36.6s.</td>
+            </tr>
+            <tr>
+              <td>Kompletter Week Loop, Durchlauf 3</td>
+              <td class="good">Bestanden: <code>e2e/week-loop.spec.ts</code>, 37.2s.</td>
+            </tr>
+            <tr>
+              <td>Finaler Smoke nach letzten Label-Fixes</td>
+              <td class="good">Bestanden: <code>e2e/week-loop.spec.ts</code>, 32.4s; <code>e2e/first-10-minutes.spec.ts</code>, 34.0s.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>Bewertung</h2>
+        <p class="good">
+          Status: Kleine Reibungen reduziert. Der Flow ist weiterhin derselbe, fuehlt sich aber
+          weniger technisch an, der Live-zu-Report-Uebergang ist klarer, und die Tests folgen dem
+          aktuellen Nutzerpfad.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Multi Position Impact Report</title>
+    <style>
+      :root {
+        background: #f5f7fa;
+        color: #172033;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 24px;
+      }
+
+      p,
+      li {
+        line-height: 1.65;
+      }
+
+      .lead {
+        max-width: 850px;
+        color: #526070;
+        font-size: 17px;
+      }
+
+      .panel,
+      table {
+        border: 1px solid #d9e0ea;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .panel {
+        margin-top: 22px;
+        padding: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .card {
+        border-left: 4px solid #3b82f6;
+        background: #fff;
+        padding: 14px;
+      }
+
+      .card strong {
+        display: block;
+      }
+
+      .card span {
+        color: #657383;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7ebf0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef3f8;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #e9eef5;
+        padding: 2px 5px;
+      }
+
+      .good {
+        color: #166534;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Multi Position Impact</h1>
+      <p class="lead">
+        Aufgabe: Lineup-Entscheidungen und Positionsgruppen sollen nicht mehr nur ueber QB/Passing
+        sichtbar werden. Der Spielbericht und die Live Simulation sollen mindestens drei
+        Positionsgruppen spuerbar rueckmelden.
+      </p>
+
+      <section class="panel">
+        <h2 style="margin-top: 0">Executive Summary</h2>
+        <p>
+          Der Post-Game Report zeigt jetzt drei zusaetzliche Positionsgruppen als eigene
+          Team-Impact-Karten: <strong>Run Game</strong>, <strong>WR Matchup</strong> und
+          <strong>Defense Pressure</strong>. Live und Key Moments erhalten zudem gelegentliche
+          Positionsimpact-Hinweise aus vorhandenen Drive-Daten, zum Beispiel RB/Run Game bei
+          starken Rush-Drives, WR Matchup bei Passing-Drives und Defense Pressure bei Stops oder
+          Turnovers.
+        </p>
+      </section>
+
+      <h2>Umsetzung</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>RB / Run Game</strong>
+          <span>
+            Report-Werte: <code>Run Game stark</code>, <code>Run Game stabil</code> oder
+            <code>Run Game schwach</code>. Basis sind Rushing Yards, Rush Edge und Starter-OVR.
+          </span>
+        </div>
+        <div class="card">
+          <strong>WR / Passing Matchup</strong>
+          <span>
+            Report-Werte: <code>WR Matchup Vorteil</code>, neutral oder schwach. Basis sind
+            Passing Yards, Big Plays, Passing Edge und WR/TE-Starter.
+          </span>
+        </div>
+        <div class="card">
+          <strong>DL / Defense</strong>
+          <span>
+            Report-Werte: <code>Defense Pressure stark</code>, stabil oder schwach. Basis sind
+            Drive Stops, gegnerische Turnover und Front-Seven-Starter.
+          </span>
+        </div>
+      </div>
+
+      <h2>Geaenderte Dateien</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Datei</th>
+            <th>Aenderung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>src/components/match/post-game-report-model.ts</code></td>
+            <td>
+              Neue Multi-Position-Impact-Auswertung fuer Run Game, WR Matchup und Defense
+              Pressure; Team Impact zeigt jetzt bis zu sechs Karten, damit diese Signale nicht von
+              bestehenden Report-Faktoren verdraengt werden.
+            </td>
+          </tr>
+          <tr>
+            <td><code>src/components/match/lineup-outcome-model.ts</code></td>
+            <td>
+              Positionscodes fuer weitere Defense-Slots erweitert und neuer Drive-Kontext fuer
+              RB/Run Game, WR Matchup und Defense Pressure ergaenzt.
+            </td>
+          </tr>
+          <tr>
+            <td><code>src/components/match/live-simulation-model.ts</code></td>
+            <td>
+              Live Timeline nutzt neben der letzten Depth-Chart-Entscheidung auch generische
+              Positionsgruppen-Hinweise aus wichtigen Drives.
+            </td>
+          </tr>
+          <tr>
+            <td><code>src/components/match/post-game-report-model.test.ts</code></td>
+            <td>
+              Neuer Test stellt sicher, dass mindestens <code>Run Game</code>,
+              <code>WR Matchup</code> und <code>Defense Pressure</code> sichtbar werden.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Live Hinweise</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Drive-Situation</th>
+            <th>Hinweis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Manager-Offense, Rush-lastig, guter Raumgewinn oder Punkte</td>
+            <td><code>Positionsimpact: RB/Run Game war in diesem Drive sichtbar</code></td>
+          </tr>
+          <tr>
+            <td>Manager-Offense, Pass-lastig, guter Raumgewinn oder Punkte</td>
+            <td><code>Positionsimpact: WR Matchup war in diesem Passing-Drive sichtbar</code></td>
+          </tr>
+          <tr>
+            <td>Manager-Defense erzwingt Punt, Turnover oder Fehlerdruck</td>
+            <td><code>Positionsimpact: Defense Pressure stoppte den Drive</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Validierung</h2>
+      <ul>
+        <li><code>npx tsc --noEmit --pretty false</code>: erfolgreich.</li>
+        <li>
+          <code>npx vitest run src/components/match/post-game-report-model.test.ts src/components/match/live-simulation-model.test.ts</code>:
+          11 Tests erfolgreich.
+        </li>
+        <li>
+          <code>npx playwright test e2e/week-loop.spec.ts --project=chromium --workers=1</code>:
+          erfolgreich. Live -> Report -> naechste Woche bleibt spielbar.
+        </li>
+      </ul>
+
+      <h2>Ergebnis</h2>
+      <p class="good">
+        Ziel erreicht: Mindestens drei Positionsgruppen wirken sichtbar. QB bleibt relevant, aber
+        das Spiel kommuniziert nun auch Run Game, Receiver-Matchups und Defense Pressure als
+        eigenstaendige Lineup-/Positionsgruppen-Auswirkungen.
+      </p>
+    </main>
+  </body>
+</html>

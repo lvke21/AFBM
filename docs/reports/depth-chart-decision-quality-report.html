@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Depth Chart Decision Quality Report</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #07111f;
+        --panel: #101b2d;
+        --panel-strong: #16243a;
+        --text: #ecf4ff;
+        --muted: #9fb0c7;
+        --line: rgba(255, 255, 255, 0.12);
+        --accent: #38bdf8;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 22px;
+      }
+
+      h3 {
+        margin-top: 20px;
+        font-size: 16px;
+      }
+
+      p {
+        margin: 10px 0 0;
+        color: var(--muted);
+      }
+
+      ul {
+        margin: 10px 0 0;
+        padding-left: 20px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      code {
+        color: #d9f99d;
+      }
+
+      .hero,
+      .panel {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: 8px;
+        padding: 22px;
+      }
+
+      .hero {
+        background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 18px;
+        border: 1px solid rgba(34, 197, 94, 0.35);
+        background: rgba(34, 197, 94, 0.12);
+        color: #bbf7d0;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-weight: 700;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .metric {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      .metric strong {
+        display: block;
+        font-size: 22px;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: collapse;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: #cbd5e1;
+        background: rgba(255, 255, 255, 0.05);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .tag {
+        display: inline-block;
+        margin: 2px 4px 2px 0;
+        border-radius: 999px;
+        padding: 4px 9px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .now {
+        background: rgba(34, 197, 94, 0.15);
+        color: #bbf7d0;
+      }
+
+      .future {
+        background: rgba(56, 189, 248, 0.16);
+        color: #bae6fd;
+      }
+
+      .risk {
+        background: rgba(245, 158, 11, 0.16);
+        color: #fde68a;
+      }
+
+      .stable {
+        background: rgba(148, 163, 184, 0.14);
+        color: #e2e8f0;
+      }
+
+      @media (max-width: 780px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <h1>Depth Chart Decision Quality Report</h1>
+        <p>
+          Ziel: Depth Chart darf kein reines Sortierboard sein. Der Nutzer muss vor dem Match
+          bewusst zwischen kurzfristiger Staerke, Stabilitaet, Entwicklung und Risiko waehlen.
+        </p>
+        <div class="status">Status: Gruen</div>
+        <div class="grid">
+          <div class="metric">
+            <strong>7</strong>
+            <span>Schluesselpositionen mit Trade-off-Optionen</span>
+          </div>
+          <div class="metric">
+            <strong>3</strong>
+            <span>sichtbare Entscheidungssignale: jetzt, langfristig, Risiko</span>
+          </div>
+          <div class="metric">
+            <strong>0</strong>
+            <span>Matchstarts ohne Depth-Chart-Wahl im geprueften Flow</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Umgesetzte Aenderungen</h2>
+        <ul>
+          <li>
+            Start-Roster und E2E-Seed wurden fuer QB, RB, WR, LT, MLB, CB und K mit mindestens
+            zwei Alternativen ausgebaut.
+          </li>
+          <li>
+            Key-Positions erzeugen bewusst unterschiedliche Profile: starker, aber belasteter
+            Starter; stabiler Backup; Entwicklungsoption mit hoeherem POT.
+          </li>
+          <li>
+            Depth Chart zeigt pro Spieler Entscheidungssignale:
+            <span class="tag now">besser jetzt</span>
+            <span class="tag future">besser langfristig</span>
+            <span class="tag risk">Risiko</span>
+            <span class="tag stable">stabil</span>
+          </li>
+          <li>
+            Game Preview sperrt den Match Start, bis seit dem letzten Spiel eine
+            Depth-Chart-Entscheidung vorliegt.
+          </li>
+          <li>
+            Die Simulation nutzt einen kleinen Starter-Modifikator auf vorhandene Ratings
+            (maximal +/-3 Team-OVR) und bleibt damit bewusst leichtgewichtig.
+          </li>
+          <li>
+            Match Report nutzt vorhandene Lineup-Outcome-Signale weiter, sodass Starter-Impact
+            nach dem Spiel als Konsequenz sichtbar bleibt.
+          </li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h2>Roster- und Seed-Daten</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Position</th>
+              <th>Trade-off</th>
+              <th>Beispiel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>QB</td>
+              <td>Top-OVR mit hoher Fatigue vs stabiler Backup vs Upside-QB</td>
+              <td>Evan Stone, Casey Hale, Drew Fields</td>
+            </tr>
+            <tr>
+              <td>RB / WR</td>
+              <td>Explosive aktuelle Option vs sichere Rotation vs junger Upside-Spieler</td>
+              <td>Miles Porter, Noah Keene, Theo Sparks; Jalen Rivers, Cole Mason, Arlo West</td>
+            </tr>
+            <tr>
+              <td>LT / MLB / CB / K</td>
+              <td>Belasteter Starter und klare Alternative, teilweise mit Entwicklungsprofil</td>
+              <td>Harbor-Team Seeds plus initiales Franchise-Roster</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>Impact und Flow</h2>
+        <ul>
+          <li>
+            Ohne Depth-Chart-Event zeigt die Game Preview keine Startfreigabe, sondern fuehrt zum
+            Depth Chart.
+          </li>
+          <li>
+            Eine Slot-Aenderung erzeugt Decision Feedback mit Positionsstaerke, Bewertung und
+            Value Feedback.
+          </li>
+          <li>
+            Beim Matchstart wird das Teamrating minimal durch die aktuelle Slot-1-Qualitaet,
+            Fatigue und Upside interpretiert. Der Effekt ist messbar, aber nicht dominant.
+          </li>
+          <li>
+            Post Game bleibt kausal angebunden: Lineup-Entscheidungen koennen im Report als
+            Folge/Takeaway erscheinen.
+          </li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h2>Validierung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npx vitest run ...depth-chart-model...initial-roster...game-preview...week-flow</code></td>
+              <td>Gruen: 4 Dateien, 35 Tests bestanden</td>
+            </tr>
+            <tr>
+              <td><code>npx tsc --noEmit</code></td>
+              <td>Gruen</td>
+            </tr>
+            <tr>
+              <td><code>npm run lint</code></td>
+              <td>Gruen</td>
+            </tr>
+            <tr>
+              <td><code>npm run test:e2e:depth-chart</code></td>
+              <td>Gruen: Roster -> Depth Chart -> Entscheidung -> zurueck</td>
+            </tr>
+            <tr>
+              <td><code>npm run test:e2e:week-loop</code></td>
+              <td>Gruen: Dashboard -> Depth Chart Pflichtwahl -> Match -> Report -> Dashboard</td>
+            </tr>
+            <tr>
+              <td><code>npx playwright test e2e/first-10-minutes.spec.ts</code></td>
+              <td>Gruen</td>
+            </tr>
+            <tr>
+              <td><code>npx playwright test e2e/live-storyline.spec.ts e2e/match-report-consequences.spec.ts</code></td>
+              <td>Gruen: beide Smokes bestanden</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>Grenzen</h2>
+        <ul>
+          <li>Der Engine-Impact bleibt absichtlich klein und ist keine neue Spieler-Engine.</li>
+          <li>
+            Die Pflichtwahl wird ueber ein Depth-Chart-Decision-Event erzwungen, nicht ueber ein
+            komplexes Trainings- oder Moralsystem.
+          </li>
+          <li>
+            Fuer spaetere Balance-Arbeit sollten mehrere Simulationen mit verschiedenen Lineups
+            verglichen werden.
+          </li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

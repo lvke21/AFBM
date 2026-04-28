@@ -1,0 +1,1309 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>American Football Manager - Gesamtbericht</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4efe6;
+        --panel: #fffdf8;
+        --text: #1f2933;
+        --muted: #52606d;
+        --line: #d7cfbf;
+        --accent: #8a3c12;
+        --accent-soft: #f6e7dc;
+        --good: #17663f;
+        --warn: #8a6a1c;
+        --bad: #8b1e3f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at top left, rgba(255, 255, 255, 0.7), transparent 45%),
+          linear-gradient(180deg, #ede5d7 0%, var(--bg) 100%);
+        color: var(--text);
+        font-family: Georgia, "Times New Roman", serif;
+        line-height: 1.62;
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 36px 18px 72px;
+      }
+
+      header,
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: 0 12px 28px rgba(31, 41, 51, 0.07);
+        padding: 24px;
+        margin-bottom: 18px;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        margin-top: 0;
+        line-height: 1.25;
+      }
+
+      h1 {
+        font-size: 2.35rem;
+        color: var(--accent);
+        margin-bottom: 10px;
+      }
+
+      h2 {
+        font-size: 1.52rem;
+        margin-bottom: 14px;
+      }
+
+      h3 {
+        font-size: 1.15rem;
+        margin-bottom: 10px;
+      }
+
+      p,
+      li {
+        font-size: 1rem;
+      }
+
+      .lede {
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .badge {
+        background: var(--accent-soft);
+        color: var(--accent);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 0.95rem;
+      }
+
+      .status-good {
+        color: var(--good);
+        font-weight: 700;
+      }
+
+      .status-warn {
+        color: var(--warn);
+        font-weight: 700;
+      }
+
+      .status-bad {
+        color: var(--bad);
+        font-weight: 700;
+      }
+
+      .grid-2 {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        background: #fbf8f1;
+        border-radius: 14px;
+        padding: 16px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 0.95rem;
+      }
+
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+      }
+
+      th {
+        background: #f2ebe0;
+      }
+
+      code {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.92em;
+        background: #f1ece3;
+        border-radius: 6px;
+        padding: 1px 5px;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 0 20px;
+        padding: 0;
+      }
+
+      .note {
+        border-left: 4px solid var(--accent);
+        padding-left: 14px;
+        color: var(--muted);
+      }
+
+      .small {
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      .wrap {
+        word-break: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>American Football Manager - Gesamtbericht</h1>
+        <p class="lede">
+          Dieser Bericht beschreibt den aktuellen Projektstand des American-Football-Manager-Systems aus Sicht
+          eines Anwenders, Projektbeteiligten oder neuen Teammitglieds. Er basiert auf dem vorhandenen Code,
+          dem Prisma-Datenmodell, der bestehenden Dokumentation und ausgewaehlten Projektkommandos.
+        </p>
+        <div class="badges">
+          <span class="badge">Projektstatus: frueher bis mittlerer Prototyp</span>
+          <span class="badge">Spielermodell: teilweise fachlich ausreichend</span>
+          <span class="badge">Persistente Entitaeten: 53</span>
+          <span class="badge">Spielerattribute: 54</span>
+          <span class="badge">Explizite Rating-Felder: 6</span>
+          <span class="badge">Einzigartige Statistikfelder: 68</span>
+        </div>
+      </header>
+
+      <section id="kurzfazit">
+        <h2>2. Kurzfazit</h2>
+        <p>
+          Das Projekt ist heute <strong>mehr als ein reines Grundgeruest</strong>, aber noch
+          <strong>keine voll spielbare Manager-Version</strong>. Es gibt bereits eine belastbare Datenstruktur fuer
+          Savegames, Teams, Spieler, Positionen, Vertrage, Saisons, Matches und Statistiken. Dazu kommt eine
+          erste, vereinfachte Matchsimulation, die Saisonwoche fuer Saisonwoche fortschreibt.
+        </p>
+        <p>
+          Die staerkste Seite des Projekts ist die saubere Grundlage: Das System trennt Stammdaten von
+          Spielstandsdaten, trennt UI von Anwendungslogik und speichert Werte strukturiert in einer relationalen
+          Datenbank. Fuer ein Managerspiel ist das eine sehr gute Ausgangslage.
+        </p>
+        <p>
+          Die wichtigste Einschraenkung ist die fachliche Tiefe. Die Spieler werden bereits mit vielen passenden
+          Football-Attributen erfasst, aber noch nicht in allen Bereichen fein genug. Es fehlen zum Beispiel
+          einige rollenrelevante Feinheiten fuer Linebacker in Coverage, Long Snapper, Kicker-Konsistenz,
+          Verletzungsverlauf, Entwicklungssysteme und echte Managementprozesse wie Transfers, Finanzen oder
+          Training.
+        </p>
+        <p>
+          Auf die zentrale Frage, ob die Spieler fachlich bereits ausreichend modelliert sind, lautet die
+          Einschätzung deshalb: <span class="status-warn">TEILWEISE</span>. Die Basis ist fuer einen glaubwuerdigen
+          American Football Manager gut genug, aber fuer eine wirklich tiefe und realistische Simulation noch nicht
+          vollstaendig.
+        </p>
+      </section>
+
+      <section id="projektueberblick">
+        <h2>3. Projektueberblick</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Was das Projekt heute ist</h3>
+            <p>
+              Eine webbasierte Manager-Anwendung auf Basis von Next.js, React, TypeScript, Prisma und PostgreSQL.
+              Benutzer koennen Savegames anlegen, Teams und Kader ansehen und die aktuelle Saisonwoche simulieren.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Was das Projekt heute noch nicht ist</h3>
+            <p>
+              Noch kein vollstaendiger Football Manager mit tiefen Kaderentscheidungen, Transfers, Training,
+              Finanzen, Verletzungsmanagement, Playoffs und langfristiger Spielerentwicklung.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Was bereits technisch funktioniert</h3>
+            <p>
+              Seed von Referenzdaten, Savegame-Bootstrap, persistente Teams und Spieler, strukturierte Stats,
+              Savegame-, Team- und Saisonseiten, sowie eine erste drive-basierte Matchsimulation.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Was geprueft wurde</h3>
+            <p>
+              Code, Dokumentation und Konfiguration wurden gegeneinander abgeglichen. Ausserdem wurden
+              <code>npm run build</code> und <code>npm run test:run</code> erfolgreich ausgefuehrt.
+            </p>
+          </div>
+        </div>
+        <p class="note">
+          Dokumentation und Code stimmen insgesamt weitgehend ueberein. Einzelne Dokumentationsstellen sind aber
+          etwas aelter als der aktuelle Simulationsstand. Fuer die Gesamtbewertung dieses Berichts wurde deshalb
+          immer der tatsaechlich vorhandene Code als fuehrende Quelle behandelt.
+        </p>
+      </section>
+
+      <section id="datenstruktur">
+        <h2>4. Gesamtaufbau der Datenstruktur</h2>
+        <p>
+          Das System ist in vier Datenregionen organisiert. Diese Trennung ist wichtig, weil sie bestimmt, welche
+          Daten dauerhaft gleich bleiben und welche sich in einem Savegame staendig veraendern.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Region</th>
+              <th>Zweck</th>
+              <th>Typische Entitaeten</th>
+              <th>Art der Daten</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Auth und System</td>
+              <td>Benutzerkonten, Sessions und Zugriffsschutz</td>
+              <td><code>User</code>, <code>Account</code>, <code>Session</code></td>
+              <td>Zustandsdaten des Anmeldesystems</td>
+              <td class="status-good">sauber getrennt</td>
+            </tr>
+            <tr>
+              <td>Referenzdaten</td>
+              <td>Statische Stammdaten fuer Liga, Franchises, Positionen, Archetypen und Attribute</td>
+              <td><code>LeagueDefinition</code>, <code>PositionDefinition</code>, <code>AttributeDefinition</code></td>
+              <td>Stammdaten</td>
+              <td class="status-good">gut strukturiert</td>
+            </tr>
+            <tr>
+              <td>Savegame-Kern</td>
+              <td>Der eigentliche Spielstand eines Benutzers</td>
+              <td><code>SaveGame</code>, <code>Season</code>, <code>Team</code>, <code>Player</code>, <code>Contract</code>, <code>Match</code></td>
+              <td>Zustandsdaten</td>
+              <td class="status-good">tragfaehig fuer Ausbau</td>
+            </tr>
+            <tr>
+              <td>Statistikstruktur</td>
+              <td>Spieler- und Teamwerte ueber Match, Saison und Karriere</td>
+              <td><code>PlayerMatchStat</code>, <code>PlayerSeasonStat</code>, <code>PlayerCareerStat</code>, <code>TeamMatchStat</code></td>
+              <td>Rohdaten und Aggregate</td>
+              <td class="status-good">fuer Start sehr stark</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Wichtig ist ausserdem die Unterscheidung zwischen <strong>Rohdaten</strong> und
+          <strong>berechneten Werten</strong>. Rohdaten sind direkt gespeicherte Felder wie
+          <code>passing.yards</code> oder <code>fieldGoalsMade</code>. Berechnete Werte sind Kennzahlen, die aus
+          gespeicherten Daten abgeleitet werden, zum Beispiel eine Completion Percentage oder ein Team-Record im
+          Format <code>3-1</code>. Diese werden heute nur teilweise gespeichert, oft aber erst in der Anzeige
+          berechnet.
+        </p>
+      </section>
+
+      <section id="entitaeten">
+        <h2>5. Entitaeten im Detail</h2>
+        <p class="small">
+          Hinweis: Das Schema enthaelt 53 persistente Modelle. Die 24 Detail-Statistiktabellen werden hier
+          familienweise zusammengefasst, ihre Namen sind dabei jeweils vollstaendig aufgefuehrt.
+        </p>
+
+        <h3>4.1 Auth- und Systementitaeten</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Entitaet</th>
+              <th>Zweck</th>
+              <th>Vorhandene Attribute</th>
+              <th>Beziehungen</th>
+              <th>Stats / Ratings</th>
+              <th>Datenart</th>
+              <th>Reifegrad / offene Punkte</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>User</code></td>
+              <td>Benutzerkonto und Besitzer von Savegames</td>
+              <td><code>id</code>, <code>name</code>, <code>email</code>, <code>emailVerified</code>, <code>image</code>, <code>createdAt</code>, <code>updatedAt</code></td>
+              <td>1:n zu <code>Account</code>, <code>Session</code>, <code>SaveGame</code></td>
+              <td>keine</td>
+              <td>Zustandsdaten</td>
+              <td class="status-good">ausreichend fuer den aktuellen Stand</td>
+            </tr>
+            <tr>
+              <td><code>Account</code></td>
+              <td>Verknuepfung mit OAuth-Provider</td>
+              <td><code>userId</code>, <code>type</code>, <code>provider</code>, <code>providerAccountId</code>, Token-Felder</td>
+              <td>n:1 zu <code>User</code></td>
+              <td>keine</td>
+              <td>Zustandsdaten</td>
+              <td class="status-good">Standard-Auth-Modell</td>
+            </tr>
+            <tr>
+              <td><code>Session</code></td>
+              <td>Datenbankbasierte Login-Session</td>
+              <td><code>sessionToken</code>, <code>userId</code>, <code>expires</code></td>
+              <td>n:1 zu <code>User</code></td>
+              <td>keine</td>
+              <td>Zustandsdaten</td>
+              <td class="status-good">zweckmaessig</td>
+            </tr>
+            <tr>
+              <td><code>VerificationToken</code></td>
+              <td>Tokenbasierte Verifikation im Auth-System</td>
+              <td><code>identifier</code>, <code>token</code>, <code>expires</code></td>
+              <td>keine direkte Fachbeziehung</td>
+              <td>keine</td>
+              <td>Zustandsdaten</td>
+              <td class="status-good">technisch ausreichend</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>4.2 Referenz- und Stammdatenentitaeten</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Entitaet</th>
+              <th>Zweck</th>
+              <th>Vorhandene Attribute</th>
+              <th>Beziehungen</th>
+              <th>Stats / Ratings</th>
+              <th>Datenart</th>
+              <th>Reifegrad / offene Punkte</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>LeagueDefinition</code></td>
+              <td>Statische Liga-Definition</td>
+              <td><code>id</code>, <code>code</code>, <code>name</code></td>
+              <td>1:n zu <code>ConferenceDefinition</code>, <code>FranchiseTemplate</code>, <code>SaveGame</code></td>
+              <td>keine</td>
+              <td>Stammdaten</td>
+              <td class="status-good">klar und ausreichend</td>
+            </tr>
+            <tr>
+              <td><code>ConferenceDefinition</code></td>
+              <td>Konferenzen innerhalb der Liga</td>
+              <td><code>leagueDefinitionId</code>, <code>code</code>, <code>name</code></td>
+              <td>n:1 zur Liga, 1:n zu <code>DivisionDefinition</code>, <code>FranchiseTemplate</code>, <code>Team</code></td>
+              <td>keine</td>
+              <td>Stammdaten</td>
+              <td class="status-good">solide</td>
+            </tr>
+            <tr>
+              <td><code>DivisionDefinition</code></td>
+              <td>Divisionen innerhalb einer Konferenz</td>
+              <td><code>conferenceDefinitionId</code>, <code>code</code>, <code>name</code></td>
+              <td>n:1 zur Konferenz, 1:n zu <code>FranchiseTemplate</code>, <code>Team</code></td>
+              <td>keine</td>
+              <td>Stammdaten</td>
+              <td class="status-good">solide</td>
+            </tr>
+            <tr>
+              <td><code>FranchiseTemplate</code></td>
+              <td>Statische Franchise-Basis fuer Savegame-Teams</td>
+              <td><code>city</code>, <code>nickname</code>, <code>abbreviation</code>, <code>marketSize</code>, <code>prestige</code>, <code>defaultBudget</code></td>
+              <td>n:1 zu Liga, Konferenz und Division; 1:n zu <code>Team</code></td>
+              <td><code>prestige</code> ist eine Art Grundwert, aber kein Spieler-Rating</td>
+              <td>Stammdaten</td>
+              <td class="status-good">brauchbar, Finanztiefe spaeter erweiterbar</td>
+            </tr>
+            <tr>
+              <td><code>PositionGroupDefinition</code></td>
+              <td>Top-Level-Gruppen Offense, Defense, Special Teams</td>
+              <td><code>code</code>, <code>name</code>, <code>unit</code>, <code>side</code></td>
+              <td>1:n zu Positionen, Archetypen, Scheme Fits und Roster-Profilen</td>
+              <td>keine</td>
+              <td>Stammdaten</td>
+              <td class="status-good">klar strukturiert</td>
+            </tr>
+            <tr>
+              <td><code>PositionDefinition</code></td>
+              <td>Konkrete Football-Positionen</td>
+              <td><code>groupId</code>, <code>code</code>, <code>name</code>, <code>unit</code>, <code>side</code></td>
+              <td>n:1 zur Positionsgruppe; 1:n zu primaeren und sekundaeren Roster-Zuordnungen</td>
+              <td>keine</td>
+              <td>Stammdaten</td>
+              <td class="status-good">24 Positionen vorhanden; KR/PR derzeit vor allem als Nebenrollen genutzt</td>
+            </tr>
+            <tr>
+              <td><code>ArchetypeDefinition</code></td>
+              <td>Spielstil-Rollen wie Field General oder Power Back</td>
+              <td><code>groupId</code>, <code>positionId?</code>, <code>code</code>, <code>name</code>, <code>description?</code></td>
+              <td>n:1 zur Gruppe, optional zur Position, 1:n zu <code>PlayerRosterProfile</code></td>
+              <td>keine</td>
+              <td>Stammdaten</td>
+              <td class="status-good">fachlich hilfreich, aktuell eher Klassifikation als aktive Mechanik</td>
+            </tr>
+            <tr>
+              <td><code>SchemeFitDefinition</code></td>
+              <td>System-Fits wie West Coast, 4-3 Front oder Return Spark</td>
+              <td><code>groupId</code>, <code>code</code>, <code>name</code>, <code>description?</code></td>
+              <td>n:1 zur Gruppe, 1:n zu <code>PlayerRosterProfile</code></td>
+              <td>keine</td>
+              <td>Stammdaten</td>
+              <td class="status-good">gute Grundlage, aber noch kaum aktive Wirkung</td>
+            </tr>
+            <tr>
+              <td><code>AttributeDefinition</code></td>
+              <td>Lexikon aller speicherbaren Spielerattribute</td>
+              <td><code>code</code>, <code>name</code>, <code>category</code>, <code>sortOrder</code>, <code>description?</code></td>
+              <td>1:n zu <code>PlayerAttributeRating</code></td>
+              <td>definiert 54 Attribute, aber keine Werte selbst</td>
+              <td>Stammdaten</td>
+              <td class="status-good">sehr gute Normalisierung</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>4.3 Savegame-, Kader- und Spielstandsentitaeten</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Entitaet</th>
+              <th>Zweck</th>
+              <th>Vorhandene Attribute</th>
+              <th>Beziehungen</th>
+              <th>Stats / Ratings</th>
+              <th>Datenart</th>
+              <th>Reifegrad / offene Punkte</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>SaveGame</code></td>
+              <td>Wurzelobjekt eines Spielstands</td>
+              <td><code>userId</code>, <code>leagueDefinitionId</code>, <code>currentSeasonId?</code>, <code>name</code>, <code>status</code>, Zeitstempel</td>
+              <td>1:n zu Teams, Spielern, Seasons, Matches, Stats; n:1 zu <code>User</code>, <code>LeagueDefinition</code></td>
+              <td>keine eigenen Spielratings</td>
+              <td>Zustandsdaten</td>
+              <td class="status-good">zentral und sauber isoliert</td>
+            </tr>
+            <tr>
+              <td><code>SaveGameSetting</code></td>
+              <td>Globale Regeln eines Spielstands</td>
+              <td><code>salaryCap</code>, <code>activeRosterLimit</code>, <code>practiceSquadSize</code>, <code>seasonLengthWeeks</code></td>
+              <td>1:1 zu <code>SaveGame</code></td>
+              <td>keine</td>
+              <td>Zustandsdaten / Konfiguration</td>
+              <td class="status-good">gut; Playoff- und Schwierigkeitsregeln fehlen noch</td>
+            </tr>
+            <tr>
+              <td><code>Season</code></td>
+              <td>Saison innerhalb eines Savegames</td>
+              <td><code>year</code>, <code>phase</code>, <code>week</code>, <code>startsAt?</code>, <code>endsAt?</code></td>
+              <td>1:n zu Matches, Team- und PlayerSeasonStats; n:1 zu <code>SaveGame</code></td>
+              <td>enthaelt keine direkten Stats, ist aber Saison-Container</td>
+              <td>Zustandsdaten</td>
+              <td class="status-good">solide; Playoffs im Enum vorhanden, aber noch nicht real umgesetzt</td>
+            </tr>
+            <tr>
+              <td><code>Team</code></td>
+              <td>Savegame-spezifisches Team</td>
+              <td><code>city</code>, <code>nickname</code>, <code>abbreviation</code>, <code>managerControlled</code>, <code>overallRating</code>, <code>morale</code>, <code>cashBalance</code>, <code>salaryCapSpace</code></td>
+              <td>n:1 zu <code>SaveGame</code> und Franchise-Referenzen; 1:n zu Roster, Vertragen, Matches und Teamstats</td>
+              <td><code>overallRating</code> als Teambewertung</td>
+              <td>Zustandsdaten</td>
+              <td class="status-good">brauchbar, aber Teamrating ist noch relativ simpel</td>
+            </tr>
+            <tr>
+              <td><code>Player</code></td>
+              <td>Spieler-Stammsatz</td>
+              <td><code>firstName</code>, <code>lastName</code>, <code>age</code>, <code>birthDate?</code>, <code>heightCm</code>, <code>weightKg</code>, <code>yearsPro</code>, <code>college?</code>, <code>nationality?</code>, <code>dominantHand?</code>, <code>status</code>, <code>injuryStatus</code>, <code>injuryName?</code>, <code>injuryEndsOn?</code>, <code>fatigue</code>, <code>morale</code>, <code>developmentTrait</code></td>
+              <td>1:1 bzw. 1:n zu Roster-Profil, Evaluation, Attributen, Vertraegen und Stats</td>
+              <td>keine Ratings direkt hier, sondern ausgelagert</td>
+              <td>Stammdaten plus aktueller Gesundheitszustand</td>
+              <td class="status-good">starker Start; Verletzungshistorie und Entwicklungssystem fehlen</td>
+            </tr>
+            <tr>
+              <td><code>PlayerRosterProfile</code></td>
+              <td>Kaderrolle und Positionszuordnung eines Spielers</td>
+              <td><code>teamId?</code>, <code>primaryPositionDefinitionId</code>, <code>secondaryPositionDefinitionId?</code>, <code>positionGroupDefinitionId</code>, <code>archetypeDefinitionId?</code>, <code>schemeFitDefinitionId?</code>, <code>rosterStatus</code>, <code>depthChartSlot?</code>, <code>captainFlag</code>, <code>injuryRisk</code>, <code>practiceSquadEligible?</code></td>
+              <td>n:1 zu <code>Player</code>, optional <code>Team</code>, Position, Archetyp und Scheme Fit</td>
+              <td>kein Rating, aber zentrale Rolleninformation</td>
+              <td>Zustandsdaten</td>
+              <td class="status-good">sehr gut fuer spaetere Kaderlogik; keine eigene UI-Verwaltung vorhanden</td>
+            </tr>
+            <tr>
+              <td><code>PlayerEvaluation</code></td>
+              <td>Kompakte Bewertungswerte eines Spielers</td>
+              <td><code>potentialRating</code>, <code>positionOverall</code>, <code>offensiveOverall?</code>, <code>defensiveOverall?</code>, <code>specialTeamsOverall?</code></td>
+              <td>1:1 zu <code>Player</code>, n:1 zu <code>SaveGame</code></td>
+              <td>dies ist das zentrale Rating-Modell</td>
+              <td>Berechnete und gespeicherte Werte</td>
+              <td class="status-good">brauchbar, aber aktuell noch einfache Bewertungslogik</td>
+            </tr>
+            <tr>
+              <td><code>PlayerAttributeRating</code></td>
+              <td>Konkreter Attributwert pro Spieler und Attribut</td>
+              <td><code>playerId</code>, <code>attributeDefinitionId</code>, <code>value</code></td>
+              <td>n:1 zu <code>Player</code>, <code>AttributeDefinition</code>, <code>SaveGame</code></td>
+              <td>enthaelt die Rohwerte der Spielerattribute</td>
+              <td>Rohdaten</td>
+              <td class="status-good">sehr flexibel und gut erweiterbar</td>
+            </tr>
+            <tr>
+              <td><code>Contract</code></td>
+              <td>Vertrag zwischen Spieler und Team</td>
+              <td><code>status</code>, <code>years</code>, <code>yearlySalary</code>, <code>signingBonus</code>, <code>capHit</code>, <code>signedAt</code>, <code>endedAt?</code>, <code>startSeasonId?</code></td>
+              <td>n:1 zu <code>Player</code>, <code>Team</code>, <code>SaveGame</code>, optional <code>Season</code></td>
+              <td>enthaelt finanzielle Kennwerte, aber keine Attribute</td>
+              <td>Zustandsdaten</td>
+              <td class="status-warn">fuer Start okay, aber noch zu simpel fuer echte Cap-Logik</td>
+            </tr>
+            <tr>
+              <td><code>Match</code></td>
+              <td>Ein konkretes Spiel im Schedule</td>
+              <td><code>seasonId</code>, <code>week</code>, <code>kind</code>, <code>status</code>, <code>homeTeamId</code>, <code>awayTeamId</code>, <code>scheduledAt</code>, <code>stadiumName?</code>, <code>homeScore?</code>, <code>awayScore?</code></td>
+              <td>n:1 zu <code>Season</code>, Home- und Away-Team; 1:n zu Match-Stats</td>
+              <td>Scores sind Ergebnisfelder, keine Detailstats</td>
+              <td>Zustandsdaten</td>
+              <td class="status-good">gut fuer den ersten Saisonfluss; Match-Events fehlen</td>
+            </tr>
+            <tr>
+              <td><code>RosterTransaction</code></td>
+              <td>Historie einfacher Kaderbewegungen</td>
+              <td><code>playerId</code>, <code>fromTeamId?</code>, <code>toTeamId?</code>, <code>type</code>, <code>occurredAt</code>, <code>description?</code></td>
+              <td>n:1 zu <code>Player</code>, optional Quelle/Ziel-Team, n:1 zu <code>SaveGame</code></td>
+              <td>keine</td>
+              <td>Zustandsdaten / Historie</td>
+              <td class="status-warn">aktuell sehr grob; kein ausgebautes Transfermodell</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>4.4 Statistik-Aggregatentitaeten</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Entitaet</th>
+              <th>Zweck</th>
+              <th>Vorhandene Attribute</th>
+              <th>Beziehungen</th>
+              <th>Stats / Ratings</th>
+              <th>Datenart</th>
+              <th>Reifegrad / offene Punkte</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>TeamSeasonStat</code></td>
+              <td>Teamaggregate pro Saison</td>
+              <td><code>gamesPlayed</code>, <code>wins</code>, <code>losses</code>, <code>ties</code>, <code>pointsFor</code>, <code>pointsAgainst</code>, <code>touchdownsFor</code>, <code>touchdownsAgainst</code>, <code>turnoversForced</code>, <code>turnoversCommitted</code></td>
+              <td>n:1 zu <code>Season</code>, <code>Team</code>, <code>SaveGame</code></td>
+              <td>Team-Saisonstats</td>
+              <td>Aggregate</td>
+              <td class="status-good">gut fuer Standings; saisonale Team-Offense/Defense-Kennzahlen sind noch knapp</td>
+            </tr>
+            <tr>
+              <td><code>TeamMatchStat</code></td>
+              <td>Teamwerte pro Match</td>
+              <td><code>firstDowns</code>, <code>totalYards</code>, <code>turnovers</code>, <code>penalties</code>, <code>timeOfPossessionSeconds</code></td>
+              <td>n:1 zu <code>Match</code>, <code>Team</code>, <code>SaveGame</code></td>
+              <td>Team-Matchstats</td>
+              <td>Rohdaten / Matchaggregate</td>
+              <td class="status-good">sinnvoller Start; mehr Special-Teams- und Red-Zone-Kennzahlen fehlen</td>
+            </tr>
+            <tr>
+              <td><code>PlayerCareerStat</code></td>
+              <td>Karrierecontainer eines Spielers</td>
+              <td><code>gamesPlayed</code>, <code>gamesStarted</code>, <code>snapsOffense</code>, <code>snapsDefense</code>, <code>snapsSpecialTeams</code></td>
+              <td>1:1 zu <code>Player</code>, 1:1 zu acht Career-Statfamilien</td>
+              <td>Spieler-Karrierezustand</td>
+              <td>Aggregate</td>
+              <td class="status-good">tragfaehig, Teamwechselhistorie ist noch nur indirekt abbildbar</td>
+            </tr>
+            <tr>
+              <td><code>PlayerSeasonStat</code></td>
+              <td>Saisoncontainer eines Spielers bei einem Team</td>
+              <td><code>gamesPlayed</code>, <code>gamesStarted</code>, <code>snapsOffense</code>, <code>snapsDefense</code>, <code>snapsSpecialTeams</code></td>
+              <td>n:1 zu <code>Season</code>, <code>Player</code>, <code>Team</code>, 1:1 zu acht Season-Statfamilien</td>
+              <td>Spieler-Saisonstats</td>
+              <td>Aggregate</td>
+              <td class="status-good">sehr brauchbar fuer Saisonlogik</td>
+            </tr>
+            <tr>
+              <td><code>PlayerMatchStat</code></td>
+              <td>Matchcontainer eines Spielers</td>
+              <td><code>started</code>, <code>snapsOffense</code>, <code>snapsDefense</code>, <code>snapsSpecialTeams</code></td>
+              <td>n:1 zu <code>Match</code>, <code>Player</code>, <code>Team</code>, 1:1 zu acht Match-Statfamilien</td>
+              <td>Spieler-Matchstats</td>
+              <td>Rohdaten / Matchaggregate</td>
+              <td class="status-good">seit der Simulation produktiv beschrieben</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>4.5 Detail-Statistikfamilien</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Entitaeten</th>
+              <th>Zweck</th>
+              <th>Vorhandene Attribute</th>
+              <th>Beziehungen</th>
+              <th>Datenart</th>
+              <th>Reifegrad / offene Punkte</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>PlayerCareerPassingStat</code><br /><code>PlayerSeasonPassingStat</code><br /><code>PlayerMatchPassingStat</code></td>
+              <td>Passspielwerte pro Karriere, Saison und Match</td>
+              <td><code>attempts</code>, <code>completions</code>, <code>yards</code>, <code>touchdowns</code>, <code>interceptions</code>, <code>sacksTaken</code>, <code>sackYardsLost</code>, <code>longestCompletion</code></td>
+              <td>jeweils 1:1 zu ihrem uebergeordneten Spieler-Statcontainer</td>
+              <td>Rohdaten und Aggregate</td>
+              <td class="status-good">fachlich passend; Completion % wird nicht gespeichert, kann aber berechnet werden</td>
+            </tr>
+            <tr>
+              <td><code>PlayerCareerRushingStat</code><br /><code>PlayerSeasonRushingStat</code><br /><code>PlayerMatchRushingStat</code></td>
+              <td>Laufspielwerte pro Ebene</td>
+              <td><code>attempts</code>, <code>yards</code>, <code>touchdowns</code>, <code>fumbles</code>, <code>longestRush</code>, <code>brokenTackles</code></td>
+              <td>1:1 zum jeweiligen Statcontainer</td>
+              <td>Rohdaten und Aggregate</td>
+              <td class="status-good">gut; Yards per Carry ist nur ableitbar, nicht gespeichert</td>
+            </tr>
+            <tr>
+              <td><code>PlayerCareerReceivingStat</code><br /><code>PlayerSeasonReceivingStat</code><br /><code>PlayerMatchReceivingStat</code></td>
+              <td>Receiving-Werte pro Ebene</td>
+              <td><code>targets</code>, <code>receptions</code>, <code>yards</code>, <code>touchdowns</code>, <code>drops</code>, <code>longestReception</code>, <code>yardsAfterCatch</code></td>
+              <td>1:1 zum jeweiligen Statcontainer</td>
+              <td>Rohdaten und Aggregate</td>
+              <td class="status-good">stark fuer einen Start; Catch Rate und Yards per Catch werden abgeleitet</td>
+            </tr>
+            <tr>
+              <td><code>PlayerCareerBlockingStat</code><br /><code>PlayerSeasonBlockingStat</code><br /><code>PlayerMatchBlockingStat</code></td>
+              <td>Blocking-Werte pro Ebene</td>
+              <td><code>passBlockSnaps</code>, <code>runBlockSnaps</code>, <code>sacksAllowed</code>, <code>pressuresAllowed</code>, <code>pancakes</code></td>
+              <td>1:1 zum jeweiligen Statcontainer</td>
+              <td>Rohdaten und Aggregate</td>
+              <td class="status-good">fuer ein Football-Spiel erfreulich konkret; Run-blocking-Erfolg ist noch nur grob sichtbar</td>
+            </tr>
+            <tr>
+              <td><code>PlayerCareerDefensiveStat</code><br /><code>PlayerSeasonDefensiveStat</code><br /><code>PlayerMatchDefensiveStat</code></td>
+              <td>Defensivwerte pro Ebene</td>
+              <td><code>tackles</code>, <code>assistedTackles</code>, <code>tacklesForLoss</code>, <code>sacks</code>, <code>quarterbackHits</code>, <code>passesDefended</code>, <code>interceptions</code>, <code>forcedFumbles</code>, <code>fumbleRecoveries</code>, <code>defensiveTouchdowns</code></td>
+              <td>1:1 zum jeweiligen Statcontainer</td>
+              <td>Rohdaten und Aggregate</td>
+              <td class="status-good">fachlich stark; Coverage-Zielwerte oder zugelassene Yards fehlen noch</td>
+            </tr>
+            <tr>
+              <td><code>PlayerCareerKickingStat</code><br /><code>PlayerSeasonKickingStat</code><br /><code>PlayerMatchKickingStat</code></td>
+              <td>Kicker-Werte pro Ebene</td>
+              <td><code>fieldGoalsMade</code>, <code>fieldGoalsAttempted</code>, <code>extraPointsMade</code>, <code>extraPointsAttempted</code>, <code>longestFieldGoal</code>, <code>kickoffTouchbacks</code></td>
+              <td>1:1 zum jeweiligen Statcontainer</td>
+              <td>Rohdaten und Aggregate</td>
+              <td class="status-good">brauchbar; Distanzsplits und Konsistenz fehlen</td>
+            </tr>
+            <tr>
+              <td><code>PlayerCareerPuntingStat</code><br /><code>PlayerSeasonPuntingStat</code><br /><code>PlayerMatchPuntingStat</code></td>
+              <td>Punting-Werte pro Ebene</td>
+              <td><code>punts</code>, <code>puntYards</code>, <code>netPuntYards</code>, <code>puntsInside20</code>, <code>touchbacks</code>, <code>longestPunt</code></td>
+              <td>1:1 zum jeweiligen Statcontainer</td>
+              <td>Rohdaten und Aggregate</td>
+              <td class="status-good">solider Start; Hang Time und Fair Catches fehlen</td>
+            </tr>
+            <tr>
+              <td><code>PlayerCareerReturnStat</code><br /><code>PlayerSeasonReturnStat</code><br /><code>PlayerMatchReturnStat</code></td>
+              <td>Return-Werte pro Ebene</td>
+              <td><code>kickReturns</code>, <code>kickReturnYards</code>, <code>kickReturnTouchdowns</code>, <code>puntReturns</code>, <code>puntReturnYards</code>, <code>puntReturnTouchdowns</code></td>
+              <td>1:1 zum jeweiligen Statcontainer</td>
+              <td>Rohdaten und Aggregate</td>
+              <td class="status-good">gut fuer vereinfachte Returns; Fumbles bei Returns fehlen</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="spielerattribute">
+        <h2>6. Spielerattribute und Bewertungslogik</h2>
+        <p>
+          Das Spielermodell ist in mehrere Schichten aufgeteilt. Das ist fachlich sinnvoll, weil damit nicht alles
+          in einer einzigen riesigen Tabelle landet. Die Identitaet des Spielers liegt im Modell <code>Player</code>,
+          seine Kaderrolle im <code>PlayerRosterProfile</code>, seine Gesamtbewertung in
+          <code>PlayerEvaluation</code> und seine einzelnen Attributwerte in <code>PlayerAttributeRating</code>.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Was gespeichert wird</th>
+              <th>Beispiele</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Allgemeine Spielerinformationen</td>
+              <td>Persoenliche Grunddaten und aktuelle Verfuegbarkeit</td>
+              <td><code>firstName</code>, <code>lastName</code>, <code>age</code>, <code>birthDate</code>, <code>heightCm</code>, <code>weightKg</code>, <code>yearsPro</code>, <code>college</code>, <code>nationality</code>, <code>dominantHand</code>, <code>status</code>, <code>injuryStatus</code>, <code>fatigue</code>, <code>morale</code></td>
+              <td class="status-good">starke Basis</td>
+            </tr>
+            <tr>
+              <td>Position und Rolle</td>
+              <td>Teamzuordnung, Position, Tiefenrang, Archetyp und Scheme Fit</td>
+              <td><code>teamId</code>, <code>primaryPosition</code>, <code>secondaryPosition</code>, <code>rosterStatus</code>, <code>depthChartSlot</code>, <code>captainFlag</code>, <code>archetype</code>, <code>schemeFit</code>, <code>injuryRisk</code></td>
+              <td class="status-good">sehr gute Grundlage fuer Management</td>
+            </tr>
+            <tr>
+              <td>Bewertungen</td>
+              <td>Gesamtbewertung und Entwicklungspotenzial</td>
+              <td><code>positionOverall</code>, <code>potentialRating</code>, <code>offensiveOverall</code>, <code>defensiveOverall</code>, <code>specialTeamsOverall</code></td>
+              <td class="status-good">brauchbar, aber noch simpel</td>
+            </tr>
+            <tr>
+              <td>Einzelattribute</td>
+              <td>54 explizite Spielerattribute als einzelne Werte</td>
+              <td><code>SPEED</code>, <code>THROW_POWER</code>, <code>PASS_BLOCK</code>, <code>MAN_COVERAGE</code>, <code>KICK_ACCURACY</code></td>
+              <td class="status-good">fachlich stark fuer die Projektphase</td>
+            </tr>
+            <tr>
+              <td>Vertrag</td>
+              <td>Vertragslaufzeit und Cap-Werte</td>
+              <td><code>years</code>, <code>yearlySalary</code>, <code>signingBonus</code>, <code>capHit</code></td>
+              <td class="status-warn">ausreichend fuer Start, aber noch nicht tief genug</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.1 Identifizierte Rating-Felder</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Rating-Feld</th>
+              <th>Ort</th>
+              <th>Bedeutung</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>positionOverall</code></td><td><code>PlayerEvaluation</code></td><td>Hauptbewertung fuer die Primaerposition</td><td class="status-good">sinnvoll</td></tr>
+            <tr><td><code>potentialRating</code></td><td><code>PlayerEvaluation</code></td><td>Entwicklungspotenzial</td><td class="status-good">sinnvoll</td></tr>
+            <tr><td><code>offensiveOverall</code></td><td><code>PlayerEvaluation</code></td><td>Offense-Overall, falls passend</td><td class="status-good">praktisch</td></tr>
+            <tr><td><code>defensiveOverall</code></td><td><code>PlayerEvaluation</code></td><td>Defense-Overall, falls passend</td><td class="status-good">praktisch</td></tr>
+            <tr><td><code>specialTeamsOverall</code></td><td><code>PlayerEvaluation</code></td><td>Special-Teams-Wert, besonders fuer K/P/LS und Return-Rollen</td><td class="status-good">hilfreich</td></tr>
+            <tr><td><code>overallRating</code></td><td><code>Team</code></td><td>Grobe Teambewertung</td><td class="status-warn">noch eher grob und nicht voll erklaert</td></tr>
+          </tbody>
+        </table>
+
+        <p>
+          Wichtig: Die Ratings sind <strong>nicht handgebaut pro Einzelfall</strong>, sondern werden beim
+          Savegame-Bootstrap aus positionsspezifischen Gewichtungen und Attributen abgeleitet. Das ist fuer einen
+          Prototypen sinnvoll, weil es eine konsistente Ausgangsbasis schafft. Es ersetzt aber noch kein
+          ausgereiftes Scout-, Entwicklungs- oder Coaching-System.
+        </p>
+      </section>
+
+      <section id="positionspruefung">
+        <h2>7. Positionsspezifische Pruefung der Spielerattribute</h2>
+        <p>
+          Der aktuelle Attributsatz deckt die wichtigsten Football-Positionen bereits ueberraschend gut ab.
+          Die folgende Tabelle bewertet, wie passend die vorhandenen Attribute fuer die jeweilige Position heute
+          sind.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Position(en)</th>
+              <th>Vorhandene passende Attribute</th>
+              <th>Fachliche Staerken</th>
+              <th>Luecken / Unklarheiten</th>
+              <th>Einschaetzung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>QB</code></td>
+              <td><code>THROW_POWER</code>, drei Genauigkeitswerte, <code>POCKET_PRESENCE</code>, <code>DECISION_MAKING</code>, <code>PLAY_ACTION</code>, <code>SCRAMBLING</code>, <code>AWARENESS</code>, <code>LEADERSHIP</code></td>
+              <td>Sehr gute Grundabdeckung fuer Pocket- und Mobile-QBs</td>
+              <td>Keine eigenen Werte fuer Antizipation, Throw on the Run oder Under-Pressure-Accuracy</td>
+              <td class="status-good">weitgehend passend</td>
+            </tr>
+            <tr>
+              <td><code>RB</code>, <code>FB</code></td>
+              <td><code>SPEED</code>, <code>ACCELERATION</code>, <code>AGILITY</code>, <code>VISION</code>, <code>BALL_SECURITY</code>, <code>ELUSIVENESS</code>, <code>BREAK_TACKLE</code>, <code>PASS_PROTECTION</code>, <code>SHORT_YARDAGE_POWER</code></td>
+              <td>Die wichtigsten Laufspiel- und Ballcarrier-Werte sind da</td>
+              <td>Receiving-Faehigkeiten von Backs sind nur indirekt ueber <code>ROUTE_RUNNING</code> und allgemeine Receiving-Werte angedeutet</td>
+              <td class="status-good">gut passend</td>
+            </tr>
+            <tr>
+              <td><code>WR</code></td>
+              <td><code>CATCHING</code>, <code>ROUTE_RUNNING</code>, <code>RELEASE</code>, <code>SEPARATION</code>, <code>JUMPING</code>, <code>RUN_AFTER_CATCH</code>, <code>SPEED</code>, <code>ACCELERATION</code></td>
+              <td>Typische Receiver-Bausteine sind sauber vorhanden</td>
+              <td>Kein separates Attribut fuer "Hands" oder Konzentration; das steckt implizit in <code>CATCHING</code></td>
+              <td class="status-good">gut passend</td>
+            </tr>
+            <tr>
+              <td><code>TE</code></td>
+              <td>Receiving-Werte plus <code>BLOCKING</code>, <code>STRENGTH</code> und groessere Koerperwerte</td>
+              <td>Catch- und Block-Rolle eines Tight Ends ist gut getroffen</td>
+              <td>Kein separates In-Line-Blocking gegen Edge vs Space-Blocking</td>
+              <td class="status-good">gut passend</td>
+            </tr>
+            <tr>
+              <td><code>LT</code>, <code>LG</code>, <code>C</code>, <code>RG</code>, <code>RT</code></td>
+              <td><code>PASS_BLOCK</code>, <code>RUN_BLOCK</code>, <code>HAND_TECHNIQUE</code>, <code>FOOTWORK</code>, <code>ANCHOR</code>, <code>STRENGTH</code>, <code>AWARENESS</code></td>
+              <td>Gute Basismodelle fuer Line-Play und unterschiedliche O-Line-Profile</td>
+              <td>Center- und Long-Snapper-spezifische Snap-Qualitaet fehlt; Pulling, Second-Level-Blocking und Recovery sind nicht extra modelliert</td>
+              <td class="status-good">guter Start</td>
+            </tr>
+            <tr>
+              <td><code>LE</code>, <code>RE</code>, <code>DT</code></td>
+              <td><code>TACKLING</code>, <code>PURSUIT</code>, <code>BLOCK_SHEDDING</code>, <code>PASS_RUSH</code>, <code>POWER_MOVES</code>, <code>FINESSE_MOVES</code>, <code>PLAY_RECOGNITION</code>, <code>HIT_POWER</code></td>
+              <td>Sehr brauchbare Front-Seven-Abdeckung fuer den Start</td>
+              <td>Leverage, Bend oder First Step sind nicht separat vorhanden, sondern indirekt in generellen Bewegungswerten versteckt</td>
+              <td class="status-good">weitgehend passend</td>
+            </tr>
+            <tr>
+              <td><code>LOLB</code>, <code>MLB</code>, <code>ROLB</code></td>
+              <td><code>TACKLING</code>, <code>PURSUIT</code>, <code>BLOCK_SHEDDING</code>, <code>PASS_RUSH</code>, <code>PLAY_RECOGNITION</code>, <code>HIT_POWER</code>, allgemeine Bewegungswerte</td>
+              <td>Downhill-, Tackling- und Pass-Rush-Rolle ist gut abgedeckt</td>
+              <td>Der groesste fachliche Mangel: Es gibt keine eigenen Man- oder Zone-Coverage-Werte fuer Linebacker, obwohl Coverage-Archetypen existieren</td>
+              <td class="status-warn">nur teilweise passend</td>
+            </tr>
+            <tr>
+              <td><code>CB</code>, <code>FS</code>, <code>SS</code></td>
+              <td><code>MAN_COVERAGE</code>, <code>ZONE_COVERAGE</code>, <code>PRESS</code>, <code>BALL_SKILLS</code>, <code>TACKLING</code>, <code>PURSUIT</code>, <code>PLAY_RECOGNITION</code></td>
+              <td>Coverage-Rollen sind fuer Cornerbacks und Safeties gut abgedeckt</td>
+              <td>Slot-spezifische oder Run-Support-spezifische Nuancen fehlen noch</td>
+              <td class="status-good">gut passend</td>
+            </tr>
+            <tr>
+              <td><code>K</code>, <code>P</code></td>
+              <td><code>KICK_POWER</code>, <code>KICK_ACCURACY</code>, <code>PUNT_POWER</code>, <code>PUNT_ACCURACY</code>, <code>KICKOFF_POWER</code></td>
+              <td>Power und Accuracy sind vorhanden, also die wichtigsten Grundwerte</td>
+              <td>Keine explizite Konsistenz, Clutch-Qualitaet, Hang Time oder Hold/Snap-Abhaengigkeit</td>
+              <td class="status-warn">solide Basis, aber noch vereinfacht</td>
+            </tr>
+            <tr>
+              <td><code>KR</code>, <code>PR</code>, <code>LS</code></td>
+              <td>Returner werden ueber Sekundaerpositionen und Werte wie <code>SPEED</code>, <code>ELUSIVENESS</code>, <code>BALL_SECURITY</code>, <code>RUN_AFTER_CATCH</code> abgedeckt; LS nutzt vor allem Blocking- und Disziplinwerte</td>
+              <td>Returner sind zumindest funktional anschliessbar</td>
+              <td><code>KR</code> und <code>PR</code> sind keine primaeren Roster-Bausteine; <code>LS</code> hat kein eigenes Snapping-Attribut und ist fachlich deutlich zu grob</td>
+              <td class="status-warn">nur in Ansaetzen passend</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="statistiken">
+        <h2>8. Statistiken und deren Aussagekraft</h2>
+        <p>
+          Das Statistiksystem ist fuer die Projektphase stark aufgestellt. Es trennt Match-, Saison- und
+          Karriereebene sauber und verwendet pro Ebene fachlich getrennte Statistikfamilien. Das passt gut zu
+          einem Sport-Manager, weil damit spaeter sowohl Matchansichten als auch Verlaufstabellen moeglich sind.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Gespeicherte Rohdaten</th>
+              <th>Ableitbare Kennzahlen</th>
+              <th>Fachliche Aussagekraft</th>
+              <th>Offene Luecken</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Quarterback / Passing</td>
+              <td>Attempts, Completions, Yards, TDs, Interceptions, Sacks Taken, Sack Yards Lost, Longest Completion</td>
+              <td>Completion %, Yards per Attempt, TD/INT-Verhaeltnis</td>
+              <td class="status-good">sehr brauchbar fuer Start</td>
+              <td>Kein Passer Rating, keine Deep/Short-Splits, keine Pressure-Splits</td>
+            </tr>
+            <tr>
+              <td>Rushing</td>
+              <td>Attempts, Yards, TDs, Fumbles, Longest Rush, Broken Tackles</td>
+              <td>Yards per Carry, Explosive Run Rate</td>
+              <td class="status-good">gut passend</td>
+              <td>Keine Success Rate, keine First Downs per Rush</td>
+            </tr>
+            <tr>
+              <td>Receiving</td>
+              <td>Targets, Receptions, Yards, TDs, Drops, Longest Reception, Yards After Catch</td>
+              <td>Catch Rate, Yards per Catch, Target Share</td>
+              <td class="status-good">stark fuer diese Projektphase</td>
+              <td>Keine Separation- oder Contested-Catch-Outputs</td>
+            </tr>
+            <tr>
+              <td>Blocking</td>
+              <td>Pass Block Snaps, Run Block Snaps, Sacks Allowed, Pressures Allowed, Pancakes</td>
+              <td>Pressure Rate, Sack Rate zugelassen</td>
+              <td class="status-good">fuer einen Manager unerwartet gut</td>
+              <td>Keine Penalties und keine individuellen Run-Block-Wins</td>
+            </tr>
+            <tr>
+              <td>Defense</td>
+              <td>Tackles, Assisted Tackles, Tackles for Loss, Sacks, QB Hits, Passes Defended, Interceptions, Forced Fumbles, Fumble Recoveries, Defensive TDs</td>
+              <td>Tackle Share, Pressure-Produktion, Turnover-Produktion</td>
+              <td class="status-good">fachlich passend</td>
+              <td>Keine Targets Allowed, keine Yards Allowed, keine Coverage-Snaps</td>
+            </tr>
+            <tr>
+              <td>Kicking / Punting / Returns</td>
+              <td>FG, XP, Longest FG, Touchbacks, Punts, Punt Yards, Net Punt Yards, Inside 20, Returns und Return Yards</td>
+              <td>FG-Quote, Net Average, Return Average</td>
+              <td class="status-good">brauchbar fuer Start</td>
+              <td>Keine Distanzsplits, keine Hang Time, keine Return-Fumbles</td>
+            </tr>
+            <tr>
+              <td>Team</td>
+              <td>Season: Record, Punkte, Touchdowns, Turnovers. Match: First Downs, Total Yards, Turnovers, Penalties, Time of Possession</td>
+              <td>Scoring Margin, Yards per Game, Turnover Margin</td>
+              <td class="status-good">fuer Standings und Matchuebersicht gut</td>
+              <td>Saisonale Team-Offense/Defense-Detailwerte sind noch knapp</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          Fachlich wichtig: Viele klassische Football-Kennzahlen muessen nicht zwingend direkt gespeichert werden.
+          Werte wie Completion Percentage, Yards per Carry oder Yards per Catch koennen sauber aus Rohdaten
+          berechnet werden. Das ist also kein Fehler. Kritischer sind die Bereiche, in denen echte Rohdaten
+          fehlen, etwa Coverage-Daten fuer Linebacker oder Long-Snapping-/Special-Teams-Qualitaet.
+        </p>
+      </section>
+
+      <section id="systemlogik">
+        <h2>9. Systemlogik und Zusammenspiel der Modelle</h2>
+        <ol>
+          <li>
+            <strong>Seed der Stammdaten:</strong> Zuerst werden Liga, Franchises, Positionen, Archetypen,
+            Scheme Fits und Attributdefinitionen in die Datenbank geschrieben.
+          </li>
+          <li>
+            <strong>Savegame-Erstellung:</strong> Beim Anlegen eines Savegames entstehen ein neuer Spielstand,
+            globale Spielregeln, eine Start-Saison und anschliessend der komplette Weltzustand.
+          </li>
+          <li>
+            <strong>Bootstrap der Welt:</strong> Aus Franchise-Templates werden Teams erzeugt. Danach werden pro
+            Team 53 Spieler erzeugt, Vertrage angelegt, Ratings berechnet, Attribute gespeichert und leere
+            Season-/Career-Statcontainer angelegt.
+          </li>
+          <li>
+            <strong>Schedule:</strong> Fuer die Liga mit acht Teams wird ein 14-woechiger Double-Round-Robin-
+            Spielplan aufgebaut. Matches selbst sind eigene Datenobjekte.
+          </li>
+          <li>
+            <strong>Matchsimulation:</strong> Die aktuelle Saisonwoche kann ueber die UI simuliert werden.
+            Dabei werden aus den Roster-Profilen und Depth-Chart-Slots die verfuegbaren Teilnehmer bestimmt,
+            Starter markiert und aus Attributen Teamstaerken berechnet.
+          </li>
+          <li>
+            <strong>Stat-Fortschreibung:</strong> Die Simulation schreibt Resultate in
+            <code>Match</code>, <code>TeamMatchStat</code>, <code>PlayerMatchStat</code>, die zugehoerigen
+            Detail-Statfamilien, sowie in Season- und Career-Stats.
+          </li>
+          <li>
+            <strong>Saisonfortschritt:</strong> Nach der Simulation springt die Saison zur naechsten Woche oder
+            geht in den Zustand <code>OFFSEASON</code>. Playoffs sind als Phase bereits vorgesehen, aber noch
+            nicht implementiert.
+          </li>
+        </ol>
+        <p>
+          Praktisch bedeutet das: Das System kann heute schon nicht nur Daten speichern, sondern einen
+          geschlossenen Kernzyklus aus <em>Spielstand -> Roster -> Match -> Stats -> Saisonfortschritt</em>
+          durchlaufen. Was noch fehlt, sind die tieferen Managemententscheidungen, die diesen Zyklus spaeter
+          interessant machen.
+        </p>
+      </section>
+
+      <section id="funktionsumfang">
+        <h2>10. Bereits umgesetzter Funktionsumfang</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Stand</th>
+              <th>Bemerkung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Projektstruktur und Schichtung</td><td class="status-good">umgesetzt</td><td>UI, Services, Persistenz und Doku sind klar getrennt</td></tr>
+            <tr><td>Benutzer, Sessions, Ownership</td><td class="status-good">umgesetzt</td><td>Geschuetzte Bereiche sind benutzergebunden</td></tr>
+            <tr><td>Referenzdaten-Seed</td><td class="status-good">umgesetzt</td><td>Liga, Franchises, Positionen, Archetypen, Attribute vorhanden</td></tr>
+            <tr><td>Savegame-Erstellung</td><td class="status-good">umgesetzt</td><td>Erzeugt Teams, Spieler, Vertraege, Stats, Schedule</td></tr>
+            <tr><td>Teamansicht</td><td class="status-good">umgesetzt</td><td>Zeigt Roster, OVR/POT, Condition, Vertrag, Saisonlinie</td></tr>
+            <tr><td>Saisonansicht</td><td class="status-good">umgesetzt</td><td>Zeigt Standings, Schedule und Simulation einer Woche</td></tr>
+            <tr><td>Matchsimulation</td><td class="status-good">umgesetzt</td><td>Vereinfachte drive-basierte Engine vorhanden</td></tr>
+            <tr><td>Persistenz von Match-, Team- und Spielerstats</td><td class="status-good">umgesetzt</td><td>Match-, Season- und Career-Fortschreibung vorhanden</td></tr>
+            <tr><td>Depth Chart als Datenmodell</td><td class="status-good">teilweise</td><td>Daten und Simulation nutzen Depth Slots, aber keine Bearbeitungs-UI</td></tr>
+            <tr><td>Training / Entwicklung</td><td class="status-bad">nicht umgesetzt</td><td>Potenzial und Trait vorhanden, aber kein Prozess</td></tr>
+            <tr><td>Transfers / Trade-Logik</td><td class="status-bad">nicht umgesetzt</td><td>Nur grobe RosterTransaction-Historie</td></tr>
+            <tr><td>Finanzen und Cashflow</td><td class="status-bad">nicht umgesetzt</td><td>Vertraege vorhanden, aber keine Ledger- oder Finanzhistorie</td></tr>
+            <tr><td>Verletzungslogik</td><td class="status-bad">nicht umgesetzt</td><td>Gesundheitsfelder da, aber keine aktive Simulation</td></tr>
+            <tr><td>Playoffs / Mehrjahreslogik</td><td class="status-bad">nicht umgesetzt</td><td>Season endet aktuell direkt in der Offseason</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="fehlende-kernkomponenten">
+        <h2>11. Fehlende Kernkomponenten</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Fehlender Baustein</th>
+              <th>Warum er wichtig ist</th>
+              <th>Auswirkung auf das Spiel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Bearbeitbare Depth Charts und echte Kadersteuerung</td>
+              <td>Ein Manager-Spiel braucht bewusste Nutzerentscheidungen ueber Aufstellungen</td>
+              <td>Heute simuliert das System weitgehend auf Basis der initialen Bootstrap-Struktur</td>
+            </tr>
+            <tr>
+              <td>Training und Entwicklung</td>
+              <td>Potential und Development Trait brauchen eine spielbare Wirkung</td>
+              <td>Langfristige Karriereplanung fehlt</td>
+            </tr>
+            <tr>
+              <td>Verletzungslogik</td>
+              <td>Verfuegbarkeit ist ein Kernbestandteil von Football-Management</td>
+              <td>Fatigue und Injury-Status sind derzeit eher Datenhalter als echte Spielmechanik</td>
+            </tr>
+            <tr>
+              <td>Transfers, Releases und Trades</td>
+              <td>Kaderbau ist der Kern eines Managerspiels</td>
+              <td>Der Nutzer kann heute kaum aktiv am Team arbeiten</td>
+            </tr>
+            <tr>
+              <td>Finanzsystem</td>
+              <td>Salary Cap, Vertrage und Budget entfalten erst mit echten Finanzfolgen Tiefe</td>
+              <td>Vertragsdaten sind vorhanden, aber noch keine Managementschleife</td>
+            </tr>
+            <tr>
+              <td>Playoffs und Saisonabschluss</td>
+              <td>Eine Saison braucht ein sportliches Ziel und Abschlusslogik</td>
+              <td>Der aktuelle Saisonloop endet noch zu abrupt</td>
+            </tr>
+            <tr>
+              <td>Detail-Matchdarstellung</td>
+              <td>Nach einer Simulation moechte der Anwender verstehen, warum ein Spiel so ausging</td>
+              <td>Es fehlen Matchberichte, Events und Play-by-Play</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="anwendersicht">
+        <h2>12. Einschaetzung aus Anwendersicht</h2>
+        <p>
+          Aus Sicht eines Anwenders ist das Projekt heute am ehesten ein
+          <strong>frueher spielbarer Verwaltungs- und Simulationsprototyp</strong>. Man kann einen Spielstand
+          anlegen, die Teams sehen, die Kader anschauen und eine Saisonwoche simulieren. Dadurch entsteht schon
+          das Gefuehl eines lebenden Spielstands.
+        </p>
+        <p>
+          Was noch fehlt, ist die eigentliche <strong>Manager-Erfahrung</strong>. Ein Spieler will nicht nur
+          Wochen weiterklicken, sondern Entscheidungen treffen: Wer startet? Wen entlasse ich? Wen verpflichte
+          ich? Welchen Scheme Fit verfolge ich? Wie entwickle ich junge Talente? Wie reagiere ich auf Verletzungen?
+          Genau dort liegt der naechste grosse Ausbau.
+        </p>
+        <p>
+          Positiv ist: Der Unterbau dafuer ist schon vorhanden. Das Projekt ist also nicht "von der Idee her"
+          an diesem Punkt, sondern eher "vom Managementspiel her" noch nicht fertig.
+        </p>
+      </section>
+
+      <section id="abstand-spielbar">
+        <h2>13. Abstand zu einer spielbaren Version</h2>
+        <p>
+          Das Projekt ist <span class="status-warn">noch deutlich von einer voll spielbaren Version entfernt</span>,
+          aber nicht mehr am Nullpunkt. Die technische Grundlage fuer einen glaubwuerdigen Manager ist bereits da:
+          Persistenz, Savegames, Kader, Ratings, Stats und ein erster Saisonfluss existieren.
+        </p>
+        <p>
+          Was fehlt, ist die Entscheidungstiefe zwischen diesen Bausteinen. Solange ein Anwender kaum aktiv in
+          Depth Chart, Kader, Finanzen, Verletzungen oder Spielerentwicklung eingreifen kann, bleibt die App eher
+          ein Simulations-Viewer als ein echter Manager.
+        </p>
+        <p>
+          Eine realistische Einordnung waere deshalb:
+        </p>
+        <ul>
+          <li><strong>Technische Basis:</strong> weit fortgeschritten fuer einen Prototypen</li>
+          <li><strong>Fachliche Modellierung:</strong> solide mit erkennbaren Luecken</li>
+          <li><strong>Spielbarkeit als Manager:</strong> noch fruehe Phase</li>
+        </ul>
+      </section>
+
+      <section id="luecken">
+        <h2>14. Wichtigste Luecken bei Attributen, Ratings und Stats</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Thema</th>
+              <th>Was fehlt oder zu grob ist</th>
+              <th>Warum das wichtig ist</th>
+              <th>Auswirkung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Linebacker-Coverage</td>
+              <td>Keine eigenen Coverage-Attribute fuer Linebacker</td>
+              <td>Coverage-Linebacker sind im modernen Football wichtig und brauchen eigene Bewertung</td>
+              <td class="status-warn">reduziert Realismus von LB-Rollen deutlich</td>
+            </tr>
+            <tr>
+              <td>Long Snapper</td>
+              <td>Kein eigenes Snapping-Attribut oder Operation-Rating</td>
+              <td>LS ist fachlich nicht nur ein Blocker, sondern ein Spezialist</td>
+              <td class="status-warn">Special Teams bleiben hier zu oberflaechlich</td>
+            </tr>
+            <tr>
+              <td>Kicker/Punter-Konsistenz</td>
+              <td>Power und Accuracy vorhanden, aber keine Konsistenz oder Clutch-Komponente</td>
+              <td>Special Teams leben stark von Zuverlaessigkeit unter Druck</td>
+              <td class="status-warn">Simulation wirkt hier noch zu gleichfoermig</td>
+            </tr>
+            <tr>
+              <td>Verletzungsmodell</td>
+              <td>Status vorhanden, aber keine aktive Verletzungslogik oder Historie</td>
+              <td>Football ist stark durch Verfuegbarkeit gepraegt</td>
+              <td class="status-bad">Managementtiefe deutlich begrenzt</td>
+            </tr>
+            <tr>
+              <td>Ratingsystem</td>
+              <td>Gesamtratings sind sinnvoll, aber noch relativ einfach und statisch</td>
+              <td>Fuer langfristige Entwicklung braucht es mehr Tiefe und Dynamik</td>
+              <td class="status-warn">guter Start, aber noch keine glaubwuerdige Langzeitlogik</td>
+            </tr>
+            <tr>
+              <td>Team-Saisonstats</td>
+              <td>Saisonale Teamstats sind knapper als Matchstats</td>
+              <td>Fuer Analyse, Ranglisten und Coaching-Entscheidungen waeren mehr Teamkennzahlen hilfreich</td>
+              <td class="status-warn">Auswertung auf Teamebene noch begrenzt</td>
+            </tr>
+            <tr>
+              <td>Match-Events</td>
+              <td>Kein Play-by-Play und keine Ereignis-Historie</td>
+              <td>Ohne Ereignisse ist schwer nachzuvollziehen, warum ein Match so lief</td>
+              <td class="status-warn">Simulation ist spielbar, aber noch schwer erklaerbar</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="naechste-schritte">
+        <h2>15. Naechste sinnvolle Schritte</h2>
+        <ol>
+          <li>
+            <strong>Depth-Chart- und Kader-Management fuer Anwender freischalten.</strong>
+            Erst damit werden Nutzerentscheidungen sportlich wirksam.
+          </li>
+          <li>
+            <strong>Verletzungen, Fatigue und Erholung in die Saisonlogik integrieren.</strong>
+            Dadurch bekommt das Management direkte Folgen.
+          </li>
+          <li>
+            <strong>Spielerentwicklung an Potential und Development Trait koppeln.</strong>
+            Dann wird das Bewertungsmodell langfristig relevant.
+          </li>
+          <li>
+            <strong>Coverage-Attribute fuer Linebacker und ein echtes LS-/Special-Teams-Modell nachziehen.</strong>
+            Das verbessert die fachliche Football-Qualitaet deutlich.
+          </li>
+          <li>
+            <strong>Transfer-, Release- und Finanzprozesse aufbauen.</strong>
+            Damit entsteht die eigentliche Manager-Schleife.
+          </li>
+        </ol>
+      </section>
+
+      <section id="transparenz">
+        <h2>16. Transparenz (Quellen, Annahmen, Unsicherheiten)</h2>
+
+        <h3>15.1 Analysierte Dateien</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Datei</th>
+              <th>Rolle in der Analyse</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>prisma/schema.prisma</code></td><td>Fuehrende Quelle fuer persistente Entitaeten, Beziehungen, Ratings und Statistiken</td></tr>
+            <tr><td><code>README.md</code></td><td>Projektziel, Tech-Stack und aktueller Implementierungsstand</td></tr>
+            <tr><td><code>CHANGELOG.md</code></td><td>Juengste Entwicklungsschritte und aktueller Ausbauzustand</td></tr>
+            <tr><td><code>docs/README.md</code></td><td>Einordnung der vorhandenen Dokumentation</td></tr>
+            <tr><td><code>docs/architecture/architecture.md</code></td><td>Architekturverstaendnis und Schichten</td></tr>
+            <tr><td><code>docs/architecture/modules.md</code></td><td>Verantwortlichkeiten der Module</td></tr>
+            <tr><td><code>docs/architecture/data-flow.md</code></td><td>Savegame- und Simulationsfluss</td></tr>
+            <tr><td><code>docs/guides/operations-setup.md</code></td><td>Lokales Setup und Voraussetzungen</td></tr>
+            <tr><td><code>docs/guides/operations-run-locally.md</code></td><td>Lokaler Betrieb und Startwege</td></tr>
+            <tr><td><code>docs/guides/operations-database.md</code></td><td>Datenbankprozess und Datenfluss im Betrieb</td></tr>
+            <tr><td><code>docs/architecture/data/entities.md</code></td><td>Datenmodell-Referenz</td></tr>
+            <tr><td><code>docs/architecture/data/relations.md</code></td><td>Beziehungsmodell</td></tr>
+            <tr><td><code>docs/architecture/data/player-model.md</code></td><td>Spielerstruktur und Rollenmodell</td></tr>
+            <tr><td><code>docs/architecture/data/statistics.md</code></td><td>Statistikstruktur ueber Match, Saison und Karriere</td></tr>
+            <tr><td><code>docs/architecture/data/state-boundaries.md</code></td><td>Trennung von Referenzdaten und Spielstand</td></tr>
+            <tr><td><code>docs/architecture/data/enums-and-read-models.md</code></td><td>Enums, Readmodelle und API-Bedeutung</td></tr>
+            <tr><td><code>src/modules/shared/infrastructure/reference-data.ts</code></td><td>Positionen, Archetypen, Scheme Fits und Attribute</td></tr>
+            <tr><td><code>src/modules/savegames/application/savegame-command.service.ts</code></td><td>Savegame-Erzeugung</td></tr>
+            <tr><td><code>src/modules/savegames/application/bootstrap/bootstrap-savegame-world.service.ts</code></td><td>Welt-Bootstrap und Initialzustand</td></tr>
+            <tr><td><code>src/modules/savegames/application/bootstrap/initial-roster.ts</code></td><td>Positionsblueprints, Attribute und Bewertungslogik</td></tr>
+            <tr><td><code>src/modules/seasons/application/season-simulation.service.ts</code></td><td>Persistenzfluss der Saison-Simulation</td></tr>
+            <tr><td><code>src/modules/seasons/application/simulation/depth-chart.ts</code></td><td>Starter- und Teilnehmerlogik</td></tr>
+            <tr><td><code>src/modules/seasons/application/simulation/match-engine.ts</code></td><td>Drive-basierte Matchsimulation und Stat-Erzeugung</td></tr>
+            <tr><td><code>src/modules/seasons/application/simulation/season-progression.ts</code></td><td>Wochen- und Saisonfortschritt</td></tr>
+            <tr><td><code>src/app/app/savegames/page.tsx</code></td><td>Anwender-Einstieg in Savegames</td></tr>
+            <tr><td><code>src/app/app/savegames/[savegameId]/page.tsx</code></td><td>Savegame-Navigation</td></tr>
+            <tr><td><code>src/app/app/savegames/[savegameId]/teams/[teamId]/page.tsx</code></td><td>Teamansicht aus Anwendersicht</td></tr>
+            <tr><td><code>src/app/app/savegames/[savegameId]/seasons/[seasonId]/page.tsx</code></td><td>Saisonansicht und Wochensimulation</td></tr>
+            <tr><td><code>package.json</code></td><td>Commands und Projektgrundlagen</td></tr>
+          </tbody>
+        </table>
+
+        <h3>15.2 Identifizierte Entitaeten, Attribute, Ratings und Statistikfelder</h3>
+        <p>
+          Die folgenden Kennzahlen wurden fuer diesen Bericht verwendet:
+        </p>
+        <ul>
+          <li><strong>Entitaeten:</strong> 53 persistente Prisma-Modelle</li>
+          <li><strong>Spielerattribute:</strong> 54 definierte Attributcodes</li>
+          <li><strong>Rating-Felder:</strong> 6 explizite Bewertungsfelder im engeren Sinn</li>
+          <li><strong>Statistikfelder:</strong> 68 einzigartige Statistikfeldnamen, ueber alle Statmodelle dedupliziert</li>
+        </ul>
+
+        <h3>15.3 Getroffene Annahmen</h3>
+        <ul>
+          <li>Die Anzahl der Entitaeten bezieht sich auf persistente Prisma-Modelle, nicht auf DTOs oder interne Hilfstypen.</li>
+          <li>Die Anzahl der Spielerattribute bezieht sich auf <code>AttributeDefinition</code> in den Referenzdaten.</li>
+          <li>Die Anzahl der Rating-Felder umfasst explizite Bewertungsfelder wie <code>positionOverall</code> und <code>potentialRating</code>, nicht allgemeine Werte wie <code>prestige</code>.</li>
+          <li>Die Anzahl der Statistikfelder wurde ueber einzigartige, fachlich relevante Statistiknamen im Schema ermittelt. Wiederholungen ueber Match, Season und Career wurden nur einmal gezaehlt.</li>
+          <li>Die spielerische Distanz zur voll spielbaren Version ist eine fachliche Einschätzung und keine mathematisch exakte Prozentzahl.</li>
+        </ul>
+
+        <h3>15.4 Verbleibende Unsicherheiten</h3>
+        <ul>
+          <li>Die fachliche Balance der Simulation wurde nicht ueber laengere Testserien gegen echte Spieldaten validiert.</li>
+          <li>Die qualitative Football-Bewertung stuetzt sich auf Modellstruktur und vorhandene Gewichte, nicht auf einen empirisch ausbalancierten Livebetrieb.</li>
+          <li>Der Bericht beschreibt den aktuellen Codezustand. Einzelne Dokumentationsdateien koennen an Randstellen leicht dahinterliegen.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

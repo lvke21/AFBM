@@ -1,0 +1,1335 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SaveGameStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum WeekState {
+  PRE_WEEK
+  READY
+  GAME_RUNNING
+  POST_GAME
+}
+
+enum RosterUnit {
+  OFFENSE
+  DEFENSE
+  SPECIAL_TEAMS
+}
+
+enum SideOfBall {
+  OFFENSE
+  DEFENSE
+  SPECIAL_TEAMS
+}
+
+enum PlayerStatus {
+  ACTIVE
+  INJURED
+  FREE_AGENT
+  RETIRED
+}
+
+enum InjuryStatus {
+  HEALTHY
+  QUESTIONABLE
+  DOUBTFUL
+  OUT
+  INJURED_RESERVE
+}
+
+enum DominantHand {
+  RIGHT
+  LEFT
+  AMBIDEXTROUS
+}
+
+enum DevelopmentTrait {
+  NORMAL
+  IMPACT
+  STAR
+  ELITE
+}
+
+enum RosterStatus {
+  STARTER
+  ROTATION
+  BACKUP
+  PRACTICE_SQUAD
+  INACTIVE
+  INJURED_RESERVE
+  FREE_AGENT
+}
+
+enum AttributeCategory {
+  GENERAL
+  QUARTERBACK
+  BALL_CARRIER
+  RECEIVING
+  OFFENSIVE_LINE
+  FRONT_SEVEN
+  COVERAGE
+  KICKING
+  SPECIAL_TEAMS
+}
+
+enum ContractStatus {
+  ACTIVE
+  EXPIRED
+  RELEASED
+}
+
+enum SeasonPhase {
+  PRESEASON
+  REGULAR_SEASON
+  PLAYOFFS
+  OFFSEASON
+}
+
+enum MatchKind {
+  PRESEASON
+  REGULAR_SEASON
+  PLAYOFF
+}
+
+enum MatchStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum RosterTransactionType {
+  DRAFT
+  SIGNING
+  TRADE
+  RELEASE
+}
+
+enum PlayerHistoryEventType {
+  DEVELOPMENT
+  INJURY
+  RECOVERY
+  DEPTH_CHART
+  SIGNING
+  RELEASE
+}
+
+enum TeamFinanceEventType {
+  SIGNING_BONUS
+  RELEASE_PAYOUT
+  SEASON_SALARY
+}
+
+enum InboxTaskStatus {
+  OPEN
+  READ
+  DONE
+  HIDDEN
+}
+
+enum InboxTaskPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum DraftClassStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum DraftPlayerStatus {
+  AVAILABLE
+  DRAFTED
+  WITHDRAWN
+}
+
+enum ScoutingLevel {
+  NONE
+  BASIC
+  FOCUSED
+}
+
+enum DraftRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  saveGames     SaveGame[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model LeagueDefinition {
+  id           String                 @id @default(cuid())
+  code         String                 @unique
+  name         String
+  teams        FranchiseTemplate[]
+  conferences  ConferenceDefinition[]
+  saveGames    SaveGame[]
+}
+
+model ConferenceDefinition {
+  id                 String @id @default(cuid())
+  leagueDefinitionId String
+  code               String
+  name               String
+
+  leagueDefinition LeagueDefinition   @relation(fields: [leagueDefinitionId], references: [id], onDelete: Cascade)
+  divisions        DivisionDefinition[]
+  franchises       FranchiseTemplate[]
+  teams            Team[]
+
+  @@unique([leagueDefinitionId, code])
+}
+
+model DivisionDefinition {
+  id                     String @id @default(cuid())
+  conferenceDefinitionId String
+  code                   String
+  name                   String
+
+  conferenceDefinition ConferenceDefinition @relation(fields: [conferenceDefinitionId], references: [id], onDelete: Cascade)
+  franchises           FranchiseTemplate[]
+  teams                Team[]
+
+  @@unique([conferenceDefinitionId, code])
+}
+
+model PositionGroupDefinition {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  name        String
+  unit        RosterUnit
+  side        SideOfBall
+  positions   PositionDefinition[]
+  archetypes  ArchetypeDefinition[]
+  schemeFits  SchemeFitDefinition[]
+  rosterSlots PlayerRosterProfile[]
+}
+
+model PositionDefinition {
+  id                        String @id @default(cuid())
+  positionGroupDefinitionId String
+  code                      String @unique
+  name                      String
+  unit                      RosterUnit
+  side                      SideOfBall
+
+  positionGroup         PositionGroupDefinition @relation(fields: [positionGroupDefinitionId], references: [id], onDelete: Cascade)
+  archetypes            ArchetypeDefinition[]
+  primaryRosterSlots    PlayerRosterProfile[]   @relation("PrimaryPosition")
+  secondaryRosterSlots  PlayerRosterProfile[]   @relation("SecondaryPosition")
+  draftPlayers          DraftPlayer[]
+}
+
+model ArchetypeDefinition {
+  id                        String  @id @default(cuid())
+  positionGroupDefinitionId String
+  positionDefinitionId      String?
+  code                      String  @unique
+  name                      String
+  description               String?
+
+  positionGroup PositionGroupDefinition @relation(fields: [positionGroupDefinitionId], references: [id], onDelete: Cascade)
+  position      PositionDefinition?     @relation(fields: [positionDefinitionId], references: [id], onDelete: Restrict)
+  rosterSlots   PlayerRosterProfile[]
+  draftPlayers  DraftPlayer[]
+}
+
+model SchemeFitDefinition {
+  id                        String  @id @default(cuid())
+  positionGroupDefinitionId String
+  code                      String  @unique
+  name                      String
+  description               String?
+
+  positionGroup PositionGroupDefinition @relation(fields: [positionGroupDefinitionId], references: [id], onDelete: Cascade)
+  rosterSlots    PlayerRosterProfile[]
+  offensiveTeams Team[]               @relation("OffensiveScheme")
+  defensiveTeams Team[]               @relation("DefensiveScheme")
+  specialTeams   Team[]               @relation("SpecialTeamsScheme")
+  draftPlayers   DraftPlayer[]
+}
+
+model AttributeDefinition {
+  id          String            @id @default(cuid())
+  code        String            @unique
+  name        String
+  category    AttributeCategory
+  sortOrder   Int
+  description String?
+
+  ratings PlayerAttributeRating[]
+}
+
+model FranchiseTemplate {
+  id                     String  @id @default(cuid())
+  leagueDefinitionId     String
+  conferenceDefinitionId String
+  divisionDefinitionId   String
+  city                   String
+  nickname               String
+  abbreviation           String  @unique
+  marketSize             Int
+  prestige               Int
+  defaultBudget          Decimal @db.Decimal(14, 2)
+
+  leagueDefinition     LeagueDefinition     @relation(fields: [leagueDefinitionId], references: [id], onDelete: Cascade)
+  conferenceDefinition ConferenceDefinition @relation(fields: [conferenceDefinitionId], references: [id], onDelete: Cascade)
+  divisionDefinition   DivisionDefinition   @relation(fields: [divisionDefinitionId], references: [id], onDelete: Cascade)
+  teams                Team[]
+}
+
+model SaveGame {
+  id                    String               @id @default(cuid())
+  userId                String
+  leagueDefinitionId    String
+  currentSeasonId       String?
+  name                  String
+  status                SaveGameStatus      @default(ACTIVE)
+  weekState             WeekState           @default(PRE_WEEK)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leagueDefinition      LeagueDefinition    @relation(fields: [leagueDefinitionId], references: [id], onDelete: Restrict)
+  currentSeason         Season?             @relation("CurrentSeason", fields: [currentSeasonId, id], references: [id, saveGameId], onDelete: NoAction)
+  settings              SaveGameSetting?
+  teams                 Team[]
+  players               Player[]
+  playerRosterProfiles  PlayerRosterProfile[]
+  playerEvaluations     PlayerEvaluation[]
+  playerAttributeRatings PlayerAttributeRating[]
+  contracts             Contract[]
+  seasons               Season[]            @relation("SaveGameSeasons")
+  matches               Match[]
+  teamSeasonStats       TeamSeasonStat[]
+  playerSeasonStats     PlayerSeasonStat[]
+  playerCareerStats     PlayerCareerStat[]
+  playerMatchStats      PlayerMatchStat[]
+  matchSimulationDrives MatchSimulationDrive[]
+  teamMatchStats        TeamMatchStat[]
+  transactions          RosterTransaction[]
+  playerHistoryEvents   PlayerHistoryEvent[]
+  financeEvents         TeamFinanceEvent[]
+  inboxTaskStates        InboxTaskState[]
+  draftClasses           DraftClass[]
+  draftPlayers           DraftPlayer[]
+  scoutingData           ScoutingData[]
+
+  @@unique([currentSeasonId, id])
+  @@index([userId, updatedAt])
+}
+
+model SaveGameSetting {
+  id                String  @id @default(cuid())
+  saveGameId        String  @unique
+  salaryCap         Decimal @db.Decimal(14, 2)
+  activeRosterLimit Int
+  practiceSquadSize Int
+  seasonLengthWeeks Int
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+}
+
+model Season {
+  id                String      @id @default(cuid())
+  saveGameId        String
+  year              Int
+  phase             SeasonPhase @default(PRESEASON)
+  week              Int         @default(1)
+  startsAt          DateTime?
+  endsAt            DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  saveGame           SaveGame          @relation("SaveGameSeasons", fields: [saveGameId], references: [id], onDelete: Cascade)
+  currentForSaveGame SaveGame?         @relation("CurrentSeason")
+  matches            Match[]
+  teamSeasonStats    TeamSeasonStat[]
+  playerSeasonStats  PlayerSeasonStat[]
+  startingContracts  Contract[]        @relation("ContractStartSeason")
+  playerHistoryEvents PlayerHistoryEvent[]
+  financeEvents      TeamFinanceEvent[]
+  draftClasses        DraftClass[]
+
+  @@unique([saveGameId, year])
+  @@unique([id, saveGameId])
+  @@index([saveGameId, year])
+}
+
+model Team {
+  id                     String   @id @default(cuid())
+  saveGameId             String
+  franchiseTemplateId    String
+  conferenceDefinitionId String
+  divisionDefinitionId   String
+  offensiveSchemeFitDefinitionId    String?
+  defensiveSchemeFitDefinitionId    String?
+  specialTeamsSchemeFitDefinitionId String?
+  offenseXFactorPlan     Json?
+  defenseXFactorPlan     Json?
+  city                   String
+  nickname               String
+  abbreviation           String
+  managerControlled      Boolean  @default(false)
+  overallRating          Int      @default(60)
+  morale                 Int      @default(50)
+  cashBalance            Decimal  @db.Decimal(14, 2)
+  salaryCapSpace         Decimal  @db.Decimal(14, 2)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  saveGame             SaveGame            @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  franchiseTemplate    FranchiseTemplate   @relation(fields: [franchiseTemplateId], references: [id], onDelete: Restrict)
+  conferenceDefinition ConferenceDefinition @relation(fields: [conferenceDefinitionId], references: [id], onDelete: Restrict)
+  divisionDefinition   DivisionDefinition  @relation(fields: [divisionDefinitionId], references: [id], onDelete: Restrict)
+  offensiveSchemeFit   SchemeFitDefinition? @relation("OffensiveScheme", fields: [offensiveSchemeFitDefinitionId], references: [id], onDelete: Restrict)
+  defensiveSchemeFit   SchemeFitDefinition? @relation("DefensiveScheme", fields: [defensiveSchemeFitDefinitionId], references: [id], onDelete: Restrict)
+  specialTeamsSchemeFit SchemeFitDefinition? @relation("SpecialTeamsScheme", fields: [specialTeamsSchemeFitDefinitionId], references: [id], onDelete: Restrict)
+  rosterProfiles       PlayerRosterProfile[]
+  homeMatches          Match[]             @relation("HomeTeam")
+  awayMatches          Match[]             @relation("AwayTeam")
+  teamSeasonStats      TeamSeasonStat[]
+  playerSeasonStats    PlayerSeasonStat[]
+  contracts            Contract[]
+  playerMatchStats     PlayerMatchStat[]
+  teamMatchStats       TeamMatchStat[]
+  outgoingTransactions RosterTransaction[] @relation("RosterTransactionFromTeam")
+  incomingTransactions RosterTransaction[] @relation("RosterTransactionToTeam")
+  playerHistoryEvents  PlayerHistoryEvent[]
+  financeEvents        TeamFinanceEvent[]
+  draftedPlayers       DraftPlayer[]       @relation("DraftedPlayers")
+  scoutingData         ScoutingData[]
+
+  @@unique([saveGameId, abbreviation])
+  @@unique([id, saveGameId])
+  @@index([saveGameId, conferenceDefinitionId, divisionDefinitionId])
+}
+
+model DraftClass {
+  id          String           @id @default(cuid())
+  saveGameId  String
+  seasonId    String?
+  year        Int
+  status      DraftClassStatus @default(UPCOMING)
+  name        String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  saveGame     SaveGame       @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  season       Season?        @relation(fields: [seasonId], references: [id], onDelete: NoAction)
+  draftPlayers DraftPlayer[]
+  scoutingData ScoutingData[]
+
+  @@unique([saveGameId, year])
+  @@index([saveGameId, status])
+  @@index([seasonId])
+}
+
+model DraftPlayer {
+  id                   String            @id @default(cuid())
+  saveGameId           String
+  draftClassId         String
+  positionDefinitionId String
+  archetypeDefinitionId String?
+  schemeFitDefinitionId String?
+  firstName            String
+  lastName             String
+  age                  Int
+  college              String?
+  heightCm             Int
+  weightKg             Int
+  trueOverall          Int
+  truePotential        Int
+  projectedRound       Int
+  riskLevel            DraftRiskLevel    @default(MEDIUM)
+  status               DraftPlayerStatus @default(AVAILABLE)
+  draftedByTeamId      String?
+  draftedRound         Int?
+  draftedPickNumber    Int?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  saveGame    SaveGame             @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  draftClass  DraftClass           @relation(fields: [draftClassId], references: [id], onDelete: Cascade)
+  position    PositionDefinition   @relation(fields: [positionDefinitionId], references: [id], onDelete: Restrict)
+  archetype   ArchetypeDefinition? @relation(fields: [archetypeDefinitionId], references: [id], onDelete: Restrict)
+  schemeFit   SchemeFitDefinition? @relation(fields: [schemeFitDefinitionId], references: [id], onDelete: Restrict)
+  draftedByTeam Team?              @relation("DraftedPlayers", fields: [draftedByTeamId, saveGameId], references: [id, saveGameId], onDelete: NoAction)
+  scoutingData ScoutingData[]
+
+  @@unique([draftClassId, draftedPickNumber])
+  @@index([saveGameId, draftClassId, status])
+  @@index([saveGameId, positionDefinitionId])
+  @@index([draftedByTeamId, saveGameId])
+}
+
+model ScoutingData {
+  id                  String        @id @default(cuid())
+  saveGameId          String
+  draftClassId        String
+  draftPlayerId       String
+  teamId              String
+  level               ScoutingLevel @default(NONE)
+  visibleOverallMin   Int?
+  visibleOverallMax   Int?
+  visiblePotentialMin Int?
+  visiblePotentialMax Int?
+  strengths           String[]
+  weaknesses          String[]
+  notes               String?
+  updatedAt           DateTime      @updatedAt
+  createdAt           DateTime      @default(now())
+
+  saveGame    SaveGame    @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  draftClass  DraftClass  @relation(fields: [draftClassId], references: [id], onDelete: Cascade)
+  draftPlayer DraftPlayer @relation(fields: [draftPlayerId], references: [id], onDelete: Cascade)
+  team        Team        @relation(fields: [teamId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+
+  @@unique([draftPlayerId, teamId])
+  @@index([saveGameId, teamId, level])
+  @@index([draftClassId, teamId])
+}
+
+model Player {
+  id               String           @id @default(cuid())
+  saveGameId       String
+  firstName        String
+  lastName         String
+  age              Int
+  birthDate        DateTime?
+  heightCm         Int
+  weightKg         Int
+  yearsPro         Int
+  college          String?
+  nationality      String?
+  dominantHand     DominantHand?
+  status           PlayerStatus     @default(ACTIVE)
+  injuryStatus     InjuryStatus     @default(HEALTHY)
+  injuryName       String?
+  injuryEndsOn     DateTime?
+  fatigue          Int              @default(10)
+  morale           Int              @default(50)
+  developmentTrait DevelopmentTrait @default(NORMAL)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  saveGame         SaveGame               @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  rosterProfile    PlayerRosterProfile?
+  evaluation       PlayerEvaluation?
+  attributes       PlayerAttributeRating[]
+  contracts        Contract[]
+  careerStat       PlayerCareerStat?
+  playerSeasonStats PlayerSeasonStat[]
+  playerMatchStats PlayerMatchStat[]
+  transactions     RosterTransaction[]
+  historyEvents    PlayerHistoryEvent[]
+  financeEvents    TeamFinanceEvent[]
+
+  @@unique([id, saveGameId])
+  @@index([saveGameId, status])
+  @@index([saveGameId, lastName, firstName])
+}
+
+model PlayerRosterProfile {
+  id                          String       @id @default(cuid())
+  saveGameId                  String
+  playerId                    String
+  teamId                      String?
+  primaryPositionDefinitionId String
+  secondaryPositionDefinitionId String?
+  positionGroupDefinitionId   String
+  archetypeDefinitionId       String?
+  schemeFitDefinitionId       String?
+  rosterStatus                RosterStatus @default(BACKUP)
+  depthChartSlot              Int?
+  captainFlag                 Boolean      @default(false)
+  developmentFocus            Boolean      @default(false)
+  injuryRisk                  Int          @default(50)
+  practiceSquadEligible       Boolean?
+
+  saveGame          SaveGame                @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  player            Player                  @relation(fields: [playerId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  team              Team?                   @relation(fields: [teamId, saveGameId], references: [id, saveGameId], onDelete: NoAction)
+  primaryPosition   PositionDefinition      @relation("PrimaryPosition", fields: [primaryPositionDefinitionId], references: [id], onDelete: Restrict)
+  secondaryPosition PositionDefinition?     @relation("SecondaryPosition", fields: [secondaryPositionDefinitionId], references: [id], onDelete: Restrict)
+  positionGroup     PositionGroupDefinition @relation(fields: [positionGroupDefinitionId], references: [id], onDelete: Restrict)
+  archetype         ArchetypeDefinition?    @relation(fields: [archetypeDefinitionId], references: [id], onDelete: Restrict)
+  schemeFit         SchemeFitDefinition?    @relation(fields: [schemeFitDefinitionId], references: [id], onDelete: Restrict)
+
+  @@unique([playerId, saveGameId])
+  @@index([saveGameId, teamId, positionGroupDefinitionId])
+  @@index([saveGameId, primaryPositionDefinitionId, rosterStatus])
+}
+
+model PlayerEvaluation {
+  id                   String @id @default(cuid())
+  saveGameId           String
+  playerId             String
+  potentialRating      Int
+  positionOverall      Int
+  offensiveOverall     Int?
+  defensiveOverall     Int?
+  specialTeamsOverall  Int?
+  physicalOverall      Int?
+  mentalOverall        Int?
+  updatedAt            DateTime @updatedAt
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  player   Player   @relation(fields: [playerId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+
+  @@unique([playerId, saveGameId])
+  @@index([saveGameId, positionOverall])
+}
+
+model PlayerAttributeRating {
+  id                  String @id @default(cuid())
+  saveGameId          String
+  playerId            String
+  attributeDefinitionId String
+  value               Int
+
+  saveGame           SaveGame          @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  player             Player            @relation(fields: [playerId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  attributeDefinition AttributeDefinition @relation(fields: [attributeDefinitionId], references: [id], onDelete: Restrict)
+
+  @@unique([playerId, attributeDefinitionId, saveGameId])
+  @@index([saveGameId, attributeDefinitionId])
+}
+
+model Contract {
+  id            String         @id @default(cuid())
+  saveGameId    String
+  playerId      String
+  teamId        String
+  startSeasonId String?
+  status        ContractStatus @default(ACTIVE)
+  years         Int
+  yearlySalary  Decimal        @db.Decimal(12, 2)
+  signingBonus  Decimal        @db.Decimal(12, 2)
+  capHit        Decimal        @db.Decimal(12, 2)
+  signedAt      DateTime       @default(now())
+  endedAt       DateTime?
+
+  saveGame    SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  player      Player   @relation(fields: [playerId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  team        Team     @relation(fields: [teamId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  startSeason Season?  @relation("ContractStartSeason", fields: [startSeasonId, saveGameId], references: [id, saveGameId], onDelete: NoAction)
+
+  @@unique([id, saveGameId])
+  @@index([saveGameId, teamId, status])
+  @@index([playerId, status])
+}
+
+model Match {
+  id               String      @id @default(cuid())
+  saveGameId       String
+  seasonId         String
+  week             Int
+  kind             MatchKind   @default(REGULAR_SEASON)
+  status           MatchStatus @default(SCHEDULED)
+  homeTeamId       String
+  awayTeamId       String
+  scheduledAt      DateTime
+  stadiumName      String?
+  simulationSeed   String?
+  simulationStartedAt DateTime?
+  simulationCompletedAt DateTime?
+  homeScore        Int?
+  awayScore        Int?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  saveGame         SaveGame         @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  season           Season           @relation(fields: [seasonId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  homeTeam         Team             @relation("HomeTeam", fields: [homeTeamId, saveGameId], references: [id, saveGameId], onDelete: Restrict)
+  awayTeam         Team             @relation("AwayTeam", fields: [awayTeamId, saveGameId], references: [id, saveGameId], onDelete: Restrict)
+  simulationDrives MatchSimulationDrive[]
+  teamMatchStats   TeamMatchStat[]
+  playerMatchStats PlayerMatchStat[]
+
+  @@unique([seasonId, week, homeTeamId, awayTeamId])
+  @@unique([id, saveGameId])
+  @@index([saveGameId, seasonId, week])
+}
+
+model MatchSimulationDrive {
+  id                      String   @id @default(cuid())
+  saveGameId              String
+  matchId                 String
+  sequence                Int
+  phaseLabel              String
+  offenseTeamId           String
+  offenseTeamAbbreviation String
+  defenseTeamId           String
+  defenseTeamAbbreviation String
+  startedHomeScore        Int
+  startedAwayScore        Int
+  endedHomeScore          Int
+  endedAwayScore          Int
+  plays                   Int
+  passAttempts            Int
+  rushAttempts            Int
+  totalYards              Int
+  resultType              String
+  pointsScored            Int      @default(0)
+  turnover                Boolean  @default(false)
+  redZoneTrip             Boolean  @default(false)
+  summary                 String
+  primaryPlayerName       String?
+  primaryDefenderName     String?
+  createdAt               DateTime @default(now())
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  match    Match    @relation(fields: [matchId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+
+  @@unique([matchId, sequence])
+  @@index([saveGameId, matchId, sequence])
+}
+
+model TeamSeasonStat {
+  id                 String @id @default(cuid())
+  saveGameId         String
+  seasonId           String
+  teamId             String
+  gamesPlayed        Int    @default(0)
+  wins               Int    @default(0)
+  losses             Int    @default(0)
+  ties               Int    @default(0)
+  pointsFor          Int    @default(0)
+  pointsAgainst      Int    @default(0)
+  touchdownsFor      Int    @default(0)
+  touchdownsAgainst  Int    @default(0)
+  turnoversForced    Int    @default(0)
+  turnoversCommitted Int    @default(0)
+  passingYards       Int    @default(0)
+  rushingYards       Int    @default(0)
+  sacks              Int    @default(0)
+  explosivePlays     Int    @default(0)
+  redZoneTrips       Int    @default(0)
+  redZoneTouchdowns  Int    @default(0)
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  season   Season   @relation(fields: [seasonId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  team     Team     @relation(fields: [teamId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+
+  @@unique([seasonId, teamId])
+}
+
+model PlayerCareerStat {
+  id                 String @id @default(cuid())
+  saveGameId         String
+  playerId           String
+  gamesPlayed        Int    @default(0)
+  gamesStarted       Int    @default(0)
+  snapsOffense       Int    @default(0)
+  snapsDefense       Int    @default(0)
+  snapsSpecialTeams  Int    @default(0)
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  player   Player   @relation(fields: [playerId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  passing  PlayerCareerPassingStat?
+  rushing  PlayerCareerRushingStat?
+  receiving PlayerCareerReceivingStat?
+  blocking PlayerCareerBlockingStat?
+  defensive PlayerCareerDefensiveStat?
+  kicking  PlayerCareerKickingStat?
+  punting  PlayerCareerPuntingStat?
+  returns  PlayerCareerReturnStat?
+
+  @@unique([playerId, saveGameId])
+}
+
+model PlayerSeasonStat {
+  id                 String @id @default(cuid())
+  saveGameId         String
+  seasonId           String
+  playerId           String
+  teamId             String
+  gamesPlayed        Int    @default(0)
+  gamesStarted       Int    @default(0)
+  snapsOffense       Int    @default(0)
+  snapsDefense       Int    @default(0)
+  snapsSpecialTeams  Int    @default(0)
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  season   Season   @relation(fields: [seasonId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  player   Player   @relation(fields: [playerId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  team     Team     @relation(fields: [teamId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  passing  PlayerSeasonPassingStat?
+  rushing  PlayerSeasonRushingStat?
+  receiving PlayerSeasonReceivingStat?
+  blocking PlayerSeasonBlockingStat?
+  defensive PlayerSeasonDefensiveStat?
+  kicking  PlayerSeasonKickingStat?
+  punting  PlayerSeasonPuntingStat?
+  returns  PlayerSeasonReturnStat?
+
+  @@unique([seasonId, playerId, teamId])
+  @@index([saveGameId, teamId, seasonId])
+}
+
+model PlayerMatchStat {
+  id                 String  @id @default(cuid())
+  saveGameId         String
+  matchId            String
+  playerId           String
+  teamId             String
+  snapshotFullName   String?
+  snapshotPositionCode String?
+  snapshotTeamAbbreviation String?
+  started            Boolean @default(false)
+  snapsOffense       Int     @default(0)
+  snapsDefense       Int     @default(0)
+  snapsSpecialTeams  Int     @default(0)
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  match    Match    @relation(fields: [matchId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  player   Player   @relation(fields: [playerId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  team     Team     @relation(fields: [teamId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  passing  PlayerMatchPassingStat?
+  rushing  PlayerMatchRushingStat?
+  receiving PlayerMatchReceivingStat?
+  blocking PlayerMatchBlockingStat?
+  defensive PlayerMatchDefensiveStat?
+  kicking  PlayerMatchKickingStat?
+  punting  PlayerMatchPuntingStat?
+  returns  PlayerMatchReturnStat?
+
+  @@unique([matchId, playerId])
+  @@index([saveGameId, matchId, teamId])
+}
+
+model PlayerCareerPassingStat {
+  id                 String @id @default(cuid())
+  playerCareerStatId String @unique
+  attempts           Int    @default(0)
+  completions        Int    @default(0)
+  yards              Int    @default(0)
+  touchdowns         Int    @default(0)
+  interceptions      Int    @default(0)
+  sacksTaken         Int    @default(0)
+  sackYardsLost      Int    @default(0)
+  longestCompletion  Int    @default(0)
+
+  playerCareerStat PlayerCareerStat @relation(fields: [playerCareerStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerCareerRushingStat {
+  id                 String @id @default(cuid())
+  playerCareerStatId String @unique
+  attempts           Int    @default(0)
+  yards              Int    @default(0)
+  touchdowns         Int    @default(0)
+  fumbles            Int    @default(0)
+  longestRush        Int    @default(0)
+  brokenTackles      Int    @default(0)
+
+  playerCareerStat PlayerCareerStat @relation(fields: [playerCareerStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerCareerReceivingStat {
+  id                 String @id @default(cuid())
+  playerCareerStatId String @unique
+  targets            Int    @default(0)
+  receptions         Int    @default(0)
+  yards              Int    @default(0)
+  touchdowns         Int    @default(0)
+  drops              Int    @default(0)
+  longestReception   Int    @default(0)
+  yardsAfterCatch    Int    @default(0)
+
+  playerCareerStat PlayerCareerStat @relation(fields: [playerCareerStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerCareerBlockingStat {
+  id                 String @id @default(cuid())
+  playerCareerStatId String @unique
+  passBlockSnaps     Int    @default(0)
+  runBlockSnaps      Int    @default(0)
+  sacksAllowed       Int    @default(0)
+  pressuresAllowed   Int    @default(0)
+  pancakes           Int    @default(0)
+
+  playerCareerStat PlayerCareerStat @relation(fields: [playerCareerStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerCareerDefensiveStat {
+  id                   String  @id @default(cuid())
+  playerCareerStatId   String  @unique
+  tackles              Int     @default(0)
+  assistedTackles      Int     @default(0)
+  tacklesForLoss       Int     @default(0)
+  sacks                Decimal @default(0) @db.Decimal(5, 1)
+  quarterbackHits      Int     @default(0)
+  passesDefended       Int     @default(0)
+  interceptions        Int     @default(0)
+  forcedFumbles        Int     @default(0)
+  fumbleRecoveries     Int     @default(0)
+  defensiveTouchdowns  Int     @default(0)
+  coverageSnaps        Int     @default(0)
+  targetsAllowed       Int     @default(0)
+  receptionsAllowed    Int     @default(0)
+  yardsAllowed         Int     @default(0)
+
+  playerCareerStat PlayerCareerStat @relation(fields: [playerCareerStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerCareerKickingStat {
+  id                 String @id @default(cuid())
+  playerCareerStatId String @unique
+  fieldGoalsMade     Int    @default(0)
+  fieldGoalsAttempted Int   @default(0)
+  fieldGoalsMadeShort Int   @default(0)
+  fieldGoalsAttemptedShort Int @default(0)
+  fieldGoalsMadeMid   Int   @default(0)
+  fieldGoalsAttemptedMid Int @default(0)
+  fieldGoalsMadeLong  Int   @default(0)
+  fieldGoalsAttemptedLong Int @default(0)
+  extraPointsMade    Int    @default(0)
+  extraPointsAttempted Int  @default(0)
+  longestFieldGoal   Int    @default(0)
+  kickoffTouchbacks  Int    @default(0)
+
+  playerCareerStat PlayerCareerStat @relation(fields: [playerCareerStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerCareerPuntingStat {
+  id                 String @id @default(cuid())
+  playerCareerStatId String @unique
+  punts              Int    @default(0)
+  puntYards          Int    @default(0)
+  netPuntYards       Int    @default(0)
+  fairCatchesForced  Int    @default(0)
+  hangTimeTotalTenths Int   @default(0)
+  puntsInside20      Int    @default(0)
+  touchbacks         Int    @default(0)
+  longestPunt        Int    @default(0)
+
+  playerCareerStat PlayerCareerStat @relation(fields: [playerCareerStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerCareerReturnStat {
+  id                   String @id @default(cuid())
+  playerCareerStatId   String @unique
+  kickReturns          Int    @default(0)
+  kickReturnYards      Int    @default(0)
+  kickReturnTouchdowns Int    @default(0)
+  kickReturnFumbles    Int    @default(0)
+  puntReturns          Int    @default(0)
+  puntReturnYards      Int    @default(0)
+  puntReturnTouchdowns Int    @default(0)
+  puntReturnFumbles    Int    @default(0)
+
+  playerCareerStat PlayerCareerStat @relation(fields: [playerCareerStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerSeasonPassingStat {
+  id                 String @id @default(cuid())
+  playerSeasonStatId String @unique
+  attempts           Int    @default(0)
+  completions        Int    @default(0)
+  yards              Int    @default(0)
+  touchdowns         Int    @default(0)
+  interceptions      Int    @default(0)
+  sacksTaken         Int    @default(0)
+  sackYardsLost      Int    @default(0)
+  longestCompletion  Int    @default(0)
+
+  playerSeasonStat PlayerSeasonStat @relation(fields: [playerSeasonStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerSeasonRushingStat {
+  id                 String @id @default(cuid())
+  playerSeasonStatId String @unique
+  attempts           Int    @default(0)
+  yards              Int    @default(0)
+  touchdowns         Int    @default(0)
+  fumbles            Int    @default(0)
+  longestRush        Int    @default(0)
+  brokenTackles      Int    @default(0)
+
+  playerSeasonStat PlayerSeasonStat @relation(fields: [playerSeasonStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerSeasonReceivingStat {
+  id                 String @id @default(cuid())
+  playerSeasonStatId String @unique
+  targets            Int    @default(0)
+  receptions         Int    @default(0)
+  yards              Int    @default(0)
+  touchdowns         Int    @default(0)
+  drops              Int    @default(0)
+  longestReception   Int    @default(0)
+  yardsAfterCatch    Int    @default(0)
+
+  playerSeasonStat PlayerSeasonStat @relation(fields: [playerSeasonStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerSeasonBlockingStat {
+  id                 String @id @default(cuid())
+  playerSeasonStatId String @unique
+  passBlockSnaps     Int    @default(0)
+  runBlockSnaps      Int    @default(0)
+  sacksAllowed       Int    @default(0)
+  pressuresAllowed   Int    @default(0)
+  pancakes           Int    @default(0)
+
+  playerSeasonStat PlayerSeasonStat @relation(fields: [playerSeasonStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerSeasonDefensiveStat {
+  id                   String  @id @default(cuid())
+  playerSeasonStatId   String  @unique
+  tackles              Int     @default(0)
+  assistedTackles      Int     @default(0)
+  tacklesForLoss       Int     @default(0)
+  sacks                Decimal @default(0) @db.Decimal(5, 1)
+  quarterbackHits      Int     @default(0)
+  passesDefended       Int     @default(0)
+  interceptions        Int     @default(0)
+  forcedFumbles        Int     @default(0)
+  fumbleRecoveries     Int     @default(0)
+  defensiveTouchdowns  Int     @default(0)
+  coverageSnaps        Int     @default(0)
+  targetsAllowed       Int     @default(0)
+  receptionsAllowed    Int     @default(0)
+  yardsAllowed         Int     @default(0)
+
+  playerSeasonStat PlayerSeasonStat @relation(fields: [playerSeasonStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerSeasonKickingStat {
+  id                  String @id @default(cuid())
+  playerSeasonStatId  String @unique
+  fieldGoalsMade      Int    @default(0)
+  fieldGoalsAttempted Int    @default(0)
+  fieldGoalsMadeShort Int    @default(0)
+  fieldGoalsAttemptedShort Int @default(0)
+  fieldGoalsMadeMid   Int    @default(0)
+  fieldGoalsAttemptedMid Int @default(0)
+  fieldGoalsMadeLong  Int    @default(0)
+  fieldGoalsAttemptedLong Int @default(0)
+  extraPointsMade     Int    @default(0)
+  extraPointsAttempted Int   @default(0)
+  longestFieldGoal    Int    @default(0)
+  kickoffTouchbacks   Int    @default(0)
+
+  playerSeasonStat PlayerSeasonStat @relation(fields: [playerSeasonStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerSeasonPuntingStat {
+  id                 String @id @default(cuid())
+  playerSeasonStatId String @unique
+  punts              Int    @default(0)
+  puntYards          Int    @default(0)
+  netPuntYards       Int    @default(0)
+  fairCatchesForced  Int    @default(0)
+  hangTimeTotalTenths Int   @default(0)
+  puntsInside20      Int    @default(0)
+  touchbacks         Int    @default(0)
+  longestPunt        Int    @default(0)
+
+  playerSeasonStat PlayerSeasonStat @relation(fields: [playerSeasonStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerSeasonReturnStat {
+  id                   String @id @default(cuid())
+  playerSeasonStatId   String @unique
+  kickReturns          Int    @default(0)
+  kickReturnYards      Int    @default(0)
+  kickReturnTouchdowns Int    @default(0)
+  kickReturnFumbles    Int    @default(0)
+  puntReturns          Int    @default(0)
+  puntReturnYards      Int    @default(0)
+  puntReturnTouchdowns Int    @default(0)
+  puntReturnFumbles    Int    @default(0)
+
+  playerSeasonStat PlayerSeasonStat @relation(fields: [playerSeasonStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerMatchPassingStat {
+  id                 String @id @default(cuid())
+  playerMatchStatId  String @unique
+  attempts           Int    @default(0)
+  completions        Int    @default(0)
+  yards              Int    @default(0)
+  touchdowns         Int    @default(0)
+  interceptions      Int    @default(0)
+  sacksTaken         Int    @default(0)
+  sackYardsLost      Int    @default(0)
+  longestCompletion  Int    @default(0)
+
+  playerMatchStat PlayerMatchStat @relation(fields: [playerMatchStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerMatchRushingStat {
+  id                 String @id @default(cuid())
+  playerMatchStatId  String @unique
+  attempts           Int    @default(0)
+  yards              Int    @default(0)
+  touchdowns         Int    @default(0)
+  fumbles            Int    @default(0)
+  longestRush        Int    @default(0)
+  brokenTackles      Int    @default(0)
+
+  playerMatchStat PlayerMatchStat @relation(fields: [playerMatchStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerMatchReceivingStat {
+  id                 String @id @default(cuid())
+  playerMatchStatId  String @unique
+  targets            Int    @default(0)
+  receptions         Int    @default(0)
+  yards              Int    @default(0)
+  touchdowns         Int    @default(0)
+  drops              Int    @default(0)
+  longestReception   Int    @default(0)
+  yardsAfterCatch    Int    @default(0)
+
+  playerMatchStat PlayerMatchStat @relation(fields: [playerMatchStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerMatchBlockingStat {
+  id                 String @id @default(cuid())
+  playerMatchStatId  String @unique
+  passBlockSnaps     Int    @default(0)
+  runBlockSnaps      Int    @default(0)
+  sacksAllowed       Int    @default(0)
+  pressuresAllowed   Int    @default(0)
+  pancakes           Int    @default(0)
+
+  playerMatchStat PlayerMatchStat @relation(fields: [playerMatchStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerMatchDefensiveStat {
+  id                   String  @id @default(cuid())
+  playerMatchStatId    String  @unique
+  tackles              Int     @default(0)
+  assistedTackles      Int     @default(0)
+  tacklesForLoss       Int     @default(0)
+  sacks                Decimal @default(0) @db.Decimal(5, 1)
+  quarterbackHits      Int     @default(0)
+  passesDefended       Int     @default(0)
+  interceptions        Int     @default(0)
+  forcedFumbles        Int     @default(0)
+  fumbleRecoveries     Int     @default(0)
+  defensiveTouchdowns  Int     @default(0)
+  coverageSnaps        Int     @default(0)
+  targetsAllowed       Int     @default(0)
+  receptionsAllowed    Int     @default(0)
+  yardsAllowed         Int     @default(0)
+
+  playerMatchStat PlayerMatchStat @relation(fields: [playerMatchStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerMatchKickingStat {
+  id                  String @id @default(cuid())
+  playerMatchStatId   String @unique
+  fieldGoalsMade      Int    @default(0)
+  fieldGoalsAttempted Int    @default(0)
+  fieldGoalsMadeShort Int    @default(0)
+  fieldGoalsAttemptedShort Int @default(0)
+  fieldGoalsMadeMid   Int    @default(0)
+  fieldGoalsAttemptedMid Int @default(0)
+  fieldGoalsMadeLong  Int    @default(0)
+  fieldGoalsAttemptedLong Int @default(0)
+  extraPointsMade     Int    @default(0)
+  extraPointsAttempted Int   @default(0)
+  longestFieldGoal    Int    @default(0)
+  kickoffTouchbacks   Int    @default(0)
+
+  playerMatchStat PlayerMatchStat @relation(fields: [playerMatchStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerMatchPuntingStat {
+  id                 String @id @default(cuid())
+  playerMatchStatId  String @unique
+  punts              Int    @default(0)
+  puntYards          Int    @default(0)
+  netPuntYards       Int    @default(0)
+  fairCatchesForced  Int    @default(0)
+  hangTimeTotalTenths Int   @default(0)
+  puntsInside20      Int    @default(0)
+  touchbacks         Int    @default(0)
+  longestPunt        Int    @default(0)
+
+  playerMatchStat PlayerMatchStat @relation(fields: [playerMatchStatId], references: [id], onDelete: Cascade)
+}
+
+model PlayerMatchReturnStat {
+  id                   String @id @default(cuid())
+  playerMatchStatId    String @unique
+  kickReturns          Int    @default(0)
+  kickReturnYards      Int    @default(0)
+  kickReturnTouchdowns Int    @default(0)
+  kickReturnFumbles    Int    @default(0)
+  puntReturns          Int    @default(0)
+  puntReturnYards      Int    @default(0)
+  puntReturnTouchdowns Int    @default(0)
+  puntReturnFumbles    Int    @default(0)
+
+  playerMatchStat PlayerMatchStat @relation(fields: [playerMatchStatId], references: [id], onDelete: Cascade)
+}
+
+model TeamMatchStat {
+  id                      String @id @default(cuid())
+  saveGameId              String
+  matchId                 String
+  teamId                  String
+  firstDowns              Int    @default(0)
+  totalYards              Int    @default(0)
+  turnovers               Int    @default(0)
+  penalties               Int    @default(0)
+  timeOfPossessionSeconds Int    @default(0)
+  passingYards            Int    @default(0)
+  rushingYards            Int    @default(0)
+  sacks                   Int    @default(0)
+  explosivePlays          Int    @default(0)
+  redZoneTrips            Int    @default(0)
+  redZoneTouchdowns       Int    @default(0)
+  gameplanSummary         Json?
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  match    Match    @relation(fields: [matchId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  team     Team     @relation(fields: [teamId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+
+  @@unique([matchId, teamId])
+}
+
+model RosterTransaction {
+  id          String                @id @default(cuid())
+  saveGameId  String
+  playerId    String
+  fromTeamId  String?
+  toTeamId    String?
+  type        RosterTransactionType
+  occurredAt  DateTime              @default(now())
+  description String?
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  player   Player   @relation(fields: [playerId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  fromTeam Team?    @relation("RosterTransactionFromTeam", fields: [fromTeamId, saveGameId], references: [id, saveGameId], onDelete: NoAction)
+  toTeam   Team?    @relation("RosterTransactionToTeam", fields: [toTeamId, saveGameId], references: [id, saveGameId], onDelete: NoAction)
+
+  @@index([saveGameId, occurredAt])
+}
+
+model PlayerHistoryEvent {
+  id          String                 @id @default(cuid())
+  saveGameId  String
+  playerId    String
+  seasonId    String?
+  teamId      String?
+  type        PlayerHistoryEventType
+  week        Int?
+  title       String
+  description String?
+  occurredAt  DateTime               @default(now())
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  player   Player   @relation(fields: [playerId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  season   Season?  @relation(fields: [seasonId, saveGameId], references: [id, saveGameId], onDelete: NoAction)
+  team     Team?    @relation(fields: [teamId, saveGameId], references: [id, saveGameId], onDelete: NoAction)
+
+  @@index([saveGameId, playerId, occurredAt])
+  @@index([saveGameId, teamId, occurredAt])
+}
+
+model TeamFinanceEvent {
+  id               String               @id @default(cuid())
+  saveGameId       String
+  teamId           String
+  playerId         String?
+  seasonId         String?
+  type             TeamFinanceEventType
+  amount           Decimal              @db.Decimal(14, 2)
+  capImpact        Decimal              @db.Decimal(14, 2)
+  cashBalanceAfter Decimal              @db.Decimal(14, 2)
+  description      String?
+  occurredAt       DateTime             @default(now())
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+  team     Team     @relation(fields: [teamId, saveGameId], references: [id, saveGameId], onDelete: Cascade)
+  player   Player?  @relation(fields: [playerId, saveGameId], references: [id, saveGameId], onDelete: NoAction)
+  season   Season?  @relation(fields: [seasonId, saveGameId], references: [id, saveGameId], onDelete: NoAction)
+
+  @@index([saveGameId, teamId, occurredAt])
+}
+
+model InboxTaskState {
+  id               String             @id @default(cuid())
+  saveGameId       String
+  taskKey          String
+  status           InboxTaskStatus     @default(OPEN)
+  priorityOverride InboxTaskPriority?
+  readAt           DateTime?
+  completedAt      DateTime?
+  hiddenAt         DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  saveGame SaveGame @relation(fields: [saveGameId], references: [id], onDelete: Cascade)
+
+  @@unique([saveGameId, taskKey])
+  @@index([saveGameId, status, updatedAt])
+}

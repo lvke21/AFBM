@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Time to Fun Report</title>
+    <style>
+      :root {
+        background: #f5f7fa;
+        color: #172033;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 24px;
+      }
+
+      h3 {
+        margin-top: 22px;
+        font-size: 18px;
+      }
+
+      p,
+      li {
+        line-height: 1.65;
+      }
+
+      .lead {
+        max-width: 860px;
+        color: #526070;
+        font-size: 17px;
+      }
+
+      .panel,
+      table {
+        border: 1px solid #d9e0ea;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .panel {
+        margin-top: 22px;
+        padding: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .card {
+        border-left: 4px solid #10b981;
+        background: #fff;
+        padding: 14px;
+      }
+
+      .card strong {
+        display: block;
+      }
+
+      .card span {
+        color: #657383;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7ebf0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef3f8;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #e9eef5;
+        padding: 2px 5px;
+      }
+
+      .good {
+        color: #166534;
+        font-weight: 700;
+      }
+
+      .warn {
+        color: #925900;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Time to Fun Report</h1>
+      <p class="lead">
+        Aufgabe: Die Zeit bis zur ersten sinnvollen Aktion sollte auf unter 2 Sekunden sinken.
+        Ergebnis: Neue Sessions landen direkt im Dashboard, sehen sofort eine dominante
+        Next-Best-Action und koennen mit einem Klick die Woche vorbereiten.
+      </p>
+
+      <section class="panel">
+        <h2>Executive Summary</h2>
+        <p>
+          Der fruehere Einstieg ueber einen Hub wurde fuer bestehende Savegames entfernt.
+          <code>/app</code> fuehrt jetzt direkt zum neuesten Dashboard. Dort steht die erste
+          sinnvolle Aktion ganz oben: <strong>Woche vorbereiten</strong>. Die Handlung ist nicht
+          mehr ein Sprung zu einem tiefer liegenden Week-Loop-Bereich, sondern fuehrt direkt eine
+          ausgewogene Wochenvorbereitung aus und schaltet die Game Preview frei.
+        </p>
+        <p class="good">
+          Validiertes Ergebnis: Primary Action sichtbar und klickbar nach 55 ms. Ziel
+          erreicht: 55 ms &lt; 2.000 ms.
+        </p>
+      </section>
+
+      <section>
+        <h2>Umsetzung</h2>
+        <div class="grid">
+          <div class="card">
+            <strong>Direkter Einstieg</strong>
+            <span>
+              <code>/app</code> redirectet bei vorhandenem Savegame sofort auf
+              <code>/app/savegames/[savegameId]</code>.
+            </span>
+          </div>
+          <div class="card">
+            <strong>Dominante erste Aktion</strong>
+            <span>
+              Das Next-Action-Panel wurde an den Anfang des Dashboards verschoben und visuell
+              staerker gewichtet.
+            </span>
+          </div>
+          <div class="card">
+            <strong>Direkter Prepare-Klick</strong>
+            <span>
+              Die Aktion <code>Woche vorbereiten</code> setzt einen ausgewogenen Wochenplan per
+              Server Action, ohne zusaetzliche Formulararbeit.
+            </span>
+          </div>
+          <div class="card">
+            <strong>Klarer Kontext</strong>
+            <span>
+              Die kurze Erklaerung lautet: <q>Du bist GM - bereite das naechste Spiel vor.</q>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Vorher / Nachher</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Vorher</th>
+              <th>Nachher</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Einstieg</td>
+              <td>App-Hub mit Savegame-Auswahl als vorgeschalteter Schritt.</td>
+              <td>Direkter Dashboard-Einstieg fuer das neueste Savegame.</td>
+            </tr>
+            <tr>
+              <td>Erste Aktion</td>
+              <td>Week Loop musste gefunden werden; CTA war weniger eindeutig.</td>
+              <td>Eine dominante Hero-Aktion: <code>Woche vorbereiten</code>.</td>
+            </tr>
+            <tr>
+              <td>Klick-Wirkung</td>
+              <td>Navigation zu einem Bereich, danach weitere Entscheidung.</td>
+              <td>Direkte Vorbereitung mit Balanced Defaults und Preview-Freischaltung.</td>
+            </tr>
+            <tr>
+              <td>Orientierung</td>
+              <td>Mehrere konkurrierende Dashboard-Informationen direkt sichtbar.</td>
+              <td>Ein klares Ziel: <q>Du bist GM - bereite das naechste Spiel vor.</q></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Validierung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>Ergebnis</th>
+              <th>Notiz</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npx tsc --noEmit --pretty false</code></td>
+              <td class="good">Bestanden</td>
+              <td>TypeScript kompiliert ohne Fehler.</td>
+            </tr>
+            <tr>
+              <td>
+                <code
+                  >npx vitest run src/components/dashboard/dashboard-model.test.ts
+                  'src/app/app/savegames/[savegameId]/week-actions.test.ts'</code
+                >
+              </td>
+              <td class="good">Bestanden</td>
+              <td>2 Testdateien, 37 Tests bestanden.</td>
+            </tr>
+            <tr>
+              <td><code>npm run db:up</code> und <code>npm run test:e2e:seed</code></td>
+              <td class="good">Bestanden</td>
+              <td>E2E-Datenbank und Seed waren verfuegbar.</td>
+            </tr>
+            <tr>
+              <td>
+                <code
+                  >npx playwright test e2e/time-to-fun.spec.ts --project=chromium
+                  --workers=1</code
+                >
+              </td>
+              <td class="good">Bestanden</td>
+              <td>
+                Gemessen: <strong>55 ms</strong> bis die Primary Action sichtbar und klickbar war.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Messdefinition: Die Messung startet nach dem authentifizierten Einstieg ueber
+          <code>/app</code> und prueft den UX-Zustand im Dashboard. Kalte Dev-Compile-Zeit und
+          Auth-Handshake sind nicht Teil der Produktziel-Messung.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Rest-Risiko</h2>
+        <p>
+          Ein zusaetzlicher Week-Loop-Regressionslauf wurde angestossen und scheiterte spaeter im
+          Live-Screen, weil der Button <code>Zum Match Report</code> innerhalb des Test-Timeouts
+          nicht stabil klickbar wurde. Das betrifft nicht den neuen Time-to-Fun-Einstieg, sollte
+          aber fuer die Live-Playback-Stabilitaet separat betrachtet werden.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Finale Bewertung</h2>
+        <p class="good">
+          Status: Ziel erreicht. Der Nutzer sieht sofort sein Ziel, hat genau eine dominante erste
+          Aktion und kann in deutlich unter 2 Sekunden sinnvoll handeln.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

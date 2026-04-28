@@ -1,0 +1,1102 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aktualisierter Projektbericht - American Football Manager</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f3efe7;
+        --panel: #fffdfa;
+        --line: #d8cebf;
+        --text: #1f2933;
+        --muted: #5d6b78;
+        --accent: #8c3b12;
+        --accent-soft: #f7e8dd;
+        --good: #1f6d43;
+        --warn: #8f6f20;
+        --bad: #8a1f3d;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at top left, rgba(255, 255, 255, 0.75), transparent 42%),
+          linear-gradient(180deg, #ece4d7 0%, var(--bg) 100%);
+        color: var(--text);
+        font-family: Georgia, "Times New Roman", serif;
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 32px 18px 72px;
+      }
+
+      header, section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: 0 12px 28px rgba(31, 41, 51, 0.06);
+        padding: 24px;
+        margin-bottom: 18px;
+      }
+
+      h1, h2, h3 { margin-top: 0; line-height: 1.25; }
+      h1 { color: var(--accent); font-size: 2.3rem; margin-bottom: 8px; }
+      h2 { font-size: 1.5rem; margin-bottom: 12px; }
+      h3 { font-size: 1.1rem; margin-bottom: 8px; }
+      p, li, td, th { font-size: 1rem; }
+
+      .lede, .small { color: var(--muted); }
+      .small { font-size: 0.93rem; }
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .badge {
+        background: var(--accent-soft);
+        color: var(--accent);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 0.95rem;
+      }
+      .grid-2, .grid-3, .grid-4 {
+        display: grid;
+        gap: 16px;
+      }
+      .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+      .grid-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+      .grid-4 { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+
+      .card {
+        border: 1px solid var(--line);
+        background: #fbf8f2;
+        border-radius: 14px;
+        padding: 16px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 0.95rem;
+      }
+
+      th, td {
+        text-align: left;
+        vertical-align: top;
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+      }
+
+      th { background: #f3ece1; }
+      code {
+        font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+        font-size: 0.92em;
+        background: #f1ece4;
+        border-radius: 6px;
+        padding: 1px 5px;
+      }
+
+      ul, ol { margin: 0 0 0 20px; padding: 0; }
+      .good { color: var(--good); font-weight: 700; }
+      .warn { color: var(--warn); font-weight: 700; }
+      .bad { color: var(--bad); font-weight: 700; }
+      .note {
+        border-left: 4px solid var(--accent);
+        padding-left: 14px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Aktualisierter Projektbericht - American Football Manager</h1>
+        <p class="lede">
+          Dieser Bericht bewertet den aktuellen Projektstand nach drei Ausbaustufen mit insgesamt 40
+          umgesetzten Verbesserungen. Er baut auf dem frueheren HTML-Report auf, prueft dessen Aussagen
+          gegen den heutigen Code und fasst den Stand fuer Anwender, neue Teammitglieder und fachliche Leser
+          verstaendlich zusammen.
+        </p>
+        <div class="badge-row">
+          <span class="badge">Reifegrad: fortgeschrittener Prototyp mit erstem Manager-Slice</span>
+          <span class="badge">Gesamtfortschritt: 40 Verbesserungen umgesetzt</span>
+          <span class="badge">Spieler-Modell: deutlich belastbarer</span>
+          <span class="badge">Mehrjahresfluss: erste neue Saison jetzt moeglich</span>
+        </div>
+      </header>
+
+      <section id="kurzfazit">
+        <h2>2. Kurzfazit</h2>
+        <p>
+          Das Projekt ist inzwischen klar mehr als ein Daten- und Simulationsgeruest. Es besitzt jetzt nicht nur
+          Savegames, Teams, Spieler, Simulation, Free Agency und Playoffs, sondern auch erste echte
+          Manager-Entscheidungen zwischen den Wochen: Team-Schemes, Development Focus, Injured Reserve,
+          Releases, Signings, Finanzverlauf, Vertragsausblick und den Uebergang in eine neue Saison.
+        </p>
+        <p>
+          Der groesste Fortschritt seit dem letzten Bericht liegt in der <strong>Verbindung zwischen Datenmodell,
+          Simulationskern und Nutzersteuerung</strong>. Spieler werden fachlich sauberer bewertet, Stats sind in
+          mehreren Bereichen aussagekraeftiger geworden, und wichtige Systemteile wie Scheme Fit oder
+          Vertragsfortschreibung haben nun spuerbare Wirkung.
+        </p>
+        <p>
+          Trotzdem ist das Projekt noch keine vollwertige Football-Manager-Simulation. Die wichtigsten
+          verbleibenden Luecken liegen bei Trades, Draft, tieferem Finanzsystem, echtem Play-by-Play und
+          langfristiger Franchise-Progression. Die Richtung stimmt aber inzwischen deutlich staerker als im
+          Ausgangsbericht.
+        </p>
+      </section>
+
+      <section id="veraenderungen">
+        <h2>3. Was sich seit dem letzten Bericht veraendert hat</h2>
+        <p>
+          Der alte Bericht enthielt eine Mischung aus Staerken, offenen Punkten und Empfehlungen. Gegen den
+          heutigen Projektstand lassen sich die relevanten Report-Befunde wie folgt einordnen:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Kategorie</th>
+              <th>Anzahl</th>
+              <th>Einordnung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>vollstaendig behoben</td>
+              <td>20</td>
+              <td>Beispiel: LB-Coverage, Long Snapper, K/P-Konsistenz, Entwicklung, Playoffs, Free Agency, Player-Flow, Coverage-Allowed, neue Saisonfortschreibung</td>
+            </tr>
+            <tr>
+              <td>teilweise behoben</td>
+              <td>8</td>
+              <td>Beispiel: Finanzen, Verletzungsmanagement, Training, Match-Erklaerbarkeit, Vertragslogik</td>
+            </tr>
+            <tr>
+              <td>weiterhin offen</td>
+              <td>5</td>
+              <td>Vor allem Trades, Draft, tiefes Finanzsystem, Play-by-Play und Coaching-Tiefe</td>
+            </tr>
+            <tr>
+              <td>inzwischen ueberholt</td>
+              <td>1</td>
+              <td>Einzelne aeltere Aussagen zu "gar nicht vorhandener" Verletzungs- oder Managementlogik passen nicht mehr zum heutigen Code</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="grid-2" style="margin-top: 16px;">
+          <div class="card">
+            <h3>30 bereits umgesetzte Aenderungen</h3>
+            <p>
+              Die beiden frueheren Umsetzungsrunden haben vor allem Spielerattribute, Positionsratings,
+              Coverage-/Special-Teams-Logik, Player History, Free Agency, Playoffs und Weekly Development
+              deutlich vorangebracht.
+            </p>
+          </div>
+          <div class="card">
+            <h3>10 neue Aenderungen in dieser Runde</h3>
+            <p>
+              Die aktuelle Runde schliesst vor allem die Luecken bei Scheme Fit, Trainingssteuerung, IR,
+              Finanzverlauf, Vertragsausblick, Match-Erklaerbarkeit, Coverage-Denominator, Kicking-Splits,
+              Punt-Statistik und Mehrjahresfluss.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="ueberblick">
+        <h2>4. Aktueller Projektueberblick</h2>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Worum geht es?</h3>
+            <p>
+              Um einen webbasierten American Football Manager mit persistierten Savegames, Teams, Spielern,
+              Vertragen, Seasons, Matches und einer fortlaufenden Football-Simulation.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Aktueller Stand</h3>
+            <p>
+              Das System deckt bereits einen vertikalen Slice von Savegame ueber Kader und Saison bis zur
+              Matchsimulation und zum naechsten Saisonjahr ab.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Erkennbare Grundlogik</h3>
+            <p>
+              Referenzdaten erzeugen Savegame-Zustand. Der Savegame-Zustand erzeugt Team-, Saison- und
+              Spielerreads. Die Simulation schreibt Match-, Season- und Career-Stats sowie Spielerzustand und
+              Historie fort.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="datenstruktur">
+        <h2>5. Aktueller Aufbau der Datenstruktur</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Zweck</th>
+              <th>Heute gut geloest</th>
+              <th>Noch schwach</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Referenzdaten</td>
+              <td>Liga, Franchises, Positionen, Archetypen, Scheme Fits, Attribute</td>
+              <td>klar normalisiert und gut erweiterbar</td>
+              <td>keine Coaching-/Staff-Daten</td>
+            </tr>
+            <tr>
+              <td>Savegame-Kern</td>
+              <td>Benutzergebundener Spielstand</td>
+              <td>saubere Isolation, aktuelle Season, mehrere Seasons</td>
+              <td>keine Draft-/Transfer-Entitaeten</td>
+            </tr>
+            <tr>
+              <td>Kader und Spieler</td>
+              <td>Rollen, Ratings, Attribute, Vertraege, Historie</td>
+              <td>positionsnahes Modell mit aktivem Development und Scheme Fit</td>
+              <td>noch keine tiefe Coaching- oder Trainingsplanung</td>
+            </tr>
+            <tr>
+              <td>Statistiken</td>
+              <td>Rohdaten und Aggregate fuer Match, Season, Career</td>
+              <td>breit aufgestellt, heute deutlich football-naeher</td>
+              <td>kein Play-by-Play und kein echtes Drive-/Play-Archiv</td>
+            </tr>
+            <tr>
+              <td>Managementzustand</td>
+              <td>Managerentscheidungen und Teamsteuerung</td>
+              <td>Depth Chart, IR, Development Focus, Schemes, Finance Log, Free Agency</td>
+              <td>keine Trades, kein Draft, keine Staff-/Trainingseinheiten</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          Wichtig fuer das Projekt ist heute vor allem die Trennung zwischen Rohdaten und abgeleiteten Werten:
+          Attribute, Vertrage und Stats werden persistiert; OVRs, Scheme-Fit-Scores, Need-Scores und viele
+          Kennzahlen werden daraus berechnet.
+        </p>
+      </section>
+
+      <section id="entitaeten">
+        <h2>6. Entitaeten im Detail</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Entitaet</th>
+              <th>Zweck</th>
+              <th>Wichtige Attribute / Beziehungen</th>
+              <th>Stats / Ratings</th>
+              <th>Reifegrad / offene Punkte</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>SaveGame</code></td>
+              <td>Wurzel des Spielstands</td>
+              <td>Benutzer, Liga, aktuelle Season, Teams, Spieler</td>
+              <td>keine direkten Ratings</td>
+              <td class="good">sauber</td>
+            </tr>
+            <tr>
+              <td><code>Season</code></td>
+              <td>Saisoncontainer fuer Schedule, Standings und Fortschritt</td>
+              <td>Phase, Woche, Starts/Ends, Matches, Team-/PlayerSeasonStats</td>
+              <td>Playoff Picture, Champion, neue Saisonfortschreibung</td>
+              <td class="warn">brauchbar, aber noch ohne Draft-/Offseason-Loop</td>
+            </tr>
+            <tr>
+              <td><code>Team</code></td>
+              <td>Savegame-Team mit Identitaet und Budget</td>
+              <td>Franchisebezug, Cash, Cap Space, drei Team-Schemes</td>
+              <td>Team-OVR, Contract Outlook, Finance Log</td>
+              <td class="good">deutlich staerker als im alten Report</td>
+            </tr>
+            <tr>
+              <td><code>TeamFinanceEvent</code></td>
+              <td>sichtbarer Finanzverlauf</td>
+              <td>Team, Spieler?, Saison?, Typ, Cash-/Cap-Effekt</td>
+              <td>keine Ratings, aber wichtige Managementspur</td>
+              <td class="warn">guter Start, aber noch kein vollstaendiges Ledger</td>
+            </tr>
+            <tr>
+              <td><code>Player</code></td>
+              <td>Spieleridentitaet und Gesundheitszustand</td>
+              <td>Alter, Jahre, Status, Injury, Fatigue, Morale, Trait</td>
+              <td>keine Ratings direkt, aber aktiver Zustand</td>
+              <td class="good">belastbar</td>
+            </tr>
+            <tr>
+              <td><code>PlayerRosterProfile</code></td>
+              <td>Team-, Rollen- und Positionskontext</td>
+              <td>Positionen, Archetyp, Scheme Fit, RosterStatus, Depth, Development Focus</td>
+              <td>kein Rating, aber starke Manager-Relevanz</td>
+              <td class="good">heute deutlich aktiver als frueher</td>
+            </tr>
+            <tr>
+              <td><code>PlayerEvaluation</code></td>
+              <td>kompakte Bewertungswerte</td>
+              <td>OVR, POT, OFF/DEF/ST, PHYS, MENT</td>
+              <td>Spotlights und Composite Ratings werden daraus und aus Attributen abgeleitet</td>
+              <td class="warn">gut fuer Prototyp, spaeter noch tiefer moeglich</td>
+            </tr>
+            <tr>
+              <td><code>Contract</code></td>
+              <td>Vertragszustand zwischen Spieler und Team</td>
+              <td>Laufzeit, Salary, Bonus, Cap Hit, Status</td>
+              <td>Vertragsausblick und neue Saisonfortschreibung</td>
+              <td class="warn">ohne Dead Cap und Verhandlungslogik</td>
+            </tr>
+            <tr>
+              <td><code>Match</code></td>
+              <td>Spieltermin und Ergebnis</td>
+              <td>Woche, Art, Status, Teams, Score, Stadium</td>
+              <td>jetzt mit Detailseite und Recap verknuepft</td>
+              <td class="warn">noch keine Event- oder Play-by-Play-Ebene</td>
+            </tr>
+            <tr>
+              <td><code>TeamSeasonStat</code> / <code>TeamMatchStat</code></td>
+              <td>Teamaggregate</td>
+              <td>Record, Punkte, TDs, Turnovers, Yards, Explosives, Red Zone</td>
+              <td>wichtige Teamkennzahlen fuer Standings und Matchdetail</td>
+              <td class="good">solider Kern</td>
+            </tr>
+            <tr>
+              <td><code>PlayerCareer/Season/MatchStat</code> + Familien</td>
+              <td>mehrstufige Spielerstatistik</td>
+              <td>Passing, Rushing, Receiving, Blocking, Defense, Kicking, Punting, Returns</td>
+              <td>heute u.a. mit Coverage Snaps, FG-Splits, Fair Catches, Hang Time</td>
+              <td class="good">fachlich fuer einen Prototypen stark</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="spielerlogik">
+        <h2>7. Spielerattribute, Bewertungen und Positionslogik</h2>
+        <p>
+          Der heutige Spieleraufbau ist deutlich tragfaehiger als im Ausgangsbericht. Quarterbacks, Skill
+          Positions, Offensive Line, Front Seven, Coverage-Spieler und Specialists besitzen inzwischen in den
+          wichtigsten Bereichen passende Attribute und daraus abgeleitete Teilratings.
+        </p>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Heute gut geloest</h3>
+            <ul>
+              <li>QB: Mobility ist aktiv in Bewertung und Simulation verankert.</li>
+              <li>LB: eigene Coverage-Achsen sind vorhanden und wirksam.</li>
+              <li>DB: Ball Skills, Hands, Range und Coverage greifen heute sichtbar ineinander.</li>
+              <li>K/P/LS: Konsistenz, Snap-Qualitaet und Special-Teams-Profile wirken auf die Simulation.</li>
+              <li>Scheme Fit wird erstmals aktiv gegen Team-Schemes bewertet.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Offene Restluecken</h3>
+            <ul>
+              <li>Slot-/Nickel-spezifische Feinheiten sind noch nicht als eigene Rollenlogik abgebildet.</li>
+              <li>Defensive Line nutzt noch keine tieferen Nuancen wie First Step oder Bend als eigene Achsen.</li>
+              <li>Team-OVR ist weiterhin grober als die einzelnen Player-Ratings.</li>
+              <li>Development Focus ist ein sinnvoller Start, aber noch kein vollwertiges Trainingssystem.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="stats">
+        <h2>8. Statistiken und Auswertungslogik</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Rohdaten</th>
+              <th>Abgeleitete Sicht</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Passing / Rushing / Receiving</td>
+              <td>Attempts, Yards, TDs, INTs, Drops, YAC, Broken Tackles</td>
+              <td>Quote, Effizienz und Top-Performer werden in Reads erzeugt</td>
+              <td class="good">stark fuer den Stand</td>
+            </tr>
+            <tr>
+              <td>Defense</td>
+              <td>Tackles, Sacks, PD, INT, FF, FR, Coverage Snaps, Targets/Rec/Yards Allowed</td>
+              <td>Coverage-Effizienz ist erstmals besser lesbar</td>
+              <td class="good">deutlich verbessert</td>
+            </tr>
+            <tr>
+              <td>Kicking</td>
+              <td>FGs, XPs, Touchbacks und Distanzsplits</td>
+              <td>Short/Mid/Long-Reliability ist nun sichtbar</td>
+              <td class="good">fachlich klarer</td>
+            </tr>
+            <tr>
+              <td>Punting / Returns</td>
+              <td>Net Yards, Inside-20, Fair Catches, Hang Time, Return Yards, Return Fumbles</td>
+              <td>Hidden Yardage ist deutlich besser einordbar</td>
+              <td class="good">ein echter Fortschritt</td>
+            </tr>
+            <tr>
+              <td>Match-Ebene</td>
+              <td>TeamMatchStat und PlayerMatchStat</td>
+              <td>Match-Detailseite mit Recap und Boxscore</td>
+              <td class="warn">ohne echte Eventchronik</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="umfang">
+        <h2>9. Bereits umgesetzter Funktionsumfang</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Heute nutzbar</h3>
+            <ul>
+              <li>Savegame anlegen und Liga bootstrappen</li>
+              <li>Team-, Spieler- und Saisonansichten</li>
+              <li>Wochenweise Simulation inklusive Playoffs</li>
+              <li>Depth Chart, Return-Rollen, Captain-Flags, IR, Development Focus</li>
+              <li>Free-Agent-Signings und Releases</li>
+              <li>Contract Outlook und Finance Log</li>
+              <li>Offseason in eine neue Saison fortsetzen</li>
+              <li>Matchdetails mit Recap und Top-Performern</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Strukturell vorhanden, aber noch nicht tief</h3>
+            <ul>
+              <li>Vertraege und Salary Cap als Basis fuer spaetere Finanzmechanik</li>
+              <li>Archetypen und Scheme Fits als Fundament fuer weitergehende Kaderlogik</li>
+              <li>Mehrere Seasons pro Savegame</li>
+              <li>Historien fuer Spieler- und Rosterereignisse</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="luecken">
+        <h2>10. Noch offene Kernluecken</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Thema</th>
+              <th>Warum noch offen?</th>
+              <th>Auswirkung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Trades</td>
+              <td>Es gibt noch keine echte Team-zu-Team-Transferlogik.</td>
+              <td>Der Markt ist bisher auf Releases und Free Agents beschraenkt.</td>
+            </tr>
+            <tr>
+              <td>Draft / Offseason-Talentzufluss</td>
+              <td>Neue Seasons entstehen, aber ohne neue Spielerquelle.</td>
+              <td>Langfristiger Franchise-Aufbau bleibt begrenzt.</td>
+            </tr>
+            <tr>
+              <td>Finanzsystem</td>
+              <td>Finance Events sind ein Start, aber noch kein volles Ledger mit Dead Cap und Rollover.</td>
+              <td>Wirtschaftliche Entscheidungen sind noch nicht tief genug.</td>
+            </tr>
+            <tr>
+              <td>Play-by-Play</td>
+              <td>Match Recaps sind zusammenfassend, aber nicht ereignisbasiert.</td>
+              <td>Spiele sind besser erklaerbar als frueher, aber noch nicht wirklich "erlebbar".</td>
+            </tr>
+            <tr>
+              <td>Coaching / Training</td>
+              <td>Development Focus ist nur der erste Schritt.</td>
+              <td>Langfristige Spielerentwicklung ist noch relativ leichtgewichtig.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="anwendersicht">
+        <h2>11. Einschätzung aus Anwendersicht</h2>
+        <p>
+          Ein neuer Anwender wuerde heute bereits gut verstehen, wie ein Savegame aufgebaut ist, wie man sein
+          Team steuert und wie die Saison fortgeschrieben wird. Besonders hilfreich sind die Team- und
+          Player-Reads, weil sie wichtige Fachwerte nicht mehr nur im Datenmodell verstecken.
+        </p>
+        <p>
+          Verwirrung kann trotzdem noch bei zwei Themen entstehen: Erstens ist die Simulation zwar deutlich
+          transparenter als frueher, aber noch kein echtes Play-by-Play-System. Zweitens sind Finanzen heute
+          erstmals sichtbar, aber noch nicht vollstaendig erklaert oder tief genug, um wie ein echter
+          Football-Manager zu wirken.
+        </p>
+      </section>
+
+      <section id="spielbarkeit">
+        <h2>12. Abstand zu einer spielbaren Version</h2>
+        <p>
+          Das Projekt ist einer spielbaren Version spuerbar naeher gekommen. Aus dem reinen Simulations- und
+          Datengeruest ist ein erster <strong>spielbarer Management-Slice</strong> geworden. Ein Nutzer kann
+          inzwischen entscheiden, wie das eigene Team strukturiert wird, welche Free Agents verpflichtet werden,
+          welche Spieler auf IR gehen, welcher Fokus in der Entwicklung gesetzt wird und wie die Franchise in die
+          naechste Saison geht.
+        </p>
+        <p>
+          Fuer einen ersten ernsthaften Spielbetrieb fehlen aber noch mindestens Trades, Draft, tiefere
+          Finanzfolgen, mehrjaehrige Talentzufuhr und eine deutlich reichere Match-Erklaerbarkeit.
+        </p>
+      </section>
+
+      <section id="neue-verbesserungen">
+        <h2>13. Die 10 neu umgesetzten Verbesserungen</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Titel</th>
+              <th>Kurzbeschreibung</th>
+              <th>Nutzen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Team-Schemes und aktiver Scheme Fit</td><td>Teams besitzen jetzt Offense-, Defense- und Special-Teams-Schemes.</td><td>Scheme Fits wirken endlich auf Team Needs und Free Agency.</td></tr>
+            <tr><td>Development Focus</td><td>Spieler koennen im Roster fuer priorisierte Entwicklung markiert werden.</td><td>Training bekommt erstmals eine steuerbare Wirkung.</td></tr>
+            <tr><td>Injured Reserve</td><td>Verletzte Spieler koennen sinnvoll auf IR verwaltet werden.</td><td>Kadersteuerung bei Verletzungen wird praxisnaeher.</td></tr>
+            <tr><td>Finance Log</td><td>Signing Bonuses, Releases und Saisongehaelter werden als TeamFinanceEvents gespeichert.</td><td>Cashflow und Managementfolgen werden sichtbar.</td></tr>
+            <tr><td>Contract Outlook</td><td>Aktive Cap-Bindung und auslaufende Vertraege werden in der Teamansicht gezeigt.</td><td>Planung ueber die aktuelle Woche hinaus wird leichter.</td></tr>
+            <tr><td>Naechste Saison starten</td><td>Nach der Offseason kann direkt eine neue Saison erzeugt werden.</td><td>Der Mehrjahresfluss endet nicht mehr in einer Sackgasse.</td></tr>
+            <tr><td>Match-Detailseite</td><td>Jedes Match kann jetzt mit Teamstats, Recap und Top-Performern geoeffnet werden.</td><td>Spiele sind fuer Anwender deutlich besser nachvollziehbar.</td></tr>
+            <tr><td>Coverage Snaps</td><td>Defender erhalten einen Coverage-Denominator zusaetzlich zu Allowed-Stats.</td><td>Coverage-Effizienz wird aussagekraeftiger.</td></tr>
+            <tr><td>Field-Goal-Splits</td><td>Kicker-Stats unterscheiden jetzt Short, Mid und Long.</td><td>Spezialisten lassen sich realistischer beurteilen.</td></tr>
+            <tr><td>Punt Fair Catches und Hang Time</td><td>Punter sammeln nun mehr Hidden-Yardage-Rohdaten.</td><td>Special Teams sind fachlich naeher an Football-Realitaet.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="naechste-schritte">
+        <h2>14. Wichtigste naechste Schritte</h2>
+        <ol>
+          <li>Trades und echte Team-zu-Team-Kaderlogik umsetzen.</li>
+          <li>Draft- und Offseason-Talentzufluss als ersten langfristigen Franchise-Loop einfuehren.</li>
+          <li>Finanzsystem um Dead Cap, Rollover und besser erklaerte Verpflichtungen erweitern.</li>
+          <li>Match-Ebene um Play-by-Play oder zumindest Event-Chroniken ausbauen.</li>
+          <li>Development Focus in ein tieferes Trainings- oder Coaching-System ueberfuehren.</li>
+        </ol>
+      </section>
+
+      <section id="transparenz">
+        <h2>15. Transparenz</h2>
+        <h3>Gepruefte Quellen</h3>
+        <ul>
+          <li>alter HTML-Report <code>docs/reports/systems/afbm-project-overview-2026-04-21.html</code></li>
+          <li>aktuelles Prisma-Schema <code>prisma/schema.prisma</code></li>
+          <li>relevante Services fuer Team-, Saison-, Match- und Player-Logik</li>
+          <li>aktuelle UI-Seiten fuer Savegame, Team, Spieler, Saison, Free Agency und Match-Detail</li>
+          <li>Dokumentation unter <code>README.md</code> und <code>docs/architecture/data/*</code></li>
+        </ul>
+        <h3>Getroffene Annahmen</h3>
+        <ul>
+          <li>Scheme Fit ist heute bewusst ein fachlich brauchbarer, aber noch nicht voll ausbalancierter Score.</li>
+          <li>TeamFinanceEvent ist ein erster Finanzverlauf und noch kein vollstaendiges Liga-Ledger.</li>
+          <li>Der neue Saison-Rollover fuehrt die Franchise weiter, ersetzt aber noch keine Draft- oder Offseason-Phase.</li>
+        </ul>
+        <h3>Unsicherheiten</h3>
+        <ul>
+          <li>Bestehende alte Savegames besitzen moeglicherweise noch keine gesetzten Team-Schemes und profitieren dann erst nach manueller Pflege voll von der neuen Fit-Logik.</li>
+          <li>Die Matchbalance ist weiterhin eher heuristisch als empirisch kalibriert.</li>
+        </ul>
+        <h3>Dateien in diesem Task</h3>
+        <p>
+          Geaendert wurden vor allem Schema, Team-/Player-/Season-Services, Match-Engine, Team-/Season-/Player-UI
+          sowie die Daten-Dokumentation. Neu erstellt wurden unter anderem neue Services fuer Scheme Fit, Finance
+          Events, Saisonmanagement und Match-Detail-Reads sowie dieser aktualisierte HTML-Bericht.
+        </p>
+        <p class="small">
+          Stand dieses Tasks: 28 bestehende Dateien geaendert, 6 neue Dateien erzeugt.
+        </p>
+      </section>
+
+      <section id="abschluss">
+        <h2>16. Kompakte Abschlussuebersicht</h2>
+        <div class="grid-3">
+          <div class="card">
+            <h3>10 wichtigste Befunde</h3>
+            <ol>
+              <li>Spieler sind fachlich deutlich sauberer modelliert als im Ausgangsbericht.</li>
+              <li>Scheme Fit ist jetzt erstmals aktiv statt nur dekorativ.</li>
+              <li>Weekly Development ist steuerbar geworden.</li>
+              <li>IR macht Verletzungen fuer den Manager spuerbarer.</li>
+              <li>Der Finanzbereich ist sichtbar, wenn auch noch nicht tief genug.</li>
+              <li>Neue Saisonfortschreibung schliesst die groesste Mehrjahresluecke.</li>
+              <li>Coverage-Stats haben mit Coverage Snaps mehr Aussagekraft.</li>
+              <li>Kicker und Punter sind statistisch deutlich besser erklaerbar.</li>
+              <li>Match-Details verbessern die Nachvollziehbarkeit der Simulation stark.</li>
+              <li>Das Projekt ist heute merklich naeher an einem spielbaren Manager.</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3>5 groesste Restluecken</h3>
+            <ol>
+              <li>Trades</li>
+              <li>Draft / Talentzufuhr</li>
+              <li>volles Finanzsystem</li>
+              <li>Play-by-Play</li>
+              <li>Coaching-/Trainings-Tiefe</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3>5 naechste sinnvolle Schritte</h3>
+            <ol>
+              <li>Trade-System</li>
+              <li>Draft-Loop</li>
+              <li>Dead-Cap- und Rollover-Logik</li>
+              <li>Match-Event-Chronik</li>
+              <li>tieferes Trainingssystem</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section id="arbeitspaket-1-umsetzung">
+        <h2>17. Umsetzung Arbeitspaket 1</h2>
+        <p>
+          Zusaetzlich zum bestehenden Bericht wurden in dieser Runde ausschliesslich die Punkte aus
+          Arbeitspaket 1 umgesetzt. Der Fokus lag auf Gameengine-Korrektheit, State-Management,
+          zentralen Roster-Eingaben und auf einer belastbaren Testbasis fuer die weiteren Pakete.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Titel</th>
+              <th>Kurzbeschreibung der Umsetzung</th>
+              <th>Betroffene Dateien / Komponenten</th>
+              <th>Besonderheiten / Risiken</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Regressions- und Regeltests ausgebaut</td>
+              <td>Neue Unit- und Service-Tests fuer Spielstart, Verletzungsfortschreibung, Roster-Regeln, Readmodel-Kontext und Match-Vorbereitung; zusaetzlich minimales Vitest-Alias-Setup fuer service-nahe Tests.</td>
+              <td><code>src/modules/shared/domain/roster-status.test.ts</code><br /><code>src/modules/teams/application/team-management.service.test.ts</code><br /><code>src/modules/players/application/player-query.service.test.ts</code><br /><code>src/modules/seasons/application/simulation/player-condition.test.ts</code><br /><code>src/modules/savegames/application/savegame-command.service.test.ts</code><br /><code>vitest.config.ts</code></td>
+              <td>Die Vitest-Konfiguration ist eine minimale, technisch noetige Vorarbeit fuer diese Testrunde und zieht kein Arbeitspaket 2 vor.</td>
+            </tr>
+            <tr>
+              <td>Verletzungszustand und Injury-Historie korrigiert</td>
+              <td>Der Simulationskontext traegt jetzt <code>injuryName</code> und <code>injuryEndsOn</code>; bestehende Verletzungen bleiben ohne neues Event erhalten statt ungewollt auf gesund zurueckzufallen; Historienvergleich nutzt Alt-/Neu-Zustand statt Null-Defaults.</td>
+              <td><code>src/modules/seasons/application/simulation/simulation.types.ts</code><br /><code>src/modules/seasons/infrastructure/simulation/season-simulation.repository.ts</code><br /><code>src/modules/seasons/application/simulation/player-condition.ts</code><br /><code>src/modules/seasons/application/season-simulation.service.ts</code></td>
+              <td>Bestehende alte Savegames koennen bereits inkonsistente Injury-Historien enthalten; neue Simulationslaeufe erzeugen den Zustand jetzt stabiler.</td>
+            </tr>
+            <tr>
+              <td>Roster-Status-Semantik vereinheitlicht</td>
+              <td>Game-Day-Verfuegbarkeit ist zentralisiert. <code>PRACTICE_SQUAD</code> und <code>INACTIVE</code> werden jetzt in der Simulation, in Team-Needs und bei Lineup-Zuweisungen konsistent als nicht spielbereit behandelt.</td>
+              <td><code>src/modules/shared/domain/roster-status.ts</code><br /><code>src/modules/seasons/application/simulation/depth-chart.ts</code><br /><code>src/modules/teams/application/team-management.service.ts</code><br /><code>src/modules/seasons/application/simulation/player-development.ts</code></td>
+              <td>Aktive Roster-Grenzen bleiben bewusst von Game-Day-Verfuegbarkeit getrennt: <code>INACTIVE</code> zaehlt weiter zum aktiven 53er-Kader, aber nicht fuer das Spiel.</td>
+            </tr>
+            <tr>
+              <td>Depth-Chart-Regeln und Eingabevalidierung eingefuehrt</td>
+              <td>Ungueltige Slots werden abgefangen, nicht spielbereite Status verlieren automatisch Lineup-Zuweisungen, und doppelte Slots auf derselben Primarposition werden serverseitig blockiert.</td>
+              <td><code>src/modules/teams/application/team-management.service.ts</code><br /><code>src/app/app/savegames/[savegameId]/teams/[teamId]/actions.ts</code></td>
+              <td>Die UI zeigt Fehler in dieser Runde noch nicht inline an; ungueltige Eingaben werden jedoch nun fachlich sauber abgewiesen statt still inkonsistent gespeichert.</td>
+            </tr>
+            <tr>
+              <td>Saisonstart und Phasenmodell normalisiert</td>
+              <td>Neue Savegames starten jetzt direkt in der implementierten <code>REGULAR_SEASON</code> mit passendem Saisonstartdatum statt in einer fachlich leeren <code>PRESEASON</code>.</td>
+              <td><code>src/modules/savegames/application/savegame-command.service.ts</code><br /><code>src/modules/savegames/application/savegame-command.service.test.ts</code></td>
+              <td>Die Enum-Phase <code>PRESEASON</code> bleibt im Schema erhalten, wird aber in der aktuellen produktiven Spielschleife nicht mehr inkonsistent als Startphase verwendet.</td>
+            </tr>
+            <tr>
+              <td>Team-Overall fachlich stabilisiert</td>
+              <td>Der Bootstrap nutzt jetzt dieselbe rosterbasierte Overall-Logik wie die spaetere Rekalkulation; bei Team-State-Updates werden nur spielrelevante Roster-Status in die Bewertung einbezogen.</td>
+              <td><code>src/modules/savegames/application/bootstrap/bootstrap-savegame-world.service.ts</code><br /><code>src/modules/seasons/application/simulation/player-development.ts</code></td>
+              <td>Der gespeicherte Teamwert spiegelt damit den aktuellen spielbaren Kern des Kaders wider und nicht mehr Franchise-Prestige oder irrelevante Randstatus.</td>
+            </tr>
+            <tr>
+              <td>Player-Season-Reads team- und saisonkontextfest gemacht</td>
+              <td>Teamansichten lesen nur noch den aktuellen Saisonblock des aktuellen Teams. Player-Details bevorzugen die aktuelle Team-Saison und erzeugen bei fehlender Stat-Shell einen korrekten Null-Snapshot statt veraltete Fremdteam-Daten zu zeigen; neue Signings legen fehlende Season-Shells teamkontextbezogen an.</td>
+              <td><code>src/modules/teams/infrastructure/team.repository.ts</code><br /><code>src/modules/players/infrastructure/player.repository.ts</code><br /><code>src/modules/players/application/player-query.service.ts</code><br /><code>src/modules/players/domain/player.types.ts</code><br /><code>src/app/app/savegames/[savegameId]/players/[playerId]/page.tsx</code><br /><code>src/modules/teams/application/team-management.service.ts</code></td>
+              <td>Historische Match-Snapshots bleiben weiterhin ein eigenes Thema fuer Arbeitspaket 2; fuer laufende Team- und Player-Views ist der aktuelle Saisonkontext jetzt jedoch sauber abgegrenzt.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="arbeitspaket-1-tests">
+        <h2>18. Testergebnisse Arbeitspaket 1</h2>
+        <h3>Durchgefuehrte Tests</h3>
+        <ul>
+          <li>vollstaendiger Vitest-Lauf: 8 Testdateien, 22 Tests, alle erfolgreich</li>
+          <li>gezielte Regeltests fuer Roster-Status, Depth-Chart-Konflikte, Verletzungsfortschreibung und aktuelle Season-Snapshots</li>
+          <li>gemockter Spielstart-Test fuer <code>createSaveGame()</code> inklusive Saisonphase und Bootstrap-Aufruf</li>
+          <li>TypeScript-Pruefung mit <code>npx tsc --noEmit</code>, erfolgreich</li>
+          <li>ESLint-Pruefung mit <code>npm run lint</code>, erfolgreich</li>
+          <li>Build-Smoketest mit <code>npm run build</code>, erfolgreich</li>
+        </ul>
+        <h3>Ergebnisse</h3>
+        <ul>
+          <li>kein Crash in den geprueften Paket-1-Pfaden</li>
+          <li>keine neu sichtbaren Typ- oder Lint-Regressionsfehler</li>
+          <li>kein reproduzierbarer inkonsistenter Zustand in den angepassten Engine-, Team- und Player-Reads</li>
+          <li>zentrale Nutzersteuerung fuer Roster-Status und Depth-Chart wird jetzt serverseitig fachlich validiert</li>
+        </ul>
+        <h3>Bekannte verbleibende Probleme</h3>
+        <ul>
+          <li>In dieser Umgebung war kein datenbankgestuetzter Live-Smoke-Test ueber echte Savegame-Erzeugung und Wochensimulation moeglich, weil keine lokale Laufzeitkonfiguration fuer <code>DATABASE_URL</code> vorlag.</li>
+          <li>Historische Match-Snapshots sind weiterhin offen und absichtlich Bestandteil von Arbeitspaket 2.</li>
+        </ul>
+        <h3>Technische Rest-Risiken</h3>
+        <ul>
+          <li>alte Savegames mit bereits fehlerhaften Injury- oder Teamwechsel-Daten behalten ihre historische Altlast; neue Eingaben und neue Simulationsschritte laufen jedoch auf der korrigierten Logik</li>
+          <li>die UI zeigt serverseitige Validierungsfehler noch nicht inline an; die fachliche Absicherung ist vorhanden, die Nutzerfuehrung dazu folgt spaeter</li>
+        </ul>
+      </section>
+
+      <section id="arbeitspaket-2-freigabe">
+        <h2>19. Freigabestatus Arbeitspaket 2</h2>
+        <p><strong>FREIGEGEBEN</strong></p>
+        <p>
+          Alle fuer Arbeitspaket 1 definierten Punkte sind umgesetzt, die relevanten Tests sind erfolgreich
+          gelaufen, und es bestehen keine kritischen offenen Fehler in den geaenderten Bereichen. Die
+          Codebasis ist damit stabil genug fuer die strukturellen und funktionalen Themen aus Arbeitspaket 2.
+        </p>
+      </section>
+
+      <section id="arbeitspaket-2-umsetzung">
+        <h2>20. Umsetzung Arbeitspaket 2</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Titel</th>
+              <th>Kurzbeschreibung der Umsetzung</th>
+              <th>Betroffene Dateien / Komponenten</th>
+              <th>Besonderheiten / Risiken</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Historische Match- und Spieler-Snapshots persistiert</td>
+              <td>Spielerbezogene Matchzeitsnapshots fuer Name, Positionscode und Teamkuerzel werden jetzt direkt am <code>PlayerMatchStat</code> gespeichert und in der Match-Detailansicht bevorzugt gelesen. Dadurch bleiben spaetere Positions- oder Kaderwechsel fuer bereits simulierte Spiele wirkungslos.</td>
+              <td><code>prisma/schema.prisma</code><br /><code>src/modules/seasons/application/simulation/match-result-persistence.ts</code><br /><code>src/modules/seasons/application/match-query.service.ts</code><br /><code>src/modules/seasons/application/match-query.service.test.ts</code></td>
+              <td>Bereits vorhandene alte Matchdaten ohne Snapshot-Felder fallen weiterhin kontrolliert auf den bisherigen Live-Fallback zurueck; neue Simulationen schreiben den stabilen Matchzustand dauerhaft mit.</td>
+            </tr>
+            <tr>
+              <td>Season-Simulation fachlich zerlegt</td>
+              <td>Die bisher stark gebuendelte Wochen-Simulation wurde in klarere Verantwortungen aufgeteilt: Match-Kontext-Aufbau, Weekly Preparation, Playoff Scheduling und Match-Result-Persistenz. <code>season-simulation.service.ts</code> ist jetzt ein schlanker Coordinator fuer den Ablauf.</td>
+              <td><code>src/modules/seasons/application/season-simulation.service.ts</code><br /><code>src/modules/seasons/application/simulation/match-context.ts</code><br /><code>src/modules/seasons/application/simulation/weekly-preparation.ts</code><br /><code>src/modules/seasons/application/simulation/playoff-scheduling.ts</code><br /><code>src/modules/seasons/application/simulation/match-result-persistence.ts</code></td>
+              <td>Die fachliche Logik bleibt bewusst unveraendert orchestriert; die groesste verbleibende technische Dichte liegt jetzt konzentriert im Persistenzbaustein statt im Coordinator.</td>
+            </tr>
+            <tr>
+              <td>Team-Management fachlich zerlegt</td>
+              <td>Das fruehere monolithische Team-Management wurde in Shared Logic, Team Needs, Schemes, Roster-Aktionen und Free-Agent-Markt getrennt. Die oeffentliche Service-Datei bleibt als stabile Fassade erhalten, sodass bestehende Aufrufer nicht umgebaut werden mussten.</td>
+              <td><code>src/modules/teams/application/team-management.service.ts</code><br /><code>src/modules/teams/application/team-management.shared.ts</code><br /><code>src/modules/teams/application/team-needs.service.ts</code><br /><code>src/modules/teams/application/team-schemes.service.ts</code><br /><code>src/modules/teams/application/team-roster.service.ts</code><br /><code>src/modules/teams/application/free-agent-market.service.ts</code></td>
+              <td>Die API fuer Views und Actions bleibt stabil; intern gibt es jetzt mehr Dateien und klarere Verantwortungsgrenzen, was kuenftige Aenderungen gezielter macht.</td>
+            </tr>
+            <tr>
+              <td>Write-Layer architektonisch konsistenter gemacht</td>
+              <td>Fuer die in Arbeitspaket 2 angefassten Team- und Season-Write-Pfade wurden dedizierte Repositories bzw. Command-Repositories eingefuehrt. Dadurch liegen Zugriffe auf Prisma nicht mehr direkt im Coordinator, sondern in expliziten Infrastrukturbausteinen.</td>
+              <td><code>src/modules/teams/infrastructure/team-management.repository.ts</code><br /><code>src/modules/seasons/infrastructure/simulation/season-simulation.command-repository.ts</code><br /><code>src/modules/seasons/application/season-simulation.service.ts</code><br /><code>src/modules/teams/application/team-roster.service.ts</code><br /><code>src/modules/teams/application/team-schemes.service.ts</code></td>
+              <td>Die Schichtung ist fuer die bearbeiteten AP2-Bereiche deutlich konsistenter; tiefe Statistikupdates innerhalb einer laufenden Match-Transaktion bleiben aus Kopplungsgruenden weiterhin nah an der fachlichen Persistenzlogik.</td>
+            </tr>
+            <tr>
+              <td>Free-Agent-Markt vollstaendig und fair gerankt</td>
+              <td>Der Markt wird jetzt auf dem vollstaendigen Free-Agent-Pool bewertet und erst nach der Bedarfs-, Scheme-Fit-, Overall- und Alters-Sortierung dargestellt. Das fruehere Vorab-Limit auf einen Teilbestand wurde entfernt.</td>
+              <td><code>src/modules/teams/application/free-agent-market.service.ts</code><br /><code>src/modules/teams/infrastructure/team-management.repository.ts</code><br /><code>src/modules/teams/application/free-agent-market.service.test.ts</code></td>
+              <td>Bei groesseren Spielerpools steigt die Ranking-Arbeit pro Request leicht an; fuer die aktuelle Ligastruktur ist das unkritisch und fachlich deutlich sauberer als der vorherige Ausschnitt.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="arbeitspaket-2-tests">
+        <h2>21. Testergebnisse Arbeitspaket 2</h2>
+        <h3>Durchgefuehrte Tests</h3>
+        <ul>
+          <li>Prisma-Client-Neugenerierung mit <code>npx prisma generate</code> nach Erweiterung des Match-Snapshot-Schemas</li>
+          <li>vollstaendiger Vitest-Lauf: 10 Testdateien, 25 Tests, alle erfolgreich</li>
+          <li>neue gezielte Tests fuer historische Match-Snapshots und die Free-Agent-Ranking-Reihenfolge</li>
+          <li>TypeScript-Pruefung mit <code>npx tsc --noEmit</code>, erfolgreich</li>
+          <li>ESLint-Pruefung mit <code>npm run lint</code>, erfolgreich</li>
+          <li>Build-Smoketest mit <code>npm run build</code>, erfolgreich</li>
+        </ul>
+        <h3>Ergebnisse</h3>
+        <ul>
+          <li>keine sichtbaren Regressionsfehler in den bestehenden Team-, Player-, Schedule- und Engine-Tests</li>
+          <li>die Free-Agent-Ranglogik ist deterministisch ueber Team Need, Scheme Fit, Overall und Alter abgesichert</li>
+          <li>historische Match-Spieleridentitaeten werden fuer neue Simulationen jetzt stabil gespeichert und in den Reads bevorzugt verwendet</li>
+          <li>die in Paket 2 refaktorierten Team- und Season-Pfade bestehen Typcheck, Lint und Produktionsbuild ohne Crash oder Importbruch</li>
+        </ul>
+        <h3>Bekannte verbleibende Probleme</h3>
+        <ul>
+          <li>Bestehende bereits simulierte Matches aus alten Savegames besitzen naturgemaess noch keine Snapshot-Felder; fuer diese Datensaetze bleibt der eingebaute Fallback auf den Live-Spielerstand aktiv.</li>
+          <li>In dieser Umgebung war weiterhin kein datenbankgestuetzter End-to-End-Live-Smoke-Test fuer echte Savegame-Erzeugung plus Saisonsimulation moeglich, weil keine <code>DATABASE_URL</code> gesetzt war.</li>
+        </ul>
+        <h3>Technische Rest-Risiken</h3>
+        <ul>
+          <li>Die Persistenz der Match-Stat-Subtabellen ist fachlich korrekt, aber weiterhin ein dichter Block innerhalb des neuen Persistenzmoduls; die Kopplung ist reduziert, jedoch noch nicht vollstaendig feingranular abstrahiert.</li>
+          <li>Das vollstaendige Free-Agent-Ranking verarbeitet nun absichtlich den gesamten Kandidatenpool; bei spaeter deutlich groesseren Ligen sollte die Laufzeit erneut gemessen werden.</li>
+        </ul>
+      </section>
+
+      <section id="arbeitspaket-3-freigabe">
+        <h2>22. Freigabestatus Arbeitspaket 3</h2>
+        <p><strong>NICHT FREIGEGEBEN</strong></p>
+        <p>
+          Arbeitspaket 2 ist im Code umgesetzt und die statischen sowie unit-nahen Tests sind erfolgreich,
+          aber fuer die Freigabe von Arbeitspaket 3 bestehen noch kritische QA-Blocker in der
+          Datenbanksynchronisation und im fehlenden End-to-End-Live-Test der neuen Saison- und Match-Persistenz.
+        </p>
+        <h3>Blockierende Punkte</h3>
+        <ul>
+          <li>Die neuen Snapshot-Felder am <code>PlayerMatchStat</code> wurden im Prisma-Schema und Client umgesetzt, konnten in dieser Umgebung aber mangels <code>DATABASE_URL</code> nicht gegen eine reale Datenbank synchronisiert werden.</li>
+          <li>Der vollstaendige Kernspielablauf fuer die in Paket 2 angefassten Write-Pfade wurde nicht datenbankgestuetzt live verifiziert: Savegame starten, Woche simulieren, Matchdetails lesen, Playoff-Uebergang pruefen.</li>
+        </ul>
+        <h3>Notwendige Korrekturen vor Arbeitspaket 3</h3>
+        <ul>
+          <li>Datenbankschema auf der Ziel- oder lokalen Entwicklungsdatenbank mit dem projektaeblichen Prisma-Workflow synchronisieren.</li>
+          <li>Danach einen echten Smoke-Test ueber Savegame-Erzeugung, Wochensimulation, Match-Detailansicht mit Snapshot-Feldern, Free-Agent-Markt und Playoff-Transition durchfuehren.</li>
+        </ul>
+      </section>
+
+      <section id="gameengine-arbeitspaket-1-umsetzung">
+        <h2>23. Umsetzung Gameengine Arbeitspaket 1</h2>
+        <p>
+          Arbeitspaket 1 der Gameengine wurde vollstaendig umgesetzt. Der Fokus lag auf
+          Zustandsinvarianten, eindeutigen Zustandsuebergaengen, Simulationssperren,
+          Kader-Validierung und einem entscheidbaren Postseason-Regelwerk. Die Umsetzung
+          wurde bewusst ohne Vorziehen von Themen aus Arbeitspaket 2 oder 3 gehalten.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Titel</th>
+              <th>Kurzbeschreibung der Umsetzung</th>
+              <th>Betroffene Dateien / Komponenten</th>
+              <th>Besonderheiten / Risiken</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Teamkontextfeste und selbstheilende Stat-Anker</td>
+              <td>Die Engine prueft vor der Wochen-Simulation fehlende Career- und Season-Stat-Shells je Spieler und Teamkontext und erzeugt fehlende Anker automatisch nach. Der Match-Kontext waehlt Seasonstats nicht mehr implizit den ersten Datensatz, sondern den zum simulierten Team passenden Eintrag.</td>
+              <td><code>src/modules/savegames/application/bootstrap/player-stat-shells.ts</code><br /><code>src/modules/seasons/application/simulation/stat-anchors.ts</code><br /><code>src/modules/seasons/application/simulation/match-context.ts</code><br /><code>src/modules/seasons/infrastructure/simulation/season-simulation.repository.ts</code></td>
+              <td>Die Selbstheilung arbeitet absichtlich nur auf fehlenden Ankern und veraendert keine bereits vorhandenen Statistikwerte. Damit bleibt die Reparatur defensiv und fuer bestehende Savegames risikoarm.</td>
+            </tr>
+            <tr>
+              <td>Explizite Engine-State-Machine fuer Saison- und Matchzustaende</td>
+              <td>Die erlaubten Saisonuebergaenge und Simulationsvoraussetzungen werden jetzt zentral in einer State-Machine geprueft. Die Wochen-Simulation akzeptiert nur aktive aktuelle Seasons im zulaessigen Zustand; der Saisonwechsel in die naechste Saison ist nur noch aus der Offseason erlaubt.</td>
+              <td><code>src/modules/seasons/application/simulation/engine-state-machine.ts</code><br /><code>src/modules/seasons/application/season-simulation.service.ts</code><br /><code>src/modules/seasons/application/season-management.service.ts</code><br /><code>src/modules/seasons/infrastructure/simulation/season-simulation.repository.ts</code></td>
+              <td>Die Pruefungen sind absichtlich strikt. Fehlerhafte oder veraltete Aufrufer schlagen jetzt frueher und expliziter fehl, statt implizite Engine-Sonderfaelle auszufuehren.</td>
+            </tr>
+            <tr>
+              <td>Idempotenz- und Locking-Schutz fuer Wochen-Simulationen</td>
+              <td>Vor jeder Wochensimulation werden die betroffenen Matches kontrolliert auf <code>IN_PROGRESS</code> umgestellt. Bereits laufende Wochen werden blockiert, stale Locks koennen nach einem Timeout freigegeben werden, und fehlgeschlagene Durchlaeufe geben die gesetzten Sperren wieder frei.</td>
+              <td><code>src/modules/seasons/application/season-simulation.service.ts</code><br /><code>src/modules/seasons/infrastructure/simulation/season-simulation.command-repository.ts</code><br /><code>src/modules/seasons/infrastructure/simulation/season-simulation.repository.ts</code></td>
+              <td>Die Timeout-basierte Freigabe ist ein pragmatischer Stabilitaetsmechanismus. Sie verhindert haengende Wochen, setzt aber voraus, dass ein abgestuerzter Lauf nach dem Timeout als verwaist behandelt werden darf.</td>
+            </tr>
+            <tr>
+              <td>Validierung eines minimal spielbaren Kaders vor Matchstart</td>
+              <td>Vor der eigentlichen Matchsimulation wird geprueft, ob ein Team in allen kritischen Positionsgruppen spielfaehig ist. Fehlen notwendige Gruppen wie QB, OL, Specialists oder zentrale Defensivrollen, bricht die Simulation mit klaren Validierungsfehlern ab, statt mit Fallbacks still weiterzulaufen.</td>
+              <td><code>src/modules/seasons/application/simulation/depth-chart.ts</code><br /><code>src/modules/seasons/application/season-simulation.service.ts</code></td>
+              <td>Die Validierung prueft bewusst Mindestspielbarkeit, nicht taktische Vollstaendigkeit oder qualitative Tiefe. Dadurch werden kaputte Kader frueh erkannt, ohne bereits komplexere Rotationslogik vorwegzunehmen.</td>
+            </tr>
+            <tr>
+              <td>Postseason-Regelwerk mit Overtime und Tie-Breakern</td>
+              <td>Playoff-Spiele koennen nicht mehr unentschieden enden. Die Match-Engine fuehrt bei Gleichstand eine vereinfachte Overtime-Entscheidung aus; falls mehrere Overtime-Runden keine Trennung bringen, wird ein deterministischer Tie-Break ueber Leistungsmetriken angewandt, damit Semifinals und Finale immer einen eindeutigen Sieger liefern.</td>
+              <td><code>src/modules/seasons/application/simulation/match-engine.ts</code><br /><code>src/modules/seasons/application/simulation/playoff-scheduling.ts</code><br /><code>src/modules/seasons/application/season-query.service.ts</code><br /><code>src/modules/seasons/application/simulation/simulation.types.ts</code></td>
+              <td>Die Overtime ist absichtlich kompakt gehalten und modelliert kein vollstaendiges offizielles Regelwerk. Fuer Arbeitspaket 1 war entscheidend, dass die Engine fachlich keinen impliziten Heimteam-Sieg bei Gleichstand mehr erzeugt.</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>Lokale Funktionschecks waehrend der Umsetzung</h3>
+        <ul>
+          <li>Stat-Anker: fehlende Career- und teamfalsche Season-Shells werden erkannt und im Simulationspfad als reparierbare Invariante behandelt.</li>
+          <li>State-Machine: ungueltige Seasons, falsche Phasen und unerlaubte Saisonwechsel werden jetzt explizit abgewiesen.</li>
+          <li>Locking: eine zweite parallele Wochen-Simulation derselben Woche wird blockiert, statt doppelt zu persistieren.</li>
+          <li>Kader-Validierung: offensichtlich nicht spielfaehige Teams werden vor Start der Matchsimulation abgefangen.</li>
+          <li>Postseason: Playoff-Partien liefern nun immer einen eindeutigen Sieger fuer Bracket und Champion-Ermittlung.</li>
+        </ul>
+      </section>
+
+      <section id="gameengine-arbeitspaket-1-tests">
+        <h2>24. Testergebnisse Gameengine Arbeitspaket 1</h2>
+        <h3>Durchgefuehrte Tests</h3>
+        <ul>
+          <li>vollstaendiger Vitest-Lauf: 15 Testdateien, 36 Tests, alle erfolgreich</li>
+          <li>neue gezielte Tests fuer Engine-State-Machine, Stat-Anker, teamkontextfeste Seasonstats, Kader-Validierung, Locking-Verhalten und entscheidbare Playoff-Matches</li>
+          <li>TypeScript-Pruefung mit <code>npx tsc --noEmit</code>, erfolgreich</li>
+          <li>ESLint-Pruefung mit <code>npm run lint</code>, erfolgreich</li>
+          <li>Produktions-Build mit <code>npm run build</code>, erfolgreich</li>
+        </ul>
+        <h3>Abgedeckte Pflichtbereiche</h3>
+        <ul>
+          <li>Spielstart: bestehende Savegame- und Bootstrap-Tests decken Erzeugung von Saison, Schedule und Startwelt weiter ab.</li>
+          <li>Erster Spielablauf: Match-Engine-, Match-Kontext- und Season-Simulation-Tests pruefen den initialen Simulationspfad inklusive Playoff-Entscheidung und Wochen-Locking.</li>
+          <li>Zentrale Engine-Logik: State-Machine, teamkontextfeste Statistikzuordnung, minimale Kaderfaehigkeit und Siegerermittlung sind direkt testabgedeckt.</li>
+          <li>Stabilitaet: Typcheck, Lint, Build und die neuen Fehlerpfad-Tests decken Crashes und State-Probleme in den geaenderten Bereichen ab.</li>
+          <li>Edge Cases: ungueltige Saisonzustaende, doppelte Wochenstarts, fehlende Positionsgruppen und Playoff-Gleichstaende wurden explizit geprueft.</li>
+        </ul>
+        <h3>Ergebnisse</h3>
+        <ul>
+          <li>Keine sichtbaren Regressionen in den bestehenden Savegame-, Schedule-, Player-, Team- und Engine-Tests.</li>
+          <li>Die Wochen-Simulation besitzt jetzt klare Guards fuer aktuellen Saisonkontext, erlaubte Phasen, Matchstatus und parallele Ausfuehrung.</li>
+          <li>Playoff-Sieger und Champion-Ableitung sind nicht mehr implizit vom Heimteam-Bias bei Gleichstand abhaengig.</li>
+          <li>Offensichtlich defekte Kader werden vor Simulationsbeginn als fachlicher Fehler erkannt, statt spaet und schwer nachvollziehbar zu eskalieren.</li>
+        </ul>
+        <h3>Auffaelligkeiten und verbleibende Rest-Risiken</h3>
+        <ul>
+          <li>Der Locking-Mechanismus nutzt bewusst einen Timeout fuer stale <code>IN_PROGRESS</code>-Matches. Das ist fuer den aktuellen Server-Workflow robust, bleibt aber eine operative Annahme ueber abgestuerzte oder verwaiste Laeufe.</li>
+          <li>Die Postseason-Overtime ist eine kompakte Entscheidungslogik, keine vollstaendige Liga-Regel-Emulation. Sie loest das aktuelle Korrektheitsproblem, ohne bereits tieferen Live-State einzufuehren.</li>
+          <li>Arbeitspaket 1 ist schema-neutral umgesetzt; ein datenbankgestuetzter End-to-End-Smoke-Test war fuer diese Runde nicht zwingend, weil keine Migration oder neue Persistenzfelder eingefuehrt wurden.</li>
+        </ul>
+      </section>
+
+      <section id="gameengine-arbeitspaket-2-freigabe">
+        <h2>25. Freigabestatus Gameengine Arbeitspaket 2</h2>
+        <p><strong>FREIGEGEBEN</strong></p>
+        <p>
+          Arbeitspaket 1 der Gameengine ist vollstaendig implementiert, die relevanten Tests sind erfolgreich
+          durchgelaufen, und es sind keine kritischen offenen Fehler in den geaenderten Kernbereichen sichtbar.
+          Die Codebasis ist damit stabil genug fuer die strukturellen und konsistenzorientierten Themen aus
+          Arbeitspaket 2.
+        </p>
+      </section>
+
+      <section id="gameengine-paket-2-und-3-umsetzung">
+        <h2>26. Umsetzung Paket 2 &amp; 3</h2>
+        <p>
+          Die Gameengine-Arbeitspakete 2 und 3 wurden im Code umgesetzt. Paket 2 konzentrierte sich auf
+          Reproduzierbarkeit, Injury-Availability und persistierten Match-Fortschritt. Paket 3 ergaenzte
+          darauf aufbauend externe Tuning-Regeln, granularere Rotationen und eine nutzerseitig sichtbare
+          Drive-Nachvollziehbarkeit im Match-Detail.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Titel</th>
+              <th>Kurzbeschreibung der Umsetzung</th>
+              <th>Betroffene Dateien / Komponenten</th>
+              <th>Besonderheiten / Risiken</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Deterministische Zufallssteuerung per Seed</td>
+              <td>Jedes simulierte Match erhaelt jetzt einen deterministischen <code>simulationSeed</code>, der aus Savegame-, Season-, Match- und Termin-Kontext abgeleitet wird. Matchsimulation, Injury-Rolls und Game-Day-Availability greifen auf reproduzierbare Seed-RNGs zurueck.</td>
+              <td><code>src/modules/seasons/application/simulation/simulation-random.ts</code><br /><code>src/modules/seasons/application/simulation/match-context.ts</code><br /><code>src/modules/seasons/application/simulation/match-engine.ts</code><br /><code>src/modules/seasons/application/simulation/match-result-persistence.ts</code></td>
+              <td>Die Reproduzierbarkeit gilt fuer denselben persistierten Matchkontext. Fuer echte Produktionsvalidierung muss der Seed auch auf einer realen Datenbank mit migriertem Schema beobachtet werden.</td>
+            </tr>
+            <tr>
+              <td>Verletzungsstatus in die Spielbarkeit integriert</td>
+              <td><code>QUESTIONABLE</code> und <code>DOUBTFUL</code> beeinflussen nun die Matchteilnahme und Snap-Anteile. Die Verfuegbarkeit wird deterministisch pro Match aus dem Seed aufgeloest; verfuegbare angeschlagene Spieler erhalten reduzierte Readiness- und Snap-Multiplikatoren.</td>
+              <td><code>src/modules/seasons/application/simulation/depth-chart.ts</code><br /><code>src/modules/seasons/application/simulation/engine-rules.ts</code><br /><code>src/modules/seasons/application/simulation/match-engine.ts</code></td>
+              <td>Die Schwellenwerte sind bewusst in Regeldefinitionen zentralisiert. Das veraendert Boxscores und Lineup-Auswahl sichtbar, bleibt aber fachlich im Rahmen der zuvor dokumentierten Zielverbesserung.</td>
+            </tr>
+            <tr>
+              <td>Persistierter Drive- und In-Progress-State</td>
+              <td>Matches speichern jetzt Simulations-Seed, Start- und Endzeitpunkt sowie einen persistierten Drive-Log. Die Wochen-Simulation markiert Matches vor dem Rechnen explizit als gestartet, und abgeschlossene Matches persistieren alle Drives mit Resultattyp, Score-Entwicklung und Kurzbeschreibung.</td>
+              <td><code>prisma/schema.prisma</code><br /><code>src/modules/seasons/infrastructure/simulation/season-simulation.command-repository.ts</code><br /><code>src/modules/seasons/application/season-simulation.service.ts</code><br /><code>src/modules/seasons/application/simulation/match-engine.ts</code><br /><code>src/modules/seasons/application/simulation/match-result-persistence.ts</code></td>
+              <td>Die Codebasis ist auf das neue Schema angepasst; in dieser Umgebung konnte die reale Datenbank jedoch nicht migriert und live validiert werden, weil keine <code>DATABASE_URL</code> verfuegbar war.</td>
+            </tr>
+            <tr>
+              <td>Balancing-Regeln und Tuning-Konstanten externalisiert</td>
+              <td>Zentrale Engine-Konstanten fuer Drive-Struktur, Snap-Shares, Overtime, Rotationsgroessen sowie Injury- und Recovery-Regeln liegen jetzt in einer dedizierten Regeldatei statt verteilt als Magic Numbers im Code.</td>
+              <td><code>src/modules/seasons/application/simulation/engine-rules.ts</code><br /><code>src/modules/seasons/application/simulation/match-engine.ts</code><br /><code>src/modules/seasons/application/simulation/player-condition.ts</code><br /><code>src/modules/seasons/application/simulation/depth-chart.ts</code></td>
+              <td>Die Externalisierung verbessert Tuning und Nachvollziehbarkeit deutlich. Sie ersetzt bewusst keine vollstaendige Balancing-Oberflaeche, sondern schafft die stabile Codebasis dafuer.</td>
+            </tr>
+            <tr>
+              <td>Granularere Play-Attribution und Rotationslogik</td>
+              <td>Rushing, Receiving, Coverage, Tackles und Pass Rush werden nicht mehr ueberwiegend einem Einzelspieler pro Drive zugeschrieben. Die Engine verteilt Produktionswerte jetzt ueber Rotationspools und gewichtete Committees, wodurch Boxscores und Drive-Logs plausibler werden.</td>
+              <td><code>src/modules/seasons/application/simulation/match-engine.ts</code><br /><code>src/modules/seasons/application/simulation/engine-rules.ts</code></td>
+              <td>Die Verteilungen sind weiterhin drive-basiert und kein vollstaendiges Play-by-Play. Gegenueber dem vorherigen Stand entsteht aber eine deutlich realistischere Streuung ueber mehrere Spieler.</td>
+            </tr>
+            <tr>
+              <td>UX-nahe Nachvollziehbarkeit im Match-Detail</td>
+              <td>Das Match-Detail zeigt nun Anzahl der Drives und einen echten Drive-Log mit Resultattyp, Score-Verlauf, Kurzsummary und zentralen Akteuren. Dadurch wird der interne Engine-Ablauf fuer Nutzer wesentlich transparenter.</td>
+              <td><code>src/modules/seasons/application/match-query.service.ts</code><br /><code>src/app/app/savegames/[savegameId]/matches/[matchId]/page.tsx</code></td>
+              <td>Die UI nutzt die neuen Persistenzdaten bereits. Fuer eine echte Live-Validierung ist allerdings weiterhin ein DB-gestuetzter Smoke-Test erforderlich.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="gameengine-paket-2-und-3-tests">
+        <h2>27. Testergebnisse</h2>
+        <h3>Durchgefuehrte Tests</h3>
+        <ul>
+          <li><code>npx prisma generate</code> nach Schema-Erweiterung fuer Match-Simulation-Metadaten und Drive-Log</li>
+          <li>gezielte AP2/AP3-Regressionslaeufe fuer Depth Chart, Match Engine, Player Condition, Season Simulation Service und Match Query</li>
+          <li>vollstaendiger Vitest-Lauf: 15 Testdateien, 40 Tests, alle erfolgreich</li>
+          <li>TypeScript-Pruefung mit <code>npx tsc --noEmit</code>, erfolgreich</li>
+          <li>ESLint-Pruefung mit <code>npm run lint</code>, erfolgreich</li>
+          <li>Produktions-Build mit <code>npm run build</code>, erfolgreich</li>
+        </ul>
+        <h3>Abgedeckte Bereiche</h3>
+        <ul>
+          <li>gesamter Engine-Kernablauf vom Savegame-Start ueber Wochen-Simulation bis zu Match- und Zustandsfortschreibung in den automatisierten Tests</li>
+          <li>Seed-Reproduzierbarkeit, Game-Day-Availability, Match-Locking, State-Machine, Drive-Log-Erzeugung und Playoff-Entscheidungen</li>
+          <li>Edge Cases fuer ungueltige Saisonzustaende, parallele Wochenstarts, unvollstaendige Kader und verletzungsbedingte Availability-Risiken</li>
+          <li>UX-nahe Reads fuer historische Matchdaten und neue Drive-Log-Ausgabe</li>
+        </ul>
+        <h3>Ergebnisse</h3>
+        <ul>
+          <li>Keine sichtbaren Regressionen in den vorhandenen Savegame-, Team-, Player- und Engine-Tests.</li>
+          <li>Dieselben Match-Seeds erzeugen in den neuen Tests reproduzierbare Resultate inklusive Drive-Log.</li>
+          <li>Die Match-Engine verteilt Production jetzt ueber mehrere Balltraeger, Targets und Defender statt nahezu nur ueber Einzelakteure.</li>
+          <li>Die neuen Match-Reads und die Match-Detailseite bestehen Typcheck, Lint und Produktionsbuild.</li>
+        </ul>
+        <h3>Verbleibende Probleme und Rest-Risiken</h3>
+        <ul>
+          <li>Kritisch: Das erweiterte Prisma-Schema wurde in dieser Umgebung nicht gegen eine reale Datenbank synchronisiert, weil keine <code>DATABASE_URL</code> vorhanden war.</li>
+          <li>Kritisch: Dadurch konnte kein echter datenbankgestuetzter Gesamt-Smoke-Test ueber <code>Savegame starten -> Woche simulieren -> Matchdetails mit Drive-Log lesen</code> ausgefuehrt werden.</li>
+          <li>Mittel: Die Drive-Logik ist bewusst kompakt und drive-basiert. Sie verbessert Transparenz deutlich, ist aber weiterhin kein vollstaendig persistiertes Play-by-Play-System.</li>
+          <li>Niedrig: Die zentralisierten Regelwerte sind jetzt technisch sauber gebuendelt, muessen aber spaeter bei realen Saisonsimulationen noch feinjustiert werden.</li>
+        </ul>
+      </section>
+
+      <section id="gameengine-gesamtbewertung">
+        <h2>28. Gesamtbewertung</h2>
+        <p>
+          Der Reifegrad der Gameengine ist nach Umsetzung aller zehn Verbesserungen im Code deutlich hoeher als zu
+          Beginn der Analyse. Die Engine besitzt jetzt klare State-Guards, reproduzierbare Match-Seeds, eine
+          spielrelevante Injury-Availability, persistierbare Match-Fortschrittsdaten, zentralisierte
+          Tuning-Regeln und sichtbar plausiblere Verteilungen in Boxscore und Drive-Verlauf.
+        </p>
+        <p>
+          Die staerksten Effekte liegen in der Korrektheit und Nachvollziehbarkeit: Parallelitaets- und
+          Locking-Risiken sind reduziert, Playoff-Entscheidungen sind fachlich eindeutig, Matchverlaeufe sind
+          jetzt rekonstruierbar, und die Engine ist fuer Balancing- und Tuning-Arbeit deutlich besser vorbereitet.
+          Auch die UX profitiert, weil Matchdetails nicht mehr nur Endwerte, sondern einen nachvollziehbaren Ablauf
+          zeigen.
+        </p>
+        <p>
+          Die verbleibende Hauptschwaeche ist nicht mehr primaer im Code, sondern in der fehlenden Live-Validierung
+          gegen eine echte Datenbank nach Schema-Erweiterung. Solange diese Migration und ein echter End-to-End-Lauf
+          fehlen, bleibt ein kritischer Unsicherheitsrest fuer den produktiven Gesamtzustand bestehen.
+        </p>
+      </section>
+
+      <section id="gameengine-finalstatus">
+        <h2>29. Finalstatus</h2>
+        <p><strong>GESAMTPAKET NOCH NICHT ABGESCHLOSSEN</strong></p>
+        <h3>Offene Punkte</h3>
+        <ul>
+          <li>Kritisch: Prisma-Schema fuer <code>simulationSeed</code>, Simulationszeitstempel und <code>MatchSimulationDrive</code> auf einer realen Datenbank anwenden.</li>
+          <li>Kritisch: Danach einen echten System-Smoke-Test ueber Spielstart, Wochensimulation, Match-Detail mit Drive-Log und Abschluss des Spielablaufs ausfuehren.</li>
+          <li>Mittel: Drive-Log und neue Rotationsverteilungen mit echten Mehrwochen-Simulationen fachlich gegen Erwartungswerte und Balancing pruefen.</li>
+          <li>Niedrig: Die neuen Tuning-Regeln bei Bedarf weiter feingranular dokumentieren und mit Telemetrie oder Referenzlaeufen hinterlegen.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

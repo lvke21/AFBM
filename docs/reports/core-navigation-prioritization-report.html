@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Core Navigation Prioritization Report</title>
+    <style>
+      :root {
+        --bg: #08111f;
+        --surface: #101b2d;
+        --panel: #162235;
+        --line: rgba(255, 255, 255, 0.1);
+        --text: #edf4ff;
+        --muted: #9fb0c8;
+        --accent: #4fb3ff;
+        --success: #35d07f;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 20px 56px;
+      }
+
+      header,
+      section {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 18px;
+      }
+
+      h1,
+      h2 {
+        margin: 0 0 12px;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      code {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        color: #d8ecff;
+        padding: 2px 6px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      .badge {
+        display: inline-flex;
+        min-height: 26px;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .green {
+        background: var(--success);
+        color: #062916;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .accent {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="muted">Stand: 2026-04-27</p>
+        <h1>Core Navigation Prioritization</h1>
+        <p>
+          Die Navigation wurde von einer gleichwertigen Systemliste zu einer
+          aufgabenorientierten Manager-Navigation umgewichtet. Neue Nutzer sehen jetzt
+          die wichtigsten Entscheidungen zuerst.
+        </p>
+        <span class="badge green">Status: Gruen</span>
+      </header>
+
+      <section>
+        <h2>UX-Entscheidung</h2>
+        <p>
+          Die Sidebar gruppiert nicht mehr nach internen Bereichen wie Team, Game,
+          Finance und Development, sondern nach Nutzungsabsicht:
+        </p>
+        <ul>
+          <li><strong>Core Actions:</strong> Dashboard, Game Flow, Roster, Depth Chart, Contracts/Cap, Development.</li>
+          <li><strong>Team Management:</strong> Team Overview, Trade Board, Inbox.</li>
+          <li><strong>Analysis/Secondary:</strong> Finance, League, Draft, Savegames.</li>
+        </ul>
+        <p>
+          Core Actions erhalten mehr visuelles Gewicht. Trade Board bleibt sichtbar,
+          ist aber als Planungsflaeche statt als Hauptabschluss-Flow eingeordnet.
+        </p>
+      </section>
+
+      <section>
+        <h2>Geaenderte Dateien</h2>
+        <ul>
+          <li><code>src/components/layout/navigation-model.ts</code></li>
+          <li><code>src/components/layout/sidebar-navigation.tsx</code></li>
+          <li><code>src/components/team/team-section-navigation.tsx</code></li>
+          <li><code>src/components/finance/finance-section-navigation.tsx</code></li>
+          <li><code>src/components/layout/navigation-model.test.ts</code></li>
+          <li><code>e2e/navigation.spec.ts</code></li>
+          <li><code>e2e/dashboard.spec.ts</code></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Responsive Verhalten</h2>
+        <p>
+          Die Sidebar nutzt die bestehenden Shell-Layouts weiter. Die Team-Section-Navigation
+          ist jetzt in drei Gruppen organisiert und stackt responsiv: auf kleineren Breiten
+          bleiben Core Actions zuerst sichtbar, waehrend Planning und Analysis darunter folgen.
+        </p>
+      </section>
+
+      <section>
+        <h2>Validierung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npx tsc --noEmit</code></td>
+              <td><span class="badge green">Passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npm run lint</code></td>
+              <td><span class="badge green">Passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx vitest run src/components/layout/navigation-model.test.ts src/components/team/roster-model.test.ts src/components/team/depth-chart-model.test.ts src/components/development/player-development-model.test.ts src/components/trades/trade-board-model.test.ts</code></td>
+              <td><span class="badge green">5 files, 39 tests passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx playwright test e2e/navigation.spec.ts</code></td>
+              <td><span class="badge green">1 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx playwright test e2e/dashboard.spec.ts</code></td>
+              <td><span class="badge green">1 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx playwright test e2e/first-10-minutes.spec.ts</code></td>
+              <td><span class="badge green">1 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npm run test:e2e:week-loop</code></td>
+              <td><span class="badge green">1 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npm run test:e2e:depth-chart</code></td>
+              <td><span class="badge green">1 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx playwright test e2e/contracts-cap.spec.ts e2e/trade-board.spec.ts</code></td>
+              <td><span class="badge green">2 passed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Risiken</h2>
+        <ul>
+          <li>
+            Einige sekundäre Deep Links bleiben bewusst vorhanden, aber weniger prominent.
+            Power-User muessen sich kurz an die neue Gruppierung gewoehnen.
+          </li>
+          <li>
+            Weitere UI-Screens sollten die Begriffe <code>Game Flow</code>,
+            <code>Contracts/Cap</code> und <code>Trade Board</code> konsistent weiterverwenden.
+          </li>
+        </ul>
+        <p class="accent">Gesamtbewertung: Die Core-Navigation ist fuer neue Nutzer klarer und stabil validiert.</p>
+      </section>
+    </main>
+  </body>
+</html>

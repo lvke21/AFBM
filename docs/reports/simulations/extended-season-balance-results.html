@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Extended Season Balance Results</title>
+  <style>
+    body { background: #101419; color: #e8edf2; font-family: Inter, system-ui, sans-serif; margin: 0; padding: 32px; }
+    main { max-width: 1180px; margin: 0 auto; }
+    h1, h2 { color: #ffffff; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .card { border: 1px solid #293340; border-radius: 8px; background: #161d25; padding: 14px; }
+    .label { color: #9fb0c0; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    .value { font-size: 24px; font-weight: 700; margin-top: 6px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0 28px; font-size: 13px; }
+    th, td { border-bottom: 1px solid #293340; padding: 9px; text-align: left; }
+    th { color: #9fb0c0; font-weight: 600; }
+    code { color: #9bd5ff; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Extended Season Balance Results</h1>
+  <p>Reproduzierbarer Balance-Lauf mit 18 Saisons, 14 Wochen pro Saison, Schedule <code>balanced-rotation</code> und 1008 Spielen. Fingerprint: <code>1008#43.93#25.45#1.283#0.161#balanced-rotation#2.29#0#1#winnerScore:0.909|minEffectiveDepthRating:-0.678|loserScore:-0.563|absoluteEffectiveDepthRatingDiff:0.555|absoluteFatigueDiff:0.11|absoluteAvailabilityIndexDiff:0.069|absoluteInjuryDiff:0.065|chronologicalGameIndex:0.023|minAvailabilityIndex:-0.021|totalActiveInjuries:0.02|totalStarterLossCount:-0.02|maxBackupUsageRate:-0.012|maxAverageFatigue:0.002#equal-vs-equal:35.14:1.667|equal-vs-medium:30.11:1.306|equal-vs-strong:49.43:1.139|equal-vs-weak:49.1:1.431|medium-vs-equal:29.72:1.403|medium-vs-medium:32.53:1.333|medium-vs-strong:47.19:1.208|medium-vs-weak:49.79:1.347|strong-vs-equal:46.5:1.056|strong-vs-medium:48.25:1.167|strong-vs-strong:35.06:1.361|strong-vs-weak:51.06:1.375|weak-vs-equal:50.78:1.264|weak-vs-medium:53.36:1.125|weak-vs-strong:51.33:1.375|weak-vs-weak:14.14:1.167#BALANCED_MATCHUP:900:0.446|FAVORITE_CONTROL:558:0.986|UNDERDOG_VARIANCE:558:0.004</code></p>
+  <section class="grid">
+    <div class="card"><div class="label">Games</div><div class="value">1008</div></div>
+    <div class="card"><div class="label">Schedule</div><div class="value">balanced-rotation</div></div>
+    <div class="card"><div class="label">Avg Score</div><div class="value">43.93</div></div>
+    <div class="card"><div class="label">Avg Margin</div><div class="value">25.45</div></div>
+    <div class="card"><div class="label">Blowout Rate</div><div class="value">0.485</div></div>
+    <div class="card"><div class="label">Close Rate</div><div class="value">0.26</div></div>
+    <div class="card"><div class="label">Injury/Game</div><div class="value">1.283</div></div>
+    <div class="card"><div class="label">Severe/Game</div><div class="value">0.161</div></div>
+    <div class="card"><div class="label">XP Avg</div><div class="value">57.01</div></div>
+    <div class="card"><div class="label">SoS Spread</div><div class="value">2.29</div></div>
+  </section>
+  
+    <h2>Strength of Schedule</h2>
+    <table>
+      <thead><tr><th>teamId</th><th>teamProfile</th><th>teamRating</th><th>games</th><th>homeGames</th><th>awayGames</th><th>averageOpponentRating</th><th>ratingDeltaAverage</th></tr></thead>
+      <tbody><tr><td>EQL1</td><td>EQUAL</td><td>74</td><td>252</td><td>126</td><td>126</td><td>75.43</td><td>-1.43</td></tr>
+<tr><td>EQL2</td><td>EQUAL</td><td>74</td><td>252</td><td>126</td><td>126</td><td>75.43</td><td>-1.43</td></tr>
+<tr><td>MED1</td><td>MEDIUM</td><td>76</td><td>252</td><td>126</td><td>126</td><td>75.14</td><td>0.86</td></tr>
+<tr><td>MED2</td><td>MEDIUM</td><td>75</td><td>252</td><td>126</td><td>126</td><td>75.29</td><td>-0.29</td></tr>
+<tr><td>STR1</td><td>STRONG</td><td>84</td><td>252</td><td>126</td><td>126</td><td>74</td><td>10</td></tr>
+<tr><td>STR2</td><td>STRONG</td><td>82</td><td>252</td><td>126</td><td>126</td><td>74.29</td><td>7.71</td></tr>
+<tr><td>WEK1</td><td>WEAK</td><td>68</td><td>252</td><td>126</td><td>126</td><td>76.29</td><td>-8.29</td></tr>
+<tr><td>WEK2</td><td>WEAK</td><td>69</td><td>252</td><td>126</td><td>126</td><td>76.14</td><td>-7.14</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Availability: Teams</h2>
+    <table>
+      <thead><tr><th>teamId</th><th>teamProfile</th><th>samples</th><th>averageAvailabilityIndex</th><th>averageEffectiveDepthRating</th><th>averageStarterLossCount</th><th>maxStarterLossCount</th><th>averageBackupUsageRate</th><th>averageStarterFatigue</th><th>averageBackupFatigue</th></tr></thead>
+      <tbody><tr><td>EQL1</td><td>EQUAL</td><td>252</td><td>0.926</td><td>72.48</td><td>3.42</td><td>9</td><td>0.122</td><td>28.09</td><td>0.02</td></tr>
+<tr><td>EQL2</td><td>EQUAL</td><td>252</td><td>0.92</td><td>72.54</td><td>3.52</td><td>8</td><td>0.134</td><td>27.09</td><td>0.02</td></tr>
+<tr><td>MED1</td><td>MEDIUM</td><td>252</td><td>0.922</td><td>74.13</td><td>3.58</td><td>10</td><td>0.129</td><td>28.02</td><td>0.01</td></tr>
+<tr><td>MED2</td><td>MEDIUM</td><td>252</td><td>0.929</td><td>73.42</td><td>3.53</td><td>11</td><td>0.124</td><td>26.92</td><td>0.04</td></tr>
+<tr><td>STR1</td><td>STRONG</td><td>252</td><td>0.956</td><td>82.09</td><td>2.09</td><td>8</td><td>0.074</td><td>31.96</td><td>0.01</td></tr>
+<tr><td>STR2</td><td>STRONG</td><td>252</td><td>0.938</td><td>80.53</td><td>2.88</td><td>9</td><td>0.103</td><td>29.07</td><td>0.03</td></tr>
+<tr><td>WEK1</td><td>WEAK</td><td>252</td><td>0.918</td><td>66.66</td><td>3.51</td><td>12</td><td>0.126</td><td>25.36</td><td>0.03</td></tr>
+<tr><td>WEK2</td><td>WEAK</td><td>252</td><td>0.923</td><td>67.39</td><td>3.21</td><td>10</td><td>0.116</td><td>26.03</td><td>0.02</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Availability: Wochen</h2>
+    <table>
+      <thead><tr><th>week</th><th>samples</th><th>averageAvailabilityIndex</th><th>averageEffectiveDepthRating</th><th>averageStarterLossCount</th><th>averageBackupUsageRate</th></tr></thead>
+      <tbody><tr><td>1</td><td>144</td><td>0.952</td><td>74.01</td><td>2.24</td><td>0.081</td></tr>
+<tr><td>2</td><td>144</td><td>0.947</td><td>73.92</td><td>2.45</td><td>0.088</td></tr>
+<tr><td>3</td><td>144</td><td>0.944</td><td>73.86</td><td>2.44</td><td>0.088</td></tr>
+<tr><td>4</td><td>144</td><td>0.941</td><td>73.83</td><td>2.67</td><td>0.097</td></tr>
+<tr><td>5</td><td>144</td><td>0.937</td><td>73.81</td><td>2.91</td><td>0.105</td></tr>
+<tr><td>6</td><td>144</td><td>0.934</td><td>73.72</td><td>2.99</td><td>0.109</td></tr>
+<tr><td>7</td><td>144</td><td>0.929</td><td>73.7</td><td>3.27</td><td>0.119</td></tr>
+<tr><td>8</td><td>144</td><td>0.926</td><td>73.65</td><td>3.38</td><td>0.121</td></tr>
+<tr><td>9</td><td>144</td><td>0.924</td><td>73.6</td><td>3.47</td><td>0.124</td></tr>
+<tr><td>10</td><td>144</td><td>0.92</td><td>73.54</td><td>3.59</td><td>0.129</td></tr>
+<tr><td>11</td><td>144</td><td>0.917</td><td>73.46</td><td>3.79</td><td>0.135</td></tr>
+<tr><td>12</td><td>144</td><td>0.916</td><td>73.37</td><td>3.66</td><td>0.132</td></tr>
+<tr><td>13</td><td>144</td><td>0.911</td><td>73.36</td><td>4.01</td><td>0.144</td></tr>
+<tr><td>14</td><td>144</td><td>0.909</td><td>73.31</td><td>4.17</td><td>0.149</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Matchup Distribution</h2>
+    <table>
+      <thead><tr><th>pair</th><th>profiles</th><th>games</th><th>homeGames</th><th>awayGames</th></tr></thead>
+      <tbody><tr><td>EQL1-vs-EQL2</td><td>EQUAL-vs-EQUAL</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL1-vs-MED1</td><td>EQUAL-vs-MEDIUM</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL1-vs-MED2</td><td>EQUAL-vs-MEDIUM</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL1-vs-STR1</td><td>EQUAL-vs-STRONG</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL1-vs-STR2</td><td>EQUAL-vs-STRONG</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL1-vs-WEK1</td><td>EQUAL-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL1-vs-WEK2</td><td>EQUAL-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL2-vs-MED1</td><td>EQUAL-vs-MEDIUM</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL2-vs-MED2</td><td>EQUAL-vs-MEDIUM</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL2-vs-STR1</td><td>EQUAL-vs-STRONG</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL2-vs-STR2</td><td>EQUAL-vs-STRONG</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL2-vs-WEK1</td><td>EQUAL-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>EQL2-vs-WEK2</td><td>EQUAL-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>MED1-vs-MED2</td><td>MEDIUM-vs-MEDIUM</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>MED1-vs-STR1</td><td>MEDIUM-vs-STRONG</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>MED1-vs-STR2</td><td>MEDIUM-vs-STRONG</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>MED1-vs-WEK1</td><td>MEDIUM-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>MED1-vs-WEK2</td><td>MEDIUM-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>MED2-vs-STR1</td><td>MEDIUM-vs-STRONG</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>MED2-vs-STR2</td><td>MEDIUM-vs-STRONG</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>MED2-vs-WEK1</td><td>MEDIUM-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>MED2-vs-WEK2</td><td>MEDIUM-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>STR1-vs-STR2</td><td>STRONG-vs-STRONG</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>STR1-vs-WEK1</td><td>STRONG-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>STR1-vs-WEK2</td><td>STRONG-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>STR2-vs-WEK1</td><td>STRONG-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>STR2-vs-WEK2</td><td>STRONG-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr>
+<tr><td>WEK1-vs-WEK2</td><td>WEAK-vs-WEAK</td><td>36</td><td>18</td><td>18</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Szenarien</h2>
+    <table>
+      <thead><tr><th>name</th><th>gameCount</th><th>averageScore</th><th>averageMargin</th><th>favoriteWinRate</th><th>homeWinRate</th><th>blowoutRate</th><th>closeGameRate</th><th>injuryRate</th><th>severeInjuryRate</th><th>averageFatigue</th><th>averageProgressionXp</th></tr></thead>
+      <tbody><tr><td>equal-vs-equal</td><td>36</td><td>35.14</td><td>7.69</td><td></td><td>0.417</td><td>0.028</td><td>0.556</td><td>1.667</td><td>0.278</td><td>27.56</td><td>60.07</td></tr>
+<tr><td>equal-vs-medium</td><td>72</td><td>30.11</td><td>6.53</td><td></td><td>0.472</td><td>0</td><td>0.681</td><td>1.306</td><td>0.056</td><td>27.43</td><td>60.25</td></tr>
+<tr><td>equal-vs-strong</td><td>72</td><td>49.43</td><td>18.15</td><td>0.931</td><td>0</td><td>0.292</td><td>0.222</td><td>1.139</td><td>0.208</td><td>28.41</td><td>60.42</td></tr>
+<tr><td>equal-vs-weak</td><td>72</td><td>49.1</td><td>42.6</td><td>1</td><td>1</td><td>0.958</td><td>0</td><td>1.431</td><td>0.222</td><td>26.89</td><td>53.35</td></tr>
+<tr><td>medium-vs-equal</td><td>72</td><td>29.72</td><td>5.97</td><td></td><td>0.278</td><td>0</td><td>0.694</td><td>1.403</td><td>0.167</td><td>27.53</td><td>60.31</td></tr>
+<tr><td>medium-vs-medium</td><td>36</td><td>32.53</td><td>7.42</td><td>0.472</td><td>0.417</td><td>0.028</td><td>0.639</td><td>1.333</td><td>0.139</td><td>27.26</td><td>60.51</td></tr>
+<tr><td>medium-vs-strong</td><td>72</td><td>47.19</td><td>14.61</td><td>0.986</td><td>0</td><td>0.167</td><td>0.236</td><td>1.208</td><td>0.208</td><td>28.56</td><td>60.65</td></tr>
+<tr><td>medium-vs-weak</td><td>72</td><td>49.79</td><td>41.15</td><td>1</td><td>1</td><td>0.917</td><td>0.014</td><td>1.347</td><td>0.194</td><td>26.63</td><td>53.58</td></tr>
+<tr><td>strong-vs-equal</td><td>72</td><td>46.5</td><td>18.94</td><td>0.986</td><td>0.986</td><td>0.333</td><td>0.181</td><td>1.056</td><td>0.194</td><td>28.19</td><td>60.35</td></tr>
+<tr><td>strong-vs-medium</td><td>72</td><td>48.25</td><td>15.33</td><td>0.972</td><td>0.972</td><td>0.222</td><td>0.222</td><td>1.167</td><td>0.153</td><td>28.24</td><td>60.66</td></tr>
+<tr><td>strong-vs-strong</td><td>36</td><td>35.06</td><td>5.72</td><td>0.306</td><td>0.472</td><td>0</td><td>0.694</td><td>1.361</td><td>0.25</td><td>29.12</td><td>60.75</td></tr>
+<tr><td>strong-vs-weak</td><td>72</td><td>51.06</td><td>45.53</td><td>1</td><td>1</td><td>1</td><td>0</td><td>1.375</td><td>0.139</td><td>27.17</td><td>53.76</td></tr>
+<tr><td>weak-vs-equal</td><td>72</td><td>50.78</td><td>43.72</td><td>1</td><td>0</td><td>0.944</td><td>0</td><td>1.264</td><td>0.167</td><td>26.78</td><td>53.34</td></tr>
+<tr><td>weak-vs-medium</td><td>72</td><td>53.36</td><td>45.47</td><td>0.986</td><td>0</td><td>0.958</td><td>0.014</td><td>1.125</td><td>0.069</td><td>26.63</td><td>53.58</td></tr>
+<tr><td>weak-vs-strong</td><td>72</td><td>51.33</td><td>45.47</td><td>1</td><td>0</td><td>0.972</td><td>0</td><td>1.375</td><td>0.111</td><td>27.85</td><td>53.85</td></tr>
+<tr><td>weak-vs-weak</td><td>36</td><td>14.14</td><td>4.69</td><td>0.25</td><td>0.278</td><td>0</td><td>0.861</td><td>1.167</td><td>0.056</td><td>25.83</td><td>46.74</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Teams</h2>
+    <table>
+      <thead><tr><th>teamId</th><th>profile</th><th>wins</th><th>losses</th><th>winRate</th><th>newInjuries</th><th>severeInjuries</th><th>averageFatigue</th></tr></thead>
+      <tbody><tr><td>STR1</td><td>STRONG</td><td>223</td><td>20</td><td>0.918</td><td>154</td><td>18</td><td>32.52</td></tr>
+<tr><td>STR2</td><td>STRONG</td><td>230</td><td>12</td><td>0.95</td><td>142</td><td>22</td><td>30.35</td></tr>
+<tr><td>MED1</td><td>MEDIUM</td><td>122</td><td>116</td><td>0.513</td><td>160</td><td>20</td><td>29.42</td></tr>
+<tr><td>MED2</td><td>MEDIUM</td><td>105</td><td>134</td><td>0.439</td><td>149</td><td>16</td><td>28.54</td></tr>
+<tr><td>WEK1</td><td>WEAK</td><td>14</td><td>224</td><td>0.059</td><td>187</td><td>18</td><td>27.29</td></tr>
+<tr><td>WEK2</td><td>WEAK</td><td>9</td><td>230</td><td>0.038</td><td>180</td><td>20</td><td>27.61</td></tr>
+<tr><td>EQL1</td><td>EQUAL</td><td>122</td><td>110</td><td>0.526</td><td>154</td><td>22</td><td>29.58</td></tr>
+<tr><td>EQL2</td><td>EQUAL</td><td>128</td><td>107</td><td>0.545</td><td>167</td><td>26</td><td>28.81</td></tr></tbody>
+    </table>
+  
+  
+    <h2>AI/Gameplan Archetypes</h2>
+    <table>
+      <thead><tr><th>archetype</th><th>games</th><th>winRate</th><th>averageScore</th></tr></thead>
+      <tbody><tr><td>BALANCED_MATCHUP</td><td>900</td><td>0.446</td><td>18.69</td></tr>
+<tr><td>FAVORITE_CONTROL</td><td>558</td><td>0.986</td><td>40.56</td></tr>
+<tr><td>UNDERDOG_VARIANCE</td><td>558</td><td>0.004</td><td>8.65</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Margin Attribution: Wochen</h2>
+    <table>
+      <thead><tr><th>key</th><th>games</th><th>averageMargin</th><th>blowoutRate</th><th>closeGameRate</th><th>averageWinnerScore</th><th>averageLoserScore</th></tr></thead>
+      <tbody><tr><td>1</td><td>72</td><td>29.92</td><td>0.611</td><td>0.097</td><td>40.44</td><td>10.53</td></tr>
+<tr><td>2</td><td>72</td><td>28.88</td><td>0.583</td><td>0.208</td><td>37.15</td><td>8.28</td></tr>
+<tr><td>3</td><td>72</td><td>26.47</td><td>0.542</td><td>0.306</td><td>35.79</td><td>9.32</td></tr>
+<tr><td>4</td><td>72</td><td>28.15</td><td>0.556</td><td>0.236</td><td>35.26</td><td>7.11</td></tr>
+<tr><td>5</td><td>72</td><td>29.13</td><td>0.556</td><td>0.194</td><td>37.04</td><td>7.92</td></tr>
+<tr><td>6</td><td>72</td><td>28.9</td><td>0.542</td><td>0.097</td><td>37.69</td><td>8.79</td></tr>
+<tr><td>7</td><td>72</td><td>5.17</td><td>0</td><td>0.833</td><td>15.63</td><td>10.46</td></tr>
+<tr><td>8</td><td>72</td><td>30.38</td><td>0.597</td><td>0.111</td><td>40.88</td><td>10.5</td></tr>
+<tr><td>9</td><td>72</td><td>29.11</td><td>0.597</td><td>0.194</td><td>36.89</td><td>7.78</td></tr>
+<tr><td>10</td><td>72</td><td>25.69</td><td>0.5</td><td>0.278</td><td>34.46</td><td>8.76</td></tr>
+<tr><td>11</td><td>72</td><td>27.94</td><td>0.528</td><td>0.153</td><td>35.83</td><td>7.89</td></tr>
+<tr><td>12</td><td>72</td><td>29.88</td><td>0.569</td><td>0.139</td><td>39.24</td><td>9.36</td></tr>
+<tr><td>13</td><td>72</td><td>30.31</td><td>0.611</td><td>0.125</td><td>41.1</td><td>10.79</td></tr>
+<tr><td>14</td><td>72</td><td>6.33</td><td>0</td><td>0.667</td><td>18.25</td><td>11.92</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Margin Attribution: Profile</h2>
+    <table>
+      <thead><tr><th>key</th><th>games</th><th>averageMargin</th><th>blowoutRate</th><th>closeGameRate</th><th>averageWinnerScore</th><th>averageLoserScore</th></tr></thead>
+      <tbody><tr><td>equal-vs-equal</td><td>36</td><td>7.69</td><td>0.028</td><td>0.556</td><td>21.42</td><td>13.72</td></tr>
+<tr><td>equal-vs-medium</td><td>72</td><td>6.53</td><td>0</td><td>0.681</td><td>18.32</td><td>11.79</td></tr>
+<tr><td>equal-vs-strong</td><td>72</td><td>18.15</td><td>0.292</td><td>0.222</td><td>33.79</td><td>15.64</td></tr>
+<tr><td>equal-vs-weak</td><td>72</td><td>42.6</td><td>0.958</td><td>0</td><td>45.85</td><td>3.25</td></tr>
+<tr><td>medium-vs-equal</td><td>72</td><td>5.97</td><td>0</td><td>0.694</td><td>17.85</td><td>11.88</td></tr>
+<tr><td>medium-vs-medium</td><td>36</td><td>7.42</td><td>0.028</td><td>0.639</td><td>19.97</td><td>12.56</td></tr>
+<tr><td>medium-vs-strong</td><td>72</td><td>14.61</td><td>0.167</td><td>0.236</td><td>30.9</td><td>16.29</td></tr>
+<tr><td>medium-vs-weak</td><td>72</td><td>41.15</td><td>0.917</td><td>0.014</td><td>45.47</td><td>4.32</td></tr>
+<tr><td>strong-vs-equal</td><td>72</td><td>18.94</td><td>0.333</td><td>0.181</td><td>32.72</td><td>13.78</td></tr>
+<tr><td>strong-vs-medium</td><td>72</td><td>15.33</td><td>0.222</td><td>0.222</td><td>31.79</td><td>16.46</td></tr>
+<tr><td>strong-vs-strong</td><td>36</td><td>5.72</td><td>0</td><td>0.694</td><td>20.39</td><td>14.67</td></tr>
+<tr><td>strong-vs-weak</td><td>72</td><td>45.53</td><td>1</td><td>0</td><td>48.29</td><td>2.76</td></tr>
+<tr><td>weak-vs-equal</td><td>72</td><td>43.72</td><td>0.944</td><td>0</td><td>47.25</td><td>3.53</td></tr>
+<tr><td>weak-vs-medium</td><td>72</td><td>45.47</td><td>0.958</td><td>0.014</td><td>49.42</td><td>3.94</td></tr>
+<tr><td>weak-vs-strong</td><td>72</td><td>45.47</td><td>0.972</td><td>0</td><td>48.4</td><td>2.93</td></tr>
+<tr><td>weak-vs-weak</td><td>36</td><td>4.69</td><td>0</td><td>0.861</td><td>9.42</td><td>4.72</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Margin Attribution: Fatigue</h2>
+    <table>
+      <thead><tr><th>key</th><th>games</th><th>averageMargin</th><th>blowoutRate</th><th>closeGameRate</th></tr></thead>
+      <tbody><tr><td>0-29</td><td>1008</td><td>25.45</td><td>0.485</td><td>0.26</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Margin Attribution: Injuries</h2>
+    <table>
+      <thead><tr><th>key</th><th>games</th><th>averageMargin</th><th>blowoutRate</th><th>closeGameRate</th></tr></thead>
+      <tbody><tr><td>0</td><td>25</td><td>25.32</td><td>0.52</td><td>0.2</td></tr>
+<tr><td>1-3</td><td>62</td><td>25.55</td><td>0.532</td><td>0.226</td></tr>
+<tr><td>4-7</td><td>79</td><td>24.22</td><td>0.443</td><td>0.253</td></tr>
+<tr><td>8-11</td><td>75</td><td>22.8</td><td>0.427</td><td>0.307</td></tr>
+<tr><td>12+</td><td>767</td><td>25.83</td><td>0.49</td><td>0.261</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Margin Attribution: Availability</h2>
+    <table>
+      <thead><tr><th>key</th><th>games</th><th>averageMargin</th><th>blowoutRate</th><th>closeGameRate</th></tr></thead>
+      <tbody><tr><td>75-84</td><td>185</td><td>25.16</td><td>0.476</td><td>0.276</td></tr>
+<tr><td>85-94</td><td>529</td><td>24.75</td><td>0.465</td><td>0.278</td></tr>
+<tr><td>95-100</td><td>283</td><td>26.37</td><td>0.516</td><td>0.223</td></tr>
+<tr><td>under-75</td><td>11</td><td>40</td><td>0.818</td><td>0.091</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Margin Attribution: Backup Usage</h2>
+    <table>
+      <thead><tr><th>key</th><th>games</th><th>averageMargin</th><th>blowoutRate</th><th>closeGameRate</th></tr></thead>
+      <tbody><tr><td>0-9</td><td>313</td><td>25.7</td><td>0.502</td><td>0.243</td></tr>
+<tr><td>10-19</td><td>380</td><td>25.47</td><td>0.484</td><td>0.276</td></tr>
+<tr><td>20-29</td><td>256</td><td>26.09</td><td>0.492</td><td>0.227</td></tr>
+<tr><td>30-plus</td><td>59</td><td>21.17</td><td>0.373</td><td>0.39</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Margin Attribution: Effective Depth</h2>
+    <table>
+      <thead><tr><th>key</th><th>games</th><th>averageMargin</th><th>blowoutRate</th><th>closeGameRate</th></tr></thead>
+      <tbody><tr><td>70-74</td><td>490</td><td>12.47</td><td>0.147</td><td>0.408</td></tr>
+<tr><td>75-79</td><td>24</td><td>8.58</td><td>0.125</td><td>0.458</td></tr>
+<tr><td>80-plus</td><td>26</td><td>6.23</td><td>0</td><td>0.692</td></tr>
+<tr><td>under-70</td><td>468</td><td>40.97</td><td>0.885</td><td>0.071</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Margin Attribution: AI/Gameplan</h2>
+    <table>
+      <thead><tr><th>key</th><th>games</th><th>averageMargin</th><th>blowoutRate</th><th>closeGameRate</th></tr></thead>
+      <tbody><tr><td>BALANCED_MATCHUP-vs-BALANCED_MATCHUP</td><td>450</td><td>17.39</td><td>0.278</td><td>0.473</td></tr>
+<tr><td>FAVORITE_CONTROL-vs-UNDERDOG_VARIANCE</td><td>360</td><td>32.71</td><td>0.686</td><td>0.083</td></tr>
+<tr><td>UNDERDOG_VARIANCE-vs-FAVORITE_CONTROL</td><td>198</td><td>30.56</td><td>0.591</td><td>0.096</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Margin Correlations</h2>
+    <table>
+      <thead><tr><th>factor</th><th>correlation</th></tr></thead>
+      <tbody><tr><td>winnerScore</td><td>0.909</td></tr>
+<tr><td>minEffectiveDepthRating</td><td>-0.678</td></tr>
+<tr><td>loserScore</td><td>-0.563</td></tr>
+<tr><td>absoluteEffectiveDepthRatingDiff</td><td>0.555</td></tr>
+<tr><td>absoluteFatigueDiff</td><td>0.11</td></tr>
+<tr><td>absoluteAvailabilityIndexDiff</td><td>0.069</td></tr>
+<tr><td>absoluteInjuryDiff</td><td>0.065</td></tr>
+<tr><td>chronologicalGameIndex</td><td>0.023</td></tr>
+<tr><td>minAvailabilityIndex</td><td>-0.021</td></tr>
+<tr><td>totalActiveInjuries</td><td>0.02</td></tr>
+<tr><td>totalStarterLossCount</td><td>-0.02</td></tr>
+<tr><td>maxBackupUsageRate</td><td>-0.012</td></tr>
+<tr><td>maxAverageFatigue</td><td>0.002</td></tr></tbody>
+    </table>
+  
+  
+    <h2>Score Spike Patterns</h2>
+    <table>
+      <thead><tr><th>type</th><th>games</th><th>rate</th><th>averageMargin</th></tr></thead>
+      <tbody><tr><td>winner-42-plus</td><td>370</td><td>0.367</td><td>46.14</td></tr>
+<tr><td>loser-7-or-less</td><td>542</td><td>0.538</td><td>34.9</td></tr>
+<tr><td>winner-42-plus-and-loser-7-or-less</td><td>291</td><td>0.289</td><td>49.41</td></tr></tbody>
+    </table>
+  
+  <h2>Interpretation</h2>
+  <p>Die Suite ist fuer Trendanalyse gedacht: Winrates, Score-Verteilung, Fatigue, Injuries, Progression-XP, AI-Archetypes und Margin-Attribution werden in einem stabilen Schema ausgegeben. Sie ersetzt keine manuelle Balance-Entscheidung, gibt aber reproduzierbare Daten fuer Folgepakete.</p>
+</main>
+</body>
+</html>

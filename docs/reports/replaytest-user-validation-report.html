@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Replaytest User Validation Report</title>
+    <style>
+      :root {
+        --bg: #08111f;
+        --surface: #101b2d;
+        --panel: #162235;
+        --panel-2: #0d1727;
+        --line: rgba(255, 255, 255, 0.11);
+        --text: #edf4ff;
+        --muted: #9fb0c8;
+        --accent: #4fb3ff;
+        --success: #35d07f;
+        --warning: #f6c65b;
+        --danger: #ff6b6b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 40px 20px 56px;
+      }
+
+      header,
+      section {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 18px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 12px;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      h2 {
+        font-size: 21px;
+      }
+
+      h3 {
+        font-size: 16px;
+        color: #d8ecff;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      code {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        color: #d8ecff;
+        padding: 2px 6px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-2);
+        padding: 16px;
+      }
+
+      .badge {
+        display: inline-flex;
+        min-height: 26px;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .green {
+        background: var(--success);
+        color: #062916;
+      }
+
+      .yellow {
+        background: var(--warning);
+        color: #2c2100;
+      }
+
+      .red {
+        background: var(--danger);
+        color: #350606;
+      }
+
+      .outline {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .accent {
+        color: var(--accent);
+      }
+
+      .callout {
+        border-left: 4px solid var(--warning);
+        background: rgba(246, 198, 91, 0.08);
+        padding: 14px 16px;
+        margin-top: 12px;
+      }
+
+      @media (max-width: 820px) {
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 26px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="muted">Stand: 2026-04-27</p>
+        <h1>Replaytest User Validation Report</h1>
+        <p>
+          Strukturierte Produktbewertung fuer den geplanten Re-Playtest nach den
+          Verbesserungen an Live Simulation, Match Report, E2E-Flows, Development
+          und Core Navigation.
+        </p>
+        <span class="badge yellow">Gesamtstatus: Gruen-Gelb</span>
+        <p class="muted">
+          Der Status darf nicht auf voll Gruen angehoben werden, weil in diesem
+          Arbeitsstand keine echten neuen Nutzersessions mit 3-5 Personen vorliegen.
+          Persona-Simulationen und technische E2E-Gates sind hilfreich, ersetzen aber
+          keine reale Nutzerreaktion.
+        </p>
+      </header>
+
+      <section>
+        <h2>1. Executive Summary</h2>
+        <div class="grid grid-3">
+          <div class="card">
+            <h3>Finale Entscheidung</h3>
+            <p><span class="badge yellow">Gruen-Gelb halten</span></p>
+            <p class="muted">
+              Produkt und Technik wirken bereit fuer echten Re-Playtest, aber die
+              Nutzerwirkung ist nicht real gemessen.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Gruen erlaubt?</h3>
+            <p><span class="badge red">Nein</span></p>
+            <p class="muted">
+              Die Gruen-Kriterien verlangen echte Nutzerreaktionen: kein kritischer
+              Blocker, verstandener Loop, echte Entscheidungen und Mehrheit will weiterspielen.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Hauptbefund</h3>
+            <p><span class="badge outline">User Validation offen</span></p>
+            <p class="muted">
+              Die letzte Validierung war technisch und fachlich positiv, aber nicht
+              beobachtungsbasiert mit neuen Nutzern.
+            </p>
+          </div>
+        </div>
+        <div class="callout">
+          Keine Beschoenigung: Dieser Bericht dokumentiert, dass der reale Re-Playtest
+          noch nicht durchgefuehrt wurde. Es werden keine Metriken, Abbruchpunkte oder
+          Nutzerzitate erfunden.
+        </div>
+      </section>
+
+      <section>
+        <h2>2. Test Setup</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Element</th>
+              <th>Geplanter Standard</th>
+              <th>Tatsaechlicher Stand</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Nutzeranzahl</td>
+              <td>3-5 neue Nutzer, bevorzugt ohne tiefes Football-Wissen</td>
+              <td><span class="badge red">Nicht durchgefuehrt</span></td>
+            </tr>
+            <tr>
+              <td>Durchfuehrung</td>
+              <td>Isolierte Session pro Nutzer, Moderator gibt nur Kontext</td>
+              <td>Keine echten Beobachtungsdaten im Repository gefunden</td>
+            </tr>
+            <tr>
+              <td>Initialzustand</td>
+              <td>Frischer Save oder definierter Startzustand, alle Systeme aktiv</td>
+              <td>Nicht real genutzt; nur technische/E2E- und Persona-Artefakte vorhanden</td>
+            </tr>
+            <tr>
+              <td>Aufgaben</td>
+              <td>2 Wochen spielen, Entscheidungen treffen, Gewinn/Verlust erklaeren, Weiterspielen entscheiden</td>
+              <td>Nicht mit echten Nutzern erhoben</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="muted">
+          Verfuegbare Vorarbeit: <code>docs/reports/playtest-followup-final-validation-report.html</code>
+          bestaetigt gruen laufende technische Gates und benennt den echten Re-Playtest
+          explizit als Voraussetzung fuer voll Gruen.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. Quantitative Metriken</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Metrik</th>
+              <th>User 1</th>
+              <th>User 2</th>
+              <th>User 3</th>
+              <th>User 4</th>
+              <th>User 5</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Time to First Action</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td><span class="badge red">Offen</span></td>
+            </tr>
+            <tr>
+              <td>Zeit bis erstes Spiel gestartet</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td><span class="badge red">Offen</span></td>
+            </tr>
+            <tr>
+              <td>Anzahl gespielter Wochen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td><span class="badge red">Offen</span></td>
+            </tr>
+            <tr>
+              <td>Anzahl bewusster Entscheidungen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td>Nicht gemessen</td>
+              <td><span class="badge red">Offen</span></td>
+            </tr>
+            <tr>
+              <td>Abbruchpunkt</td>
+              <td>Nicht beobachtet</td>
+              <td>Nicht beobachtet</td>
+              <td>Nicht beobachtet</td>
+              <td>Nicht beobachtet</td>
+              <td>Nicht beobachtet</td>
+              <td><span class="badge red">Unbekannt</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>4. Qualitative Bewertungen</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Erforderliche Bewertung</th>
+              <th>Real erhoben?</th>
+              <th>Interpretation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Verstaendnis des Game Loops</td>
+              <td>Klar / unsicher / unklar</td>
+              <td>Nein</td>
+              <td>Technisch stabil, aber nicht nutzerbasiert bestaetigt.</td>
+            </tr>
+            <tr>
+              <td>Wahrgenommene Spannung im Live Game</td>
+              <td>Hoch / mittel / niedrig</td>
+              <td>Nein</td>
+              <td>Storyline-Schicht vorhanden; emotionale Reaktion unbekannt.</td>
+            </tr>
+            <tr>
+              <td>Verstaendlichkeit des Match Reports</td>
+              <td>Klar / teilweise / unklar</td>
+              <td>Nein</td>
+              <td>Konsequenz-Sektion vorhanden; ob Nutzer Gewinn/Verlust erklaeren koennen, ist offen.</td>
+            </tr>
+            <tr>
+              <td>Entscheidungsgefuehl</td>
+              <td>Echte Entscheidungen / Zufall</td>
+              <td>Nein</td>
+              <td>Depth Chart, Development, Contracts und Trade Board bieten Signale; Bedeutung muss beobachtet werden.</td>
+            </tr>
+            <tr>
+              <td>Navigation</td>
+              <td>Klar / ueberfordernd / verwirrend</td>
+              <td>Nein</td>
+              <td>Core Navigation wurde priorisiert; First-User-Orientierung bleibt ungemessen.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>5. Erkenntnisse nach Bereichen</h2>
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Live Simulation</h3>
+            <p>
+              Erwartete Verbesserung: Current Game State, Key Drive, Momentum,
+              Manager Impact und What to watch next sollen das Spiel staerker wie
+              ein laufendes Match wirken lassen.
+            </p>
+            <p class="muted">
+              Nutzerreaktion nicht gemessen. Ob Ereignisse emotional wirken oder nur
+              gelesen werden, bleibt offen.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Match Report</h3>
+            <p>
+              Erwartete Verbesserung: Der Report erklaert besser, was das Spiel
+              entschieden hat und was naechste Woche Aufmerksamkeit braucht.
+            </p>
+            <p class="muted">
+              Nicht beobachtet wurde, ob Nutzer den Spielausgang eigenstaendig und
+              korrekt erklaeren koennen.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Entscheidungen</h3>
+            <p>
+              Erwartete Verbesserung: Depth Chart, Player Development, Contracts und
+              Trade Board geben mehr Entscheidungskontext.
+            </p>
+            <p class="muted">
+              Ob Nutzer aktiv entscheiden oder nur durchklicken, wurde nicht real erhoben.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Navigation</h3>
+            <p>
+              Erwartete Verbesserung: Core Actions sind sichtbarer gruppiert und
+              sollten neue Nutzer schneller zu Game Flow, Roster, Depth Chart,
+              Contracts und Development fuehren.
+            </p>
+            <p class="muted">
+              Ob die neue Gewichtung Ueberforderung reduziert, braucht Beobachtung.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Gesamtgefuehl</h3>
+            <p>
+              Die entscheidende Produktfrage lautet, ob Nutzer freiwillig eine weitere
+              Woche spielen wollen.
+            </p>
+            <p class="muted">
+              Diese Frage ist ohne reale Sessions nicht beantwortbar.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>6. Zentrale Nutzerzitate</h2>
+        <p>
+          Keine echten Nutzerzitate erhoben. Vorhandene persona-basierte Aussagen aus
+          frueheren Unterlagen werden fuer diese finale Validierung bewusst nicht als
+          echte Nutzerzitate verwendet.
+        </p>
+      </section>
+
+      <section>
+        <h2>7. Groesste Staerken als Validierungshypothesen</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Rang</th>
+              <th>Staerke</th>
+              <th>Warum relevant</th>
+              <th>Real bestaetigt?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Core Navigation priorisiert wichtige Manager-Aktionen</td>
+              <td>Reduziert Suchaufwand und fuehrt schneller in den Loop.</td>
+              <td>Nein</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Live Simulation hat Storyline- und Momentum-Signale</td>
+              <td>Kann Spannung erzeugen statt nur Statuswerte zu zeigen.</td>
+              <td>Nein</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Match Report gibt Next-Week-Konsequenzen</td>
+              <td>Staerkt den Wunsch, nach dem Spiel weiterzumachen.</td>
+              <td>Nein</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Development Wochenvergleich macht Fortschritt sichtbarer</td>
+              <td>Unterstuetzt langfristige Motivation und Spielerbindung.</td>
+              <td>Nein</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Contracts und Trade Board sind als GUI-Flows abgesichert</td>
+              <td>Finanz- und Roster-Entscheidungen sind auffindbar und testbar.</td>
+              <td>Nein</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>8. Groesste Probleme und Risiken</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Rang</th>
+              <th>Problem</th>
+              <th>Schwere</th>
+              <th>Konsequenz</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Kein echter Re-Playtest nach den letzten Verbesserungen</td>
+              <td><span class="badge red">Critical fuer Status Gruen</span></td>
+              <td>Status kann nicht ehrlich auf Gruen gesetzt werden.</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Motivation zum freiwilligen Weiterspielen nicht gemessen</td>
+              <td><span class="badge yellow">Major</span></td>
+              <td>Der wichtigste Produktindikator bleibt offen.</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Entscheidungsbedeutung nur fachlich, nicht subjektiv validiert</td>
+              <td><span class="badge yellow">Major</span></td>
+              <td>Nutzer koennten Entscheidungen weiterhin als dekorativ empfinden.</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Football-Begriffe koennen Einsteiger weiter bremsen</td>
+              <td><span class="badge yellow">Major</span></td>
+              <td>Besonders Nutzer ohne Football-Wissen koennten unsicher bleiben.</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Live-Spannung ist nicht beobachtet</td>
+              <td><span class="badge outline">Unknown</span></td>
+              <td>Der Screen kann technisch besser sein, ohne emotional zu tragen.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>9. Kritische Blocker</h2>
+        <p>
+          Es wurden keine realen Critical Blocker beobachtet, weil keine echten Sessions
+          vorliegen. Daraus folgt nicht, dass keine Blocker existieren. Der Blockerstatus
+          bleibt <strong>unbekannt</strong>, bis mindestens 3 reale Sessions durchgefuehrt
+          und nach CRITICAL, MAJOR und MINOR klassifiziert wurden.
+        </p>
+      </section>
+
+      <section>
+        <h2>10. Entscheidungsbewertung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Frage</th>
+              <th>Produktstand</th>
+              <th>User-Validation-Urteil</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Fuehlen sich Entscheidungen bedeutungsvoll an?</td>
+              <td>Die UI zeigt Decision Feedback, Depth-Chart-Bezug, Development- und Contract-Signale.</td>
+              <td><span class="badge yellow">Nicht bestaetigt</span></td>
+            </tr>
+            <tr>
+              <td>Koennen Nutzer Ursache und Wirkung nach dem Spiel erklaeren?</td>
+              <td>Match Report und Live Simulation wurden konsequenzstaerker formuliert.</td>
+              <td><span class="badge yellow">Nicht bestaetigt</span></td>
+            </tr>
+            <tr>
+              <td>Treffen Nutzer aktiv Entscheidungen?</td>
+              <td>Die relevanten Screens sind erreichbar und bieten Entscheidungskontext.</td>
+              <td><span class="badge yellow">Nicht bestaetigt</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>11. Finale Bewertung</h2>
+        <p>
+          <strong>Darf der Status auf Gruen gesetzt werden?</strong> Nein.
+        </p>
+        <p>
+          Die Voraussetzungen fuer Gruen sind produktseitig vorbereitet, aber nicht
+          beobachtungsbasiert nachgewiesen. Voll Gruen waere erst gerechtfertigt, wenn
+          der Re-Playtest mit 3-5 echten neuen Nutzern zeigt:
+        </p>
+        <ul>
+          <li>kein CRITICAL Blocker, der den Loop stoppt,</li>
+          <li>Mehrheit versteht Dashboard, Game Preview, Live Simulation und Match Report,</li>
+          <li>Mehrheit trifft mindestens zwei bewusste Manager-Entscheidungen,</li>
+          <li>Mehrheit will freiwillig eine weitere Woche spielen,</li>
+          <li>Match Report und Live Simulation helfen bei der Erklaerung von Sieg oder Niederlage.</li>
+        </ul>
+        <p class="accent">
+          Aktuelles ehrliches Urteil: Gruen-Gelb. Das Produkt ist bereit fuer reale
+          Validierung, aber nicht final durch Nutzerverhalten freigegeben.
+        </p>
+      </section>
+
+      <section>
+        <h2>12. Konkrete naechste Schritte</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Prioritaet</th>
+              <th>Massnahme</th>
+              <th>Ziel</th>
+              <th>Scope</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>3 echte Re-Playtest-Sessions durchfuehren</td>
+              <td>Loop-Verstaendnis, First Action, Spielstart und Weiterspiel-Motivation real messen.</td>
+              <td>Keine Produktarbeit; nur Moderation, Beobachtung und Erfassung.</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Blocker und Missverstaendnisse clustern</td>
+              <td>CRITICAL, MAJOR und MINOR mit Nutzeranzahl belegen.</td>
+              <td>Nur Auswertung der erhobenen Sessiondaten.</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Statusentscheidung aktualisieren</td>
+              <td>Gruen nur freigeben, wenn die Abschlusskriterien real erfuellt sind.</td>
+              <td>Diesen Bericht mit echten Tabellen, Zitaten und Top-Problemen ersetzen oder ergaenzen.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

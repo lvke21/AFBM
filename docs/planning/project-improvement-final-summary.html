@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AFBM Project Improvement - Finaler Abschlussbericht AP1-AP12</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --soft: #f8fafc;
+        --text: #182133;
+        --muted: #5d687a;
+        --line: #d9e2ec;
+        --accent: #0f766e;
+        --accent-soft: #e6f5f3;
+        --good: #146c43;
+        --warn: #9a6500;
+        --risk: #a51d2d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #eef3f8 0%, var(--bg) 100%);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.58;
+      }
+
+      main {
+        max-width: 1220px;
+        margin: 0 auto;
+        padding: 32px 18px 72px;
+      }
+
+      header,
+      section {
+        margin-bottom: 18px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        box-shadow: 0 14px 34px rgba(23, 32, 51, 0.07);
+        padding: 24px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 12px;
+        line-height: 1.2;
+      }
+
+      h1 {
+        color: var(--accent);
+        font-size: clamp(2rem, 4vw, 3.15rem);
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      h3 {
+        font-size: 1.08rem;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul {
+        margin: 0 0 0 20px;
+        padding: 0;
+      }
+
+      li {
+        margin: 4px 0;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 12px;
+        border-collapse: collapse;
+        font-size: 0.93rem;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef6f5;
+      }
+
+      code {
+        border-radius: 6px;
+        background: #eef2f7;
+        padding: 1px 5px;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.92em;
+      }
+
+      .lede {
+        max-width: 960px;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .meta,
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 12px 0;
+      }
+
+      .badge,
+      .tag {
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        padding: 6px 11px;
+        font-size: 0.88rem;
+        font-weight: 800;
+      }
+
+      .tag.good {
+        background: #e9f7ef;
+        color: var(--good);
+      }
+
+      .tag.warn {
+        background: #fff2d9;
+        color: var(--warn);
+      }
+
+      .tag.risk {
+        background: #fde8eb;
+        color: var(--risk);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--soft);
+        padding: 16px;
+      }
+
+      .note {
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        padding: 12px 14px;
+        color: #164a45;
+      }
+
+      .risk {
+        border-left: 4px solid var(--risk);
+        background: #fff1f3;
+        padding: 12px 14px;
+      }
+
+      .status-good {
+        color: var(--good);
+        font-weight: 850;
+      }
+
+      .status-warn {
+        color: var(--warn);
+        font-weight: 850;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Finaler Abschlussbericht AP1-AP12</h1>
+        <p class="lede">
+          Abschlussbericht fuer die Projektverbesserungspakete AP1 bis AP12 im AFBM
+          Manager. Alle Arbeitspakete wurden sequenziell abgeschlossen und gruen
+          bewertet. Die technische Basis ist lokal stabilisiert; produktive
+          Firestore-Aktivierung und Prisma-Removal bleiben bewusst nicht freigegeben.
+        </p>
+        <div class="meta">
+          <span class="badge">Datum: 2026-04-26</span>
+          <span class="badge">Gesamtstatus: Gruen</span>
+          <span class="badge">APs abgeschlossen: 12 / 12</span>
+          <span class="badge">Release-Readiness: lokal / serverseitig gruen</span>
+        </div>
+      </header>
+
+      <section id="executive-summary">
+        <h2>1. Executive Summary</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Lieferstatus</h3>
+            <p>
+              AP1 bis AP12 sind abgeschlossen. Die Gates fuer Typecheck, Lint,
+              Firestore-Emulator-Regressionen, Parity und Browser-Week-Loop sind auf dem
+              finalen Stand gruen.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Systemstatus</h3>
+            <p>
+              Das System ist lokal mit PostgreSQL/Prisma reproduzierbar lauffaehig.
+              Der Week Loop ist im Browser stabil und die Multi-Match-State-Machine ist
+              fuer Prisma und Firestore abgesichert.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Migrationsentscheidung</h3>
+            <p>
+              Firestore ist fuer serverseitige Kernbereiche im Emulator gruen. Prisma
+              bleibt Default, lokaler Entwicklungsanker und Rollback-Pfad. Prisma-Removal
+              ist No-Go.
+            </p>
+          </div>
+        </div>
+        <p class="note">
+          Release-Einschaetzung: Gruen fuer lokale Entwicklung, Prisma-Default,
+          serverseitige Firestore-Kern-Parity und weitere abgesicherte Feature-Arbeit.
+          Nicht gruen fuer produktiven Firestore-Cutover oder Prisma-Entfernung.
+        </p>
+      </section>
+
+      <section id="workpackages">
+        <h2>2. Zusammenfassung aller Arbeitspakete</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>AP</th>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>AP1</td>
+              <td>Gemeinsame Prisma-/Firestore-Parity-Fixtures</td>
+              <td class="status-good">Gruen</td>
+              <td>Gemeinsame Fixture-Konstanten, Firestore-Seed-IDs, Verify-Checks und Mapping zwischen Prisma-Minimal-Fixture und Firestore-8-Team-Fixture.</td>
+            </tr>
+            <tr>
+              <td>AP2</td>
+              <td>Parity-Testlauf und lokale PostgreSQL/E2E-Stabilisierung</td>
+              <td class="status-good">Gruen</td>
+              <td>Reproduzierbare lokale PostgreSQL-Basis via Docker Compose oder Homebrew-Fallback, Prisma-Migration, E2E-Seed, Preflight und Firestore-Parity-Gate.</td>
+            </tr>
+            <tr>
+              <td>AP3</td>
+              <td>Firestore Query- und Readmodel-Optimierung</td>
+              <td class="status-good">Gruen</td>
+              <td>N+1-nahe Firestore-Read-Pfade fuer Teams, Players und Readmodels reduziert; Scopes und Tests geschaerft.</td>
+            </tr>
+            <tr>
+              <td>AP4</td>
+              <td>Idempotente Stats-/Aggregate-Pipeline</td>
+              <td class="status-good">Gruen</td>
+              <td>Firestore-Stats mit Idempotenz- und Rebuild-Metadaten gehaertet; Replays ersetzen Aggregates statt doppelt zu zaehlen.</td>
+            </tr>
+            <tr>
+              <td>AP5</td>
+              <td>Week-/Match-State-Machine fuer Multi-Match-Wochen</td>
+              <td class="status-good">Gruen</td>
+              <td>Week State geht erst nach dem letzten offenen Match auf `POST_GAME`; Browser-E2E-Login stabilisiert und auf E2E-Dev-Pfad begrenzt.</td>
+            </tr>
+            <tr>
+              <td>AP6</td>
+              <td>Simulation-Orchestrator und Background-Job-Vorbereitung</td>
+              <td class="status-good">Gruen</td>
+              <td>Explizites Orchestrator-Statusmodell mit Pipeline-Schritten, deterministischer Job-ID und stabilisiertem E2E-Harness.</td>
+            </tr>
+            <tr>
+              <td>AP7</td>
+              <td>X-Factor/Gameplan UI</td>
+              <td class="status-good">Gruen</td>
+              <td>Pre-Game-X-Factor-Plaene validierbar, speicherbar, im UI nutzbar und im Simulationskontext verfuegbar.</td>
+            </tr>
+            <tr>
+              <td>AP8</td>
+              <td>Post-Game Entscheidungsfeedback</td>
+              <td class="status-good">Gruen</td>
+              <td>Reports erklaeren Gameplan, X-Factor, Ratings und Matchups kompakter und nachvollziehbarer.</td>
+            </tr>
+            <tr>
+              <td>AP9</td>
+              <td>Repository- und Domain-Typ-Grenzen entkoppeln</td>
+              <td class="status-good">Gruen</td>
+              <td>Zentrale Domain-Enums mit Prisma-Kompatibilitaetstest; fachliche Enum-Imports aus Prisma reduziert.</td>
+            </tr>
+            <tr>
+              <td>AP10</td>
+              <td>Weekly Decision Layer</td>
+              <td class="status-good">Gruen</td>
+              <td>Weekly Plan mit Recovery/Balanced/Intense, Opponent Focus und begrenztem Development Focus im Week Panel.</td>
+            </tr>
+            <tr>
+              <td>AP11</td>
+              <td>Performance Observability</td>
+              <td class="status-good">Gruen</td>
+              <td>ENV-geschuetzter Performance-Logger fuer Firestore Reads/Writes und Simulation; keine stoerende Default-Ausgabe.</td>
+            </tr>
+            <tr>
+              <td>AP12</td>
+              <td>Prisma-Entscheidungsvorlage aktualisieren</td>
+              <td class="status-good">Gruen</td>
+              <td>Parity-Bericht und finale Migrationsempfehlung aktualisiert: Prisma behalten, Removal No-Go.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="technical-improvements">
+        <h2>3. Wichtigste technische Verbesserungen</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Lokale Stabilitaet</h3>
+            <ul>
+              <li>PostgreSQL laeuft reproduzierbar lokal.</li>
+              <li>E2E-Seed und Preflight liefern klare Diagnose.</li>
+              <li>Browser-Week-Loop ist stabil gegen lokale Dev-Server-Rebuilds.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Firestore-Qualitaet</h3>
+            <ul>
+              <li>Serverseitige Parity-Baseline ist gruen.</li>
+              <li>Readmodel- und Stats-Pfade sind effizienter und idempotenter.</li>
+              <li>Week-/Match-State ist fuer Multi-Match-Wochen abgesichert.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Produkt- und Gameplay-Tiefe</h3>
+            <ul>
+              <li>X-Factor/Gameplan ist als echte Pre-Game-Entscheidung nutzbar.</li>
+              <li>Post-Game-Reports geben Entscheidungsfeedback.</li>
+              <li>Weekly Plan bringt Training, Recovery und Development in den Week Loop.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Architektur und QA</h3>
+            <ul>
+              <li>Domain-Enums reduzieren Prisma-Kopplung in Fachcode.</li>
+              <li>Simulation-Orchestrator bereitet spaetere Worker-Schritte vor.</li>
+              <li>Performance-Logs sind per ENV-Flag verfuegbar.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="test-results">
+        <h2>4. Testergebnisse</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Test/Gate</th>
+              <th>Finaler Stand</th>
+              <th>Bedeutung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npm run db:up</code></td>
+              <td class="status-good">Gruen</td>
+              <td>PostgreSQL lokal erreichbar; Docker oder Homebrew-Fallback moeglich.</td>
+            </tr>
+            <tr>
+              <td><code>npm run prisma:migrate -- --name init</code></td>
+              <td class="status-good">Gruen</td>
+              <td>Schema ist lokal anwendbar; Prisma Client generierbar.</td>
+            </tr>
+            <tr>
+              <td><code>npm run test:e2e:seed</code></td>
+              <td class="status-good">Gruen</td>
+              <td>Prisma-E2E-Datenbasis wird lokal erzeugt.</td>
+            </tr>
+            <tr>
+              <td><code>node scripts/tools/e2e-preflight.mjs</code></td>
+              <td class="status-good">Gruen</td>
+              <td>Port, Chromium, DB und Migrationen werden vor E2E geprueft.</td>
+            </tr>
+            <tr>
+              <td><code>npm run test:e2e:week-loop</code></td>
+              <td class="status-good">Gruen</td>
+              <td>Browser-Flow laeuft durch `PRE_WEEK -> READY -> GAME_RUNNING -> POST_GAME -> PRE_WEEK`.</td>
+            </tr>
+            <tr>
+              <td><code>npm run test:firebase:parity</code></td>
+              <td class="status-good">Gruen</td>
+              <td>Firestore-Emulator-Parity fuer Kernbereiche: 1 Testdatei / 3 Tests.</td>
+            </tr>
+            <tr>
+              <td><code>npm run test:firebase:week-state</code></td>
+              <td class="status-good">Gruen</td>
+              <td>Firestore Week-/Match-State: 1 Testdatei / 8 Tests.</td>
+            </tr>
+            <tr>
+              <td><code>npx tsc --noEmit</code></td>
+              <td class="status-good">Gruen</td>
+              <td>TypeScript-Integritaet final bestaetigt.</td>
+            </tr>
+            <tr>
+              <td><code>npm run lint</code></td>
+              <td class="status-good">Gruen</td>
+              <td>Lint-Gate final bestaetigt.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          Zusaetzlich wurden AP-spezifische Unit-, Repository-, Simulation-, Dashboard-,
+          Report-, Gameplan-, Stats- und Firestore-Tests erfolgreich ausgefuehrt. Details
+          stehen in den jeweiligen AP-Berichten.
+        </p>
+      </section>
+
+      <section id="migration-status">
+        <h2>5. Firestore/Prisma-Migrationsstand</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Prisma</h3>
+            <p>
+              Prisma bleibt Runtime-Default, lokale Entwicklungsbasis und Rollback-Pfad.
+              Auth.js, SaveGame-Root, Seeds, Referenzdaten und mehrere transaktionale
+              Fachpfade sind weiterhin Prisma/PostgreSQL-basiert.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Firestore</h3>
+            <p>
+              Firestore ist im Emulator fuer serverseitige Kernbereiche gruen: Seed,
+              Readmodels, Week-State, Game Output, Stats, Reports und Parity-Baseline.
+              Produktive Aktivierung ist nicht erfolgt.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Entscheidung</h3>
+            <p>
+              Empfehlung aus AP12: Option A, Prisma behalten. Option B
+              Prisma als Legacy/Fallback braucht weitere Voraussetzungen. Option C
+              Prisma entfernen ist No-Go.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="limitations">
+        <h2>6. Verbleibende Einschraenkungen</h2>
+        <ul>
+          <li>Firestore-Browser-E2E ist nicht produktionsnah validiert, weil Auth.js und SaveGame-Root Prisma-basiert bleiben.</li>
+          <li>Firestore ist nicht produktiv aktiviert und bleibt Emulator-/Demo-geschuetzt.</li>
+          <li>Es gibt keine produktionsnahe Datenmigration mit Backfill, Checksummen und Rollback-Snapshot.</li>
+          <li>Der Simulation-Orchestrator hat noch keinen echten Background Worker und keine persistierten Job-Status.</li>
+          <li>Weekly Plan ist eine konservative erste Version ohne eigene Verlaufs-Persistenz.</li>
+          <li>Performance Observability ist lokal/entwicklungsnah und keine zentrale Telemetrieplattform.</li>
+          <li>Prisma-Typen bleiben an Persistenz-, Bootstrap- und Transaktionsgrenzen erhalten.</li>
+        </ul>
+      </section>
+
+      <section id="production-risks">
+        <h2>7. Risiken vor produktiver Aktivierung</h2>
+        <div class="risk">
+          <h3>Kein produktiver Firestore-Cutover</h3>
+          <p>
+            Die Firestore-Server-Parity ist gruen, ersetzt aber keine produktionsnahe
+            Auth-, SaveGame-, Browser- und Datenmigrationsvalidierung.
+          </p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Risiko</th>
+              <th>Bewertung</th>
+              <th>Notwendige Massnahme</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Auth.js/Session-Persistenz</td>
+              <td class="status-warn">Offen</td>
+              <td>Firestore-Auth-Strategie oder Hybrid-Architektur separat entscheiden.</td>
+            </tr>
+            <tr>
+              <td>SaveGame Root und Browser-Navigation</td>
+              <td class="status-warn">Offen</td>
+              <td>Firestore-faehigen App-Einstieg mit dedizierter Fixture/E2E absichern.</td>
+            </tr>
+            <tr>
+              <td>Datenmigration</td>
+              <td class="status-warn">Offen</td>
+              <td>Backfill, Count-/ID-/Checksum-Vergleiche und Rollback-Snapshot planen.</td>
+            </tr>
+            <tr>
+              <td>Transaktionale Fachpfade</td>
+              <td class="status-warn">Teilweise offen</td>
+              <td>Team, Draft, Scouting, Finance, Reference Data und Player History Firestore-faehig machen.</td>
+            </tr>
+            <tr>
+              <td>Last und Kosten</td>
+              <td class="status-warn">Nicht produktionsnah bewiesen</td>
+              <td>Performance-Logging aus AP11 fuer Lastprofile und Kostenmodell nutzen.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="recommendations">
+        <h2>8. Empfehlung fuer naechste Schritte</h2>
+        <ol>
+          <li>Prisma als produktiven Default behalten und Firestore weiter nur im Emulator/Preview-Kontext fuehren.</li>
+          <li>Vor jedem Firestore-Cutover eine eigene Auth-/SaveGame-Architekturentscheidung treffen.</li>
+          <li>Firestore-Browser-E2E mit dedizierter Fixture aufbauen, ohne produktive Auth zu schwaechen.</li>
+          <li>Produktionsnahe Datenmigration separat planen: Backfill, Checksummen, Rollback-Snapshot und Feature-Flag-Rueckfall auf Prisma.</li>
+          <li>Simulation-Orchestrator in einem eigenen Paket zu echtem Background-Processing weiterentwickeln.</li>
+          <li>Weekly Plan und X-Factor-Feedback spaeter balancieren, aber nur daten- und testgestuetzt.</li>
+          <li>Performance-Observability aus AP11 in Last-/Kostenpruefungen einbinden, bevor Firestore-Read/Write-Pfade produktiv skaliert werden.</li>
+        </ol>
+      </section>
+
+      <section id="status-check">
+        <h2>9. Statuspruefung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Kriterium</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Alle APs beruecksichtigt?</td>
+              <td class="status-good">Gruen. AP1 bis AP12 sind enthalten.</td>
+            </tr>
+            <tr>
+              <td>Einschraenkungen klar benannt?</td>
+              <td class="status-good">Gruen. Firestore-Browser-E2E, Auth, SaveGame, Datenmigration, Worker und Telemetrie sind abgegrenzt.</td>
+            </tr>
+            <tr>
+              <td>Release-Readiness realistisch bewertet?</td>
+              <td class="status-good">Gruen. Lokaler Prisma-Default und serverseitige Firestore-Kern-Parity sind gruen; produktiver Firestore-Cutover und Prisma-Removal bleiben No-Go.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          Finaler Status: <strong>Gruen</strong>. Alle Arbeitspakete sind abgeschlossen,
+          das System ist fuer den aktuellen Prisma-Default stabil, und die verbleibenden
+          Migrationsrisiken sind explizit dokumentiert.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

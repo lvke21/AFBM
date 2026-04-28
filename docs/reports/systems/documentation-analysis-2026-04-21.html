@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Analyse der Projektdokumentation</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f2ea;
+        --panel: #fffdf8;
+        --text: #1f2933;
+        --muted: #52606d;
+        --line: #d9d1c3;
+        --accent: #7c2d12;
+        --accent-soft: #f8e6dd;
+        --good: #1f6f4a;
+        --mid: #8a6d1f;
+        --weak: #8b1e3f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #efe7db 0%, var(--bg) 100%);
+        color: var(--text);
+        font-family: Georgia, "Times New Roman", serif;
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 20px 72px;
+      }
+
+      header,
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(31, 41, 51, 0.06);
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        line-height: 1.25;
+        margin-top: 0;
+      }
+
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 12px;
+        color: var(--accent);
+      }
+
+      h2 {
+        font-size: 1.45rem;
+        margin-bottom: 16px;
+      }
+
+      h3 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+      }
+
+      p,
+      li {
+        font-size: 1rem;
+      }
+
+      .lede {
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .pill {
+        border-radius: 999px;
+        padding: 7px 12px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 0.95rem;
+      }
+
+      .rating-good {
+        color: var(--good);
+        font-weight: 700;
+      }
+
+      .rating-mid {
+        color: var(--mid);
+        font-weight: 700;
+      }
+
+      .rating-weak {
+        color: var(--weak);
+        font-weight: 700;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        font-size: 0.95rem;
+      }
+
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+      }
+
+      th {
+        background: #f3ede2;
+      }
+
+      code {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.92em;
+        background: #f2eee7;
+        border-radius: 6px;
+        padding: 1px 5px;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 0 20px;
+        padding: 0;
+      }
+
+      .note {
+        border-left: 4px solid var(--accent);
+        padding-left: 14px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Analyse der Projektdokumentation</h1>
+        <p class="lede">
+          Dieser Bericht bewertet die vorhandene Projektdokumentation des American-Football-Manager-Projekts
+          aus Sicht von Entwicklern, fachlichen Anwendern, Projektbeteiligten und neuen Teammitgliedern.
+          Grundlage sind die vorhandenen Dokumentationsdateien, Querverweise innerhalb der Doku sowie ein
+          Abgleich mit Projektstruktur, Konfiguration und ausgewählten Laufzeitpruefungen.
+        </p>
+        <div class="pill-row">
+          <span class="pill">Projektkontext: Next.js, Prisma, PostgreSQL, Auth.js</span>
+          <span class="pill">Pruefdatum: 21.04.2026</span>
+          <span class="pill">Analyseart: Dokumentationspruefung mit Code-Abgleich</span>
+        </div>
+      </header>
+
+      <section id="kurzfazit">
+        <h2>1. Kurzfazit</h2>
+        <p>
+          Die Dokumentation ist insgesamt <strong>gut brauchbar</strong> und fuer ein noch junges Projekt
+          bereits ueberdurchschnittlich strukturiert. Besonders positiv ist, dass nicht nur ein
+          <code>README</code> existiert, sondern ein klar gegliedertes Dokumentationssystem mit Bereichen fuer
+          System, Betrieb, Daten und Architekturentscheidungen. Wer neu ins Projekt kommt, kann sich damit
+          deutlich schneller orientieren als in vielen vergleichbaren Fruehphasen-Projekten.
+        </p>
+        <p>
+          Die groesste Staerke liegt in der fachlich-technischen Tiefe: Die Systemarchitektur wird nachvollziehbar
+          erklaert, das Datenmodell ist ausfuehrlich beschrieben, und wichtige Entscheidungen sind als
+          ADRs dokumentiert. Gleichzeitig zeigt die Pruefung, dass ein Teil der Doku den juengsten Projektstand
+          noch nicht vollstaendig widerspiegelt. Das betrifft vor allem einzelne Betriebs- und Uebersichtsdateien,
+          die noch von einem aelteren Zustand ausgehen, obwohl Build, Matchsimulation und Match-Stat-Persistenz
+          inzwischen weiterentwickelt wurden.
+        </p>
+        <p>
+          Insgesamt ist die Dokumentation deshalb nicht lueckenhaft oder kritisch, sondern <strong>stark mit
+          einzelnen veralteten Stellen</strong>. Die wichtigsten Staerken sind Struktur, Datenverstaendnis und
+          Architekturtransparenz. Die wichtigsten Schwaechen sind kleinere Aktualitaetsluecken, inhaltliche
+          Ueberlappungen zwischen Betriebsdokumenten und eine noch etwas zu technische Perspektive fuer
+          nicht-technische Anwender.
+        </p>
+      </section>
+
+      <section id="gepruefte-dokumente">
+        <h2>2. Welche Dokumente geprueft wurden</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Dateipfad</th>
+              <th>Dokumenttyp</th>
+              <th>Zweck</th>
+              <th>Relevanz</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>README.md</code></td><td>Projekteinstieg</td><td>Erster Ueberblick, Setup, Commands, Doku-Einstieg</td><td>Sehr hoch</td></tr>
+            <tr><td><code>CHANGELOG.md</code></td><td>Aenderungshistorie</td><td>Nachvollziehbarkeit bisheriger Projektentwicklung</td><td>Hoch</td></tr>
+            <tr><td><code>docs/README.md</code></td><td>Doku-Index</td><td>Navigation durch die Dokumentation</td><td>Sehr hoch</td></tr>
+            <tr><td><code>docs/architecture/overview.md</code></td><td>Kurzuebersicht</td><td>Knapper Einstieg in die Architektur</td><td>Mittel</td></tr>
+            <tr><td><code>docs/architecture/architecture.md</code></td><td>Systemdokumentation</td><td>Architektur, Schichten, technische Grenzen</td><td>Sehr hoch</td></tr>
+            <tr><td><code>docs/architecture/modules.md</code></td><td>Systemdokumentation</td><td>Modulverantwortungen und Zuständigkeiten</td><td>Sehr hoch</td></tr>
+            <tr><td><code>docs/architecture/data-flow.md</code></td><td>Systemdokumentation</td><td>Wichtige Daten- und Schreibfluesse im System</td><td>Sehr hoch</td></tr>
+            <tr><td><code>docs/guides/operations-setup.md</code></td><td>Betriebsdokumentation</td><td>Erstinstallation und lokale Voraussetzungen</td><td>Sehr hoch</td></tr>
+            <tr><td><code>docs/guides/operations-run-locally.md</code></td><td>Betriebsdokumentation</td><td>Lokaler Start, Build, typische Laufzeitfragen</td><td>Sehr hoch</td></tr>
+            <tr><td><code>docs/guides/operations-database.md</code></td><td>Betriebsdokumentation</td><td>Datenbankbetrieb, Migration, Seed, typische Fehler</td><td>Sehr hoch</td></tr>
+            <tr><td><code>docs/architecture/data/entities.md</code></td><td>Daten-Dokumentation</td><td>Wichtige Entitaeten und Felder</td><td>Sehr hoch</td></tr>
+            <tr><td><code>docs/architecture/data/relations.md</code></td><td>Daten-Dokumentation</td><td>Beziehungen zwischen Entitaeten</td><td>Hoch</td></tr>
+            <tr><td><code>docs/architecture/data/player-model.md</code></td><td>Daten-Dokumentation</td><td>Aufbau des Spielermodells</td><td>Sehr hoch</td></tr>
+            <tr><td><code>docs/architecture/data/statistics.md</code></td><td>Daten-Dokumentation</td><td>Statistikstruktur ueber Match, Season, Career</td><td>Sehr hoch</td></tr>
+            <tr><td><code>docs/architecture/data/state-boundaries.md</code></td><td>Daten-Dokumentation</td><td>Abgrenzung von Referenzdaten und Savegame-Zustand</td><td>Hoch</td></tr>
+            <tr><td><code>docs/architecture/data/enums-and-read-models.md</code></td><td>Daten-Dokumentation</td><td>Enums, Read-DTOs und API-Antworten</td><td>Hoch</td></tr>
+            <tr><td><code>docs/architecture/decisions/001-project-architecture.md</code></td><td>ADR</td><td>Grundsätzliche Architekturentscheidung</td><td>Hoch</td></tr>
+            <tr><td><code>docs/architecture/decisions/002-database-choice.md</code></td><td>ADR</td><td>Begruendung fuer PostgreSQL</td><td>Hoch</td></tr>
+            <tr><td><code>docs/architecture/decisions/003-authentication-strategy.md</code></td><td>ADR</td><td>Authentifizierungsstrategie</td><td>Hoch</td></tr>
+            <tr><td><code>docs/architecture/decisions/004-savegame-data-isolation.md</code></td><td>ADR</td><td>Isolation von Savegames</td><td>Hoch</td></tr>
+            <tr><td><code>docs/architecture/decisions/005-reference-data-management.md</code></td><td>ADR</td><td>Umgang mit Referenzdaten</td><td>Hoch</td></tr>
+            <tr><td><code>docs/architecture/decisions/006-first-match-simulation-slice.md</code></td><td>ADR</td><td>Erste Matchsimulation als vertikaler Entwicklungsschritt</td><td>Hoch</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="gesamtbewertung">
+        <h2>3. Gesamtbewertung nach Kategorien</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Kategorie</th>
+              <th>Bewertung</th>
+              <th>Begruendung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Vollstaendigkeit</td>
+              <td class="rating-good">gut</td>
+              <td>Die Doku deckt Architektur, Betrieb, Datenmodell, Entscheidungen und Aenderungen ab. Fuer ein fruehes Produkt ist das stark. Es fehlen aber noch einige anwendernahe Erklaerungen, etwa zur konkreten Nutzung der vorhandenen Features.</td>
+            </tr>
+            <tr>
+              <td>Verstaendlichkeit</td>
+              <td class="rating-good">gut</td>
+              <td>Viele Texte sind klar formuliert und gut gegliedert. Fuer Entwickler ist die Doku gut lesbar. Fuer fachliche Anwender sind die System- und Datendokumente stellenweise noch recht technisch.</td>
+            </tr>
+            <tr>
+              <td>Konsistenz</td>
+              <td class="rating-mid">mittel</td>
+              <td>Die Grundbegriffe sind weitgehend einheitlich. Einzelne Dateien beschreiben den aktuellen Stand aber unterschiedlich genau, besonders in den Betriebsdokumenten und der kurzen Architekturuebersicht.</td>
+            </tr>
+            <tr>
+              <td>Aktualitaet</td>
+              <td class="rating-mid">mittel</td>
+              <td>Der groesste Teil der Doku passt zum aktuellen Projekt. Einige konkrete Aussagen sind jedoch veraltet, etwa zu Google Fonts im Build oder dazu, ob Match-Stats bereits geschrieben werden.</td>
+            </tr>
+            <tr>
+              <td>Praktische Nutzbarkeit</td>
+              <td class="rating-good">gut</td>
+              <td>Ein Entwickler kann das Projekt mit hoher Wahrscheinlichkeit aufsetzen und verstehen. Fuer neue fachliche Anwender fehlt noch eine kompakte Nutzungserklaerung ohne Entwicklerfokus.</td>
+            </tr>
+            <tr>
+              <td>Struktur</td>
+              <td class="rating-good">sehr gut</td>
+              <td>Die Trennung in <code>/docs/system</code>, <code>/docs/operations</code>, <code>/docs/data</code> und <code>/docs/decisions</code> ist logisch und langfristig wartbar.</td>
+            </tr>
+            <tr>
+              <td>Nachvollziehbarkeit von Aenderungen</td>
+              <td class="rating-mid">mittel</td>
+              <td>Es gibt ein Changelog und ADRs. Das ist gut. Die Aenderungshistorie ist aber noch eher eine kuratierte Zusammenfassung als eine lueckenlose Release-Historie.</td>
+            </tr>
+            <tr>
+              <td>Architekturverstaendnis</td>
+              <td class="rating-good">sehr gut</td>
+              <td>Die Architektur ist fuer die Projektphase bemerkenswert gut erklaert. Besonders hilfreich sind <code>docs/architecture/architecture.md</code>, <code>modules.md</code> und <code>data-flow.md</code>.</td>
+            </tr>
+            <tr>
+              <td>Datenverstaendnis</td>
+              <td class="rating-good">gut</td>
+              <td>Das Datenmodell ist umfangreich und nachvollziehbar dokumentiert. Die Doku macht die Trennung zwischen Referenzdaten, Savegame-Zustand und Statistikebenen gut sichtbar.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="staerken">
+        <h2>4. Staerken der Dokumentation</h2>
+        <p>
+          Die groesste Staerke der Dokumentation ist ihre <strong>saubere Ordnung</strong>. Wer das Projekt neu
+          betritt, findet nicht nur ein einzelnes README, sondern eine nachvollziehbare Struktur: Systemwissen,
+          Betriebswissen, Datenwissen und Entscheidungswissen sind voneinander getrennt. Das ist besonders
+          wertvoll, weil damit nicht alle Informationen in einer einzigen langen Datei vermischt werden.
+        </p>
+        <p>
+          Sehr hilfreich sind die Dokumente unter <code>/docs/system</code>. Dort wird nicht nur gesagt,
+          <em>welche</em> Technik verwendet wird, sondern auch <em>wie</em> die Anwendung aufgebaut ist. Fuer neue
+          Entwickler und technische Projektbeteiligte ist das ein klarer Vorteil, weil sich dadurch schneller
+          erkennen laesst, wo Benutzeroberflaeche, Anwendungslogik und Datenzugriff voneinander getrennt sind.
+        </p>
+        <p>
+          Ebenfalls stark ist die Daten-Dokumentation. Dateien wie <code>docs/architecture/data/entities.md</code>,
+          <code>player-model.md</code> und <code>statistics.md</code> beschreiben die Fachobjekte des Spiels
+          recht genau. Das ist fuer ein Manager-Spiel wichtig, weil solche Projekte schnell an Komplexitaet
+          gewinnen: Teams, Spieler, Vertrage, Savegames, Saisons und Statistiken muessen langfristig sauber
+          verstanden werden. Die vorhandene Doku gibt dafuer bereits eine tragfaehige Grundlage.
+        </p>
+        <p>
+          Positiv ist auch, dass Architekturentscheidungen als ADRs dokumentiert wurden. Ein ADR
+          (Architecture Decision Record) ist eine kurze, strukturierte Begruendung fuer eine wichtige
+          technische Entscheidung. Damit ist nicht nur sichtbar, <em>was</em> gemacht wurde, sondern auch
+          <em>warum</em>. Das macht die Doku fuer neue Teammitglieder deutlich nuetzlicher.
+        </p>
+      </section>
+
+      <section id="schwaechen">
+        <h2>5. Schwaechen und Luecken</h2>
+
+        <h3>1. Einzelne Betriebsdokumente sind nach juengsten Aenderungen nicht mehr ganz aktuell</h3>
+        <p>
+          In <code>docs/guides/operations-run-locally.md</code> steht noch, dass
+          <code>npm run build</code> wegen <code>next/font/google</code> scheitern kann. Im aktuellen Code
+          verwendet <code>src/app/layout.tsx</code> diese Einbindung aber nicht mehr. Die Aussage ist deshalb
+          veraltet. Das ist problematisch, weil gerade Betriebsdokumente fuer neue Entwickler besonders
+          vertrauenswuerdig sein muessen. Die Auswirkung ist <strong>mittel bis hoch</strong>, da Build-Hinweise
+          unmittelbar das Arbeitsverhalten beeinflussen.
+        </p>
+
+        <h3>2. Die Datenbank-Betriebsdoku beschreibt den Schreibstand teilweise zu alt</h3>
+        <p>
+          <code>docs/guides/operations-database.md</code> sagt noch, dass <code>PlayerMatchStat</code> und
+          <code>TeamMatchStat</code> aktuell nicht beschrieben werden. Im aktuellen Projektstand werden diese
+          Tabellen aber durch die vorhandene Saison- und Matchsimulation aktiv geschrieben. Das ist problematisch,
+          weil gerade diese Datei die Bruecke zwischen Datenmodell und realem Anwendungsverhalten bildet.
+          Die Auswirkung ist <strong>hoch</strong>, weil daraus ein falsches Bild ueber den Reifegrad der
+          Fachlogik entsteht.
+        </p>
+
+        <h3>3. Die kurze Architekturuebersicht ist nuetzlich, aber nicht mehr vollstaendig</h3>
+        <p>
+          <code>docs/architecture/overview.md</code> ist bewusst nur eine Kurzfassung. Trotzdem bleibt sie hinter dem
+          aktuellen Stand zurueck, weil neue Server- und Simulationspfade dort nicht mehr auftauchen. Das ist
+          nicht kritisch, aber es schwaecht die Datei als schnelle Einstiegsseite. Die Auswirkung ist
+          <strong>mittel</strong>.
+        </p>
+
+        <h3>4. Die Doku erklaert das System besser als den fachlichen Nutzen fuer Anwender</h3>
+        <p>
+          Aus technischer Sicht ist gut dokumentiert, wie das System funktioniert. Weniger stark ist die Doku
+          bei der Frage, was ein Anwender heute konkret mit der App tun kann. Es fehlt eine kompakte, fachliche
+          Nutzungserklaerung fuer den aktuellen Funktionsstand: anmelden, Savegame erstellen, Team ansehen,
+          Saisonwoche simulieren, Grenzen des aktuellen Stands verstehen. Das ist problematisch, weil nicht jede
+          Person im Projekt den Code oder Architekturbegriffe lesen moechte. Die Auswirkung ist
+          <strong>mittel</strong>.
+        </p>
+
+        <h3>5. Es gibt Ueberlappungen zwischen README und Betriebsdoku</h3>
+        <p>
+          <code>README.md</code>, <code>docs/guides/operations-setup.md</code> und
+          <code>docs/guides/operations-run-locally.md</code> behandeln teilweise dieselben Themen. Das ist nicht
+          automatisch schlecht, erhoeht aber das Risiko, dass Informationen auseinanderlaufen. Genau das ist
+          hier bereits in Teilen passiert. Die Auswirkung ist <strong>mittel</strong>, weil solche kleinen
+          Doppelungen langfristig oft zu Verwirrung fuehren.
+        </p>
+
+        <h3>6. Die Changelog-Perspektive ist hilfreich, aber noch nicht voll ausgereift</h3>
+        <p>
+          <code>CHANGELOG.md</code> verwendet ein sinnvolles Format mit <code>Added</code>,
+          <code>Changed</code> und <code>Fixed</code>. Das ist gut. Gleichzeitig wirkt der Inhalt eher wie eine
+          geordnete Projektzusammenfassung als wie eine ueber laengere Zeit gewachsene Release-Historie. Das ist
+          fuer ein junges Projekt normal, sollte aber transparent so verstanden werden. Die Auswirkung ist
+          <strong>niedrig bis mittel</strong>.
+        </p>
+      </section>
+
+      <section id="anwendersicht">
+        <h2>6. Verstaendlichkeit aus Sicht eines Anwenders</h2>
+        <p>
+          Ein neuer Anwender oder Projektbeteiligter wuerde recht schnell verstehen, dass das Projekt ein
+          webbasiertes Manager-Spiel fuer American Football ist, das mit Savegames arbeitet und technisch
+          auf Next.js, Prisma und PostgreSQL basiert. Auch die grobe Trennung zwischen Stammdaten
+          und Spielstand wird in der Doku gut sichtbar.
+        </p>
+        <p>
+          Verwirrend kann es dort werden, wo Dokumente stark aus Entwicklerperspektive geschrieben sind.
+          Begriffe wie <em>Server Action</em>, <em>Repository</em>, <em>DTO</em> oder
+          <em>Composite Relation</em> sind fuer Entwickler normal, fuer fachliche Anwender aber nicht selbsterklaerend.
+          In den meisten Dateien werden solche Begriffe nicht falsch verwendet, aber sie werden auch nicht immer
+          kurz uebersetzt. Ein nicht-technischer Leser versteht dann, dass etwas wichtig ist, aber nicht unbedingt,
+          welche praktische Bedeutung es hat.
+        </p>
+        <p>
+          Besonders gut verstaendlich sind die Dokumente, die eine klare Frage beantworten, zum Beispiel:
+          Wie richte ich das Projekt lokal ein? Welche Entitaeten gibt es? Wie haengen Savegame, Team und Spieler
+          zusammen? Weniger klar ist die Doku bei der Frage: <em>Was kann ich als Anwender heute konkret tun?</em>
+          Genau diese Bruecke zwischen Technik und Nutzung fehlt noch ein wenig.
+        </p>
+        <p>
+          Aus Anwendersicht waere eine kurze Seite sinnvoll, die nicht die Architektur beschreibt, sondern den
+          aktuellen Funktionsumfang in Alltagssprache: Anmeldung, Savegame-Erstellung, Navigation, Simulation
+          einer Woche und bekannte Grenzen des Systems.
+        </p>
+      </section>
+
+      <section id="vergleich-projektstand">
+        <h2>7. Vergleich zwischen Dokumentation und Projektstand</h2>
+        <p>
+          Der Abgleich mit dem aktuellen Code und den Projektkommandos zeigt insgesamt ein <strong>weitgehend
+          stimmiges Bild</strong>. Das README beschreibt den Stack korrekt. Die Systemdokumentation passt im Kern
+          zur vorhandenen Modulstruktur. Die Daten-Dokumentation stimmt grob mit dem Prisma-Schema und den
+          vorhandenen Services ueberein. Besonders positiv: Die Matchsimulation als neuerer Entwicklungsschritt
+          ist in grossen Teilen der System- und Daten-Dokumentation bereits angekommen.
+        </p>
+        <p>
+          Es gibt aber einige klar bestaetigte Abweichungen:
+        </p>
+        <ul>
+          <li><code>docs/guides/operations-run-locally.md</code> beschreibt noch ein Build-Problem mit Google Fonts, das im aktuellen Root-Layout nicht mehr zutrifft.</li>
+          <li><code>docs/guides/operations-database.md</code> beschreibt <code>PlayerMatchStat</code> und <code>TeamMatchStat</code> noch als nicht aktiv beschrieben, obwohl der aktuelle Simulationspfad diese Werte bereits schreibt.</li>
+          <li><code>docs/architecture/overview.md</code> bleibt als Einstieg nutzbar, bildet den juengsten Ausbau der Saison-Simulation aber nicht mehr vollstaendig ab.</li>
+          <li><code>docs/architecture/data/enums-and-read-models.md</code> erfasst die Savegame-Server-Action, aber noch nicht die neuere Action zur Saisonwochensimulation.</li>
+        </ul>
+        <p>
+          Im technischen Abgleich wurden ausserdem die Projektkommandos ausgefuehrt. <code>npm run lint</code>,
+          <code>npm run build</code> und <code>npm run test:run</code> liefen erfolgreich. Das spricht dafuer,
+          dass die Dokumentation zur grundsaetzlichen Start- und Entwicklungsfaehigkeit im Wesentlichen stimmt.
+          Der lokale Start ueber <code>npm run dev</code> wurde ebenfalls beobachtet; der Server meldete sich
+          erfolgreich auf Port <code>3001</code>, weil <code>3000</code> bereits belegt war. Ein anschliessender
+          HTTP-Zugriff per <code>curl</code> war in der Analyseumgebung jedoch nicht bestaetigbar, daher bleibt
+          dieser Teil als technische Unsicherheit gekennzeichnet.
+        </p>
+      </section>
+
+      <section id="fehlende-inhalte">
+        <h2>8. Die wichtigsten fehlenden Inhalte</h2>
+        <p>
+          Die Dokumentation ist nicht leer oder oberflaechlich. Was fehlt, sind vor allem Inhalte, die den
+          <strong>heutigen Nutzwert des Systems fuer Nicht-Entwickler</strong> direkt greifbar machen.
+        </p>
+        <ul>
+          <li>Eine kurze fachliche Nutzungsanleitung fuer den aktuellen Systemstand.</li>
+          <li>Eine kompakte Seite „Was funktioniert heute bereits, was ist erst vorbereitet?“.</li>
+          <li>Eine ausdrueckliche Beschreibung des neuen Saison- und Matchsimulations-Workflows in den Betriebsdokumenten.</li>
+          <li>Ein kleines Glossar fuer wiederkehrende Fach- und Technikbegriffe.</li>
+          <li>Eine klarere Trennung zwischen Einstiegstext im README und detailreicher Betriebsdokumentation.</li>
+        </ul>
+      </section>
+
+      <section id="verbesserungen">
+        <h2>9. Priorisierte Verbesserungsvorschlaege</h2>
+
+        <h3>Kritisch</h3>
+        <p>
+          <strong>Betriebsdokumente an den aktuellen Projektstand anpassen.</strong> Konkret sollten
+          <code>docs/guides/operations-run-locally.md</code> und <code>docs/guides/operations-database.md</code>
+          unmittelbar ueberarbeitet werden. Der Nutzen ist hoch, weil gerade diese Dokumente bei Einrichtung,
+          Fehleranalyse und Bewertung des Reifegrads am haeufigsten als Wahrheit gelesen werden.
+        </p>
+
+        <h3>Wichtig</h3>
+        <p>
+          <strong>Kurzuebersicht und API-/Readmodell-Doku nachziehen.</strong> Die Dateien
+          <code>docs/architecture/overview.md</code> und <code>docs/architecture/data/enums-and-read-models.md</code> sollten den
+          neuen Saison-Simulationspfad ebenfalls enthalten. Das verbessert die Konsistenz und verhindert, dass
+          schnelle Einstiege hinter der eigentlichen Fachdoku zurueckbleiben.
+        </p>
+        <p>
+          <strong>Anwendernahe Funktionsuebersicht ergaenzen.</strong> Eine kurze, fachliche Seite fuer
+          Nicht-Entwickler wuerde sofort den praktischen Nutzen der Doku erhoehen. Sie sollte in einfacher
+          Sprache erklaeren, was heute moeglich ist und was noch fehlt.
+        </p>
+
+        <h3>Sinnvoll als naechster Ausbau</h3>
+        <p>
+          <strong>README verschlanken und staerker als Einstieg nutzen.</strong> Das README sollte einen
+          klaren Einstieg geben und dann gezielt in die Detaildokumente verlinken, statt mehrere Betriebsfragen
+          parallel zu tief abzudecken.
+        </p>
+        <p>
+          <strong>Glossar und Known-Limitations-Seite ergaenzen.</strong> Das ist nicht dringend, aber
+          hilfreich, damit fachliche Anwender und neue Teammitglieder den Status des Systems schneller
+          einordnen koennen.
+        </p>
+      </section>
+
+      <section id="naechster-schritt">
+        <h2>10. Empfehlung fuer den naechsten Schritt</h2>
+        <p>
+          Der sinnvollste naechste Dokumentationsschritt ist die <strong>gezielte Ueberarbeitung der
+          Betriebsdokumentation</strong>, insbesondere von <code>docs/guides/operations-run-locally.md</code> und
+          <code>docs/guides/operations-database.md</code>.
+        </p>
+        <p>
+          Der Grund ist einfach: Diese Dateien sind fuer neue Entwickler und Projektbeteiligte besonders wichtig,
+          weil sie direkt beim Einstieg, bei Problemen und bei der Frage „Was macht das System heute wirklich?“
+          helfen sollen. Genau dort liegen aber die aktuell sichtbarsten veralteten Aussagen. Wenn dieser Bereich
+          zuerst bereinigt wird, steigt der praktische Nutzen der Dokumentation sofort und am deutlichsten.
+        </p>
+      </section>
+
+      <section id="transparenz">
+        <h2>11. Transparenz zum Analyseprozess</h2>
+        <p>
+          Im Rahmen dieser Analyse wurde keine fachliche oder technische Aenderung am Projekt vorgenommen.
+          Es wurde lediglich ein Ergebnisdokument erzeugt. Zur Bewertung wurden Dokumentationsdateien gelesen
+          und punktuell mit Projektdateien verglichen, die fuer den aktuellen Stand relevant sind.
+        </p>
+        <p class="note">
+          Produktiver Code bedeutet hier: Code, der die eigentliche Anwendung veraendert. Ein HTML-Bericht zaehlt
+          in dieser Auswertung nicht als produktiver Anwendungscode, sondern als Ergebnisdatei.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Dateipfad</th>
+              <th>Status</th>
+              <th>Typ</th>
+              <th>Zweck</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>README.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Einstieg, Setup, Verweise</td></tr>
+            <tr><td><code>CHANGELOG.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Aenderungshistorie</td></tr>
+            <tr><td><code>docs/README.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Doku-Navigation</td></tr>
+            <tr><td><code>docs/architecture/overview.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Kurzuebersicht</td></tr>
+            <tr><td><code>docs/architecture/architecture.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Architektur</td></tr>
+            <tr><td><code>docs/architecture/modules.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Modulverantwortung</td></tr>
+            <tr><td><code>docs/architecture/data-flow.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Datenfluesse</td></tr>
+            <tr><td><code>docs/guides/operations-setup.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Setup</td></tr>
+            <tr><td><code>docs/guides/operations-run-locally.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Lokaler Betrieb</td></tr>
+            <tr><td><code>docs/guides/operations-database.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Datenbankbetrieb</td></tr>
+            <tr><td><code>docs/architecture/data/entities.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Entitaeten</td></tr>
+            <tr><td><code>docs/architecture/data/relations.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Relationen</td></tr>
+            <tr><td><code>docs/architecture/data/player-model.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Spielermodell</td></tr>
+            <tr><td><code>docs/architecture/data/statistics.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Statistikstruktur</td></tr>
+            <tr><td><code>docs/architecture/data/state-boundaries.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>State-Grenzen</td></tr>
+            <tr><td><code>docs/architecture/data/enums-and-read-models.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>Enums und Readmodelle</td></tr>
+            <tr><td><code>docs/architecture/decisions/001-project-architecture.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>ADR</td></tr>
+            <tr><td><code>docs/architecture/decisions/002-database-choice.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>ADR</td></tr>
+            <tr><td><code>docs/architecture/decisions/003-authentication-strategy.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>ADR</td></tr>
+            <tr><td><code>docs/architecture/decisions/004-savegame-data-isolation.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>ADR</td></tr>
+            <tr><td><code>docs/architecture/decisions/005-reference-data-management.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>ADR</td></tr>
+            <tr><td><code>docs/architecture/decisions/006-first-match-simulation-slice.md</code></td><td>nur gelesen</td><td>Dokumentation</td><td>ADR</td></tr>
+            <tr><td><code>package.json</code></td><td>nur gelesen</td><td>Projektkonfiguration</td><td>Commands und Abhaengigkeiten gegenpruefen</td></tr>
+            <tr><td><code>src/app/layout.tsx</code></td><td>nur gelesen</td><td>Code</td><td>Build-Hinweis zu Fonts gegenpruefen</td></tr>
+            <tr><td><code>src/modules/seasons/application/season-simulation.service.ts</code></td><td>nur gelesen</td><td>Code</td><td>Aktuellen Simulationspfad pruefen</td></tr>
+            <tr><td><code>src/app/app/savegames/[savegameId]/seasons/[seasonId]/actions.ts</code></td><td>nur gelesen</td><td>Code</td><td>Server Action gegen Doku pruefen</td></tr>
+            <tr><td><code>docs/reports/systems/documentation-analysis-2026-04-21.html</code></td><td>neu / Ergebnisdatei</td><td>HTML-Bericht</td><td>Bereitstellung des Analyseergebnisses</td></tr>
+          </tbody>
+        </table>
+        <p>
+          Verwendete Hilfsmittel in der Analyse:
+        </p>
+        <ul>
+          <li>Dateiansicht ueber Shell-Kommandos wie <code>sed</code>, <code>find</code> und <code>rg</code></li>
+          <li>Projektkommandos: <code>npm run lint</code>, <code>npm run build</code>, <code>npm run test:run</code>, <code>npm run dev</code></li>
+          <li>Keine eigens erzeugten Hilfsskripte</li>
+        </ul>
+      </section>
+
+      <section id="artefakte">
+        <h2>12. Umfang der im Prozess generierten Artefakte</h2>
+        <p>
+          Im Rahmen dieses Prozesses wurde ausschliesslich der vorliegende HTML-Bericht neu erzeugt.
+          Es wurde kein produktiver Anwendungscode und kein Hilfsskript erstellt.
+        </p>
+        <ul>
+          <li>Anzahl neu erzeugter Dateien: <strong>1</strong></li>
+          <li>Anzahl geaenderter Dateien: <strong>0</strong></li>
+          <li>Anzahl reiner Ergebnisdateien: <strong>1</strong></li>
+          <li>Anzahl generierter Lines of Code insgesamt: <strong>606</strong></li>
+          <li>Davon produktiver Code: <strong>0</strong></li>
+          <li>Davon Hilfsskripte: <strong>0</strong></li>
+          <li>Davon HTML / Berichtsausgabe: <strong>606</strong></li>
+          <li>Verwendete Zaehlmethode: <strong><code>wc -l</code> ueber die neu erzeugte HTML-Datei</strong></li>
+          <li>Offene Unsicherheiten: <strong>keine inhaltlichen Unsicherheiten bei der Dateizeilenzahl; die Zaehlung bezieht sich nur auf erzeugte Artefakte dieses Analyseprozesses</strong></li>
+        </ul>
+      </section>
+
+      <section id="abschluss">
+        <h2>13. Abschlussfazit</h2>
+        <p>
+          Die vorhandene Projektdokumentation ist heute bereits <strong>klar nutzbar und fachlich wertvoll</strong>.
+          Sie ist weder provisorisch noch chaotisch, sondern zeigt eine ernsthafte Grundlage fuer ein wartbares
+          Projekt. Besonders stark sind Architektur- und Datenverstaendnis, die saubere Struktur der Dokumente
+          und die dokumentierten Architekturentscheidungen.
+        </p>
+        <p>
+          Gleichzeitig ist die Doku noch nicht an allen Stellen gleich aktuell. Der wichtigste Punkt fuer die
+          naechste Ueberarbeitung ist deshalb nicht, mehr Dokumente zu schreiben, sondern die besonders
+          praxisrelevanten Betriebsdokumente wieder exakt auf den heutigen Projektstand zu bringen. Danach sollte
+          der Blick staerker auf eine anwendernahe Funktionsbeschreibung gelenkt werden, damit auch fachliche
+          Beteiligte den aktuellen Nutzen des Systems schneller erfassen koennen.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

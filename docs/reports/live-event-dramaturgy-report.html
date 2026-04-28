@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Event Dramaturgy Report</title>
+    <style>
+      :root {
+        background: #f5f7fa;
+        color: #172033;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 24px;
+      }
+
+      p,
+      li {
+        line-height: 1.65;
+      }
+
+      .lead {
+        max-width: 850px;
+        color: #526070;
+        font-size: 17px;
+      }
+
+      .panel,
+      table {
+        border: 1px solid #d9e0ea;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .panel {
+        margin-top: 22px;
+        padding: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .card {
+        border-left: 4px solid #3b82f6;
+        background: #fff;
+        padding: 14px;
+      }
+
+      .card strong {
+        display: block;
+      }
+
+      .card span {
+        color: #657383;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7ebf0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef3f8;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #e9eef5;
+        padding: 2px 5px;
+      }
+
+      .good {
+        color: #166534;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Live Event Dramaturgy</h1>
+      <p class="lead">
+        Aufgabe: Turnovers, Big Plays und Scores sollen sich in der Live Simulation staerker wie
+        echte Momente anfuehlen. Die Umsetzung nutzt ausschliesslich vorhandene Drive- und
+        Highlight-Daten; Simulation, Score-Erzeugung und Event-Logik bleiben unveraendert.
+      </p>
+
+      <section class="panel">
+        <h2 style="margin-top: 0">Executive Summary</h2>
+        <p>
+          Die Live Simulation hat jetzt eine zusaetzliche Dramaturgie-Schicht. Wichtige Drives
+          erhalten staerkere Labels wie <strong>Game Changing Moment</strong>,
+          <strong>Critical Drive</strong>, <strong>Touchdown Swing</strong> und
+          <strong>Red Zone Pressure</strong>. Die oberen Live-Karten und die Drive Timeline
+          zeigen nicht mehr nur Resultattypen, sondern erklaeren kurz, warum der sichtbare Drive
+          emotional Gewicht hat.
+        </p>
+      </section>
+
+      <h2>Umsetzung</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>Turnover</strong>
+          <span>
+            Roter Moment-Frame, Label <code>Game Changing Moment</code>, Text mit Besitzwechsel,
+            Swing und direkter Antwort.
+          </span>
+        </div>
+        <div class="card">
+          <strong>Touchdown</strong>
+          <span>
+            Gruener Score-Moment, Titel <code>Touchdown Swing</code>, Copy ueber Finish,
+            Scoreboard-Bewegung und Reaktionsdruck.
+          </span>
+        </div>
+        <div class="card">
+          <strong>Big Play</strong>
+          <span>
+            Eigener <code>Big Play Spark</code> mit kurzer Betonung von Explosivitaet, Field
+            Position und Tempo.
+          </span>
+        </div>
+        <div class="card">
+          <strong>Red Zone</strong>
+          <span>
+            <code>Red Zone Pressure</code> macht Finish-Druck sichtbar, ohne neue Daten ueber den
+            Drive zu erfinden.
+          </span>
+        </div>
+      </div>
+
+      <h2>Geaenderte Dateien</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Datei</th>
+            <th>Aenderung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>src/components/match/live-event-dramaturgy.ts</code></td>
+            <td>
+              Neue Praesentationshilfe fuer Moment-Labels, visuelle Klassen und variierende
+              UX-Copy. Sie liest nur vorhandene <code>LiveTimelineEntry</code>-Informationen.
+            </td>
+          </tr>
+          <tr>
+            <td><code>src/components/match/live-simulation-flow.tsx</code></td>
+            <td>
+              Aktueller Drive, letztes Event, Key Drive, Momentum und What-to-watch-next nutzen
+              die neue Moment-Sprache.
+            </td>
+          </tr>
+          <tr>
+            <td><code>src/components/match/play-by-play-timeline.tsx</code></td>
+            <td>
+              Wichtige Timeline-Eintraege bekommen eine eigene Moment-Box mit Kontext wie
+              <code>Critical Drive</code>, <code>Score Moment</code> oder
+              <code>Explosive Play</code>.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Beispiele Fuer Neue Inszenierung</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Neue Wirkung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Turnover</td>
+            <td>
+              <strong>Game Changing Moment</strong>: Besitzwechsel wird als Swing erklaert, nicht
+              nur als Resultat <code>TURNOVER</code> angezeigt.
+            </td>
+          </tr>
+          <tr>
+            <td>Touchdown</td>
+            <td>
+              <strong>Touchdown Swing</strong>: Der Drive wird als klares Finish mit
+              Reaktionsdruck fuer den Gegner gerahmt.
+            </td>
+          </tr>
+          <tr>
+            <td>Big Play</td>
+            <td>
+              <strong>Big Play Spark</strong>: Raumgewinn bekommt eine kurze Betonung als Tempo-
+              und Field-Position-Moment.
+            </td>
+          </tr>
+          <tr>
+            <td>Red Zone</td>
+            <td>
+              <strong>Red Zone Pressure</strong>: Der Nutzer versteht, dass der Drive jetzt mehr
+              Entscheidungsgewicht hat.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Scope Check</h2>
+      <ul>
+        <li class="good">Keine neuen Simulationsdaten.</li>
+        <li class="good">Keine neue Score- oder Drive-Logik.</li>
+        <li class="good">Keine neuen Resultattypen.</li>
+        <li class="good">Nur bessere Inszenierung bestehender Highlights.</li>
+      </ul>
+
+      <h2>Validierung</h2>
+      <ul>
+        <li><code>npx tsc --noEmit --pretty false</code>: erfolgreich.</li>
+        <li>
+          <code>npx vitest run src/components/match/live-simulation-model.test.ts src/components/match/game-flow-model.test.ts</code>:
+          10 Tests erfolgreich.
+        </li>
+        <li><code>npm run db:up</code>: lokale Testdatenbank verfuegbar.</li>
+        <li><code>npm run test:e2e:seed</code>: E2E-Testdaten gesetzt.</li>
+        <li>
+          <code>npx playwright test e2e/live-storyline.spec.ts --project=chromium --workers=1</code>:
+          erfolgreich.
+        </li>
+        <li>
+          <code>npx playwright test e2e/week-loop.spec.ts --project=chromium --workers=1</code>:
+          erfolgreich.
+        </li>
+      </ul>
+
+      <h2>Bewertung</h2>
+      <p>
+        Die Live Simulation liest sich nun weniger wie eine technische Timeline und mehr wie eine
+        Folge kleiner Football-Momente. Besonders Turnovers und Scores haben sichtbares Gewicht,
+        waehrend Big Plays und Red-Zone-Drives kurz, aber klar betont werden.
+      </p>
+    </main>
+  </body>
+</html>

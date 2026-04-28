@@ -1,0 +1,62 @@
+import { NextResponse } from "next/server";
+
+import {
+  AuthConfigurationError,
+  AuthenticationError,
+  requireApiUserId,
+} from "@/lib/auth/session";
+import { createSaveGame } from "@/modules/savegames/application/savegame-command.service";
+import { listSaveGames } from "@/modules/savegames/application/savegame-query.service";
+
+export async function GET() {
+  try {
+    const userId = await requireApiUserId();
+    const saveGames = await listSaveGames(userId);
+
+    return NextResponse.json({ items: saveGames });
+  } catch (error) {
+    if (error instanceof AuthConfigurationError) {
+      return NextResponse.json(
+        { message: "Authentication provider is not configured" },
+        { status: 503 },
+      );
+    }
+
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    throw error;
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const userId = await requireApiUserId();
+    const body = (await request.json()) as {
+      name?: string;
+      managerTeamAbbreviation?: string;
+    };
+
+    const saveGame = await createSaveGame({
+      userId,
+      name: body.name ?? "",
+      managerTeamAbbreviation: body.managerTeamAbbreviation,
+    });
+
+    return NextResponse.json(saveGame, { status: 201 });
+  } catch (error) {
+    if (error instanceof AuthConfigurationError) {
+      return NextResponse.json(
+        { message: "Authentication provider is not configured" },
+        { status: 503 },
+      );
+    }
+
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    throw error;
+  }
+}

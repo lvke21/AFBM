@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Development Week Comparison Report</title>
+    <style>
+      :root {
+        --bg: #08111f;
+        --surface: #101b2d;
+        --panel: #162235;
+        --line: rgba(255, 255, 255, 0.1);
+        --text: #edf4ff;
+        --muted: #9fb0c8;
+        --accent: #4fb3ff;
+        --success: #35d07f;
+        --warning: #f6c65b;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 40px 20px 56px;
+      }
+
+      header,
+      section {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 18px;
+      }
+
+      h1,
+      h2 {
+        margin: 0 0 12px;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      code {
+        color: #d8ecff;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 2px 6px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      .badge {
+        display: inline-flex;
+        min-height: 26px;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .green {
+        background: var(--success);
+        color: #062916;
+      }
+
+      .yellow {
+        background: var(--warning);
+        color: #2c2100;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .accent {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="muted">Stand: 2026-04-27</p>
+        <h1>Player Development Wochenvergleich</h1>
+        <p>
+          Der Player Development Screen zeigt nun Fortschritt ueber Zeit: Letzte Woche,
+          aktueller Stand, Veraenderung und eine nachvollziehbare Ursache aus vorhandenen
+          Daten.
+        </p>
+        <span class="badge green">Status: Gruen</span>
+      </header>
+
+      <section>
+        <h2>Umsetzung</h2>
+        <ul>
+          <li>
+            <code>TeamPlayerSummary</code> liest jetzt die letzten Development-History-Events
+            pro Spieler mit.
+          </li>
+          <li>
+            <code>buildDevelopmentWeekComparison</code> parst gespeicherte OVR-Aenderungen
+            aus <code>PlayerHistoryEvent</code> vom Typ <code>DEVELOPMENT</code>.
+          </li>
+          <li>
+            Der Development Screen zeigt pro Spieler eine Vergleichszeile mit
+            Letzte Woche, Aktueller Stand, Veraenderung und Ursache.
+          </li>
+          <li>
+            Das Player Profile nutzt dieselbe Vergleichslogik, damit Development-Kontext
+            zwischen Profil und Development Screen konsistent bleibt.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Datenquellen</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Signal</th>
+              <th>Quelle</th>
+              <th>Nutzung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Letzte Woche</td>
+              <td><code>PlayerHistoryEvent.week</code> + Beschreibung mit <code>OVR previous-&gt;next</code></td>
+              <td>Gespeicherter Vorwochenwert, sofern vorhanden.</td>
+            </tr>
+            <tr>
+              <td>Aktueller Stand</td>
+              <td><code>PlayerEvaluation.positionOverall</code></td>
+              <td>Aktueller OVR aus dem Read-Model.</td>
+            </tr>
+            <tr>
+              <td>Moegliche Ursache</td>
+              <td>History-Beschreibung, Development Focus, Fatigue, Injury, Rolle, Depth Slot, Games Played</td>
+              <td>Erklaert den Vergleich ohne neue Simulation oder neue Balance-Regeln.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Fallback-Verhalten</h2>
+        <p>
+          Wenn keine echte Development-History oder kein parsebarer OVR-Wert vorhanden ist,
+          zeigt die UI explizit <code>kein gespeicherter Vorwochenwert</code> und
+          <code>nicht gespeichert</code>. Die Ursache wird dann als aktueller Read-Model-Kontext
+          beschrieben, nicht als echte Wochenveraenderung.
+        </p>
+        <p class="accent">
+          Damit wird kein Fortschritt vorgetaeuscht, solange die Datenbasis nur den aktuellen
+          Stand enthaelt.
+        </p>
+      </section>
+
+      <section>
+        <h2>Validierung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npx tsc --noEmit</code></td>
+              <td><span class="badge green">Passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npm run lint</code></td>
+              <td><span class="badge green">Passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx vitest run src/components/development/player-development-model.test.ts src/components/player/player-detail-model.test.ts</code></td>
+              <td><span class="badge green">2 files, 18 tests passed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Grenzen</h2>
+        <ul>
+          <li>Keine neue Development Engine.</li>
+          <li>Keine Trainingssimulation.</li>
+          <li>Keine Balance-Aenderungen.</li>
+          <li>
+            Die Vergleichsqualitaet steigt erst dann, wenn regelmaessig
+            <code>DEVELOPMENT</code>-History-Events geschrieben werden.
+          </li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

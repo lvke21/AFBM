@@ -1,0 +1,126 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function membershipPath(leagueId) {
+      return /databases/$(database)/documents/leagueMembers/$(leagueId + "_" + request.auth.uid);
+    }
+
+    function isActiveLeagueMember(leagueId) {
+      return isSignedIn()
+        && exists(membershipPath(leagueId))
+        && get(membershipPath(leagueId)).data.status == "ACTIVE";
+    }
+
+    function hasLeagueRole(leagueId, roles) {
+      return isActiveLeagueMember(leagueId)
+        && get(membershipPath(leagueId)).data.role in roles;
+    }
+
+    function isLeagueOwner(leagueId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/leagues/$(leagueId))
+        && get(/databases/$(database)/documents/leagues/$(leagueId)).data.ownerId == request.auth.uid;
+    }
+
+    function canReadLeague(leagueId) {
+      return isActiveLeagueMember(leagueId) || isLeagueOwner(leagueId);
+    }
+
+    function canReadLeagueDoc() {
+      return canReadLeague(resource.data.leagueId);
+    }
+
+    // TODO(firebase-auth): Revisit role mapping once Auth.js/Firebase Auth and
+    // custom claims are finalized. Until then, membership documents are the
+    // only client-visible authorization source.
+    // TODO(firebase-writes): Keep all game-state, simulation, stat, finance,
+    // roster, and report writes behind server/Admin SDK paths.
+    match /reference/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /users/{userId} {
+      allow get: if isSelf(userId);
+      allow list: if false;
+      allow write: if false;
+    }
+
+    match /users/{userId}/{document=**} {
+      allow read: if isSelf(userId);
+      allow write: if false;
+    }
+
+    match /leagues/{leagueId} {
+      allow read: if canReadLeague(leagueId);
+      allow write: if false;
+    }
+
+    match /leagueMembers/{leagueMemberId} {
+      allow read: if isSignedIn()
+        && (
+          resource.data.userId == request.auth.uid
+          || hasLeagueRole(resource.data.leagueId, ["OWNER", "ADMIN"])
+        );
+      allow write: if false;
+    }
+
+    match /teams/{teamId} {
+      allow read: if canReadLeagueDoc();
+      allow write: if false;
+    }
+
+    match /players/{playerId} {
+      allow read: if canReadLeagueDoc();
+      allow write: if false;
+    }
+
+    match /seasons/{seasonId} {
+      allow read: if canReadLeagueDoc();
+      allow write: if false;
+    }
+
+    match /weeks/{weekId} {
+      allow read: if canReadLeagueDoc();
+      allow write: if false;
+    }
+
+    match /matches/{matchId} {
+      allow read: if canReadLeagueDoc();
+      allow write: if false;
+    }
+
+    match /gameEvents/{gameEventId} {
+      allow read: if canReadLeagueDoc();
+      allow write: if false;
+    }
+
+    match /playerStats/{playerStatId} {
+      allow read: if canReadLeagueDoc();
+      allow write: if false;
+    }
+
+    match /teamStats/{teamStatId} {
+      allow read: if canReadLeagueDoc();
+      allow write: if false;
+    }
+
+    match /reports/{reportId} {
+      allow read: if canReadLeagueDoc();
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simulation Variation Balancing Report</title>
+    <style>
+      :root {
+        background: #f5f7fa;
+        color: #172033;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 24px;
+      }
+
+      p,
+      li {
+        line-height: 1.65;
+      }
+
+      .lead {
+        max-width: 850px;
+        color: #526070;
+        font-size: 17px;
+      }
+
+      .panel,
+      table {
+        border: 1px solid #d9e0ea;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .panel {
+        margin-top: 22px;
+        padding: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .card {
+        border-left: 4px solid #3b82f6;
+        background: #fff;
+        padding: 14px;
+      }
+
+      .card strong {
+        display: block;
+      }
+
+      .card span {
+        color: #657383;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7ebf0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef3f8;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #e9eef5;
+        padding: 2px 5px;
+      }
+
+      .good {
+        color: #166534;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Simulation Variation Balancing</h1>
+      <p class="lead">
+        Rolle: Simulation Balancing Engineer. Ziel war, repetitive Muster in der Minimal-Drive-
+        Simulation zu reduzieren, insbesondere zu viele Turnover als wiederkehrende Hauptursache,
+        und sichtbar unterschiedliche Spieltypen zu erzeugen.
+      </p>
+
+      <section class="panel">
+        <h2 style="margin-top: 0">Executive Summary</h2>
+        <p>
+          Die Minimal-Simulation nutzt jetzt pro Match ein deterministisches Game Profile:
+          <strong>Defense Game</strong>, <strong>High Scoring</strong> oder
+          <strong>Balanced</strong>. Die Turnover-Basis wurde leicht reduziert und die Gewichtung
+          von Touchdown, Field Goal und Punt wird je nach Profil verschoben. Dadurch entstehen in
+          einer 10-Spiele-Probe sichtbar unterschiedliche Score- und Outcome-Muster, ohne neue
+          Daten in die Simulation einzufuehren.
+        </p>
+      </section>
+
+      <h2>Balancing-Aenderungen</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>Turnover-Rate reduziert</strong>
+          <span>
+            Die fixe 16%-Turnover-Schwelle wurde durch gewichtete Profile ersetzt. Der Balanced-
+            Basiswert liegt jetzt bei ca. 11%, High Scoring bei ca. 9%, Defense bei ca. 10%.
+          </span>
+        </div>
+        <div class="card">
+          <strong>Score-Varianz erhoeht</strong>
+          <span>
+            High-Scoring-Profile bekommen mehr TD/FG-Gewicht; Defense-Profile verschieben Gewicht
+            zu Punts statt zu Turnovers.
+          </span>
+        </div>
+        <div class="card">
+          <strong>Drive Outcomes variiert</strong>
+          <span>
+            Outcome-Gewichte werden pro Match deterministisch aus dem Seed abgeleitet. Gleiches
+            Match bleibt reproduzierbar, unterschiedliche Wochen fuehlen sich anders an.
+          </span>
+        </div>
+      </div>
+
+      <h2>Geaenderte Dateien</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Datei</th>
+            <th>Aenderung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>src/modules/savegames/application/minimal-drive-simulation.ts</code></td>
+            <td>
+              Neues internes Game Profile und gewichtete Drive-Result-Auswahl fuer TD, FG,
+              Turnover und Punt.
+            </td>
+          </tr>
+          <tr>
+            <td><code>src/modules/savegames/application/minimal-drive-simulation.test.ts</code></td>
+            <td>
+              Neuer 10-Spiele-Regressionscheck fuer sichtbare Score-Spanne, reduzierte
+              Turnover-Dichte und alle drei Spieltypen.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>10-Spiele-Validierung</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Spiel</th>
+            <th>Score</th>
+            <th>Total</th>
+            <th>Turnover</th>
+            <th>TD</th>
+            <th>FG</th>
+            <th>Punts</th>
+            <th>Typ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>9-10</td><td>19</td><td>4</td><td>1</td><td>4</td><td>7</td><td>Balanced</td></tr>
+          <tr><td>2</td><td>13-14</td><td>27</td><td>1</td><td>3</td><td>2</td><td>10</td><td>Balanced</td></tr>
+          <tr><td>3</td><td>17-23</td><td>40</td><td>3</td><td>4</td><td>4</td><td>5</td><td>High Scoring</td></tr>
+          <tr><td>4</td><td>7-17</td><td>24</td><td>3</td><td>3</td><td>1</td><td>9</td><td>Defense Game</td></tr>
+          <tr><td>5</td><td>12-13</td><td>25</td><td>1</td><td>1</td><td>6</td><td>8</td><td>Balanced</td></tr>
+          <tr><td>6</td><td>19-6</td><td>25</td><td>2</td><td>1</td><td>6</td><td>7</td><td>Balanced</td></tr>
+          <tr><td>7</td><td>7-13</td><td>20</td><td>0</td><td>2</td><td>2</td><td>12</td><td>Defense Game</td></tr>
+          <tr><td>8</td><td>7-24</td><td>31</td><td>2</td><td>4</td><td>1</td><td>9</td><td>High Scoring</td></tr>
+          <tr><td>9</td><td>17-3</td><td>20</td><td>2</td><td>2</td><td>2</td><td>10</td><td>Defense Game</td></tr>
+          <tr><td>10</td><td>13-3</td><td>16</td><td>3</td><td>1</td><td>3</td><td>9</td><td>Defense Game</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Auswertung</h2>
+      <ul>
+        <li><strong>Score-Spanne:</strong> 16 bis 40 Punkte Gesamtscore.</li>
+        <li><strong>Durchschnittlicher Gesamtscore:</strong> 24.7 Punkte.</li>
+        <li><strong>Durchschnittliche Turnover:</strong> 2.1 pro Spiel.</li>
+        <li><strong>Spieltypen sichtbar:</strong> Balanced, Defense Game und High Scoring.</li>
+      </ul>
+
+      <h2>Validierung</h2>
+      <ul>
+        <li><code>npx tsc --noEmit --pretty false</code>: erfolgreich.</li>
+        <li>
+          <code>npx vitest run src/modules/savegames/application/minimal-drive-simulation.test.ts src/modules/savegames/application/week-flow.service.test.ts</code>:
+          14 Tests erfolgreich.
+        </li>
+        <li>
+          <code>npx tsx -e ...</code>: 10 Spiele simuliert und ausgewertet.
+        </li>
+      </ul>
+
+      <h2>Fazit</h2>
+      <p class="good">
+        Ziel erreicht: Die Simulation erzeugt nicht mehr jede Woche denselben Turnover-getriebenen
+        Spielverlauf. Defense Games entstehen ueber mehr Punts, High-Scoring-Spiele ueber mehr TDs
+        und FG-Chancen, Balanced-Spiele bleiben als mittleres Muster erhalten.
+      </p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AP6 Final Validation Report</title>
+    <style>
+      :root {
+        background: #f5f7fa;
+        color: #172033;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 24px;
+      }
+
+      h3 {
+        margin-top: 22px;
+        font-size: 18px;
+      }
+
+      p,
+      li {
+        line-height: 1.65;
+      }
+
+      .lead {
+        max-width: 850px;
+        color: #526070;
+        font-size: 17px;
+      }
+
+      .decision {
+        display: grid;
+        grid-template-columns: minmax(190px, 270px) 1fr;
+        gap: 18px;
+        margin-top: 24px;
+      }
+
+      .status,
+      .panel,
+      table {
+        border: 1px solid #d9e0ea;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .status {
+        border-left: 8px solid #d89a1c;
+        padding: 18px;
+      }
+
+      .status strong {
+        display: block;
+        color: #8a5200;
+        font-size: 35px;
+        letter-spacing: 0;
+      }
+
+      .status span {
+        color: #657383;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .grade {
+        border-left: 4px solid #8298af;
+        padding: 12px 14px;
+        background: #fff;
+      }
+
+      .grade strong {
+        display: block;
+      }
+
+      .grade span {
+        color: #657383;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7ebf0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef3f8;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #e9eef5;
+        padding: 2px 5px;
+      }
+
+      .good {
+        color: #166534;
+        font-weight: 700;
+      }
+
+      .warn {
+        color: #925900;
+        font-weight: 700;
+      }
+
+      .bad {
+        color: #9b1c1c;
+        font-weight: 700;
+      }
+
+      @media (max-width: 760px) {
+        .decision {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>AP6 Final Validation</h1>
+      <p class="lead">
+        Rolle: Senior QA Engineer, Game Designer und kritischer Erstnutzer. Getestet wurde der
+        sichtbare Nutzerflow Dashboard -> Prepare Week -> Game Preview -> Live -> Match Report ->
+        naechste Woche ueber drei komplette Wochen. Bewertet wurde bewusst aus Erstnutzer-Sicht:
+        Wenn etwas im Interface nicht klar war, zaehlt es als Problem.
+      </p>
+
+      <section class="decision">
+        <div class="status">
+          <strong>GRUEN-GELB</strong>
+          <span>Funktioniert als Spielschleife, ist aber emotional noch nicht stark genug.</span>
+        </div>
+        <div class="panel">
+          <h2 style="margin-top: 0">Executive Summary</h2>
+          <p>
+            Der kritische Blocker ist behoben: Drei Wochen konnten komplett gespielt werden, ohne
+            dass fehlende Secondary-Starter den Match Start verhindern. Auto-Score, Live Drives,
+            Ereignisse, Match Report und Record bleiben ueber den Flow konsistent. Das Spiel ist
+            damit nicht mehr nur ein Systemtest, sondern eine spielbare Schleife mit echten
+            Entscheidungen. Fuer Gruen fehlt noch mehr Live-Spannung im Moment selbst: Die Live
+            Simulation wirkt weiterhin eher wie ein erzeugter Highlight-Snapshot als wie ein
+            mitfieberbarer Ablauf.
+          </p>
+        </div>
+      </section>
+
+      <h2>Testergebnis Pro Bereich</h2>
+      <div class="grid">
+        <div class="grade">
+          <strong>Live Simulation: mittel</strong>
+          <span>Drives, Scores und Events sind sichtbar; die Praesentation bleibt noch snapshot-artig.</span>
+        </div>
+        <div class="grade">
+          <strong>Match Report: klar</strong>
+          <span>Gewinn- und Verlustgruende werden konkret und handlungsrelevant erklaert.</span>
+        </div>
+        <div class="grade">
+          <strong>Entscheidungen: mittel</strong>
+          <span>Depth Chart erzeugt echte QB-Trade-offs; Auto-Fill macht schlechte Lineups spielbar.</span>
+        </div>
+        <div class="grade">
+          <strong>Datenvertrauen: hoch</strong>
+          <span>Score, Record, Live Screen und Report widersprechen sich im Test nicht.</span>
+        </div>
+        <div class="grade">
+          <strong>Gesamtgefuehl: Spiel</strong>
+          <span>Die Schleife ist spielbar und motiviert zum Weiterklicken, mit Systemkanten.</span>
+        </div>
+      </div>
+
+      <h2>Was Hat Sich Verbessert?</h2>
+      <ul>
+        <li>
+          Der Week Loop ist nicht mehr blockiert. Fehlende Secondary-Slots erzeugen eine Warnung
+          statt eines harten Stops.
+        </li>
+        <li>
+          Das Ergebnis wird automatisch erzeugt. Im Test gab es keine manuelle Score-Eingabe.
+        </li>
+        <li>
+          Die Live Simulation zeigt pro Woche erkennbare Drives, Spielzeit, Score, Ereignisse,
+          Momentum und einen Manager-Impact-Hinweis.
+        </li>
+        <li>
+          Der Match Report benennt Ursachen wie Turnovers, Matchups, Passing-Risiko und Red-Zone-
+          Effizienz so, dass daraus eine naechste Entscheidung ableitbar ist.
+        </li>
+        <li>
+          Data Trust ist deutlich besser: Nach drei Wochen steht BOS sichtbar bei 3-0, passend zu
+          den drei gespielten Siegen.
+        </li>
+      </ul>
+
+      <h2>Was Ist Immer Noch Schwach?</h2>
+      <ul>
+        <li>
+          Live fuehlt sich noch nicht voll wie ein beobachtbares Spiel an. Es gibt zwar Drives und
+          Ereignisse, aber der Ablauf springt schnell zum Report und wirkt eher wie eine
+          Zusammenfassung.
+        </li>
+        <li>
+          Die Ergebnisse sind glaubwuerdig, aber drei BOS-Siege in Folge mit starkem Turnover-
+          Muster koennen sich schnell repetitiv anfuehlen.
+        </li>
+        <li>
+          Im Setup ist die Warnung spielbar, aber Begriffe wie <code>AUTO-FILL AUS TEAMDATEN</code>
+          wirken fuer Erstnutzer noch leicht technisch.
+        </li>
+        <li>
+          Die Depth-Chart-Entscheidung ist am klarsten auf QB sichtbar. Andere Positionsgruppen
+          koennten noch deutlicher als bewusste Risiko- oder Stilentscheidung inszeniert werden.
+        </li>
+      </ul>
+
+      <h2>Konkrete Beispiele Aus Dem Spiel</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Woche</th>
+            <th>Beobachtung</th>
+            <th>QA-Wertung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Woche 1</td>
+            <td>
+              BOS gewinnt <strong>15 : 13</strong>. Live zeigt <strong>16 Drives</strong>, Q4
+              4:19, ein enges Spiel und einen Turnover als Key Drive. Der Report nennt
+              <strong>Ratings &amp; Matchups</strong>, mehr Yards und Big Plays als Hauptgrund.
+            </td>
+            <td class="good">
+              Starkes Beispiel fuer nachvollziehbaren Auto-Score und einen Report, der den Sieg
+              erklaert.
+            </td>
+          </tr>
+          <tr>
+            <td>Woche 2</td>
+            <td>
+              BOS gewinnt auswaerts <strong>16 : 3</strong>. Der Report erklaert den Ausgang ueber
+              <strong>Turnovers</strong>: NYT verliert den Ball dreimal, BOS gar nicht. BOS steht
+              danach sichtbar bei <strong>2-0</strong>.
+            </td>
+            <td class="good">
+              Ergebnis, Ursache und Record passen zusammen. Der Spielausgang ist glaubwuerdig.
+            </td>
+          </tr>
+          <tr>
+            <td>Woche 3</td>
+            <td>
+              BOS gewinnt <strong>7 : 0</strong>. Live bleibt eng, der Report nennt
+              <strong>4 NYT-Turnovers</strong>, Total Yards 268:181 und den Shutout-Kontext. BOS
+              steht danach bei <strong>3-0</strong>.
+            </td>
+            <td class="warn">
+              Klar und konsistent, aber erneut stark turnover-getrieben. Das kann sich als Muster
+              abnutzen.
+            </td>
+          </tr>
+          <tr>
+            <td>Lineup Flow</td>
+            <td>
+              Das Setup zeigt <strong>Match starten mit Lineup-Warnung</strong> und
+              <strong>Lineup unvollstaendig - Performance kann leiden</strong>. 12 Secondary-Slots
+              werden mit schwachen Ersatzspielern simuliert.
+            </td>
+            <td class="good">
+              Der alte Blocker ist geloest. Als Nutzer kann ich bewusst mit einem schlechten
+              Lineup spielen.
+            </td>
+          </tr>
+          <tr>
+            <td>Depth Chart</td>
+            <td>
+              Der Report verknuepft QB-Entscheidungen mit Passing-Risiko: Evan Stone erhoeht
+              Risiko, Casey Hale stabilisiert das Passspiel. Diese Signale tauchen in Live und
+              Report wieder auf.
+            </td>
+            <td class="warn">
+              Entscheidung ist relevant, aber noch etwas schmal. Mehr Positionsgruppen sollten
+              aehnlich klar rueckgekoppelt werden.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Data Trust Check</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Check</th>
+            <th>Ergebnis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Record vs. Ergebnisse</td>
+            <td class="good">Konsistent: BOS 1-0, 2-0, 3-0 nach drei Siegen.</td>
+          </tr>
+          <tr>
+            <td>Live Score vs. Match Report</td>
+            <td class="good">Konsistent in allen drei Wochen.</td>
+          </tr>
+          <tr>
+            <td>Report-Ursachen vs. Boxscore</td>
+            <td class="good">Turnovers, Yards, Red-Zone-Werte und Ratings stuetzen die Aussagen.</td>
+          </tr>
+          <tr>
+            <td>Technische Labels</td>
+            <td class="warn">
+              Keine harten Debug-Labels im Hauptflow. <code>AUTO-FILL AUS TEAMDATEN</code> sollte
+              fuer Erstnutzer noch produktsprachlicher werden.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Kritische Frage Nach Woche 3</h2>
+      <p>
+        Wuerde ich freiwillig weiterspielen? <strong>Ja, fuer weitere Wochen.</strong> Der Loop
+        funktioniert, die Reports geben mir verwertbare Hinweise, und ich erkenne, dass meine
+        Lineup-Entscheidungen Folgen haben. Es ist aber noch kein uneingeschraenktes Ja, weil Live
+        noch nicht genug Spannung im Ablauf erzeugt und einige Begriffe die Simulationstechnik zu
+        deutlich durchscheinen lassen.
+      </p>
+
+      <h2>Validierung</h2>
+      <ul>
+        <li><code>npm run db:up</code>: erfolgreich, PostgreSQL und Datenbank verfuegbar.</li>
+        <li><code>npm run test:e2e:seed</code>: erfolgreich, Testkader und drei Wochen gesetzt.</li>
+        <li>
+          <code>npx vitest run src/components/team/depth-chart-model.test.ts src/components/match/game-preview-model.test.ts src/components/match/post-game-report-model.test.ts src/components/match/match-report-model.test.ts</code>:
+          46 Tests erfolgreich.
+        </li>
+        <li>
+          <code>npx playwright test e2e/ap6-final-validation.spec.ts --project=chromium --workers=1</code>:
+          3-Wochen-Flow erfolgreich.
+        </li>
+        <li>
+          Screenshots und Beobachtungen: <code>reports-output/playtests/ap6-final-validation/</code>.
+        </li>
+      </ul>
+
+      <h2>Finale Entscheidung</h2>
+      <p>
+        <strong>GRUEN-GELB.</strong> Das Spiel funktioniert jetzt als echtes Spiel im Sinne einer
+        spielbaren Week-Schleife mit Auto-Score, Ursachen, Entscheidungen und konsistenten Daten.
+        Es ist noch nicht stark genug fuer Gruen, weil die Live Simulation emotional und
+        interaktiv noch zu sehr nach System-Zusammenfassung wirkt.
+      </p>
+    </main>
+  </body>
+</html>

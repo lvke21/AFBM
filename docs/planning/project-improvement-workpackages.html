@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FBManager - Priorisierte Arbeitspakete</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7fb;
+        --panel: #ffffff;
+        --soft: #f8fafc;
+        --text: #172033;
+        --muted: #5d687a;
+        --line: #d9e2ec;
+        --accent: #0f766e;
+        --accent-soft: #e6f5f3;
+        --high: #a51d2d;
+        --medium: #9a6500;
+        --low: #146c43;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #eef3f8 0%, var(--bg) 100%);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 1220px;
+        margin: 0 auto;
+        padding: 32px 18px 72px;
+      }
+
+      header,
+      section,
+      article {
+        margin-bottom: 18px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        box-shadow: 0 14px 34px rgba(23, 32, 51, 0.07);
+        padding: 24px;
+      }
+
+      article {
+        box-shadow: none;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        margin: 0 0 12px;
+        line-height: 1.2;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4vw, 3.15rem);
+        color: var(--accent);
+      }
+
+      h2 {
+        font-size: 1.55rem;
+      }
+
+      h3 {
+        font-size: 1.22rem;
+      }
+
+      h4 {
+        font-size: 1rem;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 0 20px;
+        padding: 0;
+      }
+
+      li {
+        margin: 4px 0;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 12px;
+        border-collapse: collapse;
+        font-size: 0.93rem;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef6f5;
+      }
+
+      code {
+        border-radius: 6px;
+        background: #eef2f7;
+        padding: 1px 5px;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.92em;
+      }
+
+      .lede {
+        max-width: 920px;
+        color: var(--muted);
+        font-size: 1.06rem;
+      }
+
+      .meta,
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 12px 0;
+      }
+
+      .badge,
+      .tag {
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        padding: 6px 11px;
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+
+      .tag.high {
+        background: #fde8eb;
+        color: var(--high);
+      }
+
+      .tag.medium {
+        background: #fff2d9;
+        color: var(--medium);
+      }
+
+      .tag.low {
+        background: #e9f7ef;
+        color: var(--low);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--soft);
+        padding: 16px;
+      }
+
+      .note {
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        padding: 12px 14px;
+        color: #164a45;
+      }
+
+      .risk {
+        border-left: 4px solid var(--high);
+        background: #fff1f3;
+        padding: 12px 14px;
+      }
+
+      .status-good {
+        color: var(--low);
+        font-weight: 800;
+      }
+
+      .rank {
+        color: var(--accent);
+        font-weight: 850;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>FBManager - Priorisierte Arbeitspakete</h1>
+        <p class="lede">
+          Dieser Bericht übersetzt die bisherigen Projektanalysen in konkrete,
+          einzeln umsetzbare Arbeitspakete. Er ist als Arbeitsgrundlage für Codex-Sessions,
+          technische Planung und Produktpriorisierung gedacht. Es wurde keine Implementierung
+          vorgenommen.
+        </p>
+        <div class="meta">
+          <span class="badge">Projekt: American Football Manager / FBManager</span>
+          <span class="badge">Datum: 2026-04-26</span>
+          <span class="badge">Scope: Planung, keine Umsetzung</span>
+        </div>
+      </header>
+
+      <section id="executive-summary">
+        <h2>1. Executive Summary</h2>
+        <p>
+          Die wichtigsten Verbesserungen liegen in vier Bereichen: erstens technische
+          Migrationssicherheit für Firestore, zweitens robuste Simulation und Stats-Persistenz,
+          drittens bessere Test- und Parity-Abdeckung, viertens mehr spielbare Tiefe in der UX.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <h3>Technischer Kernbefund</h3>
+            <p>
+              Prisma muss Default/Fallback bleiben. Firestore ist im Emulator weit vorbereitet,
+              aber die echte Prisma-vs-Firestore-Parity ist noch nicht final grün.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Produktkernbefund</h3>
+            <p>
+              Die Game Engine hat mehr Tiefe als die UI aktuell nutzbar macht. X-Factor,
+              Matchup-Pläne und Wochenentscheidungen sind der stärkste Gameplay-Hebel.
+            </p>
+          </div>
+          <div class="card">
+            <h3>QA-Kernbefund</h3>
+            <p>
+              Unit- und Emulator-Tests sind stark, aber E2E-Parity, Browser-Flows und
+              produktionsnahe Week-Loop-Szenarien bleiben die kritischen Lücken.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="gesamtuebersicht">
+        <h2>2. Priorisierte Gesamtübersicht</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Rang</th>
+              <th>Arbeitspaket</th>
+              <th>Priorität</th>
+              <th>Aufwand</th>
+              <th>Quick Win?</th>
+              <th>Abhängigkeiten</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="rank">1</td>
+              <td>Gemeinsame Prisma-/Firestore-Parity-Fixtures</td>
+              <td>Hoch</td>
+              <td>Mittel</td>
+              <td>Nein</td>
+              <td>Keine</td>
+            </tr>
+            <tr>
+              <td class="rank">2</td>
+              <td>Parity-Testlauf und lokale PostgreSQL/E2E-Stabilisierung</td>
+              <td>Hoch</td>
+              <td>Mittel</td>
+              <td>Nein</td>
+              <td>AP 1</td>
+            </tr>
+            <tr>
+              <td class="rank">3</td>
+              <td>Firestore Query- und Readmodel-Optimierung</td>
+              <td>Hoch</td>
+              <td>Mittel</td>
+              <td>Teilweise</td>
+              <td>Keine</td>
+            </tr>
+            <tr>
+              <td class="rank">4</td>
+              <td>Idempotente Stats-/Aggregate-Pipeline härten</td>
+              <td>Hoch</td>
+              <td>Groß</td>
+              <td>Nein</td>
+              <td>AP 1, AP 2</td>
+            </tr>
+            <tr>
+              <td class="rank">5</td>
+              <td>Week-/Match-State-Machine für Multi-Match-Wochen</td>
+              <td>Hoch</td>
+              <td>Groß</td>
+              <td>Nein</td>
+              <td>AP 2</td>
+            </tr>
+            <tr>
+              <td class="rank">6</td>
+              <td>Simulation-Orchestrator und Background-Job-Vorbereitung</td>
+              <td>Hoch</td>
+              <td>Groß</td>
+              <td>Nein</td>
+              <td>AP 4, AP 5</td>
+            </tr>
+            <tr>
+              <td class="rank">7</td>
+              <td>X-Factor/Gameplan UI als spielbare Entscheidung</td>
+              <td>Hoch</td>
+              <td>Mittel</td>
+              <td>Ja</td>
+              <td>Keine</td>
+            </tr>
+            <tr>
+              <td class="rank">8</td>
+              <td>Post-Game Entscheidungsfeedback im Report</td>
+              <td>Mittel</td>
+              <td>Mittel</td>
+              <td>Ja</td>
+              <td>AP 7 sinnvoll</td>
+            </tr>
+            <tr>
+              <td class="rank">9</td>
+              <td>Repository- und Domain-Typ-Grenzen weiter entkoppeln</td>
+              <td>Mittel</td>
+              <td>Groß</td>
+              <td>Nein</td>
+              <td>AP 1, AP 2</td>
+            </tr>
+            <tr>
+              <td class="rank">10</td>
+              <td>Weekly Decision Layer: Training, Recovery, Development Focus</td>
+              <td>Mittel</td>
+              <td>Groß</td>
+              <td>Nein</td>
+              <td>AP 7, AP 8</td>
+            </tr>
+            <tr>
+              <td class="rank">11</td>
+              <td>Performance Observability für Reads, Writes und Simulation</td>
+              <td>Mittel</td>
+              <td>Klein</td>
+              <td>Ja</td>
+              <td>Keine</td>
+            </tr>
+            <tr>
+              <td class="rank">12</td>
+              <td>Prisma-Entscheidungsvorlage aktualisieren nach Parity</td>
+              <td>Niedrig</td>
+              <td>Klein</td>
+              <td>Nein</td>
+              <td>AP 1-6</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="quick-wins">
+        <h2>3. Quick Wins</h2>
+        <ul>
+          <li><strong>AP 7:</strong> X-Factor/Gameplan UI nutzt bereits vorhandene Engine-Typen und erzeugt sofort mehr Spieltiefe.</li>
+          <li><strong>AP 8:</strong> Reports können vorhandene Trace-/Summary-Daten besser als Entscheidungsfeedback präsentieren.</li>
+          <li><strong>AP 11:</strong> Query-, Write- und Simulationszeiten loggen, ohne Fachlogik umzubauen.</li>
+          <li><strong>Teil von AP 3:</strong> offensichtliche N+1-Read-Pfade und fehlende Query-Scopes reduzieren.</li>
+        </ul>
+      </section>
+
+      <section id="risiken">
+        <h2>4. Kritische Risiken</h2>
+        <div class="grid">
+          <div class="risk">
+            <h3>Firestore-Parity bleibt Rot</h3>
+            <p>
+              Ohne gleichen Seed, lokale PostgreSQL-Verfügbarkeit und Backend-gegen-Backend-
+              Vergleich bleibt jede produktive Firestore-Aktivierung ein No-Go.
+            </p>
+          </div>
+          <div class="risk">
+            <h3>Stats doppelt oder teuer</h3>
+            <p>
+              Re-Simulation oder erneuter Matchabschluss darf Aggregates nie doppelt zählen.
+              Rebuilds aus allen Match-Stats sind korrekt, aber langfristig teuer.
+            </p>
+          </div>
+          <div class="risk">
+            <h3>Week Loop blockiert</h3>
+            <p>
+              Multi-Match-Wochen und offene Matches können Fortschritt verhindern, wenn
+              Statusregeln nicht präzise modelliert sind.
+            </p>
+          </div>
+          <div class="risk">
+            <h3>Game Engine und produktive Simulation laufen auseinander</h3>
+            <p>
+              Das moderne Gameplay-Modul ist tief, aber nicht vollständig mit der realen
+              Season-Simulation gekoppelt. Das kann Design- und Balance-Arbeit verdoppeln.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="arbeitspakete">
+        <h2>5. Detaillierte Arbeitspakete</h2>
+
+        <article id="ap1">
+          <h3>AP 1 - Gemeinsame Prisma-/Firestore-Parity-Fixtures</h3>
+          <div class="tags">
+            <span class="tag high">Priorität: Hoch</span>
+            <span class="tag medium">Aufwand: Mittel</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> Firestore-Seed und Prisma-E2E-Seed nutzen unterschiedliche IDs und Datenformen. Dadurch ist echte Parity nicht belastbar.</p>
+          <p><strong>Ziel:</strong> Eine gemeinsame fachliche Fixture-Basis mit stabilen IDs für beide Backends.</p>
+          <p><strong>Technischer Scope:</strong> Seed-Konstanten extrahieren, Prisma-Seed und Firestore-Seed daran anbinden, keine Auth-Migration.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>scripts/seeds/e2e-seed.ts</code>, <code>scripts/seeds/firestore-seed.ts</code>, <code>scripts/seeds/firestore-reset.ts</code>, <code>scripts/seeds/firestore-verify.ts</code>, <code>e2e/fixtures/minimal-e2e-context.ts</code>, optional <code>src/server/repositories/firestoreE2eParity.test.ts</code>.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>Gemeinsame Fixture-Konstanten für League, Teams, Players, Season, Weeks, Matches und Stats definieren.</li>
+            <li>Firestore-Seed auf diese IDs umstellen.</li>
+            <li>Prisma-E2E-Seed auf dieselben fachlichen IDs oder ein dokumentiertes Mapping bringen.</li>
+            <li>Verify-Script um Count- und ID-Prüfungen erweitern.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Bestehende E2E-Tests können auf alte IDs angewiesen sein.</p>
+          <p><strong>Benötigte Tests:</strong> <code>npm run firebase:reset</code>, <code>npm run firebase:seed</code>, <code>npm run test:firebase:parity</code>, <code>npm run test:e2e:seed</code>.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Beide Seeds erzeugen vergleichbare IDs/Counts; Unterschiede sind dokumentiert; keine produktiven Firebase-Zugriffe.</p>
+          <p><strong>Abhängigkeiten:</strong> Keine.</p>
+        </article>
+
+        <article id="ap2">
+          <h3>AP 2 - Parity-Testlauf und lokale PostgreSQL/E2E-Stabilisierung</h3>
+          <div class="tags">
+            <span class="tag high">Priorität: Hoch</span>
+            <span class="tag medium">Aufwand: Mittel</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> Der Parity-Bericht ist rot, weil PostgreSQL lokal nicht erreichbar war und Browser-E2E mit Firestore fachlich blockiert ist.</p>
+          <p><strong>Ziel:</strong> Reproduzierbarer Prisma- und Firestore-Testlauf mit klarer Parity-Matrix.</p>
+          <p><strong>Technischer Scope:</strong> Lokale DB-Preflight-Prüfung, Parity-Testskripte, Dokumentation der Firestore-Browser-Grenze ohne Auth-Umstellung.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>scripts/tools/e2e-preflight.mjs</code>, <code>package.json</code>, <code>src/server/repositories/firestoreE2eParity.test.ts</code>, <code>e2e/week-loop.spec.ts</code>, <code>docs/reports/systems/firebase-e2e-parity-report.md</code>.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>Preflight mit klarer PostgreSQL-Fehlermeldung und Fix-Hinweisen ergänzen.</li>
+            <li>Parity-Testmatrix für Seed, Team, Player, Season, Match, Week Loop, Stats und Reports definieren.</li>
+            <li>Prisma-Testlauf und Firestore-Emulator-Testlauf getrennt ausführbar machen.</li>
+            <li>Bericht nach erfolgreichem Lauf aktualisieren.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Lokale Infrastruktur bleibt der Engpass; Browser-E2E-Firestore bleibt ohne Auth-/SaveGame-Strategie begrenzt.</p>
+          <p><strong>Benötigte Tests:</strong> <code>npm run test:e2e:seed</code>, <code>npm run test:firebase:parity</code>, <code>npx tsc --noEmit</code>, <code>npm run lint</code>, relevante Playwright-Specs.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Parity-Bericht kann für serverseitige Kernresultate auf Grün gesetzt werden oder blockierende Infrastruktur ist eindeutig dokumentiert.</p>
+          <p><strong>Abhängigkeiten:</strong> AP 1.</p>
+        </article>
+
+        <article id="ap3">
+          <h3>AP 3 - Firestore Query- und Readmodel-Optimierung</h3>
+          <div class="tags">
+            <span class="tag high">Priorität: Hoch</span>
+            <span class="tag medium">Aufwand: Mittel</span>
+            <span class="tag low">Quick Win: Teilweise</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> Teamlisten, Roster, Player Details und Match Weeks haben N+1-Read-Muster und teilweise nicht vollständig gescopte Queries.</p>
+          <p><strong>Ziel:</strong> Weniger Reads, klare Query-Scopes und stabile Indexstrategie.</p>
+          <p><strong>Technischer Scope:</strong> Repository-Reads optimieren, Read Models gezielter nutzen, keine neue Migration aktivieren.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>src/server/repositories/teamRepository.firestore.ts</code>, <code>playerRepository.firestore.ts</code>, <code>matchRepository.firestore.ts</code>, <code>seasonRepository.firestore.ts</code>, <code>readModelRepository.firestore.ts</code>, <code>firestore.indexes.json</code>.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>N+1-Pfade in Team-, Player- und Match-Reads inventarisieren.</li>
+            <li>Queries konsequent mit <code>leagueId</code>, <code>seasonId</code>, <code>scope</code>, <code>teamId</code> oder <code>playerId</code> scopen.</li>
+            <li>Roster-Listen als leichte Readmodel-Antwort statt Full Detail pro Spieler laden.</li>
+            <li>Match-Week-Reads über Summary-/Aggregate-Daten statt pro Match mehrere Detailqueries verbessern.</li>
+            <li>Indexe und Emulator-Tests anpassen.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Readmodel-Verhalten kann sich unbemerkt ändern, wenn Detailfelder fehlen.</p>
+          <p><strong>Benötigte Tests:</strong> <code>npm run test:firebase:readmodels</code>, <code>npm run test:firebase:season-week-match</code>, <code>npm run test:firebase</code>, UI-Model-Tests für Team/Player/Match.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Keine offenen Full-Collection-Reads; weniger per-Entity-Nachladepfade; alle vorhandenen Firestore-Readtests grün.</p>
+          <p><strong>Abhängigkeiten:</strong> Keine.</p>
+        </article>
+
+        <article id="ap4">
+          <h3>AP 4 - Idempotente Stats-/Aggregate-Pipeline härten</h3>
+          <div class="tags">
+            <span class="tag high">Priorität: Hoch</span>
+            <span class="tag high">Aufwand: Groß</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> Firestore-Stats sind idempotent über stabile Dokument-IDs und Rebuilds, aber Rebuilds können bei Produktion teuer werden. Career Stats und Folgeeffekte sind noch nicht final.</p>
+          <p><strong>Ziel:</strong> Eine sichere, messbare Stats-Pipeline, die Replays und erneute Matchabschlüsse ohne doppelte Zählung übersteht.</p>
+          <p><strong>Technischer Scope:</strong> Stats-Ledger, Delta-/Versionierungsstrategie, optional <code>simulationRunId</code>; keine Reports-Migration als Nebenaufgabe.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>src/server/repositories/statsRepository.firestore.ts</code>, <code>statsRepository.prisma.ts</code>, <code>src/modules/seasons/application/simulation/match-result-persistence.ts</code>, <code>game-stats-aggregation.ts</code>, <code>firestoreStatsAggregates.test.ts</code>.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>Aktuelle Match-, Season- und Career-Stats-Pfade vollständig auflisten.</li>
+            <li>Idempotenzschlüssel für Match-Finish und Stats-Persistenz definieren.</li>
+            <li>Delta- oder Rebuild-Strategie pro Aggregate-Typ entscheiden.</li>
+            <li>Tests für erneuten Matchabschluss, Replay und Teilfehler ergänzen.</li>
+            <li>Kostenbewertung für lange Seasons dokumentieren.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Fehlerhafte Idempotenz kann historische Stats dauerhaft verfälschen.</p>
+          <p><strong>Benötigte Tests:</strong> Firestore-Stats-Tests, Prisma-Fallback-Tests, Game-Engine-Tests, zusätzliche Replay-/Double-Finish-Tests.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Erneutes Persistieren desselben Match-Outputs zählt nicht doppelt; Aggregates stimmen nach Replay; Prisma bleibt Default/Fallback.</p>
+          <p><strong>Abhängigkeiten:</strong> AP 1, AP 2.</p>
+        </article>
+
+        <article id="ap5">
+          <h3>AP 5 - Week-/Match-State-Machine für Multi-Match-Wochen</h3>
+          <div class="tags">
+            <span class="tag high">Priorität: Hoch</span>
+            <span class="tag high">Aufwand: Groß</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> Der Week Flow ist verständlich, aber Multi-Match-Wochen und offene Matches können Fortschritt blockieren oder unklar machen.</p>
+          <p><strong>Ziel:</strong> Explizite, getestete State Machine für Wochen mit mehreren Matches.</p>
+          <p><strong>Technischer Scope:</strong> State-Regeln, offene Match-Zählung, erlaubte Übergänge, Fehlertexte, keine Stats-/Report-Migration.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>src/modules/savegames/application/week-flow.service.ts</code>, <code>src/server/repositories/weekMatchStateRepository.firestore.ts</code>, <code>src/app/app/savegames/[savegameId]/week-actions.ts</code>, <code>src/components/dashboard/week-loop-panel.tsx</code>, <code>firestoreWeekMatchState.test.ts</code>, <code>week-flow.service.test.ts</code>.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>State-Machine-Tabelle für Single- und Multi-Match-Wochen definieren.</li>
+            <li>Advance-Week-Regeln für offene, laufende und abgeschlossene Matches präzisieren.</li>
+            <li>Fehlerfälle mit klaren User-Messages versehen.</li>
+            <li>Prisma- und Firestore-Tests für Multi-Match-Wochen ergänzen.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Kleine Flow-Änderungen können Dashboard, Game Setup und E2E-Week-Loop beeinflussen.</p>
+          <p><strong>Benötigte Tests:</strong> <code>week-flow.service.test.ts</code>, <code>firestoreWeekMatchState.test.ts</code>, <code>e2e/week-loop.spec.ts</code>, <code>npx tsc --noEmit</code>, <code>npm run lint</code>.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Keine Deadlocks bei mehreren Matches; illegale Transitions werden blockiert; Nutzer sieht, welche Matches Fortschritt verhindern.</p>
+          <p><strong>Abhängigkeiten:</strong> AP 2.</p>
+        </article>
+
+        <article id="ap6">
+          <h3>AP 6 - Simulation-Orchestrator und Background-Job-Vorbereitung</h3>
+          <div class="tags">
+            <span class="tag high">Priorität: Hoch</span>
+            <span class="tag high">Aufwand: Groß</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> Season Simulation läuft synchron und persistiert viele Ergebnisse in großen Abläufen. Das skaliert schlecht und erschwert Firestore-Orchestrierung.</p>
+          <p><strong>Ziel:</strong> Klarer Orchestrator für Match State, Game Output, Stats und Reports; spätere Background-Ausführung vorbereiten.</p>
+          <p><strong>Technischer Scope:</strong> Keine Worker-Infrastruktur erzwingen, aber Schnittstellen und Statusmodell für Jobs vorbereiten.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>src/modules/seasons/application/season-simulation.service.ts</code>, <code>src/modules/seasons/application/simulation/match-engine.ts</code>, <code>match-result-persistence.ts</code>, <code>src/server/repositories/gameOutputRepository.firestore.ts</code>, <code>statsRepository.firestore.ts</code>, <code>readModelRepository.firestore.ts</code>.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>Orchestrator-Schritte als explizite Pipeline modellieren: lock, simulate, persist output, persist stats, generate readmodels, unlock.</li>
+            <li>Jeden Schritt idempotent oder wiederholbar machen.</li>
+            <li>Simulationsergebnisse pro Match chunkbar machen.</li>
+            <li>Status- und Fehlerobjekte für spätere UI-Polling-Ansicht definieren.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Falsche Reihenfolge kann State, Stats und Reports auseinanderlaufen lassen.</p>
+          <p><strong>Benötigte Tests:</strong> Season-Simulation-Tests, Match-Engine-Tests, Firestore Game Output, Stats und Readmodel-Tests, Week-Flow-Tests.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Simulation kann deterministisch pro Match persistieren; Teilschritte sind nachvollziehbar; keine produktive Firestore-Aktivierung.</p>
+          <p><strong>Abhängigkeiten:</strong> AP 4, AP 5.</p>
+        </article>
+
+        <article id="ap7">
+          <h3>AP 7 - X-Factor/Gameplan UI als spielbare Entscheidung</h3>
+          <div class="tags">
+            <span class="tag high">Priorität: Hoch</span>
+            <span class="tag medium">Aufwand: Mittel</span>
+            <span class="tag low">Quick Win</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> X-Factor-Pläne existieren technisch, sind aber in der Spielvorbereitung nicht vollständig als Entscheidung nutzbar.</p>
+          <p><strong>Ziel:</strong> Pre-Game-Plan mit klaren Trade-offs: Run/Pass-Fokus, Protection, Aggression, Matchup-Fokus, Turnover-Plan.</p>
+          <p><strong>Technischer Scope:</strong> UI + Server Action + persistenter Gameplan-Snapshot; keine komplette Engine-Umschreibung.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>src/modules/gameplay/domain/pre-game-x-factor.ts</code>, <code>src/components/match/game-preparation-panel.tsx</code>, <code>game-preparation-model.ts</code>, <code>src/app/app/savegames/[savegameId]/matches/[matchId]/actions.ts</code>, <code>src/modules/seasons/application/match-preparation.service.ts</code>, <code>src/modules/savegames/application/savegame-snapshot.ts</code>.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>UI-Optionen aus <code>PreGameXFactorPlan</code> modellieren.</li>
+            <li>Trade-off-Texte ergänzen, z.B. Max Protect: weniger Sacks, weniger Explosivität.</li>
+            <li>Serverseitige Validierung und Speicherung im Match-/Gameplan-Kontext ergänzen.</li>
+            <li>Engine-Übergabe prüfen, damit Plans tatsächlich Simulation beeinflussen.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Wenn UI-Werte gespeichert, aber nicht in der realen Simulation genutzt werden, entsteht Scheinsteuerung.</p>
+          <p><strong>Benötigte Tests:</strong> Game-Preparation-Model-Tests, Action-Tests, Match-Preparation-Service-Tests, Outcome-/Play-Selection-Tests für X-Factor-Wirkung.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Nutzer kann X-Factor-Plan setzen; Plan wird validiert und gespeichert; Report/Simulation kann den Plan nachvollziehen.</p>
+          <p><strong>Abhängigkeiten:</strong> Keine.</p>
+        </article>
+
+        <article id="ap8">
+          <h3>AP 8 - Post-Game Entscheidungsfeedback im Report</h3>
+          <div class="tags">
+            <span class="tag medium">Priorität: Mittel</span>
+            <span class="tag medium">Aufwand: Mittel</span>
+            <span class="tag low">Quick Win</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> Reports erklären Spielausgänge, aber noch nicht stark genug, welche Manager-Entscheidung welchen Effekt hatte.</p>
+          <p><strong>Ziel:</strong> Report sagt in normaler Sprache: welcher Gameplan half, welcher schadete, welcher Spieler-/Rating-Faktor relevant war.</p>
+          <p><strong>Technischer Scope:</strong> Report-Modelle und UI-Komponenten erweitern; keine neue Persistenzpflicht.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>src/components/match/match-report-model.ts</code>, <code>why-game-outcome.tsx</code>, <code>engine-decision-panel.tsx</code>, <code>game-stats-reporting.ts</code>, <code>engine-decision-reporting.ts</code>.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>Bestehende Trace- und Key-Factor-Daten auf Managerentscheidungen mappen.</li>
+            <li>Kurze Outcome-Sätze für Gameplan, X-Factor, Ratings und Matchups bauen.</li>
+            <li>Report-Komponenten um Entscheidungsfeedback erweitern.</li>
+            <li>Leere/alte Matchdaten graceful behandeln.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Report darf keine Kausalität behaupten, die statistisch nicht im Output steckt.</p>
+          <p><strong>Benötigte Tests:</strong> <code>match-report-model.test.ts</code>, <code>engine-decision-reporting.test.ts</code>, Screenshot-/E2E-Smoke für Game Report.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Report benennt 2-4 nachvollziehbare Entscheidungs-/Rating-Faktoren; keine Rohdatenflut; alte Reports bleiben lesbar.</p>
+          <p><strong>Abhängigkeiten:</strong> AP 7 sinnvoll, aber nicht zwingend.</p>
+        </article>
+
+        <article id="ap9">
+          <h3>AP 9 - Repository- und Domain-Typ-Grenzen weiter entkoppeln</h3>
+          <div class="tags">
+            <span class="tag medium">Priorität: Mittel</span>
+            <span class="tag high">Aufwand: Groß</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> <code>@prisma/client</code> dient noch breit als Enum-/Typschicht. Das blockiert spätere Prisma-Entfernung.</p>
+          <p><strong>Ziel:</strong> Domain-Enums und DTOs aus Prisma herauslösen, ohne Prisma als Backend zu entfernen.</p>
+          <p><strong>Technischer Scope:</strong> Shared Domain Types, Mapper, Tests. Keine Auth-Umstellung und keine Prisma-Dateilöschung.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>src/server/repositories/types.ts</code>, <code>src/modules/*/domain</code>, <code>src/modules/savegames/application/week-flow.service.ts</code>, <code>src/modules/seasons/application/simulation/*</code>, Firestore-Tests mit Prisma-Enum-Imports.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>Prisma-Enum-Imports nach Domain-Bereich inventarisieren.</li>
+            <li>Domain-Enums für WeekState, MatchStatus, RosterStatus, SeasonPhase etc. definieren oder konsolidieren.</li>
+            <li>Prisma-Mapper und Firestore-Mapper explizit machen.</li>
+            <li>Tests auf Domain-Typen umstellen.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Enum-Werte müssen exakt kompatibel bleiben, sonst brechen Persistenz und Tests.</p>
+          <p><strong>Benötigte Tests:</strong> Typecheck, Lint, Repository-Tests, Week-Flow-Tests, Simulation-Tests.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Fachlogik importiert keine Prisma-Typen mehr, wo Domain-Typen ausreichen; Prisma bleibt aktiver Default.</p>
+          <p><strong>Abhängigkeiten:</strong> AP 1, AP 2.</p>
+        </article>
+
+        <article id="ap10">
+          <h3>AP 10 - Weekly Decision Layer: Training, Recovery, Development Focus</h3>
+          <div class="tags">
+            <span class="tag medium">Priorität: Mittel</span>
+            <span class="tag high">Aufwand: Groß</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> Der Week Loop ist funktional, aber spielerisch noch dünn. Training, Recovery, Morale und Development sind nicht stark genug als Management-Entscheidung sichtbar.</p>
+          <p><strong>Ziel:</strong> Vor jeder Woche 2-3 sinnvolle Entscheidungen mit Trade-offs.</p>
+          <p><strong>Technischer Scope:</strong> Neues kleines Domain-Modell für Weekly Plan; UI im Dashboard/Week Panel; Wirkung auf Development/Fatigue/Morale vorsichtig integrieren.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>src/components/dashboard/week-loop-panel.tsx</code>, <code>src/modules/savegames/application/weekly-player-development.service.ts</code>, <code>src/modules/seasons/application/simulation/weekly-preparation.ts</code>, <code>player-condition.ts</code>, <code>team/page.tsx</code>.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>Weekly Plan Werte definieren: Recovery, Balanced, Intense; Development Focus Slots; Opponent Focus.</li>
+            <li>Trade-offs fachlich begrenzen, damit Balance stabil bleibt.</li>
+            <li>UI mit klarer Erklärung und Vorschau bauen.</li>
+            <li>Wirkung zunächst klein und testbar halten.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Zu starke Effekte können Balance und Langzeitentwicklung kippen.</p>
+          <p><strong>Benötigte Tests:</strong> Weekly-Development-Tests, Player-Condition-Tests, Dashboard-Model-Tests, Week-Loop-E2E.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Spieler trifft echte Wochenentscheidung; Effekte sind sichtbar, aber balanciert; keine Deadlocks im Week Flow.</p>
+          <p><strong>Abhängigkeiten:</strong> AP 7, AP 8 empfohlen.</p>
+        </article>
+
+        <article id="ap11">
+          <h3>AP 11 - Performance Observability für Reads, Writes und Simulation</h3>
+          <div class="tags">
+            <span class="tag medium">Priorität: Mittel</span>
+            <span class="tag low">Aufwand: Klein</span>
+            <span class="tag low">Quick Win</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> Performance-Risiken sind bekannt, aber Query Counts, Batch-Größen und Simulationsdauer werden nicht systematisch sichtbar.</p>
+          <p><strong>Ziel:</strong> Entwicklungsmodus zeigt oder loggt relevante Performance-Kennzahlen.</p>
+          <p><strong>Technischer Scope:</strong> Leichte Instrumentierung in Repositories und Simulation; keine produktive Telemetriepflicht.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>src/server/repositories/*</code>, <code>season-simulation.service.ts</code>, <code>match-engine.ts</code>, optional <code>scripts/simulations/qa-*.ts</code>.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>Minimalen Performance-Logger hinter ENV-Flag definieren.</li>
+            <li>Firestore-Read/Write-Abschnitte und Simulationserzeugung messen.</li>
+            <li>Batch-Größe und Match-/Week-Dauer loggen.</li>
+            <li>QA-Scripts optional um Summary erweitern.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Logging darf Tests nicht flakig machen und keine sensiblen Daten ausgeben.</p>
+          <p><strong>Benötigte Tests:</strong> Typecheck, Lint, relevante Repository-/Simulationstests; optional Snapshot vermeiden.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Mit ENV-Flag sind Query-/Write-/Dauerwerte sichtbar; ohne Flag keine störende Ausgabe.</p>
+          <p><strong>Abhängigkeiten:</strong> Keine.</p>
+        </article>
+
+        <article id="ap12">
+          <h3>AP 12 - Prisma-Entscheidungsvorlage aktualisieren nach Parity</h3>
+          <div class="tags">
+            <span class="tag low">Priorität: Niedrig</span>
+            <span class="tag low">Aufwand: Klein</span>
+          </div>
+          <p><strong>Problem / Ausgangslage:</strong> Aktuelle Empfehlung lautet Prisma behalten, weil Parity rot ist. Nach technischen Paketen muss die Entscheidung neu bewertet werden.</p>
+          <p><strong>Ziel:</strong> Aktualisierte Entscheidung: Prisma behalten, Legacy/Fallback oder Removal-Plan vorbereiten.</p>
+          <p><strong>Technischer Scope:</strong> Analysebericht, keine Entfernung.</p>
+          <p><strong>Betroffene Dateien / Module:</strong> <code>docs/reports/systems/firebase-final-migration-decision.md</code>, <code>firebase-e2e-parity-report.md</code>, <code>README.md</code>, <code>package.json</code>, <code>prisma/*</code> nur lesend.</p>
+          <p><strong>Konkrete Umsetzungsschritte:</strong></p>
+          <ol>
+            <li>Alle Prisma-Abhängigkeiten erneut inventarisieren.</li>
+            <li>Go/No-Go-Kriterien gegen aktuellen Teststand prüfen.</li>
+            <li>Rollback-Plan und Kosten-/Performance-Bewertung aktualisieren.</li>
+            <li>Falls Entfernung empfohlen wird, separaten Removal-Plan erstellen.</li>
+          </ol>
+          <p><strong>Risiken:</strong> Zu frühe Entfernungsempfehlung wäre gefährlich; bei Unsicherheit bleibt Prisma.</p>
+          <p><strong>Benötigte Tests:</strong> Keine Code-Tests, aber Verweis auf erfolgreiche Parity-/E2E-/Emulator-Testläufe.</p>
+          <p><strong>Akzeptanzkriterien:</strong> Entscheidung ist nachvollziehbar, rollbackfähig und entfernt keine Dateien.</p>
+          <p><strong>Abhängigkeiten:</strong> AP 1-6.</p>
+        </article>
+      </section>
+
+      <section id="reihenfolge">
+        <h2>6. Empfohlene Umsetzungsreihenfolge</h2>
+        <ol>
+          <li>AP 1 - Gemeinsame Fixtures schaffen.</li>
+          <li>AP 2 - Parity und lokale E2E-Stabilität herstellen.</li>
+          <li>AP 3 - Firestore-Read-Performance entschärfen.</li>
+          <li>AP 7 - X-Factor/Gameplan UI als Quick Win liefern.</li>
+          <li>AP 8 - Report-Feedback an Entscheidungen koppeln.</li>
+          <li>AP 4 - Stats-/Aggregate-Pipeline härten.</li>
+          <li>AP 5 - Multi-Match-State-Machine stabilisieren.</li>
+          <li>AP 6 - Simulation-Orchestrator vorbereiten.</li>
+          <li>AP 11 - Observability ergänzen, spätestens vor größeren Last-/Parity-Tests.</li>
+          <li>AP 9 - Domain-Typ-Grenzen entkoppeln.</li>
+          <li>AP 10 - Weekly Decision Layer ausbauen.</li>
+          <li>AP 12 - Finale Prisma/Firebase-Entscheidung neu bewerten.</li>
+        </ol>
+      </section>
+
+      <section id="teststrategie">
+        <h2>7. Teststrategie pro Paket</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Paket</th>
+              <th>Pflichttests</th>
+              <th>Zusätzliche Checks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>AP 1</td>
+              <td>Seed/Reset/Verify, <code>test:firebase:parity</code>, E2E-Seed</td>
+              <td>ID-/Count-Matrix dokumentieren</td>
+            </tr>
+            <tr>
+              <td>AP 2</td>
+              <td>Prisma-E2E-Seed, Firestore-Parity, Week-Loop-Tests</td>
+              <td>PostgreSQL-Preflight und klare Fehlermeldungen</td>
+            </tr>
+            <tr>
+              <td>AP 3</td>
+              <td>Firestore Readmodel-, Team/Player-, Season/Match-Tests</td>
+              <td>Query-Count manuell oder per Logger prüfen</td>
+            </tr>
+            <tr>
+              <td>AP 4</td>
+              <td>Stats-, Game-Output-, Simulation- und Replay-Tests</td>
+              <td>Doppelte Match-Persistenz explizit testen</td>
+            </tr>
+            <tr>
+              <td>AP 5</td>
+              <td>Prisma- und Firestore-Week-State-Tests, E2E Week Loop</td>
+              <td>Multi-Match-Woche mit offenen Matches</td>
+            </tr>
+            <tr>
+              <td>AP 6</td>
+              <td>Season-Simulation, Match-Engine, Stats, Reports, Week Flow</td>
+              <td>Teilfehler- und Wiederholbarkeitstests</td>
+            </tr>
+            <tr>
+              <td>AP 7</td>
+              <td>Game-Preparation-Model, Match-Preparation-Service, X-Factor-Engine-Tests</td>
+              <td>UI-Smoke für Setup-Seite</td>
+            </tr>
+            <tr>
+              <td>AP 8</td>
+              <td>Match-Report-Model, Engine-Decision-Reporting</td>
+              <td>Alte Matchdaten ohne Trace prüfen</td>
+            </tr>
+            <tr>
+              <td>AP 9</td>
+              <td>Typecheck, Lint, Repository-, Week-Flow- und Simulation-Tests</td>
+              <td>Import-Suche nach <code>@prisma/client</code> in Domain/Application</td>
+            </tr>
+            <tr>
+              <td>AP 10</td>
+              <td>Weekly Development, Player Condition, Dashboard, Week Loop</td>
+              <td>Balance-Smoke über mehrere Wochen</td>
+            </tr>
+            <tr>
+              <td>AP 11</td>
+              <td>Typecheck, Lint, relevante Repository- und Simulationstests</td>
+              <td>ENV-Flag an/aus prüfen</td>
+            </tr>
+            <tr>
+              <td>AP 12</td>
+              <td>Keine Code-Tests</td>
+              <td>Alle Reports und Testresultate querprüfen</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="status">
+        <h2>Statusprüfung</h2>
+        <table>
+          <tbody>
+            <tr>
+              <th>Wurden alle bisherigen Analysen berücksichtigt?</th>
+              <td><span class="status-good">Grün.</span> Architektur, Datenmodell/Firestore, Game Engine, Ratings, Game Flow, Testing, Performance, Gameplay/UX und HTML-Gesamtbericht wurden einbezogen.</td>
+            </tr>
+            <tr>
+              <th>Sind die Arbeitspakete konkret genug für Codex?</th>
+              <td><span class="status-good">Grün.</span> Jedes Paket enthält Scope, Dateien, Schritte, Tests, Risiken, Akzeptanzkriterien und Abhängigkeiten.</td>
+            </tr>
+            <tr>
+              <th>Sind Risiken und Tests enthalten?</th>
+              <td><span class="status-good">Grün.</span> Kritische technische Risiken sind separat markiert und pro Paket testbar gemacht.</td>
+            </tr>
+            <tr>
+              <th>Ist die Reihenfolge logisch?</th>
+              <td><span class="status-good">Grün.</span> Erst Parity und Datenbasis, dann Performance und Gameplay-Quick-Wins, danach Stats, Week Flow, Orchestrierung und finale Entscheidung.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">Gesamtstatus: <strong>Grün</strong>. Es wurde keine Implementierung durchgeführt und keine produktive Migration gestartet.</p>
+      </section>
+    </main>
+  </body>
+</html>

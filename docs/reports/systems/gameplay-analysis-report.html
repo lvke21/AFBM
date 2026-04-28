@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AFBM Gameplay Analysis Report - AP13 bis AP18</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --soft: #f8fafc;
+        --text: #182133;
+        --muted: #5d687a;
+        --line: #d9e2ec;
+        --accent: #0f766e;
+        --accent-soft: #e6f5f3;
+        --good: #146c43;
+        --warn: #9a6500;
+        --risk: #a51d2d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #eef3f8 0%, var(--bg) 100%);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.58;
+      }
+
+      main {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 32px 18px 72px;
+      }
+
+      header,
+      section {
+        margin-bottom: 18px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        box-shadow: 0 14px 34px rgba(23, 32, 51, 0.07);
+        padding: 24px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 12px;
+        line-height: 1.2;
+      }
+
+      h1 {
+        color: var(--accent);
+        font-size: clamp(2rem, 4vw, 3.05rem);
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      h3 {
+        font-size: 1.08rem;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 0 20px;
+        padding: 0;
+      }
+
+      li {
+        margin: 5px 0;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 12px;
+        border-collapse: collapse;
+        font-size: 0.93rem;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef6f5;
+      }
+
+      code {
+        border-radius: 6px;
+        background: #eef2f7;
+        padding: 1px 5px;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.92em;
+      }
+
+      .lede {
+        max-width: 980px;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .meta,
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--soft);
+        padding: 6px 10px;
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 650;
+      }
+
+      .pill.good {
+        border-color: #b7dec9;
+        background: #edf8f1;
+        color: var(--good);
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--soft);
+        padding: 16px;
+      }
+
+      .good {
+        color: var(--good);
+        font-weight: 750;
+      }
+
+      .warn {
+        color: var(--warn);
+        font-weight: 750;
+      }
+
+      .risk {
+        color: var(--risk);
+        font-weight: 750;
+      }
+
+      .bar {
+        height: 10px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e5eaf0;
+      }
+
+      .bar span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--accent);
+      }
+
+      .summary {
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+      }
+
+      @media (max-width: 880px) {
+        .grid.two,
+        .grid.three {
+          grid-template-columns: 1fr;
+        }
+
+        header,
+        section {
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Gameplay Analysis Report - AP13 bis AP18</h1>
+        <p class="lede">
+          Dieser Bericht analysiert das aktuelle Gameplay-System nach AP13 bis AP18. Ziel war nicht,
+          neue Features zu implementieren, sondern kontrolliert zu messen, ob Teamstaerke, Training,
+          Development Focus, Gameplan, Fatigue und Injuries echte Auswirkungen haben.
+        </p>
+        <div class="meta">
+          <span class="pill good">Status: Gruen</span>
+          <span class="pill">Controlled Simulation: 240 Spiele</span>
+          <span class="pill">Strategy Comparison: 240 Spiele</span>
+          <span class="pill">Long-Term: 3 Saisons / 72 Spiele</span>
+          <span class="pill">Keine Implementierung</span>
+        </div>
+      </header>
+
+      <section class="summary">
+        <h2>Kernaussage</h2>
+        <p>
+          Entscheidungen haben messbaren Impact. Teamstaerke setzt sich im Controlled Test klar durch,
+          Development Focus erzeugt deutliche XP-Unterschiede, Gameplans verschieben Scores und Varianz,
+          und Fatigue ist gameplay-relevant. Gleichzeitig zeigen die Daten zwei klare Balancing-Risiken:
+          sehr hohe Fatigue ist aktuell extrem bestrafend, und die Long-Term-Injury-Rate wirkt fuer eine
+          Management-Simulation noch zu hoch.
+        </p>
+      </section>
+
+      <section>
+        <h2>Testumfang</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Testblock</th>
+              <th>Umfang</th>
+              <th>Zweck</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Controlled Simulation</td>
+              <td>3 Szenarien x 80 Spiele</td>
+              <td>Teamstaerke, Score-Verteilung, Blowouts und Close Games pruefen.</td>
+            </tr>
+            <tr>
+              <td>Strategy Comparison</td>
+              <td>4 Szenarien x 60 Spiele</td>
+              <td>Recovery vs. Intense, verschiedene Gameplans und XP-Focus vergleichen.</td>
+            </tr>
+            <tr>
+              <td>Long-Term Simulation</td>
+              <td>4 Teams, 3 Saisons, 12 Wochen, 72 Spiele</td>
+              <td>Fatigue-Verlauf, Injury-Rate und langfristige Staerkeverteilung beobachten.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>1. Controlled Simulation</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Szenario</th>
+              <th>Spiele</th>
+              <th>Favorite Win Rate</th>
+              <th>Avg Total</th>
+              <th>P90 Total</th>
+              <th>Max Total</th>
+              <th>Avg Margin</th>
+              <th>Blowout Rate</th>
+              <th>Close Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>strong-vs-weak</code></td>
+              <td>80</td>
+              <td>0.762<div class="bar"><span style="width: 76.2%"></span></div></td>
+              <td>40.26</td>
+              <td>59.20</td>
+              <td>74</td>
+              <td>10.56</td>
+              <td>0.138</td>
+              <td>0.550</td>
+            </tr>
+            <tr>
+              <td><code>medium-vs-medium</code></td>
+              <td>80</td>
+              <td>0.487<div class="bar"><span style="width: 48.7%"></span></div></td>
+              <td>34.88</td>
+              <td>57.00</td>
+              <td>69</td>
+              <td>7.92</td>
+              <td>0.037</td>
+              <td>0.637</td>
+            </tr>
+            <tr>
+              <td><code>equal-vs-equal</code></td>
+              <td>80</td>
+              <td>0.400<div class="bar"><span style="width: 40%"></span></div></td>
+              <td>26.85</td>
+              <td>42.30</td>
+              <td>69</td>
+              <td>7.67</td>
+              <td>0.050</td>
+              <td>0.613</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>Erkenntnisse</h3>
+        <ul>
+          <li><strong>Teamstaerke wirkt:</strong> Das starke Team gewinnt 76.2% gegen das schwache Team.</li>
+          <li><strong>Kompetitive Matchups bleiben eng:</strong> Medium-vs-Medium hat 63.7% Close Games und nur 3.7% Blowouts.</li>
+          <li><strong>Score-Ausreisser bleiben begrenzt:</strong> Max Total Score liegt in diesen Batches bei 74, 69 und 69.</li>
+          <li><strong>Equal-vs-Equal zeigt Seed-/Roster-Varianz:</strong> 40.0% Home/Favorite Win Rate ist nicht alarmierend, aber ein Hinweis, dass gleiche Overalls nicht zwingend gleiche Hidden Strength bedeuten.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>2. Strategy Comparison</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Szenario</th>
+              <th>Spiele</th>
+              <th>Win Rate Team A</th>
+              <th>Avg Total</th>
+              <th>Max Total</th>
+              <th>Avg Margin</th>
+              <th>Blowout Rate</th>
+              <th>Close Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>recovery-fatigue-vs-balanced</code></td>
+              <td>60</td>
+              <td>0.450</td>
+              <td>33.03</td>
+              <td>79</td>
+              <td>8.80</td>
+              <td>0.033</td>
+              <td>0.517</td>
+            </tr>
+            <tr>
+              <td><code>intense-fatigue-vs-balanced</code></td>
+              <td>60</td>
+              <td class="risk">0.000</td>
+              <td>37.55</td>
+              <td>72</td>
+              <td class="risk">30.18</td>
+              <td class="risk">0.683</td>
+              <td>0.017</td>
+            </tr>
+            <tr>
+              <td><code>aggressive-gameplan-vs-balanced</code></td>
+              <td>60</td>
+              <td>0.500</td>
+              <td>34.17</td>
+              <td>65</td>
+              <td>7.40</td>
+              <td>0.033</td>
+              <td>0.633</td>
+            </tr>
+            <tr>
+              <td><code>conservative-gameplan-vs-balanced</code></td>
+              <td>60</td>
+              <td>0.450</td>
+              <td>31.13</td>
+              <td>65</td>
+              <td>6.50</td>
+              <td>0.033</td>
+              <td>0.683</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>Erkenntnisse</h3>
+        <ul>
+          <li><strong>Recovery ist stabil:</strong> Recovery-Fatigue bleibt kompetitiv, aber nicht automatisch dominant.</li>
+          <li><strong>Intense-Fatigue ist zu hart:</strong> Ein Starter-Kern mit hoher Fatigue verlor 60/60 Spiele, mit 68.3% Blowouts. Das ist ein konkretes Balancing-Problem.</li>
+          <li><strong>Aggressive Gameplan ist nicht kaputt:</strong> Aggressive vs Balanced lag bei 50.0% Win Rate und hoher Close Rate. Kein sofortiger Exploit sichtbar.</li>
+          <li><strong>Conservative Gameplan senkt Volatilitaet:</strong> Niedrigerer Avg Total und hoechste Close Rate. Das wirkt plausibel, aber etwas zahm.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>3. Development Focus / XP Impact</h2>
+        <p>Beispielspieler: <code>WR OVR 83 / POT 87</code>.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Entscheidung</th>
+              <th>XP ohne Focus</th>
+              <th>XP mit Focus</th>
+              <th>Delta</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Weekly Training</td>
+              <td>64</td>
+              <td>86</td>
+              <td>+22</td>
+              <td>Focus macht den Unterschied zwischen knapp unter und klar ueber Training-Schwelle.</td>
+            </tr>
+            <tr>
+              <td>Game Progression</td>
+              <td>137</td>
+              <td>151</td>
+              <td>+14</td>
+              <td>Focus verstaerkt gute Spielleistung, ist aber nicht alleiniger Progressionsmotor.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Bewertung: Development Focus hat echten Impact und ist kein rein kosmetischer Toggle. Der staerkste Hebel
+          liegt im Weekly Training, weil dort die 70-XP-Schwelle direkt erreicht werden kann.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Long-Term Simulation</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>OVR</th>
+              <th>Wins</th>
+              <th>Win Rate</th>
+              <th>Points For</th>
+              <th>Points Allowed</th>
+              <th>Injuries</th>
+              <th>Avg Fatigue</th>
+              <th>Max Fatigue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>A</td>
+              <td>82</td>
+              <td>25</td>
+              <td>0.694</td>
+              <td>908</td>
+              <td>597</td>
+              <td class="warn">43</td>
+              <td>10.15</td>
+              <td>13.25</td>
+            </tr>
+            <tr>
+              <td>B</td>
+              <td>78</td>
+              <td>20</td>
+              <td>0.556</td>
+              <td>798</td>
+              <td>721</td>
+              <td class="warn">37</td>
+              <td>10.36</td>
+              <td>13.28</td>
+            </tr>
+            <tr>
+              <td>C</td>
+              <td>75</td>
+              <td>24</td>
+              <td>0.667</td>
+              <td>775</td>
+              <td>597</td>
+              <td class="warn">43</td>
+              <td>10.25</td>
+              <td>12.79</td>
+            </tr>
+            <tr>
+              <td>D</td>
+              <td>70</td>
+              <td>3</td>
+              <td>0.083</td>
+              <td>396</td>
+              <td>962</td>
+              <td class="risk">47</td>
+              <td>10.16</td>
+              <td>13.02</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>Erkenntnisse</h3>
+        <ul>
+          <li><strong>Staerke wirkt langfristig:</strong> Team A und B sind oben, Team D faellt klar ab.</li>
+          <li><strong>Team C overperformt:</strong> OVR 75 erreicht 66.7% Win Rate. Das spricht fuer Roster-/Seed-/Matchup-Effekte neben Overall.</li>
+          <li><strong>Fatigue wird langfristig gut abgebaut:</strong> Avg Fatigue bleibt um 10, Max um 13. Die Recovery-Schleife funktioniert.</li>
+          <li><strong>Injury Rate wirkt hoch:</strong> 170 neue Injuries in 72 Spielen sind fuer diese erste Analyse auffaellig hoch.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Starke Strategien</h2>
+        <ul>
+          <li><strong>Recovery / Balanced Management:</strong> haelt Fatigue stabil und vermeidet extreme Performance-Crashes.</li>
+          <li><strong>Development Focus auf Potenzialspieler:</strong> sehr wirksam, besonders im Weekly Training.</li>
+          <li><strong>Conservative Gameplan:</strong> reduziert Score-Volatilitaet und haelt Spiele eng; gut fuer Teams, die Varianz vermeiden wollen.</li>
+          <li><strong>AI Favorite Control:</strong> starke Teams gewinnen gegen schwache Gegner deutlich haeufiger, ohne komplett deterministisch zu werden.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Schwache Systeme und moegliche Exploits</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3 class="risk">Intense-Fatigue Trap</h3>
+            <p>
+              Hohe Starter-Fatigue ist aktuell so stark bestrafend, dass Intense Training bei falschem Timing
+              praktisch zur Selbstzerstoerung wird. Das ist eher Trap als interessanter Trade-off.
+            </p>
+          </div>
+          <div class="card">
+            <h3 class="warn">Injury-Frequenz</h3>
+            <p>
+              Long-Term kamen 170 neue Injuries in 72 Spielen vor. Selbst wenn viele davon kleinere Status sind,
+              wirkt die Rate fuer Saisonspielbarkeit zu hoch.
+            </p>
+          </div>
+          <div class="card">
+            <h3 class="warn">Overall erklaert nicht alles</h3>
+            <p>
+              Team C overperformt Team B trotz niedrigerem Overall. Das kann gewollte Roster-Tiefe sein, sollte aber
+              mit mehr Saisonlaeufen geprueft werden.
+            </p>
+          </div>
+          <div class="card">
+            <h3 class="warn">Focus-Optimierung</h3>
+            <p>
+              Development Focus kann die Weekly-Schwelle stark kippen. Spieler koennten immer dieselben High-Potential-
+              Starter fokussieren, wenn kein Opportunity-Cost oder Cooldown existiert.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Konkrete Probleme</h2>
+        <ol>
+          <li>
+            <strong>Fatigue-Penalty oberhalb mittlerer Werte zu hart:</strong> Der Intense-Test mit Fatigue 58 verliert
+            0/60 Spiele und erzeugt 68.3% Blowouts.
+          </li>
+          <li>
+            <strong>Injury Rate zu hoch:</strong> Long-Term 170 Injuries / 72 Spiele. Das kann Roster-Management zu stark
+            dominieren.
+          </li>
+          <li>
+            <strong>Equal-vs-Equal nicht neutral genug:</strong> 40.0% in einem identischen OVR-Szenario ist nicht fatal,
+            aber sollte mit Seed- und Home/Away-Varianten gegengeprueft werden.
+          </li>
+          <li>
+            <strong>Long-Term Sample noch klein:</strong> 72 Spiele reichen fuer Richtungen, aber nicht fuer finale
+            Saisonbalance.
+          </li>
+          <li>
+            <strong>AI/Gameplan-Sichtbarkeit limitiert:</strong> Strategien wirken, aber werden noch nicht vollstaendig
+            historisch im Report gespeichert.
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Top 5 Verbesserungen mit Begruendung</h2>
+        <ol>
+          <li>
+            <strong>Fatigue-Kurve oberhalb 45 neu kalibrieren.</strong>
+            Begruendung: Entscheidungen sollen weh tun, aber Intense darf nicht automatisch 0% Winrate bedeuten.
+            Ziel: klare Kosten, aber noch spielbare Upset-/Comeback-Chance.
+          </li>
+          <li>
+            <strong>Injury-Basisrate oder Exposure-Multiplikator senken.</strong>
+            Begruendung: Die Long-Term-Rate ist auffaellig hoch. Besonders kleine Injuries koennen Spieltiefe geben,
+            aber zu viele Statuswechsel erzeugen Verwaltungsrauschen.
+          </li>
+          <li>
+            <strong>Development Focus mit Opportunity-Cost erweitern.</strong>
+            Begruendung: Focus wirkt gut. Damit er nicht zur immer gleichen Optimalstrategie wird, waeren Begrenzungen
+            wie Fokus-Slots nach Staff, Morale-Kosten oder Rotationskonflikte sinnvoll.
+          </li>
+          <li>
+            <strong>AI-Strategie historisch in Match Reports persistieren.</strong>
+            Begruendung: AP16 wirkt im Match Context, aber AP18 kann AI-Archetypen nur begrenzt erklaeren, wenn keine
+            gespeicherten Plandaten vorhanden sind.
+          </li>
+          <li>
+            <strong>Groessere Saison-Balance-Suite bauen.</strong>
+            Begruendung: Controlled Tests sind gut, aber echte Balance braucht 1.000+ Spiele, komplette Schedules,
+            Home/Away-Wechsel, Verletzungsfortschreibung und mehrere Teamprofile.
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Statuspruefung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Kriterium</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ausreichend viele Simulationen?</td>
+              <td class="good">Ja: 552 Spiele insgesamt, davon 480 Kurz-/Strategie-Tests und 72 Long-Term-Spiele.</td>
+            </tr>
+            <tr>
+              <td>Klare Erkenntnisse?</td>
+              <td class="good">Ja: Teamstaerke, Focus, Gameplan und Fatigue haben messbaren Impact.</td>
+            </tr>
+            <tr>
+              <td>Konkrete Verbesserungen ableitbar?</td>
+              <td class="good">Ja: Fatigue-Kurve, Injury-Rate, Focus-Kosten, AI-Report-Persistenz, groessere Balance-Suite.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <span class="good">Status: Gruen.</span> Die Analyse ist ausreichend breit fuer belastbare Richtungsaussagen.
+          Sie ersetzt keine finale Produktionskalibrierung, liefert aber klare, priorisierte naechste Schritte.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

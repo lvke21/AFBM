@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Balancing-Runde AP24-AP32 Abschlussbericht</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fa;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #5b6773;
+      --line: #d9e0e7;
+      --good: #0f7a4f;
+      --warn: #946200;
+      --bad: #aa2f2f;
+      --accent: #1d5f8f;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+    }
+
+    h1 {
+      font-size: 32px;
+      line-height: 1.15;
+      margin: 0 0 8px;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin: 30px 0 12px;
+    }
+
+    h3 {
+      font-size: 17px;
+      margin: 22px 0 8px;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    .meta,
+    .muted {
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin: 16px 0 22px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+
+    .value {
+      font-size: 25px;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    .good { color: var(--good); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+    .accent { color: var(--accent); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 12px 0 22px;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #eef3f7;
+      color: #33414f;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    ul {
+      margin: 8px 0 18px;
+      padding-left: 22px;
+    }
+
+    .decision {
+      border-left: 5px solid var(--good);
+      background: #eefaf4;
+    }
+
+    .note {
+      border-left: 5px solid var(--warn);
+      background: #fff8e7;
+    }
+
+    code {
+      background: #edf1f5;
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Balancing-Runde AP24-AP32 Abschlussbericht</h1>
+    <p class="meta">Status: <strong class="good">Gruen</strong> · Datum: 2026-04-26 · Scope: Simulation Balancing, QA Diagnostics, Extended Suite</p>
+  </header>
+
+  <section class="card decision">
+    <h2>Executive Decision</h2>
+    <p><strong>Simulation aktuell akzeptabel: Ja.</strong> Equal-, Near-Peer- und Medium-vs-Medium-Matchups sind nach AP29/AP30 spielerisch gesund. Die verbleibende hohe Blowout Rate entsteht vor allem aus echten Mismatch-Bands, insbesondere Weak-vs-Strong und Weak-vs-Medium.</p>
+    <p><strong>Weitere Balance-Fixes zwingend noetig: Nein.</strong> Weitere Arbeit ist sinnvoll, aber nicht als Blocker fuer die aktuelle Simulationsbasis. Der naechste sinnvolle Fokus ist nicht mehr generelle Margin-Kompression, sondern Teamprofil-/League-Structure-Balance fuer schwache Teams und bessere reale Liga-Daten.</p>
+  </section>
+
+  <section>
+    <h2>1. Ausgangsproblem</h2>
+    <p>Die AP23 Extended Season Balance Suite zeigte eine nicht akzeptable Simulationslage: Avg Margin 45.76, Blowout Rate 93.3%, Close Game Rate 1.7%, Fatigue Median 70 und Fatigue P90 99. Die Ergebnisse wirkten nicht wie Football-Varianz, sondern wie strukturelles Winner-Take-All-Scoring mit massivem Snowballing.</p>
+    <div class="grid">
+      <div class="card"><div class="label">AP23 Avg Margin</div><div class="value bad">45.76</div></div>
+      <div class="card"><div class="label">AP23 Blowout Rate</div><div class="value bad">93.3%</div></div>
+      <div class="card"><div class="label">AP23 Close Rate</div><div class="value bad">1.7%</div></div>
+      <div class="card"><div class="label">Final Blowout Rate</div><div class="value warn">48.5%</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Wichtigste Ursachen</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Ursache</th>
+          <th>Befund</th>
+          <th>Status nach AP24-AP32</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Roster-/Rating-Verzerrung</td>
+          <td>Schwache und mittlere Teams lagen effektiv nahe 80 statt bei ihren nominalen Zielwerten. Nominal und effektiv passten nicht zusammen.</td>
+          <td><span class="good">Behoben</span>: effektive Ratings auf Zielprofile kalibriert.</td>
+        </tr>
+        <tr>
+          <td>Winner-Take-All-Scoring</td>
+          <td>Vor AP25: Loser Score <= 7 in 90.4% der Full-Suite-Spiele, Winner Score korrelierte mit Margin bei 0.974.</td>
+          <td><span class="good">Deutlich reduziert</span>: AP25/AP27 senkten Loser-Score-Spikes und Winner-Spikes.</td>
+        </tr>
+        <tr>
+          <td>Long-Term Fatigue</td>
+          <td>Fatigue klebte im Langzeitlauf zu oft nahe 99 und verstaerkte Margins.</td>
+          <td><span class="good">Stabilisiert</span>: Median 70 -> 63, P90 99 -> 94 im AP26-Vergleich; final mit Balanced Schedule Median 12, P90 67.</td>
+        </tr>
+        <tr>
+          <td>Schedule Bias</td>
+          <td>Legacy-Suite hatte feste Zwei-Gegner-Pfade; MED2 ging 0-503.</td>
+          <td><span class="good">Behoben</span>: Balanced Rotation als Default, jedes Paar gleich oft, MED2-Ausreisser entfernt.</td>
+        </tr>
+        <tr>
+          <td>Near-Peer Delta</td>
+          <td>76 vs 75 wurde vor AP30 zu hart in Drive-Vorteile uebersetzt.</td>
+          <td><span class="good">Behoben</span>: Near-Peer-Kompression fuer Deltas 1-5; Medium-vs-Medium Blowout 47.2% -> 2.8%.</td>
+        </tr>
+        <tr>
+          <td>Availability/Depth Decay</td>
+          <td>Moeglicher Verdacht nach Injury-/Fatigue-Systemen.</td>
+          <td><span class="good">Entkraeftet</span>: keine kaputten Depth Charts, Availability korreliert kaum mit Margin.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>3. Umgesetzte Fixes</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>AP</th>
+          <th>Beitrag</th>
+          <th>Ergebnis</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AP24 Roster Calibration</td>
+          <td>Prestige-/Roster-Skalierung korrigiert; effektive Ratings passen wieder zu nominalen Profilen.</td>
+          <td>Rating-Abweichungen bis +12 auf 0 reduziert.</td>
+        </tr>
+        <tr>
+          <td>AP28 Margin Attribution</td>
+          <td>Diagnose nach Woche, Profil, Fatigue, Injuries, AI/Gameplan, Score-Spikes.</td>
+          <td>Winner-Take-All und Loser Score <= 7 als Haupttreiber eingegrenzt.</td>
+        </tr>
+        <tr>
+          <td>AP25 Score Margin Compression</td>
+          <td>Trailing Drive Relief, Field-Goal-Floor, Leading Drive Throttle.</td>
+          <td>Full Blowout 80.2% -> 77.8%, Loser <= 7 90.4% -> 79.7%.</td>
+        </tr>
+        <tr>
+          <td>AP26 Long-Term Fatigue</td>
+          <td>Soft Caps und Diminishing Returns fuer Match-Fatigue, Front-Runner-Load.</td>
+          <td>Fatigue sichtbar stabilisiert, Blowout nur leicht verbessert.</td>
+        </tr>
+        <tr>
+          <td>AP27 Underdog/Comeback</td>
+          <td>Konservativer Underdog-Comeback-Boost und Fuehrenden-Throttle.</td>
+          <td>Avg Margin 38.22 -> 36.42, Blowout 77.1% -> 75.0%.</td>
+        </tr>
+        <tr>
+          <td>AP29 Schedule Neutrality</td>
+          <td>Balanced Rotation, Round-Robin/Randomized/Legacy-Varianten, Strength-of-Schedule-Diagnose.</td>
+          <td>Legacy Blowout 75.0% -> Balanced 53.2%; MED2 0-503 entfernt.</td>
+        </tr>
+        <tr>
+          <td>AP30 Near-Peer Delta Compression</td>
+          <td>Kleine Rating-Vorteile werden vor mehrfacher Drive-Nutzung geglaettet.</td>
+          <td>Full Blowout 53.2% -> 48.5%; Medium-vs-Medium 47.2% -> 2.8%.</td>
+        </tr>
+        <tr>
+          <td>AP31 Loser Floor Diagnose</td>
+          <td>Bandbasierter Offensive-Floor-Prototyp getestet, aber nicht uebernommen.</td>
+          <td>Prototyp verschlechterte Full Blowout 48.5% -> 54.8%; keine Gameplay-Aenderung.</td>
+        </tr>
+        <tr>
+          <td>AP32 Availability/Depth Diagnostics</td>
+          <td>Availability Index, Effective Depth, Starter Loss, Backup Usage in Extended Suite.</td>
+          <td>Kein Guardrail noetig; Availability/Depth-Verfall ist nicht der Primaertreiber.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>4. Kennzahlen Vorher/Nachher</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Meilenstein</th>
+          <th>Suite / Kontext</th>
+          <th>Avg Margin</th>
+          <th>Blowout Rate</th>
+          <th>Close Game Rate</th>
+          <th>Kommentar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AP23 Baseline</td>
+          <td>Full Extended, 2.016 Spiele</td>
+          <td>45.76</td>
+          <td>93.3%</td>
+          <td>1.7%</td>
+          <td>Nicht akzeptabel, starke strukturelle Verzerrung.</td>
+        </tr>
+        <tr>
+          <td>AP28 Diagnose</td>
+          <td>Full Run nach AP24</td>
+          <td>42.27</td>
+          <td>80.2%</td>
+          <td>9.7%</td>
+          <td>Score-/Drive-Separation als Haupttreiber identifiziert.</td>
+        </tr>
+        <tr>
+          <td>AP25</td>
+          <td>Full Extended</td>
+          <td>38.26</td>
+          <td>77.8%</td>
+          <td>10.2%</td>
+          <td>Winner-Take-All reduziert, aber noch hoch.</td>
+        </tr>
+        <tr>
+          <td>AP27</td>
+          <td>Full Extended</td>
+          <td>36.42</td>
+          <td>75.0%</td>
+          <td>11.0%</td>
+          <td>Underdog/Comeback half moderat.</td>
+        </tr>
+        <tr>
+          <td>AP29</td>
+          <td>Balanced Rotation, 1.008 Spiele</td>
+          <td>27.03</td>
+          <td>53.2%</td>
+          <td>18.5%</td>
+          <td>Schedule-Bias deutlich entfernt.</td>
+        </tr>
+        <tr>
+          <td>AP30-AP32 Final</td>
+          <td>Balanced Rotation, 1.008 Spiele</td>
+          <td>25.45</td>
+          <td>48.5%</td>
+          <td>26.0%</td>
+          <td>Near-Peer gesund, echte Mismatches bleiben hart.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="muted">Hinweis: AP29 wechselte die Suite-Struktur von Legacy-Zwei-Gegner-Pfaden auf Balanced Rotation. Werte vor/nach AP29 sind daher fachlich vergleichbar als QA-Signal, aber nicht als identische Fixture.</p>
+  </section>
+
+  <section>
+    <h2>5. Aktuelle Bewertung nach Matchup-Typ</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Typ</th>
+          <th>Aktueller Befund</th>
+          <th>Bewertung</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Equal Matchups</td>
+          <td>equal-vs-equal: Avg Margin 7.69, Blowout 2.8%, Close 55.6%. Strong-vs-Strong: Blowout 0.0%, Close 69.4%.</td>
+          <td><span class="good">Gesund</span>. Ergebnisse wirken eng und variabel.</td>
+        </tr>
+        <tr>
+          <td>Near-Peer Matchups</td>
+          <td>76 vs 75 Batch: Blowout 2.1%, Close 68.8%, Favorit 47.5%. Full Medium-vs-Medium: Blowout 2.8%, Close 63.9%.</td>
+          <td><span class="good">Gesund</span>. AP30 hat das Kernproblem behoben.</td>
+        </tr>
+        <tr>
+          <td>Medium Matchups</td>
+          <td>medium-vs-equal und equal-vs-medium bleiben eng; strong-vs-medium liegt bei 15.33 Avg Margin, 22.2% Blowout, 97.2% Favorit.</td>
+          <td><span class="good">Akzeptabel</span>. Moderate Vorteile sind sichtbar, aber nicht mehr automatisch zerstörerisch.</td>
+        </tr>
+        <tr>
+          <td>Echte Mismatches</td>
+          <td>strong-vs-weak: Avg Margin 45.53, Blowout 100.0%, Favorit 100.0%. weak-vs-medium/weak-vs-strong bleiben sehr hart.</td>
+          <td><span class="warn">Bewusst hart</span>. Plausibel fuer synthetische 84-vs-68-Profile, aber als Spielerlebnis riskant, wenn echte Ligen viele solche Spiele erzeugen.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card note">
+    <h2>6. Bewusst nicht geaendert</h2>
+    <ul>
+      <li>Keine globale Score-Engine-Neuschreibung nach AP25/AP27.</li>
+      <li>Keine weitere Rating-Delta-Kompression fuer 0-5 nach AP30.</li>
+      <li>Kein pauschaler Loser-Offensive-Floor: AP31-Prototyp verschlechterte die Full Suite.</li>
+      <li>Keine Injury-Rate-Neukalibrierung in AP32, weil kein Availability-Bug nachweisbar war.</li>
+      <li>Keine kuenstliche Match-Kompression fuer klare Strong-vs-Weak-Mismatches.</li>
+      <li>Keine Roster-/Prestige-Aenderung nach AP24.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>7. Offene Risiken</h2>
+    <ul>
+      <li><strong>Hohe Gesamt-Blowout-Rate bleibt sichtbar:</strong> 48.5% ist fuer eine synthetische Suite mit vielen echten Mismatches akzeptabel interpretierbar, aber nicht niedrig.</li>
+      <li><strong>Weak-Team-Erlebnis:</strong> Weak-vs-Strong und Weak-vs-Medium koennen spielerisch frustrierend bleiben, wenn schwache Teams zu haeufig in solchen Paarungen landen.</li>
+      <li><strong>Suite ist synthetisch:</strong> Balanced Rotation ist fairer, aber keine echte Liga-Saison mit Divisionen, Trade-offs, Human Decisions und realen Savegames.</li>
+      <li><strong>Effective Depth als Qualitaetssignal:</strong> AP32 zeigt starke Korrelation mit Margin. Das ist plausibel, sollte aber bei echten Roster-Imports beobachtet werden.</li>
+      <li><strong>Keine Meta-Analyse echter Nutzerentscheidungen:</strong> Die Suite misst Simulationsverhalten, nicht langfristige Human-Strategy-Metas.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>8. Empfehlung</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="label">Simulation akzeptabel</div>
+        <div class="value good">Ja</div>
+        <p class="muted">Fuer aktuelle Entwicklungs-/QA-Nutzung und Gameplay-Iteration tragfaehig.</p>
+      </div>
+      <div class="card">
+        <div class="label">Weitere Balance-Fixes noetig</div>
+        <div class="value warn">Nein, nicht blockierend</div>
+        <p class="muted">Weitere Verbesserungen sind sinnvoll, aber nicht als AP24-AP32-Blocker.</p>
+      </div>
+      <div class="card">
+        <div class="label">Naechster Fokus</div>
+        <div class="value accent">League Context</div>
+        <p class="muted">Schwache Teams, echte Schedules, Team Building und Player Agency.</p>
+      </div>
+    </div>
+
+    <h3>Empfohlener naechster Fokus</h3>
+    <p>Die naechste Runde sollte nicht erneut blind an Margins drehen. Sinnvoller ist eine <strong>League Context & Weak-Team Experience</strong>-Runde:</p>
+    <ul>
+      <li>realistischere League-Schedules und Division-/Strength-of-Schedule-Profile,</li>
+      <li>Spielerfeedback fuer klare Mismatches: warum verliert ein Team, was kann verbessert werden,</li>
+      <li>Team-Building-/Depth-Ziele fuer Weak Teams,</li>
+      <li>separate Auswertung echter Savegame-Saisons statt nur synthetischer Profilteams.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Statuspruefung</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Kriterium</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Alle APs AP24, AP28, AP25, AP26, AP27, AP29, AP30, AP31, AP32 beruecksichtigt</td>
+          <td><span class="good">Ja</span></td>
+        </tr>
+        <tr>
+          <td>Kennzahlen korrekt zusammengefuehrt</td>
+          <td><span class="good">Ja</span></td>
+        </tr>
+        <tr>
+          <td>Klare Entscheidung enthalten</td>
+          <td><span class="good">Ja: Simulation akzeptabel, weitere Fixes nicht blockierend</span></td>
+        </tr>
+        <tr>
+          <td>Einschraenkungen ehrlich benannt</td>
+          <td><span class="good">Ja</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p><strong>Status: <span class="good">Gruen</span></strong></p>
+  </section>
+</main>
+</body>
+</html>

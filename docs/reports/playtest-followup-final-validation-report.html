@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Playtest Follow-up Final Validation</title>
+    <style>
+      :root {
+        --bg: #08111f;
+        --surface: #101b2d;
+        --panel: #162235;
+        --line: rgba(255, 255, 255, 0.1);
+        --text: #edf4ff;
+        --muted: #9fb0c8;
+        --accent: #4fb3ff;
+        --success: #35d07f;
+        --warning: #f6c65b;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 40px 20px 56px;
+      }
+
+      header,
+      section {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 18px;
+      }
+
+      h1,
+      h2 {
+        margin: 0 0 12px;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      code {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        color: #d8ecff;
+        padding: 2px 6px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      .badge {
+        display: inline-flex;
+        min-height: 26px;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .green {
+        background: var(--success);
+        color: #062916;
+      }
+
+      .yellow {
+        background: var(--warning);
+        color: #2c2100;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .accent {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="muted">Stand: 2026-04-27</p>
+        <h1>Playtest Follow-up Final Validation</h1>
+        <p>
+          Validierung der fuenf Follow-up-Arbeitspakete nach dem Playtest:
+          Live Simulation, Match Report, Contracts/Trade Board E2E, Development
+          Wochenvergleich und Core Navigation.
+        </p>
+        <span class="badge yellow">Gesamtstatus: Gruen-Gelb</span>
+        <p class="muted">
+          Technische Gates sind gruen. Der Playtest-Status wird von Gelb auf
+          Gruen-Gelb angehoben, aber noch nicht auf voll Gruen, weil die Verbesserungen
+          nicht mit echten neuen Nutzern erneut validiert wurden.
+        </p>
+      </header>
+
+      <section>
+        <h2>AP-Bewertung</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>AP</th>
+              <th>Validierung</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>AP1 Live Simulation</td>
+              <td>
+                Storyline-Schicht mit Current Game State, Key Drive, Momentum Signal,
+                Manager Impact und What to watch next sichtbar. Live-Smoke und Model-Test gruen.
+              </td>
+              <td><span class="badge green">Gruen</span></td>
+            </tr>
+            <tr>
+              <td>AP2 Match Report</td>
+              <td>
+                Post-Game-Konsequenzen fuer naechste Woche sichtbar:
+                Entscheidung, Bedeutung und Aufmerksamkeitspunkt. Report-Smoke und Model-Tests gruen.
+              </td>
+              <td><span class="badge green">Gruen</span></td>
+            </tr>
+            <tr>
+              <td>AP3 Contracts/Trade Board E2E</td>
+              <td>
+                Contracts/Cap und Trade Board sind dediziert per E2E abgesichert,
+                inklusive Rueckwegen und klarer Kommunikation, dass Trade Board keine echte Ausfuehrung ist.
+              </td>
+              <td><span class="badge green">Gruen</span></td>
+            </tr>
+            <tr>
+              <td>AP4 Development Wochenvergleich</td>
+              <td>
+                Development wirkt staerker wie Fortschritt ueber Zeit.
+                Model-Tests und neuer Development-E2E pruefen gespeicherte History oder transparenten Fallback.
+              </td>
+              <td><span class="badge green">Gruen</span></td>
+            </tr>
+            <tr>
+              <td>AP5 Core Navigation</td>
+              <td>
+                Core Actions sind priorisiert: Game Flow, Roster, Depth Chart,
+                Contracts/Cap und Development. Navigation- und Dashboard-Smokes gruen.
+              </td>
+              <td><span class="badge green">Gruen</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Gefundene Regressionen</h2>
+        <p>
+          Keine Produktregression gefunden. Eine E2E-Test-Isolation wurde entdeckt:
+          Live- und Match-Report-Smokes verwendeten denselben Seed und konnten im selben
+          Lauf auf dem Week-State kollidieren. Die Tests wurden stabilisiert, sodass sie
+          vorhandene Week-States erkennen und sequenziell reproduzierbar gruen laufen.
+        </p>
+      </section>
+
+      <section>
+        <h2>Ausgefuehrte Commands</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npx tsc --noEmit</code></td>
+              <td><span class="badge green">Passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npm run lint</code></td>
+              <td><span class="badge green">Passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx vitest run src/components/match/live-simulation-model.test.ts src/components/match/post-game-report-model.test.ts src/components/match/match-report-model.test.ts src/components/development/player-development-model.test.ts src/components/player/player-detail-model.test.ts src/components/layout/navigation-model.test.ts src/components/team/roster-model.test.ts src/components/team/depth-chart-model.test.ts src/components/trades/trade-board-model.test.ts src/components/trades/trade-model.test.ts src/components/finance/finance-model.test.ts</code></td>
+              <td><span class="badge green">11 files, 91 tests passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npm run test:e2e:week-loop</code></td>
+              <td><span class="badge green">1 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npm run test:e2e:depth-chart</code></td>
+              <td><span class="badge green">1 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx playwright test e2e/first-10-minutes.spec.ts</code></td>
+              <td><span class="badge green">1 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx playwright test e2e/contracts-cap.spec.ts e2e/trade-board.spec.ts</code></td>
+              <td><span class="badge green">2 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx playwright test e2e/live-storyline.spec.ts e2e/match-report-consequences.spec.ts e2e/development-week-comparison.spec.ts --workers=1</code></td>
+              <td><span class="badge green">3 passed</span></td>
+            </tr>
+            <tr>
+              <td><code>npx playwright test e2e/navigation.spec.ts e2e/dashboard.spec.ts</code></td>
+              <td><span class="badge green">2 passed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Geaenderte Dateien in dieser Validierung</h2>
+        <ul>
+          <li><code>e2e/development-week-comparison.spec.ts</code></li>
+          <li><code>e2e/live-storyline.spec.ts</code></li>
+          <li><code>e2e/match-report-consequences.spec.ts</code></li>
+          <li><code>docs/reports/playtest-followup-final-validation-report.html</code></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Offene Risiken</h2>
+        <ul>
+          <li>
+            Voll Gruen erfordert einen echten Re-Playtest mit 3-5 neuen Nutzern,
+            weil die UX-Wirkung aktuell automatisiert und fachlich, aber nicht real-nutzerbasiert validiert ist.
+          </li>
+          <li>
+            E2E-Flows, die denselben Match-/Week-State mutieren, sollten in kombinierten
+            Laeufen sequenziell oder mit getrennten Seed-Kontexten laufen.
+          </li>
+          <li>
+            Next.js Cold Starts bleiben lokal langsam; die Tests sind mit isolierten Ports
+            und erhoehten Navigation-Timeouts stabil gelaufen.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Empfehlung naechste Phase</h2>
+        <p>
+          Naechste Phase: echter Re-Playtest mit 3-5 Nutzern auf dem aktuellen Stand.
+          Fokus: Time to First Action, Verstaendnis des Game Flow, Wahrnehmung von
+          Live-Spannung, Match-Report-Konsequenzen und Orientierung in Core Navigation.
+        </p>
+        <p class="accent">
+          Wenn dieser Re-Playtest keine Critical Blocker und maximal kleine Minor-Issues
+          zeigt, kann der Playtest-Status auf voll Gruen angehoben werden.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
