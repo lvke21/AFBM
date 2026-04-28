@@ -160,3 +160,4 @@ Der empfohlene Einstieg in die Dokumentation ist [docs/README.md](./docs/README.
 - Im Repository ist derzeit kein `prisma/migrations`-Verzeichnis eingecheckt. Eine frische lokale Umgebung muss die erste Migration lokal erzeugen.
 - Der geschuetzte App-Bereich unter `/app` ist nur mit konfiguriertem Auth-Provider nutzbar.
 - Die aktuelle Matchsimulation ist bewusst ein erster vertikaler Slice und noch keine vollstaendige Play-by-Play-Engine.
+# AFBM
