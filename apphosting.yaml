@@ -1,5 +1,4 @@
 # Firebase App Hosting staging-oriented baseline.
-# This file prepares hosting configuration only; it does not deploy or activate Firestore.
 
 runConfig:
   minInstances: 0
@@ -10,36 +9,6 @@ runConfig:
 
 env:
   - variable: DATA_BACKEND
-    value: prisma
-    availability:
-      - RUNTIME
-
-  - variable: DATABASE_URL
-    secret: afbm-staging-database-url
-    availability:
-      - RUNTIME
-
-  - variable: AUTH_SECRET
-    secret: afbm-staging-auth-secret
-    availability:
-      - RUNTIME
-
-  - variable: AUTH_GITHUB_ID
-    secret: afbm-staging-auth-github-id
-    availability:
-      - RUNTIME
-
-  - variable: AUTH_GITHUB_SECRET
-    secret: afbm-staging-auth-github-secret
-    availability:
-      - RUNTIME
-
-  - variable: AFBM_FIRESTORE_OPERATION_LOG
-    value: "false"
-    availability:
-      - RUNTIME
-
-  - variable: FIRESTORE_USAGE_LOGGING
-    value: "false"
-    availability:
-      - RUNTIME
+    value: firestore
+  - variable: FIREBASE_PROJECT_ID
+    value: afbm-staging
