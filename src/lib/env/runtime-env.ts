@@ -120,8 +120,12 @@ export function assertRuntimeEnvironment(env: RuntimeEnv = process.env) {
   }
 
   if (env.DATA_BACKEND === "firestore") {
-    requireStrongSecret("FIREBASE_CLIENT_EMAIL", 16);
-    requireStrongSecret("FIREBASE_PRIVATE_KEY", 64);
+    const clientEmail = env.FIREBASE_CLIENT_EMAIL?.trim() ?? "";
+    const privateKey = env.FIREBASE_PRIVATE_KEY?.trim() ?? "";
+
+    if ((clientEmail && !privateKey) || (!clientEmail && privateKey)) {
+      issues.push("FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY must be configured together when explicit Firebase Admin credentials are used.");
+    }
   }
 
   if (deployEnvironment === "production") {

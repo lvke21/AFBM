@@ -32,6 +32,21 @@ describe("firebase admin passive setup", () => {
     expect(config.privateKey).toContain("-----BEGIN PRIVATE KEY-----\nabc\n");
   });
 
+  it("allows App Hosting default credentials when explicit service account secrets are absent", () => {
+    expect(readFirebaseAdminConfig({
+      FIREBASE_PROJECT_ID: "afbm-staging",
+    })).toEqual({
+      projectId: "afbm-staging",
+    });
+  });
+
+  it("rejects partial explicit service account configuration", () => {
+    expect(() => readFirebaseAdminConfig({
+      FIREBASE_PROJECT_ID: "afbm-test",
+      FIREBASE_CLIENT_EMAIL: "firebase-adminsdk@example.test",
+    })).toThrow("FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY must be configured together");
+  });
+
   it("initializes once with emulator-only project configuration", () => {
     vi.stubEnv("FIREBASE_PROJECT_ID", "afbm-emulator-test");
     vi.stubEnv("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8080");

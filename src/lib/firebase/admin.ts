@@ -46,9 +46,15 @@ export function readFirebaseAdminConfig(
   const privateKey = env.FIREBASE_PRIVATE_KEY;
 
   if (!clientEmail || !privateKey) {
-    throw missingAdminConfig(
-      "FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY are required outside the Firestore emulator.",
-    );
+    if (clientEmail || privateKey) {
+      throw missingAdminConfig(
+        "FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY must be configured together.",
+      );
+    }
+
+    return {
+      projectId,
+    };
   }
 
   return {
@@ -66,6 +72,12 @@ export function getFirebaseAdminApp(): App {
   const config = readFirebaseAdminConfig();
 
   if (config.emulatorHost) {
+    return initializeApp({
+      projectId: config.projectId,
+    });
+  }
+
+  if (!config.clientEmail || !config.privateKey) {
     return initializeApp({
       projectId: config.projectId,
     });

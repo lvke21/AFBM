@@ -7,6 +7,8 @@ import { StatCard } from "@/components/ui/stat-card";
 import { requirePageUserId } from "@/lib/auth/session";
 import { listSaveGames } from "@/modules/savegames/application/savegame-query.service";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const userId = await requirePageUserId();
   const saveGames = await listSaveGames(userId);

@@ -6,6 +6,8 @@ import { requirePageUserId } from "@/lib/auth/session";
 import { formatDate } from "@/lib/utils/format";
 import { listSaveGames } from "@/modules/savegames/application/savegame-query.service";
 
+export const dynamic = "force-dynamic";
+
 export default async function SaveGamesPage() {
   const userId = await requirePageUserId();
   const saveGames = await listSaveGames(userId);

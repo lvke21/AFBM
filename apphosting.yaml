@@ -20,10 +20,6 @@ env:
     value: firebase
   - variable: FIREBASE_PROJECT_ID
     value: afbm-staging
-  - variable: FIREBASE_CLIENT_EMAIL
-    secret: afbm-staging-firebase-client-email
-  - variable: FIREBASE_PRIVATE_KEY
-    secret: afbm-staging-firebase-private-key
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
     value: afbm-staging
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN

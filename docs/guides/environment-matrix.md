@@ -9,7 +9,7 @@ Status: verbindliche Runtime-Matrix nach Entfernung von removed session and prov
 - legacy session system/legacy session library ist kein Runtime-Bestandteil mehr.
 - `OLD_SESSION_URL`, `NEXTOLD_SESSION_URL`, `OLD_SESSION_KEY`, `OLD_GH_PROVIDER_ID`, `OLD_GH_PROVIDER_KEY`, `OLD_GH_APP_ID`, `OLD_GH_APP_KEY` und `OLD_PUBLIC_LOGIN_FLAG` sind Legacy-Variablen und duerfen in Staging/Production nicht gesetzt werden.
 - `NEXT_PUBLIC_*` darf keine Secrets enthalten. Diese Werte sind im Browser sichtbar und nur fuer Firebase-Web-App-IDs, Backend-Modus und nicht geheime Client-Konfiguration gedacht.
-- Server-Secrets bleiben serverseitig: `DATABASE_URL`, `AFBM_ADMIN_ACCESS_CODE`, `AFBM_ADMIN_SESSION_SECRET`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`.
+- Server-Secrets bleiben serverseitig: `DATABASE_URL`, `AFBM_ADMIN_ACCESS_CODE`, `AFBM_ADMIN_SESSION_SECRET`. Explizite Firebase-Admin-Credentials (`FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`) sind nur fuer manuelle Non-App-Hosting-Runtimes/Tools noetig und muessen paarweise gesetzt werden.
 - `ADMIN_ACCESS_CODE` ist nur ein Legacy-Alias und ausserhalb lokaler Entwicklung verboten. Verwende `AFBM_ADMIN_ACCESS_CODE`.
 - Emulator-, Preview- und Seed-Flags sind ausserhalb lokaler Entwicklung verboten.
 - Production startet nicht, wenn kritische Secrets fehlen oder Demo-/Emulator-Konfiguration aktiv ist.
@@ -30,8 +30,8 @@ Status: verbindliche Runtime-Matrix nach Entfernung von removed session and prov
 | `NEXT_PUBLIC_AFBM_ONLINE_BACKEND` | `local` oder `firebase` | `firebase` | `firebase` |
 | `NEXT_PUBLIC_FIREBASE_*` | Demo-/Emulator-Werte erlaubt | Staging Web App Config | Production Web App Config |
 | `FIREBASE_PROJECT_ID` | `demo-*` fuer Emulator | Staging Projekt | Production Projekt, nicht `demo-*` |
-| `FIREBASE_CLIENT_EMAIL` | leer bei Emulator | Secret Store, falls Firestore Admin SDK genutzt wird | Secret Store, falls Firestore Admin SDK genutzt wird |
-| `FIREBASE_PRIVATE_KEY` | leer bei Emulator | Secret Store, falls Firestore Admin SDK genutzt wird | Secret Store, falls Firestore Admin SDK genutzt wird |
+| `FIREBASE_CLIENT_EMAIL` | leer bei Emulator | leer in App Hosting; optional fuer manuelle Admin-Credentials | leer in App Hosting; optional fuer manuelle Admin-Credentials |
+| `FIREBASE_PRIVATE_KEY` | leer bei Emulator | leer in App Hosting; optional fuer manuelle Admin-Credentials | leer in App Hosting; optional fuer manuelle Admin-Credentials |
 | `FIRESTORE_EMULATOR_HOST` / `FIREBASE_EMULATOR_HOST` / `FIREBASE_AUTH_EMULATOR_HOST` | erlaubt | verboten | verboten |
 | `NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST` / `NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST` | erlaubt | verboten | verboten |
 | `FIRESTORE_PREVIEW_*` | erlaubt fuer lokale Preview-Tools | nicht in App Runtime | verboten |
