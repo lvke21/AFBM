@@ -19,8 +19,7 @@ Diese Anleitung beschreibt, wie die bestehende Next.js-App fuer Firebase App Hos
 - Git-Repository mit sauberem Baseline-Commit.
 - Dediziertes Firebase-Staging-Projekt.
 - Firebase App Hosting Backend im Firebase Console Flow.
-- Externe oder gemanagte PostgreSQL-Datenbank fuer Staging.
-- Cloud Secret Manager Secrets fuer Datenbank, Admin-Code und Firebase Admin SDK.
+- Cloud Secret Manager Secrets fuer Admin-Code und Admin-Session.
 
 ## App Hosting Konfiguration
 
@@ -29,7 +28,7 @@ Die Root-Datei `apphosting.yaml` ist bewusst staging-orientiert:
 - konservative Cloud-Run-Ressourcen
 - `AFBM_DEPLOY_ENV=staging`
 - `DATA_BACKEND=firestore`
-- Secret-Referenzen fuer Datenbank, Admin-Code und Firebase Admin SDK
+- Secret-Referenzen fuer Admin-Code und Admin-Session
 - Secret-Referenzen fuer Firebase Admin SDK, falls Firestore Admin SDK genutzt wird
 - keine Emulator- oder Preview-Flags
 
@@ -46,7 +45,6 @@ Erwartetes Build-Verhalten:
 
 In Cloud Secret Manager fuer das Staging-Projekt anlegen:
 
-- `afbm-staging-database-url`
 - `afbm-staging-admin-access-code`
 - `afbm-staging-admin-session-secret`
 
@@ -61,7 +59,6 @@ In `apphosting.yaml` gesetzt:
 - `DATA_BACKEND=firestore`
 - `AFBM_ONLINE_BACKEND=firebase`
 - `NEXT_PUBLIC_AFBM_ONLINE_BACKEND=firebase`
-- `DATABASE_URL` aus Secret
 - `AFBM_ADMIN_ACCESS_CODE` aus Secret
 - `AFBM_ADMIN_SESSION_SECRET` aus Secret
 - `FIREBASE_PROJECT_ID=afbm-staging`
@@ -81,14 +78,12 @@ Diese Legacy-Variablen duerfen nicht gesetzt werden:
 
 ## Prisma/PostgreSQL
 
-App Hosting braucht zur Laufzeit eine erreichbare PostgreSQL-Datenbank.
+App Hosting braucht im Staging-Firestore-Pfad keine PostgreSQL-Datenbank.
 
 Pflichten:
 
-- `DATABASE_URL` als Secret, nicht im Repo.
-- Datenbank vor Rollout migrieren.
-- Connection Limits der Datenbank pruefen.
-- Rollback-Plan fuer DB-Schema-Aenderungen separat definieren.
+- `DATABASE_URL` nicht in `apphosting.yaml` setzen, solange `DATA_BACKEND=firestore` aktiv ist.
+- Prisma/PostgreSQL bleibt nur als lokale Legacy- und E2E-Fallback-Infrastruktur erhalten.
 
 Wichtig: Dieses Setup startet keine Migration automatisch.
 
@@ -112,15 +107,14 @@ Damit greifen die Runtime- und Firestore-Guards gegen versehentliche Emulator-/P
 3. GitHub Repository und Branch verbinden.
 4. Secrets im Staging-Projekt anlegen.
 5. Secret-Zugriff fuer App Hosting Service Accounts vergeben.
-6. Staging-Postgres bereitstellen und `DATABASE_URL` als Secret setzen.
-7. Ersten Rollout manuell freigeben.
-8. Smoke-Test:
+6. Ersten Rollout manuell freigeben.
+7. Smoke-Test:
    - App laedt.
    - Online Spielen oeffnet keinen external provider auth-Flow.
    - Admin Login funktioniert ueber Admin-Code.
    - SaveGame-Liste laedt.
    - Dashboard laedt.
-   - Prepare Week / Match Flow laeuft gegen Prisma.
+   - Prepare Week / Match Flow laeuft gegen Firestore.
    - Logs enthalten keinen Firestore-Production-Zugriff.
 
 ## Rollback

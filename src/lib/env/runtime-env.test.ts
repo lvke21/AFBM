@@ -7,7 +7,7 @@ const stagingEnv = {
   AFBM_ADMIN_SESSION_SECRET: "staging-admin-session-secret-123456",
   AFBM_DEPLOY_ENV: "staging",
   AFBM_ONLINE_BACKEND: "firebase",
-  DATABASE_URL: "postgresql://staging.example.test/afbm",
+  DATA_BACKEND: "firestore",
   NEXT_PUBLIC_AFBM_ONLINE_BACKEND: "firebase",
   NODE_ENV: "production",
 };
@@ -15,6 +15,7 @@ const stagingEnv = {
 const productionEnv = {
   ...stagingEnv,
   AFBM_DEPLOY_ENV: "production",
+  DATA_BACKEND: "prisma",
   DATABASE_URL: "postgresql://production.example.test/afbm",
   NEXT_PUBLIC_FIREBASE_API_KEY: "firebase-api-key",
   NEXT_PUBLIC_FIREBASE_APP_ID: "1:123456789:web:prod",
@@ -39,6 +40,13 @@ describe("runtime environment validation", () => {
 
   it("allows staging with server-side secrets and no local backend", () => {
     expect(assertRuntimeEnvironment(stagingEnv)).toEqual({ deployEnvironment: "staging" });
+  });
+
+  it("allows staging firestore without legacy DATABASE_URL", () => {
+    expect(assertRuntimeEnvironment({
+      ...stagingEnv,
+      DATABASE_URL: undefined,
+    })).toEqual({ deployEnvironment: "staging" });
   });
 
   it("blocks production when critical secrets are missing", () => {

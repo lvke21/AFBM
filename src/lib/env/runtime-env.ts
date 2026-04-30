@@ -89,7 +89,10 @@ export function assertRuntimeEnvironment(env: RuntimeEnv = process.env) {
     return value;
   };
 
-  requireStrongSecret("DATABASE_URL", 16);
+  if (env.DATA_BACKEND !== "firestore") {
+    requireStrongSecret("DATABASE_URL", 16);
+  }
+
   const adminAccessCode = requireStrongSecret("AFBM_ADMIN_ACCESS_CODE", 16);
   const adminSessionSecret = requireStrongSecret("AFBM_ADMIN_SESSION_SECRET", 32);
 

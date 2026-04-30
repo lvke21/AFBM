@@ -9,7 +9,7 @@ Status: verbindliche Runtime-Matrix nach Entfernung von removed session and prov
 - legacy session system/legacy session library ist kein Runtime-Bestandteil mehr.
 - `OLD_SESSION_URL`, `NEXTOLD_SESSION_URL`, `OLD_SESSION_KEY`, `OLD_GH_PROVIDER_ID`, `OLD_GH_PROVIDER_KEY`, `OLD_GH_APP_ID`, `OLD_GH_APP_KEY` und `OLD_PUBLIC_LOGIN_FLAG` sind Legacy-Variablen und duerfen in Staging/Production nicht gesetzt werden.
 - `NEXT_PUBLIC_*` darf keine Secrets enthalten. Diese Werte sind im Browser sichtbar und nur fuer Firebase-Web-App-IDs, Backend-Modus und nicht geheime Client-Konfiguration gedacht.
-- Server-Secrets bleiben serverseitig: `DATABASE_URL`, `AFBM_ADMIN_ACCESS_CODE`, `AFBM_ADMIN_SESSION_SECRET`. Explizite Firebase-Admin-Credentials (`FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`) sind nur fuer manuelle Non-App-Hosting-Runtimes/Tools noetig und muessen paarweise gesetzt werden.
+- Server-Secrets bleiben serverseitig: `AFBM_ADMIN_ACCESS_CODE`, `AFBM_ADMIN_SESSION_SECRET`. `DATABASE_URL` ist nur fuer den Prisma-Legacy-Pfad noetig, nicht fuer `DATA_BACKEND=firestore`. Explizite Firebase-Admin-Credentials (`FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`) sind nur fuer manuelle Non-App-Hosting-Runtimes/Tools noetig und muessen paarweise gesetzt werden.
 - `ADMIN_ACCESS_CODE` ist nur ein Legacy-Alias und ausserhalb lokaler Entwicklung verboten. Verwende `AFBM_ADMIN_ACCESS_CODE`.
 - Emulator-, Preview- und Seed-Flags sind ausserhalb lokaler Entwicklung verboten.
 - Production startet nicht, wenn kritische Secrets fehlen oder Demo-/Emulator-Konfiguration aktiv ist.
@@ -20,7 +20,7 @@ Status: verbindliche Runtime-Matrix nach Entfernung von removed session and prov
 | --- | --- | --- | --- |
 | `AFBM_DEPLOY_ENV` | `local` | `staging` | `production` |
 | `NEXT_PUBLIC_AFBM_DEPLOY_ENV` | `local` | `staging` | `production` |
-| `DATABASE_URL` | lokales Postgres | Secret Store | Secret Store |
+| `DATABASE_URL` | lokales Postgres fuer Prisma | nicht gesetzt bei `DATA_BACKEND=firestore` | Secret Store nur bei `DATA_BACKEND=prisma` |
 | `AFBM_APP_USER_ID` | lokale Savegame-Owner-ID, z. B. `local-gm` | optional feste Staging-App-ID | optional feste Production-App-ID |
 | `AFBM_ADMIN_ACCESS_CODE` | optional | Secret Store | Secret Store |
 | `AFBM_ADMIN_SESSION_SECRET` | optional, darf lokal fehlen | Secret Store, getrennt vom Access Code | Secret Store, getrennt vom Access Code |
@@ -47,7 +47,8 @@ Status: verbindliche Runtime-Matrix nach Entfernung von removed session and prov
 
 Staging-/Production-Fehler stoppen Build/Start unter anderem bei:
 
-- fehlendem `DATABASE_URL`, `AFBM_ADMIN_ACCESS_CODE` oder `AFBM_ADMIN_SESSION_SECRET`
+- fehlendem `AFBM_ADMIN_ACCESS_CODE` oder `AFBM_ADMIN_SESSION_SECRET`
+- fehlendem `DATABASE_URL`, wenn `DATA_BACKEND` nicht `firestore` ist
 - `AFBM_ADMIN_SESSION_SECRET === AFBM_ADMIN_ACCESS_CODE`
 - gesetztem `ADMIN_ACCESS_CODE`
 - gesetzten removed session and provider login-Legacy-Variablen
