@@ -1,0 +1,6440 @@
+{
+  "generatedAt": "2026-04-30T18:27:23.628Z",
+  "projectRoot": "/Users/lukashanzi/Documents/AFBM",
+  "scope": {
+    "includedExtensions": [
+      ".cjs",
+      ".css",
+      ".html",
+      ".js",
+      ".json",
+      ".jsx",
+      ".md",
+      ".mdx",
+      ".mjs",
+      ".prisma",
+      ".rules",
+      ".scss",
+      ".sql",
+      ".toml",
+      ".ts",
+      ".tsx",
+      ".txt",
+      ".yaml",
+      ".yml"
+    ],
+    "includedExactFilenames": [
+      ".env.example"
+    ],
+    "productiveEstimationCategories": [
+      "App-Code",
+      "Schema/DB",
+      "Script",
+      "Sonstiges"
+    ]
+  },
+  "exclusions": {
+    "directories": [
+      ".cache",
+      ".firebase",
+      ".git",
+      ".local",
+      ".next",
+      ".turbo",
+      ".vercel",
+      "build",
+      "coverage",
+      "dist",
+      "firebase-emulator-data",
+      "node_modules",
+      "playwright-report",
+      "reports-output",
+      "test-results"
+    ],
+    "files": [
+      "firebase-debug.log",
+      "firestore-debug.log",
+      "next-env.d.ts",
+      "package-lock.json",
+      "pnpm-lock.yaml",
+      "scripts/analyze-codebase-size.mjs",
+      "tsconfig.tsbuildinfo",
+      "yarn.lock"
+    ],
+    "pathPrefixes": [
+      "docs/reports/"
+    ]
+  },
+  "totals": {
+    "files": 733,
+    "lines": 189715,
+    "nonEmptyLines": 170258,
+    "characters": 6119876
+  },
+  "codeOnly": {
+    "files": 633,
+    "lines": 174274,
+    "nonEmptyLines": 158413,
+    "characters": 5590991
+  },
+  "productiveCode": {
+    "files": 462,
+    "lines": 135044,
+    "nonEmptyLines": 122751,
+    "characters": 4358113
+  },
+  "tests": {
+    "files": 163,
+    "lines": 35704,
+    "nonEmptyLines": 32374,
+    "characters": 1092354
+  },
+  "documentation": {
+    "files": 95,
+    "lines": 17381,
+    "nonEmptyLines": 13572,
+    "characters": 620038
+  },
+  "config": {
+    "files": 13,
+    "lines": 1586,
+    "nonEmptyLines": 1561,
+    "characters": 49371
+  },
+  "byExtension": {
+    ".css": {
+      "files": 1,
+      "lines": 112,
+      "nonEmptyLines": 98,
+      "characters": 3052
+    },
+    ".env.example": {
+      "files": 1,
+      "lines": 54,
+      "nonEmptyLines": 48,
+      "characters": 2334
+    },
+    ".html": {
+      "files": 4,
+      "lines": 3345,
+      "nonEmptyLines": 3123,
+      "characters": 134385
+    },
+    ".json": {
+      "files": 5,
+      "lines": 1289,
+      "nonEmptyLines": 1289,
+      "characters": 39110
+    },
+    ".md": {
+      "files": 91,
+      "lines": 14036,
+      "nonEmptyLines": 10449,
+      "characters": 485653
+    },
+    ".mjs": {
+      "files": 5,
+      "lines": 384,
+      "nonEmptyLines": 325,
+      "characters": 10629
+    },
+    ".prisma": {
+      "files": 1,
+      "lines": 1335,
+      "nonEmptyLines": 1168,
+      "characters": 47336
+    },
+    ".rules": {
+      "files": 1,
+      "lines": 350,
+      "nonEmptyLines": 302,
+      "characters": 12685
+    },
+    ".sql": {
+      "files": 3,
+      "lines": 1652,
+      "nonEmptyLines": 1312,
+      "characters": 72783
+    },
+    ".toml": {
+      "files": 1,
+      "lines": 3,
+      "nonEmptyLines": 3,
+      "characters": 128
+    },
+    ".ts": {
+      "files": 446,
+      "lines": 146341,
+      "nonEmptyLines": 133117,
+      "characters": 4518372
+    },
+    ".tsx": {
+      "files": 172,
+      "lines": 20755,
+      "nonEmptyLines": 18968,
+      "characters": 791749
+    },
+    ".yaml": {
+      "files": 1,
+      "lines": 38,
+      "nonEmptyLines": 36,
+      "characters": 1172
+    },
+    ".yml": {
+      "files": 1,
+      "lines": 21,
+      "nonEmptyLines": 20,
+      "characters": 488
+    }
+  },
+  "byCategory": {
+    "App-Code": {
+      "files": 407,
+      "lines": 105279,
+      "nonEmptyLines": 95622,
+      "characters": 3365105
+    },
+    "Config": {
+      "files": 13,
+      "lines": 1586,
+      "nonEmptyLines": 1561,
+      "characters": 49371
+    },
+    "Dokumentation": {
+      "files": 95,
+      "lines": 17381,
+      "nonEmptyLines": 13572,
+      "characters": 620038
+    },
+    "Schema/DB": {
+      "files": 7,
+      "lines": 3359,
+      "nonEmptyLines": 2800,
+      "characters": 133351
+    },
+    "Script": {
+      "files": 48,
+      "lines": 26406,
+      "nonEmptyLines": 24329,
+      "characters": 859657
+    },
+    "Test-Code": {
+      "files": 163,
+      "lines": 35704,
+      "nonEmptyLines": 32374,
+      "characters": 1092354
+    }
+  },
+  "topByLines": [
+    {
+      "path": "src/lib/online/online-league-service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 8860,
+      "nonEmptyLines": 7915,
+      "characters": 263367
+    },
+    {
+      "path": "src/modules/gameplay/infrastructure/play-library.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 6970,
+      "nonEmptyLines": 6900,
+      "characters": 245423
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/match-engine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 5217,
+      "nonEmptyLines": 4837,
+      "characters": 191480
+    },
+    {
+      "path": "src/modules/gameplay/application/play-selection-engine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 2769,
+      "nonEmptyLines": 2496,
+      "characters": 79442
+    },
+    {
+      "path": "src/modules/gameplay/application/outcome-resolution-engine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 2737,
+      "nonEmptyLines": 2502,
+      "characters": 79689
+    },
+    {
+      "path": "scripts/simulations/qa-extended-engine-balance-suite.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 2571,
+      "nonEmptyLines": 2451,
+      "characters": 87412
+    },
+    {
+      "path": "src/components/online/online-league-placeholder.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 2402,
+      "nonEmptyLines": 2241,
+      "characters": 101086
+    },
+    {
+      "path": "scripts/seeds/e2e-seed.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1848,
+      "nonEmptyLines": 1783,
+      "characters": 44895
+    },
+    {
+      "path": "scripts/simulations/qa-new-engine-balance-suite.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1788,
+      "nonEmptyLines": 1687,
+      "characters": 58282
+    },
+    {
+      "path": "scripts/simulations/gameengine-rating-analysis-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1714,
+      "nonEmptyLines": 1614,
+      "characters": 52644
+    },
+    {
+      "path": "prisma/migrations/20260426123001_init/migration.sql",
+      "extension": ".sql",
+      "category": "Schema/DB",
+      "lines": 1647,
+      "nonEmptyLines": 1307,
+      "characters": 72568
+    },
+    {
+      "path": "src/modules/gameplay/application/play-library-service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1556,
+      "nonEmptyLines": 1404,
+      "characters": 42081
+    },
+    {
+      "path": "src/components/dashboard/dashboard-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1498,
+      "nonEmptyLines": 1318,
+      "characters": 47066
+    },
+    {
+      "path": "docs/guides/user-documentation.html",
+      "extension": ".html",
+      "category": "Dokumentation",
+      "lines": 1485,
+      "nonEmptyLines": 1394,
+      "characters": 56370
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/extended-season-balance-suite.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1443,
+      "nonEmptyLines": 1291,
+      "characters": 46729
+    },
+    {
+      "path": "scripts/simulations/qa-rating-impact-validation.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1398,
+      "nonEmptyLines": 1290,
+      "characters": 49690
+    },
+    {
+      "path": "src/components/online/online-league-detail-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1388,
+      "nonEmptyLines": 1233,
+      "characters": 46144
+    },
+    {
+      "path": "src/components/match/post-game-report-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1337,
+      "nonEmptyLines": 1164,
+      "characters": 44511
+    },
+    {
+      "path": "prisma/schema.prisma",
+      "extension": ".prisma",
+      "category": "Schema/DB",
+      "lines": 1335,
+      "nonEmptyLines": 1168,
+      "characters": 47336
+    },
+    {
+      "path": "src/modules/savegames/application/bootstrap/initial-roster.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1310,
+      "nonEmptyLines": 1260,
+      "characters": 30244
+    }
+  ],
+  "topByCharacters": [
+    {
+      "path": "src/lib/online/online-league-service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 8860,
+      "nonEmptyLines": 7915,
+      "characters": 263367
+    },
+    {
+      "path": "src/modules/gameplay/infrastructure/play-library.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 6970,
+      "nonEmptyLines": 6900,
+      "characters": 245423
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/match-engine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 5217,
+      "nonEmptyLines": 4837,
+      "characters": 191480
+    },
+    {
+      "path": "src/components/online/online-league-placeholder.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 2402,
+      "nonEmptyLines": 2241,
+      "characters": 101086
+    },
+    {
+      "path": "scripts/simulations/qa-extended-engine-balance-suite.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 2571,
+      "nonEmptyLines": 2451,
+      "characters": 87412
+    },
+    {
+      "path": "src/modules/gameplay/application/outcome-resolution-engine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 2737,
+      "nonEmptyLines": 2502,
+      "characters": 79689
+    },
+    {
+      "path": "src/modules/gameplay/application/play-selection-engine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 2769,
+      "nonEmptyLines": 2496,
+      "characters": 79442
+    },
+    {
+      "path": "prisma/migrations/20260426123001_init/migration.sql",
+      "extension": ".sql",
+      "category": "Schema/DB",
+      "lines": 1647,
+      "nonEmptyLines": 1307,
+      "characters": 72568
+    },
+    {
+      "path": "scripts/simulations/qa-new-engine-balance-suite.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1788,
+      "nonEmptyLines": 1687,
+      "characters": 58282
+    },
+    {
+      "path": "docs/guides/user-documentation.html",
+      "extension": ".html",
+      "category": "Dokumentation",
+      "lines": 1485,
+      "nonEmptyLines": 1394,
+      "characters": 56370
+    },
+    {
+      "path": "scripts/simulations/gameengine-rating-analysis-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1714,
+      "nonEmptyLines": 1614,
+      "characters": 52644
+    },
+    {
+      "path": "scripts/simulations/qa-rating-impact-validation.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1398,
+      "nonEmptyLines": 1290,
+      "characters": 49690
+    },
+    {
+      "path": "prisma/schema.prisma",
+      "extension": ".prisma",
+      "category": "Schema/DB",
+      "lines": 1335,
+      "nonEmptyLines": 1168,
+      "characters": 47336
+    },
+    {
+      "path": "src/components/dashboard/dashboard-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1498,
+      "nonEmptyLines": 1318,
+      "characters": 47066
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/extended-season-balance-suite.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1443,
+      "nonEmptyLines": 1291,
+      "characters": 46729
+    },
+    {
+      "path": "src/components/online/online-league-detail-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1388,
+      "nonEmptyLines": 1233,
+      "characters": 46144
+    },
+    {
+      "path": "scripts/seeds/e2e-seed.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1848,
+      "nonEmptyLines": 1783,
+      "characters": 44895
+    },
+    {
+      "path": "src/components/match/post-game-report-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1337,
+      "nonEmptyLines": 1164,
+      "characters": 44511
+    },
+    {
+      "path": "src/modules/gameplay/application/play-library-service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1556,
+      "nonEmptyLines": 1404,
+      "characters": 42081
+    },
+    {
+      "path": "src/components/match/match-report-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1251,
+      "nonEmptyLines": 1083,
+      "characters": 42046
+    }
+  ],
+  "estimates": {
+    "basis": "productive non-empty lines in App-Code, Script, Schema/DB and Sonstiges",
+    "productiveNonEmptyLines": 122751,
+    "fast": {
+      "minHours": 877,
+      "maxHours": 1534,
+      "lowRate": 80,
+      "highRate": 140
+    },
+    "normal": {
+      "minHours": 1534,
+      "maxHours": 3069,
+      "lowRate": 40,
+      "highRate": 80
+    },
+    "complex": {
+      "minHours": 3069,
+      "maxHours": 8183,
+      "lowRate": 15,
+      "highRate": 40
+    }
+  },
+  "files": [
+    {
+      "path": ".env.example",
+      "extension": ".env.example",
+      "category": "Config",
+      "lines": 54,
+      "nonEmptyLines": 48,
+      "characters": 2334
+    },
+    {
+      "path": "apphosting.yaml",
+      "extension": ".yaml",
+      "category": "Config",
+      "lines": 38,
+      "nonEmptyLines": 36,
+      "characters": 1172
+    },
+    {
+      "path": "CHANGELOG.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 82,
+      "nonEmptyLines": 64,
+      "characters": 5570
+    },
+    {
+      "path": "config/game-balance.json",
+      "extension": ".json",
+      "category": "Config",
+      "lines": 913,
+      "nonEmptyLines": 913,
+      "characters": 24582
+    },
+    {
+      "path": "docker-compose.yml",
+      "extension": ".yml",
+      "category": "Config",
+      "lines": 21,
+      "nonEmptyLines": 20,
+      "characters": 488
+    },
+    {
+      "path": "docs/architecture/architecture.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 212,
+      "nonEmptyLines": 153,
+      "characters": 7585
+    },
+    {
+      "path": "docs/architecture/data-flow.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 323,
+      "nonEmptyLines": 234,
+      "characters": 10229
+    },
+    {
+      "path": "docs/architecture/data/entities.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 232,
+      "nonEmptyLines": 182,
+      "characters": 8740
+    },
+    {
+      "path": "docs/architecture/data/enums-and-read-models.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 205,
+      "nonEmptyLines": 151,
+      "characters": 6992
+    },
+    {
+      "path": "docs/architecture/data/player-model.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 376,
+      "nonEmptyLines": 291,
+      "characters": 11222
+    },
+    {
+      "path": "docs/architecture/data/relations.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 158,
+      "nonEmptyLines": 120,
+      "characters": 6420
+    },
+    {
+      "path": "docs/architecture/data/state-boundaries.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 139,
+      "nonEmptyLines": 103,
+      "characters": 3932
+    },
+    {
+      "path": "docs/architecture/data/statistics.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 338,
+      "nonEmptyLines": 263,
+      "characters": 6346
+    },
+    {
+      "path": "docs/architecture/decisions/001-project-architecture.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 54,
+      "nonEmptyLines": 35,
+      "characters": 1999
+    },
+    {
+      "path": "docs/architecture/decisions/002-database-choice.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 50,
+      "nonEmptyLines": 32,
+      "characters": 1741
+    },
+    {
+      "path": "docs/architecture/decisions/003-authentication-strategy.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 51,
+      "nonEmptyLines": 31,
+      "characters": 1775
+    },
+    {
+      "path": "docs/architecture/decisions/004-savegame-data-isolation.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 45,
+      "nonEmptyLines": 27,
+      "characters": 1476
+    },
+    {
+      "path": "docs/architecture/decisions/005-reference-data-management.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 52,
+      "nonEmptyLines": 33,
+      "characters": 1398
+    },
+    {
+      "path": "docs/architecture/decisions/006-first-match-simulation-slice.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 62,
+      "nonEmptyLines": 40,
+      "characters": 2841
+    },
+    {
+      "path": "docs/architecture/gameplay-engine.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 334,
+      "nonEmptyLines": 238,
+      "characters": 10387
+    },
+    {
+      "path": "docs/architecture/gameplay-extension-guide.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 165,
+      "nonEmptyLines": 109,
+      "characters": 6307
+    },
+    {
+      "path": "docs/architecture/gameplay-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 58,
+      "nonEmptyLines": 41,
+      "characters": 2268
+    },
+    {
+      "path": "docs/architecture/modules.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 244,
+      "nonEmptyLines": 179,
+      "characters": 9909
+    },
+    {
+      "path": "docs/architecture/overview.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 26,
+      "nonEmptyLines": 18,
+      "characters": 1028
+    },
+    {
+      "path": "docs/architecture/playbook-engine-target-architecture.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 375,
+      "nonEmptyLines": 269,
+      "characters": 15271
+    },
+    {
+      "path": "docs/game-design/playtest-report.html",
+      "extension": ".html",
+      "category": "Dokumentation",
+      "lines": 480,
+      "nonEmptyLines": 434,
+      "characters": 15837
+    },
+    {
+      "path": "docs/game-design/playtest-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 295,
+      "nonEmptyLines": 194,
+      "characters": 13704
+    },
+    {
+      "path": "docs/game-engine/depth-chart-impact-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 70,
+      "nonEmptyLines": 58,
+      "characters": 3132
+    },
+    {
+      "path": "docs/game-engine/depth-chart-impact-validation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 109,
+      "nonEmptyLines": 91,
+      "characters": 7258
+    },
+    {
+      "path": "docs/gui/component-inventory.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 391,
+      "nonEmptyLines": 311,
+      "characters": 6488
+    },
+    {
+      "path": "docs/gui/contracts-cap-extension-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 102,
+      "nonEmptyLines": 88,
+      "characters": 3665
+    },
+    {
+      "path": "docs/gui/contracts-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 129,
+      "nonEmptyLines": 115,
+      "characters": 3614
+    },
+    {
+      "path": "docs/gui/dashboard-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 117,
+      "nonEmptyLines": 102,
+      "characters": 5393
+    },
+    {
+      "path": "docs/gui/decision-feedback-extension-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 75,
+      "nonEmptyLines": 63,
+      "characters": 3494
+    },
+    {
+      "path": "docs/gui/depth-chart-feedback-extension-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 89,
+      "nonEmptyLines": 76,
+      "characters": 4447
+    },
+    {
+      "path": "docs/gui/depth-chart-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 132,
+      "nonEmptyLines": 117,
+      "characters": 5390
+    },
+    {
+      "path": "docs/gui/depth-chart-outcome-integration-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 97,
+      "nonEmptyLines": 83,
+      "characters": 4635
+    },
+    {
+      "path": "docs/gui/design-system.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 88,
+      "nonEmptyLines": 75,
+      "characters": 4672
+    },
+    {
+      "path": "docs/gui/e2e-stabilization-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 111,
+      "nonEmptyLines": 79,
+      "characters": 4894
+    },
+    {
+      "path": "docs/gui/game-flow-preview-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 158,
+      "nonEmptyLines": 136,
+      "characters": 8081
+    },
+    {
+      "path": "docs/gui/game-loop-flow-review.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 161,
+      "nonEmptyLines": 130,
+      "characters": 6494
+    },
+    {
+      "path": "docs/gui/gui-implementation-plan.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 141,
+      "nonEmptyLines": 115,
+      "characters": 5685
+    },
+    {
+      "path": "docs/gui/gui-workstream-audit-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 352,
+      "nonEmptyLines": 258,
+      "characters": 18283
+    },
+    {
+      "path": "docs/gui/live-simulation-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 108,
+      "nonEmptyLines": 94,
+      "characters": 5230
+    },
+    {
+      "path": "docs/gui/match-report-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 114,
+      "nonEmptyLines": 100,
+      "characters": 5743
+    },
+    {
+      "path": "docs/gui/player-development-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 141,
+      "nonEmptyLines": 125,
+      "characters": 4583
+    },
+    {
+      "path": "docs/gui/player-profile-decision-layer-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 86,
+      "nonEmptyLines": 74,
+      "characters": 2940
+    },
+    {
+      "path": "docs/gui/player-profile-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 120,
+      "nonEmptyLines": 105,
+      "characters": 3540
+    },
+    {
+      "path": "docs/gui/player-profile-tradeoff-layer-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 83,
+      "nonEmptyLines": 70,
+      "characters": 3092
+    },
+    {
+      "path": "docs/gui/references/dall-e/README.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 48,
+      "nonEmptyLines": 41,
+      "characters": 998
+    },
+    {
+      "path": "docs/gui/roster-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 124,
+      "nonEmptyLines": 107,
+      "characters": 3631
+    },
+    {
+      "path": "docs/gui/screen-map.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 249,
+      "nonEmptyLines": 196,
+      "characters": 6492
+    },
+    {
+      "path": "docs/gui/team-chemistry-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 109,
+      "nonEmptyLines": 96,
+      "characters": 3377
+    },
+    {
+      "path": "docs/gui/trade-board-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 137,
+      "nonEmptyLines": 120,
+      "characters": 4177
+    },
+    {
+      "path": "docs/gui/x-factor-implementation-report.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 116,
+      "nonEmptyLines": 103,
+      "characters": 3368
+    },
+    {
+      "path": "docs/guides/auftraggeber-feedback.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 163,
+      "nonEmptyLines": 108,
+      "characters": 2989
+    },
+    {
+      "path": "docs/guides/documentation-guidelines.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 60,
+      "nonEmptyLines": 43,
+      "characters": 2339
+    },
+    {
+      "path": "docs/guides/environment-matrix.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 89,
+      "nonEmptyLines": 71,
+      "characters": 5954
+    },
+    {
+      "path": "docs/guides/firebase-app-hosting-setup.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 142,
+      "nonEmptyLines": 102,
+      "characters": 4768
+    },
+    {
+      "path": "docs/guides/firebase-preview-staging-setup.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 173,
+      "nonEmptyLines": 124,
+      "characters": 4242
+    },
+    {
+      "path": "docs/guides/firebase-production-setup.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 145,
+      "nonEmptyLines": 112,
+      "characters": 5924
+    },
+    {
+      "path": "docs/guides/first-user-session/auswertung-persona-simulation.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 105,
+      "nonEmptyLines": 77,
+      "characters": 5852
+    },
+    {
+      "path": "docs/guides/first-user-session/auswertungsvorlage.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 151,
+      "nonEmptyLines": 109,
+      "characters": 4618
+    },
+    {
+      "path": "docs/guides/first-user-session/beobachtungsbogen.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 181,
+      "nonEmptyLines": 123,
+      "characters": 5789
+    },
+    {
+      "path": "docs/guides/first-user-session/erfolgskriterien.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 100,
+      "nonEmptyLines": 78,
+      "characters": 4076
+    },
+    {
+      "path": "docs/guides/first-user-session/erste-ux-probleme-persona-simulation.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 150,
+      "nonEmptyLines": 99,
+      "characters": 3933
+    },
+    {
+      "path": "docs/guides/first-user-session/feedbackformular.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 84,
+      "nonEmptyLines": 59,
+      "characters": 2690
+    },
+    {
+      "path": "docs/guides/first-user-session/nutzer-aufgabenliste.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 157,
+      "nonEmptyLines": 108,
+      "characters": 4428
+    },
+    {
+      "path": "docs/guides/first-user-session/persona-definition.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 143,
+      "nonEmptyLines": 108,
+      "characters": 4399
+    },
+    {
+      "path": "docs/guides/first-user-session/quickstart.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 83,
+      "nonEmptyLines": 61,
+      "characters": 2424
+    },
+    {
+      "path": "docs/guides/first-user-session/README.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 37,
+      "nonEmptyLines": 27,
+      "characters": 1335
+    },
+    {
+      "path": "docs/guides/first-user-session/sessions/user-01/beobachtungsbogen.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 179,
+      "nonEmptyLines": 119,
+      "characters": 5260
+    },
+    {
+      "path": "docs/guides/first-user-session/sessions/user-01/feedbackformular.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 71,
+      "nonEmptyLines": 45,
+      "characters": 2420
+    },
+    {
+      "path": "docs/guides/first-user-session/sessions/user-02/beobachtungsbogen.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 169,
+      "nonEmptyLines": 111,
+      "characters": 5078
+    },
+    {
+      "path": "docs/guides/first-user-session/sessions/user-02/feedbackformular.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 64,
+      "nonEmptyLines": 39,
+      "characters": 2202
+    },
+    {
+      "path": "docs/guides/first-user-session/sessions/user-03/beobachtungsbogen.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 169,
+      "nonEmptyLines": 111,
+      "characters": 4623
+    },
+    {
+      "path": "docs/guides/first-user-session/sessions/user-03/feedbackformular.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 64,
+      "nonEmptyLines": 39,
+      "characters": 2148
+    },
+    {
+      "path": "docs/guides/first-user-session/sessions/user-04/beobachtungsbogen.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 169,
+      "nonEmptyLines": 111,
+      "characters": 4499
+    },
+    {
+      "path": "docs/guides/first-user-session/sessions/user-04/feedbackformular.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 64,
+      "nonEmptyLines": 39,
+      "characters": 2100
+    },
+    {
+      "path": "docs/guides/first-user-session/sessions/user-05/beobachtungsbogen.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 169,
+      "nonEmptyLines": 111,
+      "characters": 4679
+    },
+    {
+      "path": "docs/guides/first-user-session/sessions/user-05/feedbackformular.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 64,
+      "nonEmptyLines": 39,
+      "characters": 2267
+    },
+    {
+      "path": "docs/guides/first-user-session/testleitfaden.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 118,
+      "nonEmptyLines": 89,
+      "characters": 3813
+    },
+    {
+      "path": "docs/guides/operations-database.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 224,
+      "nonEmptyLines": 158,
+      "characters": 4965
+    },
+    {
+      "path": "docs/guides/operations-run-locally.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 140,
+      "nonEmptyLines": 96,
+      "characters": 2933
+    },
+    {
+      "path": "docs/guides/operations-setup.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 138,
+      "nonEmptyLines": 95,
+      "characters": 3454
+    },
+    {
+      "path": "docs/guides/user-documentation.html",
+      "extension": ".html",
+      "category": "Dokumentation",
+      "lines": 1485,
+      "nonEmptyLines": 1394,
+      "characters": 56370
+    },
+    {
+      "path": "docs/guides/user-session-feedback-template.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 78,
+      "nonEmptyLines": 51,
+      "characters": 1453
+    },
+    {
+      "path": "docs/guides/user-session-test-guide.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 98,
+      "nonEmptyLines": 67,
+      "characters": 3045
+    },
+    {
+      "path": "docs/planning/balancing-post-ap23-workpackages.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 322,
+      "nonEmptyLines": 204,
+      "characters": 11905
+    },
+    {
+      "path": "docs/planning/e2e-seed-strategy.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 118,
+      "nonEmptyLines": 85,
+      "characters": 4158
+    },
+    {
+      "path": "docs/planning/gameplay-phase-post-balancing-workpackages.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 242,
+      "nonEmptyLines": 169,
+      "characters": 9240
+    },
+    {
+      "path": "docs/planning/project-improvement-codex-prompts.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 891,
+      "nonEmptyLines": 691,
+      "characters": 24729
+    },
+    {
+      "path": "docs/planning/project-improvement-final-summary.html",
+      "extension": ".html",
+      "category": "Dokumentation",
+      "lines": 568,
+      "nonEmptyLines": 532,
+      "characters": 20392
+    },
+    {
+      "path": "docs/planning/project-improvement-workpackages.html",
+      "extension": ".html",
+      "category": "Dokumentation",
+      "lines": 812,
+      "nonEmptyLines": 763,
+      "characters": 41786
+    },
+    {
+      "path": "docs/planning/roster-phase-plan-v1.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 273,
+      "nonEmptyLines": 202,
+      "characters": 9500
+    },
+    {
+      "path": "docs/planning/snowballing-post-ap27-analysis.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 243,
+      "nonEmptyLines": 162,
+      "characters": 10477
+    },
+    {
+      "path": "docs/README.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 51,
+      "nonEmptyLines": 36,
+      "characters": 2718
+    },
+    {
+      "path": "docs/runbooks/firebase-rollback-runbook.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 159,
+      "nonEmptyLines": 112,
+      "characters": 3873
+    },
+    {
+      "path": "e2e/ap6-final-validation.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 185,
+      "nonEmptyLines": 150,
+      "characters": 5946
+    },
+    {
+      "path": "e2e/contracts-cap.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 78,
+      "nonEmptyLines": 68,
+      "characters": 3409
+    },
+    {
+      "path": "e2e/dashboard.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 67,
+      "nonEmptyLines": 55,
+      "characters": 2333
+    },
+    {
+      "path": "e2e/data-trust-integrity.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 108,
+      "nonEmptyLines": 90,
+      "characters": 4024
+    },
+    {
+      "path": "e2e/depth-chart.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 105,
+      "nonEmptyLines": 90,
+      "characters": 4600
+    },
+    {
+      "path": "e2e/development-week-comparison.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 40,
+      "nonEmptyLines": 35,
+      "characters": 1611
+    },
+    {
+      "path": "e2e/draft-mvp.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 78,
+      "nonEmptyLines": 63,
+      "characters": 3616
+    },
+    {
+      "path": "e2e/firebase-browser-flow.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 169,
+      "nonEmptyLines": 142,
+      "characters": 7482
+    },
+    {
+      "path": "e2e/first-10-minutes.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 114,
+      "nonEmptyLines": 99,
+      "characters": 5263
+    },
+    {
+      "path": "e2e/fixtures/minimal-e2e-context.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 23,
+      "nonEmptyLines": 19,
+      "characters": 620
+    },
+    {
+      "path": "e2e/helpers/e2e-harness.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 90,
+      "nonEmptyLines": 73,
+      "characters": 2620
+    },
+    {
+      "path": "e2e/inbox-action.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 74,
+      "nonEmptyLines": 57,
+      "characters": 2525
+    },
+    {
+      "path": "e2e/live-storyline.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 86,
+      "nonEmptyLines": 69,
+      "characters": 2991
+    },
+    {
+      "path": "e2e/main-flow.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 75,
+      "nonEmptyLines": 59,
+      "characters": 3034
+    },
+    {
+      "path": "e2e/match-report-consequences.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 96,
+      "nonEmptyLines": 76,
+      "characters": 3230
+    },
+    {
+      "path": "e2e/multiplayer-firebase.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 305,
+      "nonEmptyLines": 252,
+      "characters": 9959
+    },
+    {
+      "path": "e2e/multiplayer-smoke.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 239,
+      "nonEmptyLines": 202,
+      "characters": 9031
+    },
+    {
+      "path": "e2e/navigation.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 101,
+      "nonEmptyLines": 90,
+      "characters": 3362
+    },
+    {
+      "path": "e2e/smoke.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 46,
+      "nonEmptyLines": 39,
+      "characters": 1763
+    },
+    {
+      "path": "e2e/time-to-fun.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 36,
+      "nonEmptyLines": 29,
+      "characters": 1367
+    },
+    {
+      "path": "e2e/trade-board.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 78,
+      "nonEmptyLines": 68,
+      "characters": 3662
+    },
+    {
+      "path": "e2e/week-loop.spec.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 163,
+      "nonEmptyLines": 143,
+      "characters": 7657
+    },
+    {
+      "path": "eslint.config.mjs",
+      "extension": ".mjs",
+      "category": "Config",
+      "lines": 22,
+      "nonEmptyLines": 19,
+      "characters": 596
+    },
+    {
+      "path": "firebase.json",
+      "extension": ".json",
+      "category": "Config",
+      "lines": 22,
+      "nonEmptyLines": 22,
+      "characters": 376
+    },
+    {
+      "path": "firestore.indexes.json",
+      "extension": ".json",
+      "category": "Config",
+      "lines": 233,
+      "nonEmptyLines": 233,
+      "characters": 4761
+    },
+    {
+      "path": "firestore.rules",
+      "extension": ".rules",
+      "category": "Schema/DB",
+      "lines": 350,
+      "nonEmptyLines": 302,
+      "characters": 12685
+    },
+    {
+      "path": "next.config.ts",
+      "extension": ".ts",
+      "category": "Config",
+      "lines": 11,
+      "nonEmptyLines": 7,
+      "characters": 230
+    },
+    {
+      "path": "package.json",
+      "extension": ".json",
+      "category": "Config",
+      "lines": 93,
+      "nonEmptyLines": 93,
+      "characters": 8768
+    },
+    {
+      "path": "playwright.config.ts",
+      "extension": ".ts",
+      "category": "Config",
+      "lines": 98,
+      "nonEmptyLines": 95,
+      "characters": 3922
+    },
+    {
+      "path": "postcss.config.mjs",
+      "extension": ".mjs",
+      "category": "Config",
+      "lines": 7,
+      "nonEmptyLines": 6,
+      "characters": 94
+    },
+    {
+      "path": "prisma/migrations/20260426123001_init/migration.sql",
+      "extension": ".sql",
+      "category": "Schema/DB",
+      "lines": 1647,
+      "nonEmptyLines": 1307,
+      "characters": 72568
+    },
+    {
+      "path": "prisma/migrations/20260426124434_ap7_x_factor_gameplan/migration.sql",
+      "extension": ".sql",
+      "category": "Schema/DB",
+      "lines": 3,
+      "nonEmptyLines": 3,
+      "characters": 128
+    },
+    {
+      "path": "prisma/migrations/20260426180000_ap22_ai_gameplan_report/migration.sql",
+      "extension": ".sql",
+      "category": "Schema/DB",
+      "lines": 2,
+      "nonEmptyLines": 2,
+      "characters": 87
+    },
+    {
+      "path": "prisma/migrations/migration_lock.toml",
+      "extension": ".toml",
+      "category": "Schema/DB",
+      "lines": 3,
+      "nonEmptyLines": 3,
+      "characters": 128
+    },
+    {
+      "path": "prisma/schema.prisma",
+      "extension": ".prisma",
+      "category": "Schema/DB",
+      "lines": 1335,
+      "nonEmptyLines": 1168,
+      "characters": 47336
+    },
+    {
+      "path": "prisma/seed.ts",
+      "extension": ".ts",
+      "category": "Schema/DB",
+      "lines": 19,
+      "nonEmptyLines": 15,
+      "characters": 419
+    },
+    {
+      "path": "README.md",
+      "extension": ".md",
+      "category": "Dokumentation",
+      "lines": 163,
+      "nonEmptyLines": 124,
+      "characters": 8418
+    },
+    {
+      "path": "scripts/e2e-preflight.mjs",
+      "extension": ".mjs",
+      "category": "Script",
+      "lines": 1,
+      "nonEmptyLines": 1,
+      "characters": 36
+    },
+    {
+      "path": "scripts/firestore-backfill.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 834,
+      "nonEmptyLines": 760,
+      "characters": 27147
+    },
+    {
+      "path": "scripts/firestore-compare.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 315,
+      "nonEmptyLines": 264,
+      "characters": 9710
+    },
+    {
+      "path": "scripts/firestore-preview-guard.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 34,
+      "nonEmptyLines": 28,
+      "characters": 1297
+    },
+    {
+      "path": "scripts/firestore-usage-measure.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 418,
+      "nonEmptyLines": 385,
+      "characters": 12711
+    },
+    {
+      "path": "scripts/qa/ap6-final-validation-playtest.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 189,
+      "nonEmptyLines": 156,
+      "characters": 6139
+    },
+    {
+      "path": "scripts/seeds/e2e-seed.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1848,
+      "nonEmptyLines": 1783,
+      "characters": 44895
+    },
+    {
+      "path": "scripts/seeds/firestore-browser-e2e-fixture.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 107,
+      "nonEmptyLines": 95,
+      "characters": 3028
+    },
+    {
+      "path": "scripts/seeds/firestore-cloud-seed.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 163,
+      "nonEmptyLines": 137,
+      "characters": 4991
+    },
+    {
+      "path": "scripts/seeds/firestore-reset.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 52,
+      "nonEmptyLines": 43,
+      "characters": 1511
+    },
+    {
+      "path": "scripts/seeds/firestore-seed.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 112,
+      "nonEmptyLines": 98,
+      "characters": 3968
+    },
+    {
+      "path": "scripts/seeds/firestore-seed.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 517,
+      "nonEmptyLines": 479,
+      "characters": 14668
+    },
+    {
+      "path": "scripts/seeds/firestore-verify.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 128,
+      "nonEmptyLines": 109,
+      "characters": 3883
+    },
+    {
+      "path": "scripts/seeds/multiplayer-e2e-firestore-seed.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 112,
+      "nonEmptyLines": 95,
+      "characters": 3302
+    },
+    {
+      "path": "scripts/seeds/parity-fixture.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 138,
+      "nonEmptyLines": 129,
+      "characters": 4735
+    },
+    {
+      "path": "scripts/simulations/gameengine-rating-analysis-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1714,
+      "nonEmptyLines": 1614,
+      "characters": 52644
+    },
+    {
+      "path": "scripts/simulations/qa-8-team-league-html-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1034,
+      "nonEmptyLines": 912,
+      "characters": 27476
+    },
+    {
+      "path": "scripts/simulations/qa-8-team-league-simulation.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 903,
+      "nonEmptyLines": 840,
+      "characters": 26909
+    },
+    {
+      "path": "scripts/simulations/qa-aggressive-opp45-to-35-softfail-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 367,
+      "nonEmptyLines": 341,
+      "characters": 12899
+    },
+    {
+      "path": "scripts/simulations/qa-balance-fix-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 425,
+      "nonEmptyLines": 390,
+      "characters": 15856
+    },
+    {
+      "path": "scripts/simulations/qa-coach-behaviour.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 488,
+      "nonEmptyLines": 444,
+      "characters": 17490
+    },
+    {
+      "path": "scripts/simulations/qa-determinism-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 309,
+      "nonEmptyLines": 289,
+      "characters": 9512
+    },
+    {
+      "path": "scripts/simulations/qa-direct-go-for-it-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 459,
+      "nonEmptyLines": 407,
+      "characters": 15693
+    },
+    {
+      "path": "scripts/simulations/qa-drive-balance-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 342,
+      "nonEmptyLines": 317,
+      "characters": 11845
+    },
+    {
+      "path": "scripts/simulations/qa-edge-case-behaviour.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 382,
+      "nonEmptyLines": 352,
+      "characters": 13892
+    },
+    {
+      "path": "scripts/simulations/qa-extended-engine-balance-suite.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 2571,
+      "nonEmptyLines": 2451,
+      "characters": 87412
+    },
+    {
+      "path": "scripts/simulations/qa-extended-season-balance-suite.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 246,
+      "nonEmptyLines": 238,
+      "characters": 9014
+    },
+    {
+      "path": "scripts/simulations/qa-fg-attempt-reduction-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 519,
+      "nonEmptyLines": 452,
+      "characters": 16460
+    },
+    {
+      "path": "scripts/simulations/qa-final-100-game-balance-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 474,
+      "nonEmptyLines": 429,
+      "characters": 18011
+    },
+    {
+      "path": "scripts/simulations/qa-fine-tune-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 422,
+      "nonEmptyLines": 382,
+      "characters": 16066
+    },
+    {
+      "path": "scripts/simulations/qa-large-simulation-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 897,
+      "nonEmptyLines": 825,
+      "characters": 33668
+    },
+    {
+      "path": "scripts/simulations/qa-long-run-stability.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 613,
+      "nonEmptyLines": 558,
+      "characters": 22772
+    },
+    {
+      "path": "scripts/simulations/qa-matchup-tests.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 862,
+      "nonEmptyLines": 791,
+      "characters": 23937
+    },
+    {
+      "path": "scripts/simulations/qa-new-engine-balance-suite.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1788,
+      "nonEmptyLines": 1687,
+      "characters": 58282
+    },
+    {
+      "path": "scripts/simulations/qa-opp35-to-20-finish-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 357,
+      "nonEmptyLines": 328,
+      "characters": 13292
+    },
+    {
+      "path": "scripts/simulations/qa-opp45-to-35-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 349,
+      "nonEmptyLines": 320,
+      "characters": 12201
+    },
+    {
+      "path": "scripts/simulations/qa-playcount-reduction.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 329,
+      "nonEmptyLines": 306,
+      "characters": 11733
+    },
+    {
+      "path": "scripts/simulations/qa-post-convert-collapse-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 358,
+      "nonEmptyLines": 331,
+      "characters": 12826
+    },
+    {
+      "path": "scripts/simulations/qa-production-simulation-suite.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 392,
+      "nonEmptyLines": 368,
+      "characters": 14073
+    },
+    {
+      "path": "scripts/simulations/qa-punt-reduction-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 332,
+      "nonEmptyLines": 294,
+      "characters": 11047
+    },
+    {
+      "path": "scripts/simulations/qa-rating-impact-validation.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1398,
+      "nonEmptyLines": 1290,
+      "characters": 49690
+    },
+    {
+      "path": "scripts/simulations/qa-redzone-tracking-fix.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 421,
+      "nonEmptyLines": 389,
+      "characters": 14510
+    },
+    {
+      "path": "scripts/simulations/qa-season-sim-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 1198,
+      "nonEmptyLines": 1103,
+      "characters": 39099
+    },
+    {
+      "path": "scripts/simulations/qa-terminal-drive-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 354,
+      "nonEmptyLines": 326,
+      "characters": 13384
+    },
+    {
+      "path": "scripts/simulations/qa-tod-final-reduction-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 401,
+      "nonEmptyLines": 353,
+      "characters": 13360
+    },
+    {
+      "path": "scripts/simulations/qa-total-yards-reduction-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 414,
+      "nonEmptyLines": 373,
+      "characters": 14909
+    },
+    {
+      "path": "scripts/simulations/simulation-debug-report.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 56,
+      "nonEmptyLines": 48,
+      "characters": 1592
+    },
+    {
+      "path": "scripts/tools/db-up.mjs",
+      "extension": ".mjs",
+      "category": "Script",
+      "lines": 117,
+      "nonEmptyLines": 99,
+      "characters": 3077
+    },
+    {
+      "path": "scripts/tools/e2e-preflight.mjs",
+      "extension": ".mjs",
+      "category": "Script",
+      "lines": 237,
+      "nonEmptyLines": 200,
+      "characters": 6826
+    },
+    {
+      "path": "scripts/tools/generate-report-path.ts",
+      "extension": ".ts",
+      "category": "Script",
+      "lines": 56,
+      "nonEmptyLines": 46,
+      "characters": 1444
+    },
+    {
+      "path": "src/app/admin/api/online/actions/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1,
+      "nonEmptyLines": 1,
+      "characters": 61
+    },
+    {
+      "path": "src/app/admin/league/[leagueId]/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 31,
+      "nonEmptyLines": 28,
+      "characters": 1122
+    },
+    {
+      "path": "src/app/admin/login/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 91,
+      "nonEmptyLines": 81,
+      "characters": 3347
+    },
+    {
+      "path": "src/app/admin/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 64,
+      "nonEmptyLines": 58,
+      "characters": 2837
+    },
+    {
+      "path": "src/app/api/admin/login/route.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 95,
+      "nonEmptyLines": 82,
+      "characters": 2973
+    },
+    {
+      "path": "src/app/api/admin/login/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 98,
+      "nonEmptyLines": 80,
+      "characters": 2813
+    },
+    {
+      "path": "src/app/api/admin/online/actions/route.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 187,
+      "nonEmptyLines": 162,
+      "characters": 4830
+    },
+    {
+      "path": "src/app/api/admin/online/actions/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 71,
+      "nonEmptyLines": 63,
+      "characters": 1773
+    },
+    {
+      "path": "src/app/api/e2e/dev-login/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 24,
+      "nonEmptyLines": 18,
+      "characters": 690
+    },
+    {
+      "path": "src/app/api/savegames/[savegameId]/players/[playerId]/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 34,
+      "nonEmptyLines": 28,
+      "characters": 900
+    },
+    {
+      "path": "src/app/api/savegames/[savegameId]/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 33,
+      "nonEmptyLines": 27,
+      "characters": 862
+    },
+    {
+      "path": "src/app/api/savegames/[savegameId]/seasons/[seasonId]/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 34,
+      "nonEmptyLines": 28,
+      "characters": 904
+    },
+    {
+      "path": "src/app/api/savegames/[savegameId]/teams/[teamId]/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 34,
+      "nonEmptyLines": 28,
+      "characters": 876
+    },
+    {
+      "path": "src/app/api/savegames/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 55,
+      "nonEmptyLines": 46,
+      "characters": 1506
+    },
+    {
+      "path": "src/app/api/simulation/createGame/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 15,
+      "nonEmptyLines": 11,
+      "characters": 455
+    },
+    {
+      "path": "src/app/api/simulation/getDriveLog/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 15,
+      "nonEmptyLines": 11,
+      "characters": 463
+    },
+    {
+      "path": "src/app/api/simulation/getGameResult/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 15,
+      "nonEmptyLines": 11,
+      "characters": 467
+    },
+    {
+      "path": "src/app/api/simulation/getStats/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 15,
+      "nonEmptyLines": 11,
+      "characters": 457
+    },
+    {
+      "path": "src/app/api/simulation/route-utils.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 35,
+      "nonEmptyLines": 28,
+      "characters": 878
+    },
+    {
+      "path": "src/app/api/simulation/simulateGame/route.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 15,
+      "nonEmptyLines": 11,
+      "characters": 449
+    },
+    {
+      "path": "src/app/api/simulation/simulation-routes.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 122,
+      "nonEmptyLines": 103,
+      "characters": 4072
+    },
+    {
+      "path": "src/app/app/layout.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 13,
+      "nonEmptyLines": 10,
+      "characters": 242
+    },
+    {
+      "path": "src/app/app/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 53,
+      "nonEmptyLines": 46,
+      "characters": 2120
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/development/actions.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 131,
+      "nonEmptyLines": 110,
+      "characters": 4076
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/development/actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 94,
+      "nonEmptyLines": 82,
+      "characters": 3765
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/development/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 489,
+      "nonEmptyLines": 452,
+      "characters": 17505
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/development/scouting/actions.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 62,
+      "nonEmptyLines": 52,
+      "characters": 1873
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/development/scouting/actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 48,
+      "nonEmptyLines": 40,
+      "characters": 1629
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/development/scouting/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 51,
+      "nonEmptyLines": 45,
+      "characters": 1633
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/development/staff/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 24,
+      "nonEmptyLines": 22,
+      "characters": 878
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/development/training/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 24,
+      "nonEmptyLines": 22,
+      "characters": 901
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/draft/actions.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 76,
+      "nonEmptyLines": 63,
+      "characters": 2560
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/draft/actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 48,
+      "nonEmptyLines": 40,
+      "characters": 1605
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/draft/error.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 27,
+      "nonEmptyLines": 25,
+      "characters": 879
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/draft/loading.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 18,
+      "nonEmptyLines": 16,
+      "characters": 602
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/draft/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 43,
+      "nonEmptyLines": 36,
+      "characters": 1366
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/finance/contracts/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 28,
+      "nonEmptyLines": 25,
+      "characters": 745
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/finance/events/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 15,
+      "nonEmptyLines": 12,
+      "characters": 491
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/finance/finance-route-data.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 28,
+      "nonEmptyLines": 22,
+      "characters": 833
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/finance/free-agency/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 13,
+      "nonEmptyLines": 11,
+      "characters": 280
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/finance/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 15,
+      "nonEmptyLines": 12,
+      "characters": 453
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/finance/trades/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 33,
+      "nonEmptyLines": 29,
+      "characters": 1131
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/free-agents/actions.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 105,
+      "nonEmptyLines": 85,
+      "characters": 3309
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/free-agents/actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 81,
+      "nonEmptyLines": 72,
+      "characters": 3403
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/free-agents/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 89,
+      "nonEmptyLines": 80,
+      "characters": 3574
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/game/game-flow-data.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 69,
+      "nonEmptyLines": 60,
+      "characters": 2002
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/game/game-flow-empty-state.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 29,
+      "nonEmptyLines": 26,
+      "characters": 905
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/game/live/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 61,
+      "nonEmptyLines": 55,
+      "characters": 1909
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/game/report/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 84,
+      "nonEmptyLines": 71,
+      "characters": 3050
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/game/setup/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 122,
+      "nonEmptyLines": 110,
+      "characters": 4613
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/inbox/actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 133,
+      "nonEmptyLines": 108,
+      "characters": 3450
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/inbox/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 96,
+      "nonEmptyLines": 88,
+      "characters": 3748
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/layout.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 61,
+      "nonEmptyLines": 55,
+      "characters": 1858
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/league/history/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 13,
+      "nonEmptyLines": 11,
+      "characters": 412
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/league/league-route-data.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 30,
+      "nonEmptyLines": 24,
+      "characters": 805
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/league/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 13,
+      "nonEmptyLines": 11,
+      "characters": 401
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/league/schedule/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 13,
+      "nonEmptyLines": 11,
+      "characters": 413
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/league/teams/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 13,
+      "nonEmptyLines": 11,
+      "characters": 410
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/matches/[matchId]/actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 74,
+      "nonEmptyLines": 67,
+      "characters": 3228
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/matches/[matchId]/center/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 14,
+      "nonEmptyLines": 11,
+      "characters": 373
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/matches/[matchId]/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 14,
+      "nonEmptyLines": 11,
+      "characters": 360
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 308,
+      "nonEmptyLines": 289,
+      "characters": 11738
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/players/[playerId]/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 502,
+      "nonEmptyLines": 465,
+      "characters": 21617
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/seasons/[seasonId]/actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 76,
+      "nonEmptyLines": 66,
+      "characters": 2594
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/seasons/[seasonId]/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 107,
+      "nonEmptyLines": 97,
+      "characters": 3968
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/actions.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 223,
+      "nonEmptyLines": 192,
+      "characters": 7631
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 403,
+      "nonEmptyLines": 358,
+      "characters": 14828
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/chemistry/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 284,
+      "nonEmptyLines": 260,
+      "characters": 8738
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/contracts/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 96,
+      "nonEmptyLines": 88,
+      "characters": 3822
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/depth-chart/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 48,
+      "nonEmptyLines": 43,
+      "characters": 1998
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/gameplan/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 10,
+      "nonEmptyLines": 9,
+      "characters": 282
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 159,
+      "nonEmptyLines": 150,
+      "characters": 6355
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/roster/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 132,
+      "nonEmptyLines": 122,
+      "characters": 5008
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/schemes/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 42,
+      "nonEmptyLines": 37,
+      "characters": 1539
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/team-route-data.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 60,
+      "nonEmptyLines": 48,
+      "characters": 1603
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/trades/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 28,
+      "nonEmptyLines": 25,
+      "characters": 1140
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/team/x-factor/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 303,
+      "nonEmptyLines": 278,
+      "characters": 9765
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/teams/[teamId]/actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 7,
+      "nonEmptyLines": 6,
+      "characters": 135
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/teams/[teamId]/contracts/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 9,
+      "nonEmptyLines": 6,
+      "characters": 290
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/teams/[teamId]/depth-chart/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 9,
+      "nonEmptyLines": 6,
+      "characters": 299
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/teams/[teamId]/finance/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 9,
+      "nonEmptyLines": 6,
+      "characters": 281
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/teams/[teamId]/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 9,
+      "nonEmptyLines": 6,
+      "characters": 276
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/teams/[teamId]/roster/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 9,
+      "nonEmptyLines": 6,
+      "characters": 290
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/teams/[teamId]/schemes/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 9,
+      "nonEmptyLines": 6,
+      "characters": 292
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/teams/[teamId]/team-page-data.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 8,
+      "nonEmptyLines": 7,
+      "characters": 150
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/week-actions.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 231,
+      "nonEmptyLines": 200,
+      "characters": 8615
+    },
+    {
+      "path": "src/app/app/savegames/[savegameId]/week-actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 170,
+      "nonEmptyLines": 148,
+      "characters": 5674
+    },
+    {
+      "path": "src/app/app/savegames/actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 42,
+      "nonEmptyLines": 36,
+      "characters": 1371
+    },
+    {
+      "path": "src/app/app/savegames/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 231,
+      "nonEmptyLines": 219,
+      "characters": 11431
+    },
+    {
+      "path": "src/app/docs/architecture/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 33,
+      "nonEmptyLines": 32,
+      "characters": 1406
+    },
+    {
+      "path": "src/app/globals.css",
+      "extension": ".css",
+      "category": "App-Code",
+      "lines": 112,
+      "nonEmptyLines": 98,
+      "characters": 3052
+    },
+    {
+      "path": "src/app/layout.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 25,
+      "nonEmptyLines": 21,
+      "characters": 571
+    },
+    {
+      "path": "src/app/online/league/[leagueId]/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 21,
+      "nonEmptyLines": 18,
+      "characters": 770
+    },
+    {
+      "path": "src/app/online/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 81,
+      "nonEmptyLines": 74,
+      "characters": 2888
+    },
+    {
+      "path": "src/app/page.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 74,
+      "nonEmptyLines": 71,
+      "characters": 3223
+    },
+    {
+      "path": "src/components/admin/admin-league-detail.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 1058,
+      "nonEmptyLines": 957,
+      "characters": 40600
+    },
+    {
+      "path": "src/components/admin/admin-league-manager.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 486,
+      "nonEmptyLines": 430,
+      "characters": 17203
+    },
+    {
+      "path": "src/components/dashboard/action-required-banner.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 46,
+      "nonEmptyLines": 41,
+      "characters": 1651
+    },
+    {
+      "path": "src/components/dashboard/dashboard-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 1116,
+      "nonEmptyLines": 1052,
+      "characters": 33596
+    },
+    {
+      "path": "src/components/dashboard/dashboard-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1498,
+      "nonEmptyLines": 1318,
+      "characters": 47066
+    },
+    {
+      "path": "src/components/dashboard/dashboard-quick-actions-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 90,
+      "nonEmptyLines": 77,
+      "characters": 2887
+    },
+    {
+      "path": "src/components/dashboard/decision-feedback-area.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 80,
+      "nonEmptyLines": 66,
+      "characters": 2543
+    },
+    {
+      "path": "src/components/dashboard/league-snapshot-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 92,
+      "nonEmptyLines": 85,
+      "characters": 3907
+    },
+    {
+      "path": "src/components/dashboard/manager-command-header.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 85,
+      "nonEmptyLines": 77,
+      "characters": 2923
+    },
+    {
+      "path": "src/components/dashboard/match-card.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 102,
+      "nonEmptyLines": 95,
+      "characters": 3925
+    },
+    {
+      "path": "src/components/dashboard/next-action-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 89,
+      "nonEmptyLines": 78,
+      "characters": 3148
+    },
+    {
+      "path": "src/components/dashboard/rebuild-progress-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 84,
+      "nonEmptyLines": 76,
+      "characters": 3082
+    },
+    {
+      "path": "src/components/dashboard/team-context-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 81,
+      "nonEmptyLines": 69,
+      "characters": 3034
+    },
+    {
+      "path": "src/components/dashboard/team-development-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 62,
+      "nonEmptyLines": 53,
+      "characters": 1982
+    },
+    {
+      "path": "src/components/dashboard/team-profile-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 47,
+      "nonEmptyLines": 41,
+      "characters": 1595
+    },
+    {
+      "path": "src/components/dashboard/team-snapshot-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 100,
+      "nonEmptyLines": 92,
+      "characters": 4195
+    },
+    {
+      "path": "src/components/dashboard/week-loop-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 171,
+      "nonEmptyLines": 166,
+      "characters": 7163
+    },
+    {
+      "path": "src/components/development/player-development-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 360,
+      "nonEmptyLines": 340,
+      "characters": 10301
+    },
+    {
+      "path": "src/components/development/player-development-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 666,
+      "nonEmptyLines": 563,
+      "characters": 18426
+    },
+    {
+      "path": "src/components/draft/draft-overview-screen.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 374,
+      "nonEmptyLines": 350,
+      "characters": 16282
+    },
+    {
+      "path": "src/components/draft/draft-scouting-board.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 142,
+      "nonEmptyLines": 130,
+      "characters": 5381
+    },
+    {
+      "path": "src/components/feedback/global-action-feedback.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 138,
+      "nonEmptyLines": 122,
+      "characters": 4703
+    },
+    {
+      "path": "src/components/finance/finance-contracts-workspace.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 50,
+      "nonEmptyLines": 45,
+      "characters": 1892
+    },
+    {
+      "path": "src/components/finance/finance-decision-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 47,
+      "nonEmptyLines": 39,
+      "characters": 1535
+    },
+    {
+      "path": "src/components/finance/finance-events-workspace.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 34,
+      "nonEmptyLines": 29,
+      "characters": 1295
+    },
+    {
+      "path": "src/components/finance/finance-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 194,
+      "nonEmptyLines": 184,
+      "characters": 5098
+    },
+    {
+      "path": "src/components/finance/finance-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 117,
+      "nonEmptyLines": 103,
+      "characters": 3691
+    },
+    {
+      "path": "src/components/finance/finance-projection-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 55,
+      "nonEmptyLines": 51,
+      "characters": 2414
+    },
+    {
+      "path": "src/components/finance/finance-section-navigation.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 74,
+      "nonEmptyLines": 66,
+      "characters": 2037
+    },
+    {
+      "path": "src/components/finance/finance-workspace.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 41,
+      "nonEmptyLines": 35,
+      "characters": 1577
+    },
+    {
+      "path": "src/components/free-agency/contract-summary.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 93,
+      "nonEmptyLines": 89,
+      "characters": 3292
+    },
+    {
+      "path": "src/components/free-agency/free-agency-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 123,
+      "nonEmptyLines": 114,
+      "characters": 3671
+    },
+    {
+      "path": "src/components/free-agency/free-agency-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 113,
+      "nonEmptyLines": 101,
+      "characters": 3528
+    },
+    {
+      "path": "src/components/free-agency/free-agent-board.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 145,
+      "nonEmptyLines": 134,
+      "characters": 6547
+    },
+    {
+      "path": "src/components/free-agency/offer-builder.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 167,
+      "nonEmptyLines": 155,
+      "characters": 6229
+    },
+    {
+      "path": "src/components/goals/short-term-goals-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 224,
+      "nonEmptyLines": 211,
+      "characters": 5806
+    },
+    {
+      "path": "src/components/goals/short-term-goals-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 157,
+      "nonEmptyLines": 137,
+      "characters": 4864
+    },
+    {
+      "path": "src/components/goals/short-term-goals-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 52,
+      "nonEmptyLines": 45,
+      "characters": 1762
+    },
+    {
+      "path": "src/components/inbox/inbox-list.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 201,
+      "nonEmptyLines": 177,
+      "characters": 6622
+    },
+    {
+      "path": "src/components/inbox/inbox-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 402,
+      "nonEmptyLines": 381,
+      "characters": 11891
+    },
+    {
+      "path": "src/components/inbox/inbox-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 509,
+      "nonEmptyLines": 454,
+      "characters": 16283
+    },
+    {
+      "path": "src/components/inbox/inbox-task-controls.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 240,
+      "nonEmptyLines": 214,
+      "characters": 7578
+    },
+    {
+      "path": "src/components/inbox/roster-decision-inbox-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 90,
+      "nonEmptyLines": 81,
+      "characters": 3903
+    },
+    {
+      "path": "src/components/inbox/roster-decision-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 251,
+      "nonEmptyLines": 235,
+      "characters": 6810
+    },
+    {
+      "path": "src/components/inbox/roster-decision-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 200,
+      "nonEmptyLines": 170,
+      "characters": 5937
+    },
+    {
+      "path": "src/components/layout/app-shell.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 61,
+      "nonEmptyLines": 55,
+      "characters": 2229
+    },
+    {
+      "path": "src/components/layout/breadcrumbs.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 36,
+      "nonEmptyLines": 30,
+      "characters": 1083
+    },
+    {
+      "path": "src/components/layout/navigation-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 190,
+      "nonEmptyLines": 180,
+      "characters": 8935
+    },
+    {
+      "path": "src/components/layout/navigation-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 388,
+      "nonEmptyLines": 335,
+      "characters": 11213
+    },
+    {
+      "path": "src/components/layout/page-header.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 24,
+      "nonEmptyLines": 22,
+      "characters": 745
+    },
+    {
+      "path": "src/components/layout/route-page-header.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 20,
+      "nonEmptyLines": 15,
+      "characters": 627
+    },
+    {
+      "path": "src/components/layout/section-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 37,
+      "nonEmptyLines": 34,
+      "characters": 1000
+    },
+    {
+      "path": "src/components/layout/sidebar-navigation.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 84,
+      "nonEmptyLines": 74,
+      "characters": 3011
+    },
+    {
+      "path": "src/components/layout/site-shell.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 51,
+      "nonEmptyLines": 47,
+      "characters": 1626
+    },
+    {
+      "path": "src/components/layout/top-bar.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 47,
+      "nonEmptyLines": 43,
+      "characters": 1772
+    },
+    {
+      "path": "src/components/match/box-score.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 39,
+      "nonEmptyLines": 35,
+      "characters": 1296
+    },
+    {
+      "path": "src/components/match/drive-log.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 54,
+      "nonEmptyLines": 50,
+      "characters": 2147
+    },
+    {
+      "path": "src/components/match/engine-decision-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 75,
+      "nonEmptyLines": 69,
+      "characters": 3152
+    },
+    {
+      "path": "src/components/match/field-situation-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 51,
+      "nonEmptyLines": 44,
+      "characters": 1969
+    },
+    {
+      "path": "src/components/match/game-center-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 103,
+      "nonEmptyLines": 94,
+      "characters": 3068
+    },
+    {
+      "path": "src/components/match/game-center-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 70,
+      "nonEmptyLines": 60,
+      "characters": 1933
+    },
+    {
+      "path": "src/components/match/game-center-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 85,
+      "nonEmptyLines": 75,
+      "characters": 3123
+    },
+    {
+      "path": "src/components/match/game-flow-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 104,
+      "nonEmptyLines": 93,
+      "characters": 3481
+    },
+    {
+      "path": "src/components/match/game-flow-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 196,
+      "nonEmptyLines": 155,
+      "characters": 5118
+    },
+    {
+      "path": "src/components/match/game-flow-navigation.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 143,
+      "nonEmptyLines": 126,
+      "characters": 4302
+    },
+    {
+      "path": "src/components/match/game-plan-summary.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 90,
+      "nonEmptyLines": 81,
+      "characters": 4062
+    },
+    {
+      "path": "src/components/match/game-preparation-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 112,
+      "nonEmptyLines": 102,
+      "characters": 3489
+    },
+    {
+      "path": "src/components/match/game-preparation-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 78,
+      "nonEmptyLines": 71,
+      "characters": 2112
+    },
+    {
+      "path": "src/components/match/game-preparation-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 400,
+      "nonEmptyLines": 386,
+      "characters": 15974
+    },
+    {
+      "path": "src/components/match/game-preview-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 365,
+      "nonEmptyLines": 342,
+      "characters": 11005
+    },
+    {
+      "path": "src/components/match/game-preview-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 481,
+      "nonEmptyLines": 442,
+      "characters": 14430
+    },
+    {
+      "path": "src/components/match/key-ratings-comparison.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 63,
+      "nonEmptyLines": 54,
+      "characters": 2264
+    },
+    {
+      "path": "src/components/match/lineup-outcome-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 453,
+      "nonEmptyLines": 386,
+      "characters": 13753
+    },
+    {
+      "path": "src/components/match/live-control-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 113,
+      "nonEmptyLines": 102,
+      "characters": 4222
+    },
+    {
+      "path": "src/components/match/live-event-dramaturgy.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 171,
+      "nonEmptyLines": 143,
+      "characters": 5330
+    },
+    {
+      "path": "src/components/match/live-match-header.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 77,
+      "nonEmptyLines": 69,
+      "characters": 2881
+    },
+    {
+      "path": "src/components/match/live-simulation-flow.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 640,
+      "nonEmptyLines": 580,
+      "characters": 24518
+    },
+    {
+      "path": "src/components/match/live-simulation-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 215,
+      "nonEmptyLines": 201,
+      "characters": 6911
+    },
+    {
+      "path": "src/components/match/live-simulation-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 695,
+      "nonEmptyLines": 607,
+      "characters": 21250
+    },
+    {
+      "path": "src/components/match/live-storyline-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 80,
+      "nonEmptyLines": 68,
+      "characters": 2362
+    },
+    {
+      "path": "src/components/match/live-to-report-transition-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 64,
+      "nonEmptyLines": 56,
+      "characters": 1999
+    },
+    {
+      "path": "src/components/match/live-to-report-transition-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 46,
+      "nonEmptyLines": 39,
+      "characters": 1640
+    },
+    {
+      "path": "src/components/match/loss-guidance-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 201,
+      "nonEmptyLines": 186,
+      "characters": 5517
+    },
+    {
+      "path": "src/components/match/loss-guidance-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 190,
+      "nonEmptyLines": 159,
+      "characters": 5813
+    },
+    {
+      "path": "src/components/match/loss-guidance-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 67,
+      "nonEmptyLines": 57,
+      "characters": 2306
+    },
+    {
+      "path": "src/components/match/match-feedback-summary.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 44,
+      "nonEmptyLines": 40,
+      "characters": 1628
+    },
+    {
+      "path": "src/components/match/match-preview-header.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 81,
+      "nonEmptyLines": 72,
+      "characters": 2886
+    },
+    {
+      "path": "src/components/match/match-report-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 622,
+      "nonEmptyLines": 573,
+      "characters": 19221
+    },
+    {
+      "path": "src/components/match/match-report-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1251,
+      "nonEmptyLines": 1083,
+      "characters": 42046
+    },
+    {
+      "path": "src/components/match/matchup-explanation-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 76,
+      "nonEmptyLines": 71,
+      "characters": 3027
+    },
+    {
+      "path": "src/components/match/momentum-flow-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 62,
+      "nonEmptyLines": 52,
+      "characters": 2038
+    },
+    {
+      "path": "src/components/match/moral-victory-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 96,
+      "nonEmptyLines": 90,
+      "characters": 4004
+    },
+    {
+      "path": "src/components/match/play-by-play-timeline.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 96,
+      "nonEmptyLines": 85,
+      "characters": 3803
+    },
+    {
+      "path": "src/components/match/player-of-game-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 46,
+      "nonEmptyLines": 40,
+      "characters": 1798
+    },
+    {
+      "path": "src/components/match/post-game-causality-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 98,
+      "nonEmptyLines": 81,
+      "characters": 2795
+    },
+    {
+      "path": "src/components/match/post-game-consequences-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 94,
+      "nonEmptyLines": 81,
+      "characters": 2661
+    },
+    {
+      "path": "src/components/match/post-game-continuation-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 84,
+      "nonEmptyLines": 76,
+      "characters": 2247
+    },
+    {
+      "path": "src/components/match/post-game-continuation-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 85,
+      "nonEmptyLines": 77,
+      "characters": 2851
+    },
+    {
+      "path": "src/components/match/post-game-continuation-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 84,
+      "nonEmptyLines": 76,
+      "characters": 2692
+    },
+    {
+      "path": "src/components/match/post-game-key-moments.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 95,
+      "nonEmptyLines": 81,
+      "characters": 3340
+    },
+    {
+      "path": "src/components/match/post-game-motivation-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 40,
+      "nonEmptyLines": 35,
+      "characters": 1469
+    },
+    {
+      "path": "src/components/match/post-game-next-step-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 76,
+      "nonEmptyLines": 68,
+      "characters": 2944
+    },
+    {
+      "path": "src/components/match/post-game-report-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 486,
+      "nonEmptyLines": 461,
+      "characters": 15070
+    },
+    {
+      "path": "src/components/match/post-game-report-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1337,
+      "nonEmptyLines": 1164,
+      "characters": 44511
+    },
+    {
+      "path": "src/components/match/post-game-score-header.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 87,
+      "nonEmptyLines": 76,
+      "characters": 3552
+    },
+    {
+      "path": "src/components/match/post-game-summary.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 41,
+      "nonEmptyLines": 35,
+      "characters": 1544
+    },
+    {
+      "path": "src/components/match/readiness-risk-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 91,
+      "nonEmptyLines": 80,
+      "characters": 3392
+    },
+    {
+      "path": "src/components/match/scoreboard.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 38,
+      "nonEmptyLines": 34,
+      "characters": 1516
+    },
+    {
+      "path": "src/components/match/start-match-action-area.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 138,
+      "nonEmptyLines": 128,
+      "characters": 5226
+    },
+    {
+      "path": "src/components/match/team-comparison-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 69,
+      "nonEmptyLines": 62,
+      "characters": 2710
+    },
+    {
+      "path": "src/components/match/team-impact-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 59,
+      "nonEmptyLines": 49,
+      "characters": 1858
+    },
+    {
+      "path": "src/components/match/team-stats-comparison-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 100,
+      "nonEmptyLines": 88,
+      "characters": 4328
+    },
+    {
+      "path": "src/components/match/top-performers.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 48,
+      "nonEmptyLines": 44,
+      "characters": 1656
+    },
+    {
+      "path": "src/components/match/underdog-objectives-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 92,
+      "nonEmptyLines": 83,
+      "characters": 3545
+    },
+    {
+      "path": "src/components/match/why-game-outcome.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 73,
+      "nonEmptyLines": 65,
+      "characters": 2591
+    },
+    {
+      "path": "src/components/multiplayer/multiplayer-identity-initializer.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 13,
+      "nonEmptyLines": 9,
+      "characters": 258
+    },
+    {
+      "path": "src/components/onboarding/onboarding-coach.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 159,
+      "nonEmptyLines": 137,
+      "characters": 5353
+    },
+    {
+      "path": "src/components/onboarding/onboarding-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 52,
+      "nonEmptyLines": 46,
+      "characters": 1886
+    },
+    {
+      "path": "src/components/onboarding/onboarding-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 138,
+      "nonEmptyLines": 115,
+      "characters": 3477
+    },
+    {
+      "path": "src/components/online/online-continue-button.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 79,
+      "nonEmptyLines": 69,
+      "characters": 2597
+    },
+    {
+      "path": "src/components/online/online-continue-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 40,
+      "nonEmptyLines": 34,
+      "characters": 1271
+    },
+    {
+      "path": "src/components/online/online-continue-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 43,
+      "nonEmptyLines": 39,
+      "characters": 954
+    },
+    {
+      "path": "src/components/online/online-glossary.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 157,
+      "nonEmptyLines": 153,
+      "characters": 5254
+    },
+    {
+      "path": "src/components/online/online-league-detail-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 544,
+      "nonEmptyLines": 523,
+      "characters": 16917
+    },
+    {
+      "path": "src/components/online/online-league-detail-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1388,
+      "nonEmptyLines": 1233,
+      "characters": 46144
+    },
+    {
+      "path": "src/components/online/online-league-placeholder.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 2402,
+      "nonEmptyLines": 2241,
+      "characters": 101086
+    },
+    {
+      "path": "src/components/online/online-league-search-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 119,
+      "nonEmptyLines": 109,
+      "characters": 3600
+    },
+    {
+      "path": "src/components/online/online-league-search-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 121,
+      "nonEmptyLines": 105,
+      "characters": 3414
+    },
+    {
+      "path": "src/components/online/online-league-search.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 450,
+      "nonEmptyLines": 415,
+      "characters": 16727
+    },
+    {
+      "path": "src/components/online/online-mode-status-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 25,
+      "nonEmptyLines": 22,
+      "characters": 918
+    },
+    {
+      "path": "src/components/online/online-mode-status-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 52,
+      "nonEmptyLines": 49,
+      "characters": 1901
+    },
+    {
+      "path": "src/components/online/online-mode-status.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 48,
+      "nonEmptyLines": 43,
+      "characters": 1630
+    },
+    {
+      "path": "src/components/online/online-user-status.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 250,
+      "nonEmptyLines": 232,
+      "characters": 9398
+    },
+    {
+      "path": "src/components/player/attribute-table.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 55,
+      "nonEmptyLines": 51,
+      "characters": 2074
+    },
+    {
+      "path": "src/components/player/contract-summary.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 68,
+      "nonEmptyLines": 63,
+      "characters": 2794
+    },
+    {
+      "path": "src/components/player/player-detail-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 579,
+      "nonEmptyLines": 547,
+      "characters": 15623
+    },
+    {
+      "path": "src/components/player/player-detail-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 754,
+      "nonEmptyLines": 676,
+      "characters": 23178
+    },
+    {
+      "path": "src/components/player/player-header.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 88,
+      "nonEmptyLines": 83,
+      "characters": 3616
+    },
+    {
+      "path": "src/components/player/player-role-badge.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 29,
+      "nonEmptyLines": 26,
+      "characters": 927
+    },
+    {
+      "path": "src/components/player/player-role-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 84,
+      "nonEmptyLines": 72,
+      "characters": 2709
+    },
+    {
+      "path": "src/components/player/player-role-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 162,
+      "nonEmptyLines": 143,
+      "characters": 5014
+    },
+    {
+      "path": "src/components/player/player-value-badge.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 28,
+      "nonEmptyLines": 25,
+      "characters": 884
+    },
+    {
+      "path": "src/components/player/player-value-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 107,
+      "nonEmptyLines": 94,
+      "characters": 2812
+    },
+    {
+      "path": "src/components/player/player-value-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 147,
+      "nonEmptyLines": 124,
+      "characters": 3846
+    },
+    {
+      "path": "src/components/player/production-summary.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 131,
+      "nonEmptyLines": 126,
+      "characters": 6042
+    },
+    {
+      "path": "src/components/player/progression-timeline.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 46,
+      "nonEmptyLines": 42,
+      "characters": 1794
+    },
+    {
+      "path": "src/components/player/rating-group.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 72,
+      "nonEmptyLines": 63,
+      "characters": 1979
+    },
+    {
+      "path": "src/components/season/match-card.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 49,
+      "nonEmptyLines": 45,
+      "characters": 1735
+    },
+    {
+      "path": "src/components/season/schedule-list.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 48,
+      "nonEmptyLines": 44,
+      "characters": 1505
+    },
+    {
+      "path": "src/components/season/season-view-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 145,
+      "nonEmptyLines": 134,
+      "characters": 3778
+    },
+    {
+      "path": "src/components/season/season-view-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 137,
+      "nonEmptyLines": 115,
+      "characters": 3994
+    },
+    {
+      "path": "src/components/season/simulation-progress-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 106,
+      "nonEmptyLines": 100,
+      "characters": 4206
+    },
+    {
+      "path": "src/components/season/standings-table.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 80,
+      "nonEmptyLines": 74,
+      "characters": 3104
+    },
+    {
+      "path": "src/components/team/cap-overview.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 87,
+      "nonEmptyLines": 81,
+      "characters": 3648
+    },
+    {
+      "path": "src/components/team/contract-cap-risk-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 144,
+      "nonEmptyLines": 130,
+      "characters": 4704
+    },
+    {
+      "path": "src/components/team/contract-table.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 234,
+      "nonEmptyLines": 223,
+      "characters": 11206
+    },
+    {
+      "path": "src/components/team/depth-chart-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 386,
+      "nonEmptyLines": 357,
+      "characters": 12106
+    },
+    {
+      "path": "src/components/team/depth-chart-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 616,
+      "nonEmptyLines": 557,
+      "characters": 19638
+    },
+    {
+      "path": "src/components/team/depth-chart-view.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 754,
+      "nonEmptyLines": 716,
+      "characters": 31340
+    },
+    {
+      "path": "src/components/team/finance-event-list.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 69,
+      "nonEmptyLines": 62,
+      "characters": 2766
+    },
+    {
+      "path": "src/components/team/player-card.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 151,
+      "nonEmptyLines": 141,
+      "characters": 5789
+    },
+    {
+      "path": "src/components/team/player-status-badge.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 20,
+      "nonEmptyLines": 17,
+      "characters": 714
+    },
+    {
+      "path": "src/components/team/rating-badge.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 22,
+      "nonEmptyLines": 20,
+      "characters": 700
+    },
+    {
+      "path": "src/components/team/roster-action-menu.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 48,
+      "nonEmptyLines": 43,
+      "characters": 1643
+    },
+    {
+      "path": "src/components/team/roster-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 361,
+      "nonEmptyLines": 342,
+      "characters": 9149
+    },
+    {
+      "path": "src/components/team/roster-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 404,
+      "nonEmptyLines": 348,
+      "characters": 10873
+    },
+    {
+      "path": "src/components/team/roster-table.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 600,
+      "nonEmptyLines": 568,
+      "characters": 24798
+    },
+    {
+      "path": "src/components/team/scheme-selector.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 101,
+      "nonEmptyLines": 98,
+      "characters": 3798
+    },
+    {
+      "path": "src/components/team/team-card.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 82,
+      "nonEmptyLines": 75,
+      "characters": 3411
+    },
+    {
+      "path": "src/components/team/team-chemistry-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 203,
+      "nonEmptyLines": 191,
+      "characters": 5393
+    },
+    {
+      "path": "src/components/team/team-chemistry-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 328,
+      "nonEmptyLines": 287,
+      "characters": 8735
+    },
+    {
+      "path": "src/components/team/team-needs-panel.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 96,
+      "nonEmptyLines": 91,
+      "characters": 3931
+    },
+    {
+      "path": "src/components/team/team-overview-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 316,
+      "nonEmptyLines": 299,
+      "characters": 7884
+    },
+    {
+      "path": "src/components/team/team-overview-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 306,
+      "nonEmptyLines": 270,
+      "characters": 9535
+    },
+    {
+      "path": "src/components/team/team-section-navigation.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 148,
+      "nonEmptyLines": 138,
+      "characters": 4415
+    },
+    {
+      "path": "src/components/team/team-x-factor-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 221,
+      "nonEmptyLines": 208,
+      "characters": 5821
+    },
+    {
+      "path": "src/components/team/team-x-factor-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 422,
+      "nonEmptyLines": 358,
+      "characters": 11772
+    },
+    {
+      "path": "src/components/trades/trade-board-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 203,
+      "nonEmptyLines": 188,
+      "characters": 5948
+    },
+    {
+      "path": "src/components/trades/trade-board-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 276,
+      "nonEmptyLines": 244,
+      "characters": 7754
+    },
+    {
+      "path": "src/components/trades/trade-board.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 423,
+      "nonEmptyLines": 395,
+      "characters": 16358
+    },
+    {
+      "path": "src/components/trades/trade-model.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 165,
+      "nonEmptyLines": 148,
+      "characters": 4334
+    },
+    {
+      "path": "src/components/trades/trade-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 266,
+      "nonEmptyLines": 229,
+      "characters": 7648
+    },
+    {
+      "path": "src/components/trades/trade-offer-center.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 245,
+      "nonEmptyLines": 230,
+      "characters": 10176
+    },
+    {
+      "path": "src/components/ui/create-savegame-form.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 58,
+      "nonEmptyLines": 52,
+      "characters": 2108
+    },
+    {
+      "path": "src/components/ui/form-submit-button.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 31,
+      "nonEmptyLines": 27,
+      "characters": 852
+    },
+    {
+      "path": "src/components/ui/section-card.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 36,
+      "nonEmptyLines": 33,
+      "characters": 820
+    },
+    {
+      "path": "src/components/ui/stat-card.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 54,
+      "nonEmptyLines": 52,
+      "characters": 1636
+    },
+    {
+      "path": "src/components/ui/status-badge.tsx",
+      "extension": ".tsx",
+      "category": "App-Code",
+      "lines": 25,
+      "nonEmptyLines": 23,
+      "characters": 867
+    },
+    {
+      "path": "src/lib/actions/action-feedback.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 120,
+      "nonEmptyLines": 110,
+      "characters": 4283
+    },
+    {
+      "path": "src/lib/actions/action-feedback.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 170,
+      "nonEmptyLines": 143,
+      "characters": 4515
+    },
+    {
+      "path": "src/lib/actions/decision-effects.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 257,
+      "nonEmptyLines": 241,
+      "characters": 9018
+    },
+    {
+      "path": "src/lib/actions/decision-effects.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 459,
+      "nonEmptyLines": 391,
+      "characters": 13426
+    },
+    {
+      "path": "src/lib/admin/admin-action-guard.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 99,
+      "nonEmptyLines": 89,
+      "characters": 2294
+    },
+    {
+      "path": "src/lib/admin/admin-session.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 46,
+      "nonEmptyLines": 37,
+      "characters": 1578
+    },
+    {
+      "path": "src/lib/admin/admin-session.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 96,
+      "nonEmptyLines": 69,
+      "characters": 2402
+    },
+    {
+      "path": "src/lib/admin/local-admin-storage.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 58,
+      "nonEmptyLines": 49,
+      "characters": 1592
+    },
+    {
+      "path": "src/lib/admin/online-admin-actions.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 650,
+      "nonEmptyLines": 616,
+      "characters": 21602
+    },
+    {
+      "path": "src/lib/audit/security-audit-log.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 80,
+      "nonEmptyLines": 68,
+      "characters": 2076
+    },
+    {
+      "path": "src/lib/auth/session.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 28,
+      "nonEmptyLines": 22,
+      "characters": 601
+    },
+    {
+      "path": "src/lib/db/prisma.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 15,
+      "nonEmptyLines": 12,
+      "characters": 369
+    },
+    {
+      "path": "src/lib/env/runtime-env.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 84,
+      "nonEmptyLines": 73,
+      "characters": 2877
+    },
+    {
+      "path": "src/lib/env/runtime-env.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 161,
+      "nonEmptyLines": 131,
+      "characters": 5384
+    },
+    {
+      "path": "src/lib/firebase/admin.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 60,
+      "nonEmptyLines": 49,
+      "characters": 2026
+    },
+    {
+      "path": "src/lib/firebase/admin.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 98,
+      "nonEmptyLines": 82,
+      "characters": 2253
+    },
+    {
+      "path": "src/lib/firebase/client.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 130,
+      "nonEmptyLines": 107,
+      "characters": 4401
+    },
+    {
+      "path": "src/lib/firebase/firestore.rules.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 617,
+      "nonEmptyLines": 578,
+      "characters": 20149
+    },
+    {
+      "path": "src/lib/firebase/previewGuard.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 85,
+      "nonEmptyLines": 77,
+      "characters": 2635
+    },
+    {
+      "path": "src/lib/firebase/previewGuard.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 109,
+      "nonEmptyLines": 94,
+      "characters": 2920
+    },
+    {
+      "path": "src/lib/multiplayer/current-user.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 57,
+      "nonEmptyLines": 44,
+      "characters": 1663
+    },
+    {
+      "path": "src/lib/multiplayer/current-user.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 60,
+      "nonEmptyLines": 47,
+      "characters": 1700
+    },
+    {
+      "path": "src/lib/multiplayer/league-service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 139,
+      "nonEmptyLines": 112,
+      "characters": 3961
+    },
+    {
+      "path": "src/lib/multiplayer/league-service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 165,
+      "nonEmptyLines": 135,
+      "characters": 3933
+    },
+    {
+      "path": "src/lib/observability/performance.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 81,
+      "nonEmptyLines": 70,
+      "characters": 2221
+    },
+    {
+      "path": "src/lib/observability/performance.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 103,
+      "nonEmptyLines": 92,
+      "characters": 2627
+    },
+    {
+      "path": "src/lib/online/auth/account-linking.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 220,
+      "nonEmptyLines": 191,
+      "characters": 6475
+    },
+    {
+      "path": "src/lib/online/auth/account-linking.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 240,
+      "nonEmptyLines": 205,
+      "characters": 6620
+    },
+    {
+      "path": "src/lib/online/auth/online-auth.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 130,
+      "nonEmptyLines": 105,
+      "characters": 3388
+    },
+    {
+      "path": "src/lib/online/coaching-system.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 184,
+      "nonEmptyLines": 151,
+      "characters": 4837
+    },
+    {
+      "path": "src/lib/online/contracts-salary-cap.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 298,
+      "nonEmptyLines": 254,
+      "characters": 9003
+    },
+    {
+      "path": "src/lib/online/franchise-strategy.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 355,
+      "nonEmptyLines": 314,
+      "characters": 10065
+    },
+    {
+      "path": "src/lib/online/gm-job-security.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 369,
+      "nonEmptyLines": 323,
+      "characters": 10847
+    },
+    {
+      "path": "src/lib/online/media-expectations.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 142,
+      "nonEmptyLines": 120,
+      "characters": 3872
+    },
+    {
+      "path": "src/lib/online/online-league-repository-provider.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 29,
+      "nonEmptyLines": 23,
+      "characters": 1093
+    },
+    {
+      "path": "src/lib/online/online-league-service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 842,
+      "nonEmptyLines": 722,
+      "characters": 25614
+    },
+    {
+      "path": "src/lib/online/online-league-service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 8860,
+      "nonEmptyLines": 7915,
+      "characters": 263367
+    },
+    {
+      "path": "src/lib/online/online-user-service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 87,
+      "nonEmptyLines": 67,
+      "characters": 2560
+    },
+    {
+      "path": "src/lib/online/online-user-service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 108,
+      "nonEmptyLines": 84,
+      "characters": 2870
+    },
+    {
+      "path": "src/lib/online/player-development.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 179,
+      "nonEmptyLines": 153,
+      "characters": 5120
+    },
+    {
+      "path": "src/lib/online/repositories/firebase-online-league-repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 580,
+      "nonEmptyLines": 504,
+      "characters": 17476
+    },
+    {
+      "path": "src/lib/online/repositories/local-online-league-repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 232,
+      "nonEmptyLines": 192,
+      "characters": 6720
+    },
+    {
+      "path": "src/lib/online/repositories/online-league-repository.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 229,
+      "nonEmptyLines": 200,
+      "characters": 7208
+    },
+    {
+      "path": "src/lib/online/repositories/online-league-repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 15,
+      "nonEmptyLines": 15,
+      "characters": 383
+    },
+    {
+      "path": "src/lib/online/scouting-draft.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 171,
+      "nonEmptyLines": 139,
+      "characters": 4630
+    },
+    {
+      "path": "src/lib/online/security/roles.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 76,
+      "nonEmptyLines": 64,
+      "characters": 1996
+    },
+    {
+      "path": "src/lib/online/stadium-fans-finance.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 526,
+      "nonEmptyLines": 463,
+      "characters": 15824
+    },
+    {
+      "path": "src/lib/online/team-chemistry-system.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 205,
+      "nonEmptyLines": 179,
+      "characters": 5543
+    },
+    {
+      "path": "src/lib/online/team-identity-options.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 87,
+      "nonEmptyLines": 79,
+      "characters": 2822
+    },
+    {
+      "path": "src/lib/online/team-identity-options.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 505,
+      "nonEmptyLines": 471,
+      "characters": 20259
+    },
+    {
+      "path": "src/lib/online/trade-system.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 234,
+      "nonEmptyLines": 202,
+      "characters": 7206
+    },
+    {
+      "path": "src/lib/online/training-system.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 316,
+      "nonEmptyLines": 265,
+      "characters": 9172
+    },
+    {
+      "path": "src/lib/online/types.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 229,
+      "nonEmptyLines": 213,
+      "characters": 7263
+    },
+    {
+      "path": "src/lib/online/x-factor-system.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 199,
+      "nonEmptyLines": 180,
+      "characters": 5126
+    },
+    {
+      "path": "src/lib/utils/format.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 23,
+      "nonEmptyLines": 20,
+      "characters": 589
+    },
+    {
+      "path": "src/modules/draft/application/draft-pick.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 165,
+      "nonEmptyLines": 144,
+      "characters": 4332
+    },
+    {
+      "path": "src/modules/draft/application/draft-pick.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 117,
+      "nonEmptyLines": 106,
+      "characters": 2855
+    },
+    {
+      "path": "src/modules/draft/application/draft-query.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 255,
+      "nonEmptyLines": 238,
+      "characters": 6709
+    },
+    {
+      "path": "src/modules/draft/application/draft-query.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 393,
+      "nonEmptyLines": 372,
+      "characters": 10070
+    },
+    {
+      "path": "src/modules/draft/application/scouting-command.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 181,
+      "nonEmptyLines": 160,
+      "characters": 4665
+    },
+    {
+      "path": "src/modules/draft/application/scouting-command.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 197,
+      "nonEmptyLines": 175,
+      "characters": 4833
+    },
+    {
+      "path": "src/modules/gameplay/application/calibration-suite.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 70,
+      "nonEmptyLines": 62,
+      "characters": 2089
+    },
+    {
+      "path": "src/modules/gameplay/application/default-state-value-model.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 104,
+      "nonEmptyLines": 95,
+      "characters": 2714
+    },
+    {
+      "path": "src/modules/gameplay/application/engine-decision-reporting.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 46,
+      "nonEmptyLines": 39,
+      "characters": 1514
+    },
+    {
+      "path": "src/modules/gameplay/application/engine-decision-reporting.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 367,
+      "nonEmptyLines": 360,
+      "characters": 13058
+    },
+    {
+      "path": "src/modules/gameplay/application/game-stats-aggregation.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 465,
+      "nonEmptyLines": 448,
+      "characters": 13420
+    },
+    {
+      "path": "src/modules/gameplay/application/game-stats-aggregation.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 388,
+      "nonEmptyLines": 335,
+      "characters": 10258
+    },
+    {
+      "path": "src/modules/gameplay/application/game-stats-reporting.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 406,
+      "nonEmptyLines": 394,
+      "characters": 11308
+    },
+    {
+      "path": "src/modules/gameplay/application/game-stats-reporting.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 631,
+      "nonEmptyLines": 582,
+      "characters": 18188
+    },
+    {
+      "path": "src/modules/gameplay/application/gameplay-calibration.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 246,
+      "nonEmptyLines": 223,
+      "characters": 7497
+    },
+    {
+      "path": "src/modules/gameplay/application/gameplay-calibration.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 749,
+      "nonEmptyLines": 694,
+      "characters": 21109
+    },
+    {
+      "path": "src/modules/gameplay/application/head-coach-momentum-service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 161,
+      "nonEmptyLines": 145,
+      "characters": 5299
+    },
+    {
+      "path": "src/modules/gameplay/application/head-coach-momentum-service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 237,
+      "nonEmptyLines": 218,
+      "characters": 6309
+    },
+    {
+      "path": "src/modules/gameplay/application/index.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 19,
+      "nonEmptyLines": 19,
+      "characters": 819
+    },
+    {
+      "path": "src/modules/gameplay/application/outcome-model-parameters.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 236,
+      "nonEmptyLines": 230,
+      "characters": 6135
+    },
+    {
+      "path": "src/modules/gameplay/application/outcome-resolution-engine.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 871,
+      "nonEmptyLines": 816,
+      "characters": 27689
+    },
+    {
+      "path": "src/modules/gameplay/application/outcome-resolution-engine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 2737,
+      "nonEmptyLines": 2502,
+      "characters": 79689
+    },
+    {
+      "path": "src/modules/gameplay/application/outcome-stats-recorder.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 314,
+      "nonEmptyLines": 291,
+      "characters": 8478
+    },
+    {
+      "path": "src/modules/gameplay/application/pass-protection-resolution.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 327,
+      "nonEmptyLines": 306,
+      "characters": 9676
+    },
+    {
+      "path": "src/modules/gameplay/application/pass-protection-resolution.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 317,
+      "nonEmptyLines": 289,
+      "characters": 8949
+    },
+    {
+      "path": "src/modules/gameplay/application/play-development-engine.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 828,
+      "nonEmptyLines": 801,
+      "characters": 24215
+    },
+    {
+      "path": "src/modules/gameplay/application/play-development-engine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 722,
+      "nonEmptyLines": 677,
+      "characters": 24129
+    },
+    {
+      "path": "src/modules/gameplay/application/play-library-service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 916,
+      "nonEmptyLines": 838,
+      "characters": 28556
+    },
+    {
+      "path": "src/modules/gameplay/application/play-library-service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1556,
+      "nonEmptyLines": 1404,
+      "characters": 42081
+    },
+    {
+      "path": "src/modules/gameplay/application/play-selection-engine.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 1153,
+      "nonEmptyLines": 1098,
+      "characters": 34659
+    },
+    {
+      "path": "src/modules/gameplay/application/play-selection-engine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 2769,
+      "nonEmptyLines": 2496,
+      "characters": 79442
+    },
+    {
+      "path": "src/modules/gameplay/application/pre-snap-legality-engine.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 733,
+      "nonEmptyLines": 658,
+      "characters": 22175
+    },
+    {
+      "path": "src/modules/gameplay/application/pre-snap-legality-engine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 711,
+      "nonEmptyLines": 637,
+      "characters": 20935
+    },
+    {
+      "path": "src/modules/gameplay/application/press-coverage-resolution.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 215,
+      "nonEmptyLines": 201,
+      "characters": 5710
+    },
+    {
+      "path": "src/modules/gameplay/application/press-coverage-resolution.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 393,
+      "nonEmptyLines": 362,
+      "characters": 10441
+    },
+    {
+      "path": "src/modules/gameplay/application/qb-decision-time-resolution.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 230,
+      "nonEmptyLines": 217,
+      "characters": 6786
+    },
+    {
+      "path": "src/modules/gameplay/application/qb-decision-time-resolution.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 377,
+      "nonEmptyLines": 344,
+      "characters": 10488
+    },
+    {
+      "path": "src/modules/gameplay/application/receiver-matchup-resolution.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 330,
+      "nonEmptyLines": 311,
+      "characters": 8704
+    },
+    {
+      "path": "src/modules/gameplay/application/receiver-matchup-resolution.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 523,
+      "nonEmptyLines": 483,
+      "characters": 14818
+    },
+    {
+      "path": "src/modules/gameplay/application/run-lane-resolution.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 480,
+      "nonEmptyLines": 455,
+      "characters": 13939
+    },
+    {
+      "path": "src/modules/gameplay/application/run-lane-resolution.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 397,
+      "nonEmptyLines": 357,
+      "characters": 10891
+    },
+    {
+      "path": "src/modules/gameplay/application/unit-chemistry-service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 173,
+      "nonEmptyLines": 158,
+      "characters": 5359
+    },
+    {
+      "path": "src/modules/gameplay/application/unit-chemistry-service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 312,
+      "nonEmptyLines": 265,
+      "characters": 8294
+    },
+    {
+      "path": "src/modules/gameplay/domain/ai-team-strategy.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 106,
+      "nonEmptyLines": 96,
+      "characters": 3132
+    },
+    {
+      "path": "src/modules/gameplay/domain/ai-team-strategy.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 189,
+      "nonEmptyLines": 172,
+      "characters": 6009
+    },
+    {
+      "path": "src/modules/gameplay/domain/calibration.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 50,
+      "nonEmptyLines": 44,
+      "characters": 1124
+    },
+    {
+      "path": "src/modules/gameplay/domain/competition-rules.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 153,
+      "nonEmptyLines": 142,
+      "characters": 4121
+    },
+    {
+      "path": "src/modules/gameplay/domain/game-situation.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 61,
+      "nonEmptyLines": 54,
+      "characters": 1229
+    },
+    {
+      "path": "src/modules/gameplay/domain/game-stats.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 504,
+      "nonEmptyLines": 464,
+      "characters": 11441
+    },
+    {
+      "path": "src/modules/gameplay/domain/index.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 13,
+      "nonEmptyLines": 13,
+      "characters": 440
+    },
+    {
+      "path": "src/modules/gameplay/domain/play-call.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 16,
+      "nonEmptyLines": 16,
+      "characters": 340
+    },
+    {
+      "path": "src/modules/gameplay/domain/play-library.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 406,
+      "nonEmptyLines": 361,
+      "characters": 8991
+    },
+    {
+      "path": "src/modules/gameplay/domain/play-resolution.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 202,
+      "nonEmptyLines": 182,
+      "characters": 4668
+    },
+    {
+      "path": "src/modules/gameplay/domain/play-selection.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 231,
+      "nonEmptyLines": 208,
+      "characters": 6139
+    },
+    {
+      "path": "src/modules/gameplay/domain/playbook.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 48,
+      "nonEmptyLines": 42,
+      "characters": 1192
+    },
+    {
+      "path": "src/modules/gameplay/domain/pre-game-x-factor.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 89,
+      "nonEmptyLines": 74,
+      "characters": 2828
+    },
+    {
+      "path": "src/modules/gameplay/domain/pre-snap-legality.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 93,
+      "nonEmptyLines": 82,
+      "characters": 2481
+    },
+    {
+      "path": "src/modules/gameplay/domain/pre-snap-structure.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 91,
+      "nonEmptyLines": 74,
+      "characters": 2323
+    },
+    {
+      "path": "src/modules/gameplay/domain/simulation-metrics.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 26,
+      "nonEmptyLines": 23,
+      "characters": 711
+    },
+    {
+      "path": "src/modules/gameplay/infrastructure/default-playbooks.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 236,
+      "nonEmptyLines": 233,
+      "characters": 7179
+    },
+    {
+      "path": "src/modules/gameplay/infrastructure/index.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 2,
+      "nonEmptyLines": 2,
+      "characters": 69
+    },
+    {
+      "path": "src/modules/gameplay/infrastructure/play-library.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 6970,
+      "nonEmptyLines": 6900,
+      "characters": 245423
+    },
+    {
+      "path": "src/modules/inbox/application/inbox-task.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 114,
+      "nonEmptyLines": 104,
+      "characters": 3157
+    },
+    {
+      "path": "src/modules/inbox/application/inbox-task.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 137,
+      "nonEmptyLines": 121,
+      "characters": 3328
+    },
+    {
+      "path": "src/modules/inbox/domain/inbox-task.types.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 21,
+      "nonEmptyLines": 18,
+      "characters": 522
+    },
+    {
+      "path": "src/modules/inbox/infrastructure/inbox-task.repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 82,
+      "nonEmptyLines": 76,
+      "characters": 1993
+    },
+    {
+      "path": "src/modules/players/application/player-history.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 43,
+      "nonEmptyLines": 40,
+      "characters": 908
+    },
+    {
+      "path": "src/modules/players/application/player-query.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 155,
+      "nonEmptyLines": 145,
+      "characters": 3896
+    },
+    {
+      "path": "src/modules/players/application/player-query.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 507,
+      "nonEmptyLines": 484,
+      "characters": 18945
+    },
+    {
+      "path": "src/modules/players/domain/player-evaluation.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 419,
+      "nonEmptyLines": 395,
+      "characters": 12619
+    },
+    {
+      "path": "src/modules/players/domain/player-injury.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 123,
+      "nonEmptyLines": 107,
+      "characters": 3318
+    },
+    {
+      "path": "src/modules/players/domain/player-injury.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 170,
+      "nonEmptyLines": 147,
+      "characters": 4393
+    },
+    {
+      "path": "src/modules/players/domain/player-progression.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 163,
+      "nonEmptyLines": 147,
+      "characters": 4169
+    },
+    {
+      "path": "src/modules/players/domain/player-progression.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 306,
+      "nonEmptyLines": 262,
+      "characters": 8177
+    },
+    {
+      "path": "src/modules/players/domain/player-rating.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 129,
+      "nonEmptyLines": 117,
+      "characters": 3547
+    },
+    {
+      "path": "src/modules/players/domain/player-rating.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 443,
+      "nonEmptyLines": 430,
+      "characters": 14826
+    },
+    {
+      "path": "src/modules/players/domain/player-scheme-fit.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 141,
+      "nonEmptyLines": 127,
+      "characters": 3785
+    },
+    {
+      "path": "src/modules/players/domain/player.types.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 256,
+      "nonEmptyLines": 254,
+      "characters": 6338
+    },
+    {
+      "path": "src/modules/players/infrastructure/player.repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 195,
+      "nonEmptyLines": 190,
+      "characters": 3817
+    },
+    {
+      "path": "src/modules/savegames/application/bootstrap/bootstrap-savegame-world.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 306,
+      "nonEmptyLines": 275,
+      "characters": 9271
+    },
+    {
+      "path": "src/modules/savegames/application/bootstrap/double-round-robin-schedule.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 43,
+      "nonEmptyLines": 35,
+      "characters": 1600
+    },
+    {
+      "path": "src/modules/savegames/application/bootstrap/double-round-robin-schedule.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 86,
+      "nonEmptyLines": 71,
+      "characters": 2209
+    },
+    {
+      "path": "src/modules/savegames/application/bootstrap/initial-roster.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 111,
+      "nonEmptyLines": 94,
+      "characters": 4396
+    },
+    {
+      "path": "src/modules/savegames/application/bootstrap/initial-roster.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1310,
+      "nonEmptyLines": 1260,
+      "characters": 30244
+    },
+    {
+      "path": "src/modules/savegames/application/bootstrap/player-stat-shells.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 320,
+      "nonEmptyLines": 307,
+      "characters": 6522
+    },
+    {
+      "path": "src/modules/savegames/application/minimal-drive-simulation.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 106,
+      "nonEmptyLines": 93,
+      "characters": 3320
+    },
+    {
+      "path": "src/modules/savegames/application/minimal-drive-simulation.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 363,
+      "nonEmptyLines": 316,
+      "characters": 10939
+    },
+    {
+      "path": "src/modules/savegames/application/savegame-command.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 120,
+      "nonEmptyLines": 105,
+      "characters": 3115
+    },
+    {
+      "path": "src/modules/savegames/application/savegame-command.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 163,
+      "nonEmptyLines": 136,
+      "characters": 4521
+    },
+    {
+      "path": "src/modules/savegames/application/savegame-query.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 107,
+      "nonEmptyLines": 98,
+      "characters": 3358
+    },
+    {
+      "path": "src/modules/savegames/application/savegame-snapshot.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 166,
+      "nonEmptyLines": 159,
+      "characters": 5469
+    },
+    {
+      "path": "src/modules/savegames/application/savegame-snapshot.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 304,
+      "nonEmptyLines": 271,
+      "characters": 8213
+    },
+    {
+      "path": "src/modules/savegames/application/week-flow.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 520,
+      "nonEmptyLines": 478,
+      "characters": 14735
+    },
+    {
+      "path": "src/modules/savegames/application/week-flow.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1003,
+      "nonEmptyLines": 898,
+      "characters": 27823
+    },
+    {
+      "path": "src/modules/savegames/application/weekly-player-development.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 199,
+      "nonEmptyLines": 182,
+      "characters": 5691
+    },
+    {
+      "path": "src/modules/savegames/application/weekly-player-development.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 267,
+      "nonEmptyLines": 240,
+      "characters": 7053
+    },
+    {
+      "path": "src/modules/savegames/domain/savegame.types.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 62,
+      "nonEmptyLines": 58,
+      "characters": 1351
+    },
+    {
+      "path": "src/modules/savegames/domain/weekly-plan.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 61,
+      "nonEmptyLines": 56,
+      "characters": 1711
+    },
+    {
+      "path": "src/modules/savegames/domain/weekly-plan.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 76,
+      "nonEmptyLines": 64,
+      "characters": 2468
+    },
+    {
+      "path": "src/modules/savegames/infrastructure/savegame.repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 99,
+      "nonEmptyLines": 97,
+      "characters": 2129
+    },
+    {
+      "path": "src/modules/seasons/application/match-preparation.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 171,
+      "nonEmptyLines": 157,
+      "characters": 5541
+    },
+    {
+      "path": "src/modules/seasons/application/match-preparation.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 68,
+      "nonEmptyLines": 57,
+      "characters": 2222
+    },
+    {
+      "path": "src/modules/seasons/application/match-query.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 167,
+      "nonEmptyLines": 155,
+      "characters": 4560
+    },
+    {
+      "path": "src/modules/seasons/application/match-query.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 305,
+      "nonEmptyLines": 285,
+      "characters": 9990
+    },
+    {
+      "path": "src/modules/seasons/application/season-management.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 356,
+      "nonEmptyLines": 322,
+      "characters": 8404
+    },
+    {
+      "path": "src/modules/seasons/application/season-query.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 184,
+      "nonEmptyLines": 169,
+      "characters": 6532
+    },
+    {
+      "path": "src/modules/seasons/application/season-simulation.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 317,
+      "nonEmptyLines": 290,
+      "characters": 10009
+    },
+    {
+      "path": "src/modules/seasons/application/season-simulation.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 383,
+      "nonEmptyLines": 345,
+      "characters": 11480
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/depth-chart.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 197,
+      "nonEmptyLines": 166,
+      "characters": 6625
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/depth-chart.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 532,
+      "nonEmptyLines": 466,
+      "characters": 15305
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/engine-rules.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 88,
+      "nonEmptyLines": 85,
+      "characters": 2264
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/engine-state-machine.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 189,
+      "nonEmptyLines": 173,
+      "characters": 5753
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/engine-state-machine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 153,
+      "nonEmptyLines": 131,
+      "characters": 3797
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/extended-season-balance-suite.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 73,
+      "nonEmptyLines": 65,
+      "characters": 3757
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/extended-season-balance-suite.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1443,
+      "nonEmptyLines": 1291,
+      "characters": 46729
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/fatigue-recovery.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 197,
+      "nonEmptyLines": 187,
+      "characters": 4820
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/fatigue-recovery.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 124,
+      "nonEmptyLines": 107,
+      "characters": 3540
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/game-balance.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 3,
+      "nonEmptyLines": 2,
+      "characters": 121
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/match-context.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 116,
+      "nonEmptyLines": 108,
+      "characters": 3562
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/match-context.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 272,
+      "nonEmptyLines": 265,
+      "characters": 8671
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/match-engine.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 550,
+      "nonEmptyLines": 488,
+      "characters": 20083
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/match-engine.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 5217,
+      "nonEmptyLines": 4837,
+      "characters": 191480
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/match-result-persistence.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 33,
+      "nonEmptyLines": 30,
+      "characters": 1080
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/match-result-persistence.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 922,
+      "nonEmptyLines": 876,
+      "characters": 31255
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/player-condition.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 302,
+      "nonEmptyLines": 284,
+      "characters": 7553
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/player-condition.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 149,
+      "nonEmptyLines": 135,
+      "characters": 4481
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/player-development.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 122,
+      "nonEmptyLines": 107,
+      "characters": 3183
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/player-development.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 347,
+      "nonEmptyLines": 315,
+      "characters": 8638
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/playoff-scheduling.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 128,
+      "nonEmptyLines": 110,
+      "characters": 3120
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/production-qa-suite.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 935,
+      "nonEmptyLines": 836,
+      "characters": 29818
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/production-qa.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 71,
+      "nonEmptyLines": 62,
+      "characters": 2862
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/season-progression.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 11,
+      "nonEmptyLines": 9,
+      "characters": 384
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/simulation-api.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 155,
+      "nonEmptyLines": 132,
+      "characters": 4789
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/simulation-api.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 555,
+      "nonEmptyLines": 488,
+      "characters": 15841
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/simulation-balancing.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 33,
+      "nonEmptyLines": 29,
+      "characters": 1611
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/simulation-balancing.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 251,
+      "nonEmptyLines": 227,
+      "characters": 7784
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/simulation-debug.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 75,
+      "nonEmptyLines": 67,
+      "characters": 2945
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/simulation-debug.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 1100,
+      "nonEmptyLines": 976,
+      "characters": 31693
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/simulation-orchestrator.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 100,
+      "nonEmptyLines": 90,
+      "characters": 2982
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/simulation-orchestrator.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 220,
+      "nonEmptyLines": 197,
+      "characters": 5134
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/simulation-random.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 30,
+      "nonEmptyLines": 23,
+      "characters": 746
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/simulation.types.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 263,
+      "nonEmptyLines": 245,
+      "characters": 6735
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/stat-anchors.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 61,
+      "nonEmptyLines": 57,
+      "characters": 1452
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/stat-anchors.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 90,
+      "nonEmptyLines": 78,
+      "characters": 2668
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/weekly-preparation.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 96,
+      "nonEmptyLines": 84,
+      "characters": 2740
+    },
+    {
+      "path": "src/modules/seasons/application/simulation/weekly-preparation.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 64,
+      "nonEmptyLines": 57,
+      "characters": 1944
+    },
+    {
+      "path": "src/modules/seasons/domain/season.types.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 49,
+      "nonEmptyLines": 47,
+      "characters": 1018
+    },
+    {
+      "path": "src/modules/seasons/domain/weak-team-goals.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 168,
+      "nonEmptyLines": 152,
+      "characters": 5665
+    },
+    {
+      "path": "src/modules/seasons/domain/weak-team-goals.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 463,
+      "nonEmptyLines": 411,
+      "characters": 14828
+    },
+    {
+      "path": "src/modules/seasons/infrastructure/match-preparation.repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 55,
+      "nonEmptyLines": 52,
+      "characters": 1233
+    },
+    {
+      "path": "src/modules/seasons/infrastructure/season.repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 94,
+      "nonEmptyLines": 92,
+      "characters": 2199
+    },
+    {
+      "path": "src/modules/seasons/infrastructure/simulation/season-simulation.command-repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 368,
+      "nonEmptyLines": 343,
+      "characters": 7289
+    },
+    {
+      "path": "src/modules/seasons/infrastructure/simulation/season-simulation.repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 203,
+      "nonEmptyLines": 199,
+      "characters": 5082
+    },
+    {
+      "path": "src/modules/shared/domain/enums.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 65,
+      "nonEmptyLines": 63,
+      "characters": 2370
+    },
+    {
+      "path": "src/modules/shared/domain/enums.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 162,
+      "nonEmptyLines": 127,
+      "characters": 3957
+    },
+    {
+      "path": "src/modules/shared/domain/roster-status.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 29,
+      "nonEmptyLines": 25,
+      "characters": 1206
+    },
+    {
+      "path": "src/modules/shared/domain/roster-status.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 38,
+      "nonEmptyLines": 31,
+      "characters": 1249
+    },
+    {
+      "path": "src/modules/shared/infrastructure/reference-data.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 617,
+      "nonEmptyLines": 562,
+      "characters": 32554
+    },
+    {
+      "path": "src/modules/teams/application/free-agent-market.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 74,
+      "nonEmptyLines": 70,
+      "characters": 1860
+    },
+    {
+      "path": "src/modules/teams/application/free-agent-market.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 137,
+      "nonEmptyLines": 125,
+      "characters": 5051
+    },
+    {
+      "path": "src/modules/teams/application/team-finance.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 60,
+      "nonEmptyLines": 55,
+      "characters": 1144
+    },
+    {
+      "path": "src/modules/teams/application/team-management.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 67,
+      "nonEmptyLines": 60,
+      "characters": 1904
+    },
+    {
+      "path": "src/modules/teams/application/team-management.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 18,
+      "nonEmptyLines": 18,
+      "characters": 660
+    },
+    {
+      "path": "src/modules/teams/application/team-management.shared.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 189,
+      "nonEmptyLines": 172,
+      "characters": 5118
+    },
+    {
+      "path": "src/modules/teams/application/team-needs.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 86,
+      "nonEmptyLines": 80,
+      "characters": 2876
+    },
+    {
+      "path": "src/modules/teams/application/team-query.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 279,
+      "nonEmptyLines": 265,
+      "characters": 11699
+    },
+    {
+      "path": "src/modules/teams/application/team-roster.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 708,
+      "nonEmptyLines": 655,
+      "characters": 21123
+    },
+    {
+      "path": "src/modules/teams/application/team-roster.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 794,
+      "nonEmptyLines": 696,
+      "characters": 26229
+    },
+    {
+      "path": "src/modules/teams/application/team-schemes.service.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 86,
+      "nonEmptyLines": 79,
+      "characters": 2485
+    },
+    {
+      "path": "src/modules/teams/application/team-schemes.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 44,
+      "nonEmptyLines": 40,
+      "characters": 1672
+    },
+    {
+      "path": "src/modules/teams/application/team-trade.service.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 208,
+      "nonEmptyLines": 181,
+      "characters": 7069
+    },
+    {
+      "path": "src/modules/teams/domain/contract-calculation.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 90,
+      "nonEmptyLines": 79,
+      "characters": 2909
+    },
+    {
+      "path": "src/modules/teams/domain/team.types.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 149,
+      "nonEmptyLines": 146,
+      "characters": 3534
+    },
+    {
+      "path": "src/modules/teams/infrastructure/team-management.repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 714,
+      "nonEmptyLines": 689,
+      "characters": 15889
+    },
+    {
+      "path": "src/modules/teams/infrastructure/team.repository.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 303,
+      "nonEmptyLines": 297,
+      "characters": 7188
+    },
+    {
+      "path": "src/server/repositories/firestoreAccess.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 55,
+      "nonEmptyLines": 48,
+      "characters": 1531
+    },
+    {
+      "path": "src/server/repositories/firestoreE2eParity.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 472,
+      "nonEmptyLines": 437,
+      "characters": 13931
+    },
+    {
+      "path": "src/server/repositories/firestoreGameOutput.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 335,
+      "nonEmptyLines": 308,
+      "characters": 10592
+    },
+    {
+      "path": "src/server/repositories/firestoreGuard.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 32,
+      "nonEmptyLines": 28,
+      "characters": 866
+    },
+    {
+      "path": "src/server/repositories/firestoreOperationalLogger.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 97,
+      "nonEmptyLines": 83,
+      "characters": 2973
+    },
+    {
+      "path": "src/server/repositories/firestoreOperationalLogger.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 179,
+      "nonEmptyLines": 158,
+      "characters": 4461
+    },
+    {
+      "path": "src/server/repositories/firestoreReportsReadModels.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 262,
+      "nonEmptyLines": 241,
+      "characters": 7649
+    },
+    {
+      "path": "src/server/repositories/firestoreRepositoryMappers.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 455,
+      "nonEmptyLines": 424,
+      "characters": 13308
+    },
+    {
+      "path": "src/server/repositories/firestoreSeasonWeekMatch.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 122,
+      "nonEmptyLines": 99,
+      "characters": 4767
+    },
+    {
+      "path": "src/server/repositories/firestoreStatsAggregates.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 448,
+      "nonEmptyLines": 420,
+      "characters": 12168
+    },
+    {
+      "path": "src/server/repositories/firestoreTeamsPlayers.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 164,
+      "nonEmptyLines": 130,
+      "characters": 5779
+    },
+    {
+      "path": "src/server/repositories/firestoreUsageLogger.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 88,
+      "nonEmptyLines": 73,
+      "characters": 2197
+    },
+    {
+      "path": "src/server/repositories/firestoreWeekMatchState.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 200,
+      "nonEmptyLines": 167,
+      "characters": 6959
+    },
+    {
+      "path": "src/server/repositories/gameOutputRepository.firestore.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 212,
+      "nonEmptyLines": 191,
+      "characters": 6441
+    },
+    {
+      "path": "src/server/repositories/index.test.ts",
+      "extension": ".ts",
+      "category": "Test-Code",
+      "lines": 82,
+      "nonEmptyLines": 64,
+      "characters": 3161
+    },
+    {
+      "path": "src/server/repositories/index.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 107,
+      "nonEmptyLines": 97,
+      "characters": 3934
+    },
+    {
+      "path": "src/server/repositories/matchRepository.firestore.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 410,
+      "nonEmptyLines": 369,
+      "characters": 12450
+    },
+    {
+      "path": "src/server/repositories/matchRepository.prisma.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 120,
+      "nonEmptyLines": 116,
+      "characters": 2393
+    },
+    {
+      "path": "src/server/repositories/playerRepository.firestore.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 268,
+      "nonEmptyLines": 247,
+      "characters": 8100
+    },
+    {
+      "path": "src/server/repositories/playerRepository.prisma.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 3,
+      "nonEmptyLines": 2,
+      "characters": 144
+    },
+    {
+      "path": "src/server/repositories/readModelRepository.firestore.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 497,
+      "nonEmptyLines": 459,
+      "characters": 14688
+    },
+    {
+      "path": "src/server/repositories/saveGameRepository.firestore.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 409,
+      "nonEmptyLines": 360,
+      "characters": 10808
+    },
+    {
+      "path": "src/server/repositories/saveGameRepository.prisma.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 3,
+      "nonEmptyLines": 2,
+      "characters": 154
+    },
+    {
+      "path": "src/server/repositories/seasonRepository.firestore.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 220,
+      "nonEmptyLines": 196,
+      "characters": 6016
+    },
+    {
+      "path": "src/server/repositories/seasonRepository.prisma.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 9,
+      "nonEmptyLines": 8,
+      "characters": 747
+    },
+    {
+      "path": "src/server/repositories/statsRepository.firestore.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 589,
+      "nonEmptyLines": 540,
+      "characters": 18001
+    },
+    {
+      "path": "src/server/repositories/statsRepository.prisma.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 3,
+      "nonEmptyLines": 3,
+      "characters": 72
+    },
+    {
+      "path": "src/server/repositories/teamRepository.firestore.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 190,
+      "nonEmptyLines": 169,
+      "characters": 5730
+    },
+    {
+      "path": "src/server/repositories/teamRepository.prisma.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 5,
+      "nonEmptyLines": 4,
+      "characters": 308
+    },
+    {
+      "path": "src/server/repositories/types.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 44,
+      "nonEmptyLines": 41,
+      "characters": 2706
+    },
+    {
+      "path": "src/server/repositories/weekMatchStateRepository.firestore.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 547,
+      "nonEmptyLines": 479,
+      "characters": 15341
+    },
+    {
+      "path": "src/server/repositories/weekRepository.firestore.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 50,
+      "nonEmptyLines": 39,
+      "characters": 1357
+    },
+    {
+      "path": "src/server/repositories/weekRepository.prisma.ts",
+      "extension": ".ts",
+      "category": "App-Code",
+      "lines": 82,
+      "nonEmptyLines": 74,
+      "characters": 1854
+    },
+    {
+      "path": "tsconfig.json",
+      "extension": ".json",
+      "category": "Config",
+      "lines": 28,
+      "nonEmptyLines": 28,
+      "characters": 623
+    },
+    {
+      "path": "vitest.config.ts",
+      "extension": ".ts",
+      "category": "Config",
+      "lines": 46,
+      "nonEmptyLines": 41,
+      "characters": 1425
+    }
+  ]
+}
