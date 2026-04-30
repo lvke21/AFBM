@@ -18,8 +18,25 @@ function safeNextPath(value: FormDataEntryValue | null) {
   return nextPath;
 }
 
+function firstHeaderValue(value: string | null) {
+  return value?.split(",")[0]?.trim() || null;
+}
+
+function getRedirectOrigin(request: NextRequest) {
+  const forwardedHost = firstHeaderValue(request.headers.get("x-forwarded-host"));
+  const host = forwardedHost ?? firstHeaderValue(request.headers.get("host")) ?? request.nextUrl.host;
+  const forwardedProto = firstHeaderValue(request.headers.get("x-forwarded-proto"));
+  const protocol = forwardedProto ?? request.nextUrl.protocol.replace(/:$/, "");
+
+  return `${protocol}://${host}`;
+}
+
+function redirectToPath(request: NextRequest, nextPath: string) {
+  return NextResponse.redirect(new URL(nextPath, getRedirectOrigin(request)));
+}
+
 function redirectToLogin(request: NextRequest, error: string, nextPath: string) {
-  const url = new URL("/admin/login", request.url);
+  const url = new URL("/admin/login", getRedirectOrigin(request));
 
   url.searchParams.set("error", error);
   url.searchParams.set("next", nextPath);
@@ -54,7 +71,7 @@ export async function POST(request: NextRequest) {
     return redirectToLogin(request, "invalid-code", nextPath);
   }
 
-  const response = NextResponse.redirect(new URL(nextPath, request.url));
+  const response = redirectToPath(request, nextPath);
   const sessionToken = getAdminSessionToken();
 
   auditSecurityEvent({

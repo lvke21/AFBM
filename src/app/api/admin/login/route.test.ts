@@ -11,10 +11,12 @@ function loginRequest(code: string) {
     next: "/admin",
   });
 
-  return new NextRequest("http://localhost/api/admin/login", {
+  return new NextRequest("http://0.0.0.0:8080/api/admin/login", {
     method: "POST",
     headers: {
       "content-type": "application/x-www-form-urlencoded",
+      "x-forwarded-host": "afbm-staging-backend--afbm-staging.europe-west4.hosted.app",
+      "x-forwarded-proto": "https",
       "user-agent": "vitest",
     },
     body,
@@ -64,6 +66,10 @@ describe("admin login audit logging", () => {
       event: "admin_login",
       outcome: "success",
     });
+    expect(response.headers.get("location")).toBe(
+      "https://afbm-staging-backend--afbm-staging.europe-west4.hosted.app/admin",
+    );
+    expect(response.headers.get("set-cookie")).toContain("afbm.admin.session=");
     expect(auditLog.actor?.adminSessionId).toHaveLength(24);
     expect(JSON.stringify(auditLog)).not.toContain("route-admin-code");
     expect(JSON.stringify(auditLog)).not.toContain("route-admin-secret");
@@ -80,6 +86,9 @@ describe("admin login audit logging", () => {
       outcome: "denied",
       code: "ADMIN_INVALID_CODE",
     });
+    expect(response.headers.get("location")).toBe(
+      "https://afbm-staging-backend--afbm-staging.europe-west4.hosted.app/admin/login?error=invalid-code&next=%2Fadmin",
+    );
     expect(JSON.stringify(auditLog)).not.toContain("wrong-admin-code");
     expect(JSON.stringify(auditLog)).not.toContain("route-admin-code");
   });
