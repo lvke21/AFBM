@@ -198,12 +198,54 @@ describe("account linking", () => {
     expect(mocks.authState.currentUser?.isAnonymous).toBe(true);
   });
 
+  it("maps existing provider links to a concrete user-facing error", () => {
+    const error = mapOnlineAccountLinkingError({ code: "auth/provider-already-linked" });
+
+    expect(error).toBeInstanceOf(OnlineAccountLinkingError);
+    expect(error.code).toBe("provider-already-linked");
+    expect(error.message).toContain("bereits");
+  });
+
   it("maps weak passwords to a user-facing error", () => {
     const error = mapOnlineAccountLinkingError({ code: "auth/weak-password" });
 
     expect(error).toBeInstanceOf(OnlineAccountLinkingError);
     expect(error.code).toBe("weak-password");
     expect(error.message).toContain("Passwort");
+  });
+
+  it("maps invalid emails to a user-facing error", () => {
+    const error = mapOnlineAccountLinkingError({ code: "auth/invalid-email" });
+
+    expect(error).toBeInstanceOf(OnlineAccountLinkingError);
+    expect(error.code).toBe("invalid-email");
+    expect(error.message).toContain("Email");
+  });
+
+  it("maps recent-login errors to a stable UID-preserving retry message", () => {
+    const error = mapOnlineAccountLinkingError({ code: "auth/requires-recent-login" });
+
+    expect(error).toBeInstanceOf(OnlineAccountLinkingError);
+    expect(error.code).toBe("expired-credentials");
+    expect(error.message).toContain("UID");
+  });
+
+  it("maps disabled Email/Password providers to a concrete setup error", () => {
+    const error = mapOnlineAccountLinkingError({ code: "auth/operation-not-allowed" });
+
+    expect(error).toBeInstanceOf(OnlineAccountLinkingError);
+    expect(error.code).toBe("provider-disabled");
+    expect(error.message).toContain("Email/Passwort");
+  });
+
+  it("maps missing Firebase Auth configuration from REST errors", () => {
+    const error = mapOnlineAccountLinkingError({
+      message: "Firebase: Error (auth/configuration-not-found). CONFIGURATION_NOT_FOUND",
+    });
+
+    expect(error).toBeInstanceOf(OnlineAccountLinkingError);
+    expect(error.code).toBe("firebase-auth-not-configured");
+    expect(error.message).toContain("Firebase Auth");
   });
 
   it("keeps account securing out of local test mode", async () => {

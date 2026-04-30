@@ -44,9 +44,11 @@ export class OnlineAccountLinkingError extends Error {
   readonly code:
     | "email-already-in-use"
     | "expired-credentials"
+    | "firebase-auth-not-configured"
     | "invalid-email"
     | "local-mode"
     | "network"
+    | "provider-already-linked"
     | "provider-disabled"
     | "weak-password"
     | "unknown";
@@ -84,7 +86,35 @@ function setStoredDisplayName(displayName: string) {
 }
 
 function firebaseErrorCode(error: unknown) {
-  return (error as FirebaseAuthErrorLike | null)?.code ?? "";
+  const authError = error as FirebaseAuthErrorLike | null;
+  const code = authError?.code;
+
+  if (code) {
+    return code;
+  }
+
+  const message = authError?.message ?? "";
+  if (message.includes("CONFIGURATION_NOT_FOUND")) {
+    return "auth/configuration-not-found";
+  }
+
+  if (message.includes("EMAIL_EXISTS")) {
+    return "auth/email-already-in-use";
+  }
+
+  if (message.includes("WEAK_PASSWORD")) {
+    return "auth/weak-password";
+  }
+
+  if (message.includes("INVALID_EMAIL")) {
+    return "auth/invalid-email";
+  }
+
+  if (message.includes("OPERATION_NOT_ALLOWED")) {
+    return "auth/operation-not-allowed";
+  }
+
+  return "";
 }
 
 export function mapOnlineAccountLinkingError(error: unknown): OnlineAccountLinkingError {
@@ -98,6 +128,14 @@ export function mapOnlineAccountLinkingError(error: unknown): OnlineAccountLinki
     return new OnlineAccountLinkingError(
       "email-already-in-use",
       "Diese Email-Adresse ist bereits mit einem anderen Account verbunden. Dein aktueller Online-Account wurde nicht gewechselt.",
+      { cause: error },
+    );
+  }
+
+  if (code === "auth/provider-already-linked") {
+    return new OnlineAccountLinkingError(
+      "provider-already-linked",
+      "Dieser Firebase-Account ist bereits mit Email/Passwort gesichert. Deine Liga-Daten bleiben unveraendert.",
       { cause: error },
     );
   }
@@ -138,7 +176,15 @@ export function mapOnlineAccountLinkingError(error: unknown): OnlineAccountLinki
     );
   }
 
-  if (code === "auth/operation-not-allowed") {
+  if (code === "auth/configuration-not-found") {
+    return new OnlineAccountLinkingError(
+      "firebase-auth-not-configured",
+      "Firebase Auth ist fuer diese Staging-App noch nicht korrekt konfiguriert. Anonymous Online-Spielen bleibt moeglich; Account-Sicherung per Email/Passwort ist aktuell deaktiviert.",
+      { cause: error },
+    );
+  }
+
+  if (code === "auth/operation-not-allowed" || code === "auth/admin-restricted-operation") {
     return new OnlineAccountLinkingError(
       "provider-disabled",
       "Email/Passwort ist in Firebase noch nicht aktiviert. Deine Liga-Daten bleiben unveraendert.",

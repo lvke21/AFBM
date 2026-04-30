@@ -12,6 +12,23 @@ import { ensureCurrentOnlineUser } from "@/lib/online/online-user-service";
 import type { OnlineAuthenticatedUser } from "@/lib/online/types";
 import { getOnlineModeStatusCopy } from "./online-mode-status-model";
 
+function accountLinkingFeedbackMessage(error: unknown) {
+  if (error instanceof OnlineAccountLinkingError) {
+    return error.message;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { name?: string }).name === "OnlineAccountLinkingError" &&
+    typeof (error as { message?: unknown }).message === "string"
+  ) {
+    return (error as { message: string }).message;
+  }
+
+  return "Account konnte nicht gesichert werden. Deine Liga-Daten bleiben unveraendert.";
+}
+
 export function OnlineUserStatus() {
   const [user, setUser] = useState<OnlineAuthenticatedUser | null>(null);
   const [usernameInput, setUsernameInput] = useState("");
@@ -112,13 +129,8 @@ export function OnlineUserStatus() {
           : "Account gesichert.",
       );
     } catch (error) {
-      const message =
-        error instanceof OnlineAccountLinkingError
-          ? error.message
-          : "Account konnte nicht gesichert werden. Deine Liga-Daten bleiben unveraendert.";
-
       setAccountFeedbackTone("error");
-      setAccountFeedback(message);
+      setAccountFeedback(accountLinkingFeedbackMessage(error));
     } finally {
       setIsSecuringAccount(false);
     }

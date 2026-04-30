@@ -336,21 +336,6 @@ function summaryRows(grouped) {
   ]);
 }
 
-function topRows(files, metric) {
-  return files
-    .toSorted((left, right) => right[metric] - left[metric])
-    .slice(0, 20)
-    .map((file, index) => [
-      String(index + 1),
-      file.path,
-      file.category,
-      file.extension,
-      formatNumber(file.lines),
-      formatNumber(file.nonEmptyLines),
-      formatNumber(file.characters),
-    ]);
-}
-
 function createMarkdown(analysis) {
   const {
     generatedAt,
