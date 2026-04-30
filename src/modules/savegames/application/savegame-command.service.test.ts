@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
   const tx = {
@@ -38,9 +38,16 @@ vi.mock("./bootstrap/bootstrap-savegame-world.service", () => ({
 
 import { createSaveGame } from "./savegame-command.service";
 
+const ORIGINAL_ENV = { ...process.env };
+
 describe("createSaveGame", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env = {
+      ...ORIGINAL_ENV,
+      DATA_BACKEND: "prisma",
+      DATABASE_URL: "postgresql://localhost:5432/afbm_test",
+    };
 
     mocks.prisma.$transaction.mockImplementation(async (callback) =>
       callback(mocks.tx as never),
@@ -61,6 +68,10 @@ describe("createSaveGame", () => {
     mocks.tx.saveGame.update.mockResolvedValue({});
     mocks.tx.saveGameSetting.create.mockResolvedValue({});
     mocks.bootstrapSaveGameWorld.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    process.env = { ...ORIGINAL_ENV };
   });
 
   it("creates a regular-season savegame and boots the world", async () => {
@@ -91,5 +102,19 @@ describe("createSaveGame", () => {
       id: "save-1",
       currentSeasonId: "season-1",
     });
+  });
+
+  it("does not initialize Prisma when DATA_BACKEND=firestore", async () => {
+    process.env.DATA_BACKEND = "firestore";
+    delete process.env.DATABASE_URL;
+
+    await expect(
+      createSaveGame({
+        userId: "user-1",
+        name: "Firestore Save",
+        managerTeamAbbreviation: "BOS",
+      }),
+    ).rejects.toThrow("Firestore-Staging");
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
   });
 });

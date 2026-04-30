@@ -1,12 +1,5 @@
 import { z } from "zod";
 
-import { prisma } from "@/lib/db/prisma";
-import {
-  requireDefaultLeagueDefinition,
-} from "@/modules/shared/infrastructure/reference-data";
-
-import { bootstrapSaveGameWorld } from "./bootstrap/bootstrap-savegame-world.service";
-
 const createSaveGameSchema = z.object({
   userId: z.string().min(1),
   name: z.string().trim().min(3).max(60),
@@ -15,13 +8,94 @@ const createSaveGameSchema = z.object({
 
 const SALARY_CAP = 255_000_000;
 const INITIAL_SEASON_LENGTH_WEEKS = 14;
+const FIRESTORE_OFFLINE_CREATE_DISABLED_MESSAGE =
+  "Offline-Karrieren koennen in dieser Firestore-Staging-Umgebung aktuell nicht neu erstellt werden. Bestehende Firestore-Spielstaende bleiben erreichbar.";
+const LEGACY_PRISMA_NOT_CONFIGURED_MESSAGE =
+  "Offline-Karriere konnte nicht erstellt werden, weil der Legacy-Prisma-Speicher in dieser Umgebung nicht aktiv ist.";
+
+type CreateSaveGameInput = z.infer<typeof createSaveGameSchema>;
+
+export class SaveGameCreationUnavailableError extends Error {
+  constructor(message = FIRESTORE_OFFLINE_CREATE_DISABLED_MESSAGE) {
+    super(message);
+    this.name = "SaveGameCreationUnavailableError";
+  }
+}
 
 function buildSeasonStartDate(year: number) {
   return new Date(Date.UTC(year, 8, 1, 18, 0, 0));
 }
 
-export async function createSaveGame(input: unknown) {
-  const parsed = createSaveGameSchema.parse(input);
+export function getOfflineSaveGameCreateAvailability(
+  env: Record<string, string | undefined> = process.env,
+) {
+  const backend = env.DATA_BACKEND?.trim();
+
+  if (backend === "firestore") {
+    return {
+      enabled: false,
+      reason: FIRESTORE_OFFLINE_CREATE_DISABLED_MESSAGE,
+    };
+  }
+
+  if (backend && backend !== "prisma") {
+    return {
+      enabled: false,
+      reason: `Offline-Karriere konnte nicht erstellt werden, weil DATA_BACKEND="${backend}" nicht unterstuetzt wird.`,
+    };
+  }
+
+  if (!env.DATABASE_URL?.trim()) {
+    return {
+      enabled: false,
+      reason: LEGACY_PRISMA_NOT_CONFIGURED_MESSAGE,
+    };
+  }
+
+  return {
+    enabled: true,
+    reason: null,
+  };
+}
+
+function isPrismaDatabaseUrlError(error: unknown) {
+  return (
+    error instanceof Error &&
+    (error.message.includes("DATABASE_URL") ||
+      error.message.includes("schema.prisma") ||
+      error.message.includes("PrismaClientInitializationError"))
+  );
+}
+
+export function isSaveGameCreationUnavailableError(
+  error: unknown,
+): error is SaveGameCreationUnavailableError {
+  return error instanceof SaveGameCreationUnavailableError || isPrismaDatabaseUrlError(error);
+}
+
+export function saveGameCreationErrorMessage(error: unknown) {
+  if (error instanceof SaveGameCreationUnavailableError) {
+    return error.message;
+  }
+
+  if (isPrismaDatabaseUrlError(error)) {
+    return LEGACY_PRISMA_NOT_CONFIGURED_MESSAGE;
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return "Die Aktion konnte nicht abgeschlossen werden.";
+}
+
+async function createPrismaSaveGame(parsed: CreateSaveGameInput) {
+  const [{ prisma }, { requireDefaultLeagueDefinition }, { bootstrapSaveGameWorld }] =
+    await Promise.all([
+      import("@/lib/db/prisma"),
+      import("@/modules/shared/infrastructure/reference-data"),
+      import("./bootstrap/bootstrap-savegame-world.service"),
+    ]);
 
   return prisma.$transaction(async (tx) => {
     const league = await requireDefaultLeagueDefinition(tx);
@@ -75,4 +149,15 @@ export async function createSaveGame(input: unknown) {
       currentSeasonId: season.id,
     };
   });
+}
+
+export async function createSaveGame(input: unknown) {
+  const parsed = createSaveGameSchema.parse(input);
+  const availability = getOfflineSaveGameCreateAvailability();
+
+  if (!availability.enabled) {
+    throw new SaveGameCreationUnavailableError(availability.reason ?? undefined);
+  }
+
+  return createPrismaSaveGame(parsed);
 }

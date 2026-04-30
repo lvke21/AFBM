@@ -4,7 +4,11 @@ import {
   AuthenticationError,
   requireApiUserId,
 } from "@/lib/auth/session";
-import { createSaveGame } from "@/modules/savegames/application/savegame-command.service";
+import {
+  createSaveGame,
+  isSaveGameCreationUnavailableError,
+  saveGameCreationErrorMessage,
+} from "@/modules/savegames/application/savegame-command.service";
 import { listSaveGames } from "@/modules/savegames/application/savegame-query.service";
 
 export async function GET() {
@@ -40,6 +44,10 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof AuthenticationError) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (isSaveGameCreationUnavailableError(error)) {
+      return NextResponse.json({ message: saveGameCreationErrorMessage(error) }, { status: 409 });
     }
 
     throw error;

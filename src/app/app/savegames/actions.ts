@@ -2,9 +2,12 @@
 
 import { redirect } from "next/navigation";
 
-import { actionErrorMessage, withActionFeedback } from "@/lib/actions/action-feedback";
+import { withActionFeedback } from "@/lib/actions/action-feedback";
 import { requirePageUserId } from "@/lib/auth/session";
-import { createSaveGame } from "@/modules/savegames/application/savegame-command.service";
+import {
+  createSaveGame,
+  saveGameCreationErrorMessage,
+} from "@/modules/savegames/application/savegame-command.service";
 
 export async function createSaveGameAction(formData: FormData) {
   const userId = await requirePageUserId();
@@ -29,7 +32,7 @@ export async function createSaveGameAction(formData: FormData) {
   } catch (error) {
     redirectHref = withActionFeedback("/app/savegames", {
       impact: "Es wurde kein neuer Spielstand angelegt.",
-      message: actionErrorMessage(error),
+      message: saveGameCreationErrorMessage(error),
       title: "Savegame nicht erstellt",
       tone: "error",
     });

@@ -4,12 +4,14 @@ import { AppShell } from "@/components/layout/app-shell";
 import { CreateSaveGameForm } from "@/components/ui/create-savegame-form";
 import { requirePageUserId } from "@/lib/auth/session";
 import { formatDate } from "@/lib/utils/format";
+import { getOfflineSaveGameCreateAvailability } from "@/modules/savegames/application/savegame-command.service";
 import { listSaveGames } from "@/modules/savegames/application/savegame-query.service";
 
 export const dynamic = "force-dynamic";
 
 export default async function SaveGamesPage() {
   const userId = await requirePageUserId();
+  const offlineCreateAvailability = getOfflineSaveGameCreateAvailability();
   const saveGames = await listSaveGames(userId);
 
   return (
@@ -98,15 +100,18 @@ export default async function SaveGamesPage() {
                   <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
-                        Verfügbar
+                        {offlineCreateAvailability.enabled ? "Verfügbar" : "Firestore-Modus"}
                       </p>
                       <h3 className="mt-1 text-2xl font-semibold text-white">Offline Spielen</h3>
                     </div>
                     <span className="w-fit rounded-full border border-emerald-200/30 px-3 py-1 text-xs font-semibold text-emerald-100">
-                      Sofort starten
+                      {offlineCreateAvailability.enabled ? "Sofort starten" : "Erstellung pausiert"}
                     </span>
                   </div>
-                  <CreateSaveGameForm />
+                  <CreateSaveGameForm
+                    disabled={!offlineCreateAvailability.enabled}
+                    disabledReason={offlineCreateAvailability.reason}
+                  />
                 </div>
 
                 <Link
