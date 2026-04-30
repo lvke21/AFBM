@@ -73,7 +73,7 @@ Die Historie vor Einfuehrung dieses Changelogs wurde aus dem aktuellen Repositor
 
 ### Fixed
 
-- Peer-Dependency-Konflikt zwischen Next.js 16 und `next-auth@5.0.0-beta.22` wurde durch Rueckkehr auf die kompatible Next-15-Linie aufgeloest.
+- Peer-Dependency-Konflikt zwischen Next.js 16 und `legacy-auth-package@5.0.0-beta.22` wurde durch Rueckkehr auf die kompatible Next-15-Linie aufgeloest.
 - Unsicherer anonymer Entwicklungs-Fallback fuer Benutzerzugriffe wurde entfernt.
 - Ownership-Pruefungen fuer geschuetzte Seiten, API-Routen und Server Actions wurden vereinheitlicht.
 

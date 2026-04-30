@@ -67,7 +67,7 @@ Neu erstellt.
 Bewusste Entscheidungen:
 
 - `DATA_BACKEND=prisma`
-- Secrets fuer `DATABASE_URL`, `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`
+- Secrets fuer `DATABASE_URL`, `OLD_SESSION_KEY`, `OLD_GH_PROVIDER_ID`, `OLD_GH_PROVIDER_KEY`
 - keine Firebase Admin Credentials
 - keine `FIRESTORE_PREVIEW_DRY_RUN=true`
 - keine `FIRESTORE_EMULATOR_HOST`
@@ -78,10 +78,10 @@ Bewusste Entscheidungen:
 Erforderlich fuer Staging:
 
 - `DATABASE_URL`
-- `AUTH_SECRET`
-- `AUTH_GITHUB_ID`
-- `AUTH_GITHUB_SECRET`
-- optional nach Backend-Erstellung: `AUTH_URL`
+- `OLD_SESSION_KEY`
+- `OLD_GH_PROVIDER_ID`
+- `OLD_GH_PROVIDER_KEY`
+- optional nach Backend-Erstellung: `OLD_SESSION_URL`
 - `DATA_BACKEND=prisma`
 
 Nicht fuer Staging-Hosting setzen:
@@ -104,21 +104,21 @@ Risiken:
 - Migrationen werden nicht automatisch gestartet und muessen separat kontrolliert werden.
 - Connection-Limits der Datenbank muessen gegen Cloud-Run-Skalierung geprueft werden.
 
-### Auth.js / NextAuth
+### legacy session system / legacy session library
 
 Konfiguration:
 
 - PrismaAdapter aktiv.
-- GitHub Provider nur aktiv, wenn `AUTH_GITHUB_ID` und `AUTH_GITHUB_SECRET` gesetzt sind.
+- GitHub external provider nur aktiv, wenn `OLD_GH_PROVIDER_ID` und `OLD_GH_PROVIDER_KEY` gesetzt sind.
 - Dev-Credentials sind nur ausserhalb von Production aktivierbar.
 - `trustHost: true` ist gesetzt.
 
 Risiken:
 
-- Ohne GitHub Provider wird die App auf Setup Required umleiten.
-- GitHub OAuth Callback muss exakt zur Staging-URL passen.
-- `AUTH_SECRET` ist zwingend als Secret zu setzen.
-- `AUTH_URL` sollte nach Erstellen des App-Hosting-Backends geprueft und bei Bedarf gesetzt werden.
+- Ohne GitHub external provider wird die App auf Setup Required umleiten.
+- GitHub external provider auth Callback muss exakt zur Staging-URL passen.
+- `OLD_SESSION_KEY` ist zwingend als Secret zu setzen.
+- `OLD_SESSION_URL` sollte nach Erstellen des App-Hosting-Backends geprueft und bei Bedarf gesetzt werden.
 
 ### Firebase Admin / Firestore
 
@@ -147,7 +147,7 @@ Bewertung:
 5. Secrets im Staging-Projekt anlegen.
 6. App Hosting Service Account Zugriff auf Secrets geben.
 7. Staging-Datenbank bereitstellen.
-8. GitHub OAuth Callback fuer Staging setzen.
+8. GitHub external provider auth Callback fuer Staging setzen.
 9. Ersten Rollout manuell pruefen.
 10. Erst nach Staging-Erfolg ueber Production-Readiness entscheiden.
 
@@ -215,7 +215,7 @@ Build-Hinweis:
 - Kein Remote ist aktuell verbunden; App Hosting braucht fuer den empfohlenen Flow ein GitHub Repository.
 - Next.js `15.5.15` ist lokal baubar, muss aber im Firebase App Hosting Staging-Backend real validiert werden.
 - Datenbank-Netzwerkzugriff aus App Hosting ist noch nicht getestet.
-- Auth OAuth Callback ist erst nach bekannter Staging-URL final pruefbar.
+- Auth external provider auth Callback ist erst nach bekannter Staging-URL final pruefbar.
 - npm audit meldet weiterhin Findings; es wurde bewusst kein `npm audit fix` ausgefuehrt.
 
 ## Finaler Status

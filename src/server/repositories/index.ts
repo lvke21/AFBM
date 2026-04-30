@@ -25,9 +25,9 @@ import { weekRepositoryFirestore } from "./weekRepository.firestore";
 import { weekRepositoryPrisma } from "./weekRepository.prisma";
 
 function resolveDataBackend(): DataBackend {
-  const configuredBackend = process.env.DATA_BACKEND;
+  const configuredBackend = process.env.DATA_BACKEND?.trim();
 
-  if (!configuredBackend || configuredBackend === "prisma") {
+  if (configuredBackend === "prisma") {
     return "prisma";
   }
 
@@ -42,6 +42,22 @@ function resolveDataBackend(): DataBackend {
       throw error;
     }
     return "firestore";
+  }
+
+  if (!configuredBackend) {
+    try {
+      assertFirestoreEmulatorOnly();
+      return "firestore";
+    } catch (error) {
+      logDataBackendConfiguration({
+        backend: "prisma",
+        reason:
+          error instanceof Error
+            ? `firestore-primary-unavailable-fallback-to-prisma: ${error.message}`
+            : "firestore-primary-unavailable-fallback-to-prisma",
+      });
+      return "prisma";
+    }
   }
 
   logDataBackendConfiguration({
@@ -82,6 +98,10 @@ export function getRepositories(): AppRepositories {
     matches: backend === "firestore" ? matchRepositoryFirestore : repositories.matches,
     stats: backend === "firestore" ? statsRepositoryFirestore : repositories.stats,
   };
+}
+
+export function getActiveDataBackend(): DataBackend {
+  return resolveDataBackend();
 }
 
 export type { AppRepositories, DataBackend } from "./types";

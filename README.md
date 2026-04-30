@@ -10,7 +10,7 @@ Der aktuelle Stand ist ein solides Grundsystem fuer persistente Savegames:
 - Team-Schemes, Scheme-Fit-Scoring, Development-Focus und Injured-Reserve-Steuerung machen das usergesteuerte Roster deutlich aktiver.
 - Match-Details zeigen jetzt Boxscore-nahe Teamwerte, Top-Performer und eine kurze Spielzusammenfassung pro Match.
 - Vertragsausblick, Finance-Log und saisonale Gehaltsbuchungen machen Cash und Kaderplanung sichtbarer.
-- Authentifizierung und Ownership-Pruefungen gelten fuer geschuetzte Seiten, API-Routen und Server Actions.
+- Savegame-Ownership nutzt eine serverseitige App-User-ID. Online-Multiplayer nutzt Firebase Anonymous Auth; Admin nutzt einen separaten serverseitigen Code-Login.
 - Die aktuelle Saison kann wochenweise simuliert werden; Match-, Team- und Spielerstatistiken werden dabei fortgeschrieben, inklusive verbesserter Recovery-, Coverage- und Special-Teams-Logik.
 - Nach einer Offseason kann jetzt direkt eine neue Saison mit frischen Team-/Player-Season-Shells, Schedule und Vertragsfortschreibung gestartet werden.
 
@@ -19,7 +19,7 @@ Der aktuelle Stand ist ein solides Grundsystem fuer persistente Savegames:
 ### Bereits implementiert
 
 - Projektstruktur und modulare Schichtung
-- Auth.js mit Prisma Adapter und Datenbank-Sessions
+- Firebase Anonymous Auth fuer Online-Multiplayer und serverseitiger Admin-Code-Login
 - Referenzdaten fuer Liga, Franchises, Positionen, Archetypen, Scheme Fits und Attribute
 - Savegame-Erstellung inklusive World-Bootstrap
 - Persistenz fuer Teams, Spieler, Roster-Profile, Player-Evaluation, Attribute, Vertraege, Seasons und Matches
@@ -55,7 +55,7 @@ Der aktuelle Stand ist ein solides Grundsystem fuer persistente Savegames:
 | Sprache | TypeScript | Typsicherheit in UI, Services und Persistenz |
 | Styling | Tailwind CSS 4 | Styling der Web-Oberflaeche |
 | Persistenz | Prisma 6, PostgreSQL | Relationales Schema und Datenzugriff |
-| Auth | Auth.js 5 beta, Prisma Adapter | Benutzerkonten, Sign-In, Session-Management |
+| Auth | Firebase Anonymous Auth, serverseitiger Admin-Code-Login | Online-Identitaet und Admin-Zugriff ohne externen Provider |
 | Validierung | Zod | Eingabevalidierung fuer Savegame-Erstellung |
 | Tests | Vitest | Aktuelle Modultests fuer Bootstrap-Bausteine |
 
@@ -98,7 +98,7 @@ npm run prisma:seed
 npm run dev
 ```
 
-6. Optional fuer den geschuetzten App-Bereich GitHub OAuth lokal konfigurieren:
+6. Optional Online-Firebase-Emulator oder Admin-Code lokal konfigurieren:
    - Details: [docs/guides/operations-setup.md](./docs/guides/operations-setup.md)
 
 ## Wichtige Commands

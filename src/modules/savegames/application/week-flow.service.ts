@@ -8,6 +8,7 @@ import {
 } from "@/modules/savegames/domain/weekly-plan";
 import { MatchStatus, SeasonPhase, WeekState } from "@/modules/shared/domain/enums";
 import { buildSeasonTransition } from "@/modules/seasons/application/simulation/engine-state-machine";
+import { getActiveDataBackend } from "@/server/repositories";
 import { weekMatchStateRepositoryFirestore } from "@/server/repositories/weekMatchStateRepository.firestore";
 import {
   simulateMinimalDriveGame,
@@ -717,7 +718,7 @@ export async function prepareWeekForUser({
   weeklyPlan,
   userId,
 }: WeekFlowInput): Promise<WeekFlowResult> {
-  if (process.env.DATA_BACKEND === "firestore") {
+  if (getActiveDataBackend() === "firestore") {
     return weekMatchStateRepositoryFirestore.prepareWeekForUser({ saveGameId, userId });
   }
 
@@ -756,7 +757,7 @@ export async function startGameForUser({
   saveGameId,
   userId,
 }: MatchWeekFlowInput): Promise<WeekFlowResult> {
-  if (process.env.DATA_BACKEND === "firestore") {
+  if (getActiveDataBackend() === "firestore") {
     return weekMatchStateRepositoryFirestore.startGameForUser({ matchId, saveGameId, userId });
   }
 
@@ -800,7 +801,7 @@ export async function finishGameForUser({
   saveGameId,
   userId,
 }: FinishGameInput): Promise<WeekFlowResult> {
-  if (process.env.DATA_BACKEND === "firestore") {
+  if (getActiveDataBackend() === "firestore") {
     return weekMatchStateRepositoryFirestore.finishGameForUser({
       matchId,
       saveGameId,
@@ -923,7 +924,7 @@ export async function advanceWeekForUser({
   saveGameId,
   userId,
 }: WeekFlowInput): Promise<WeekFlowResult> {
-  if (process.env.DATA_BACKEND === "firestore") {
+  if (getActiveDataBackend() === "firestore") {
     return weekMatchStateRepositoryFirestore.advanceWeekForUser({ saveGameId, userId });
   }
 

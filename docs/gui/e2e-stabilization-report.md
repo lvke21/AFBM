@@ -18,7 +18,7 @@ Die Stabilisierung beschraenkt sich auf den Test-Harness und E2E-Specs. Produktl
 - `page.goto` und Clicks warteten teilweise auf Full-Load oder implizite Navigation, obwohl Next.js im Cold Start mehrere Routen erst kompiliert.
 - Fixed Onboarding-Coach konnte im E2E den eigentlichen Submit-Button ueberdecken.
 - Mehrere Specs hatten alte Strict-Mode-Locators, die mit der aktuellen GUI mehrere Elemente trafen.
-- Der Smoke-Test erwartete noch den alten Auth-Redirect, obwohl Playwright mit `E2E_AUTH_BYPASS=true` laeuft.
+- Der Smoke-Test erwartete noch den alten Auth-Redirect, obwohl Playwright mit `E2E_DIRECT_LOGIN=true` laeuft.
 
 ## Umgesetzte Stabilisierung
 

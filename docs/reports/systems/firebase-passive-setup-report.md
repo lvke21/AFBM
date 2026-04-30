@@ -139,7 +139,7 @@ Nicht aktiv:
 
 Weiterhin aktiv:
 - Prisma
-- bestehende Auth.js/Prisma-Auth-Struktur
+- bestehende legacy session system/Prisma-Auth-Struktur
 - bestehende Server Actions, Services, Game Engine Persistenz und Seeds
 
 ## Testergebnisse

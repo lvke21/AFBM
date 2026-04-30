@@ -20,7 +20,7 @@ AFBM Manager ist eine einzelne Next.js-Anwendung. Es existiert derzeit kein sepa
 | Web-Framework | Next.js 15.2.9 | [package.json](/Users/lukashanzi/Documents/AFBM/package.json:8) |
 | UI | React 19, Tailwind CSS 4 | [package.json](/Users/lukashanzi/Documents/AFBM/package.json:23) |
 | Sprache | TypeScript | [package.json](/Users/lukashanzi/Documents/AFBM/package.json:32) |
-| Auth | Auth.js 5 beta, Prisma Adapter, Datenbank-Sessions | [src/auth.ts](/Users/lukashanzi/Documents/AFBM/src/auth.ts:1) |
+| Auth | legacy session system 5 beta, Prisma Adapter, Datenbank-Sessions | [src/auth.ts](/Users/lukashanzi/Documents/AFBM/src/auth.ts:1) |
 | Persistenz | Prisma 6 + PostgreSQL | [prisma/schema.prisma](/Users/lukashanzi/Documents/AFBM/prisma/schema.prisma:1) |
 | Tests | Vitest | [package.json](/Users/lukashanzi/Documents/AFBM/package.json:14) |
 
@@ -42,7 +42,7 @@ Diese Seiten sind ohne Session erreichbar.
 - `/app/savegames/[savegameId]/teams/[teamId]`
 - `/app/savegames/[savegameId]/seasons/[seasonId]`
 
-Der gemeinsame Einstiegspunkt ist `src/app/app/layout.tsx`. Dort wird `requirePageUserId()` aufgerufen. Ohne konfigurierten Provider erfolgt eine Umleitung nach `/auth/setup-required`, ohne Session eine Umleitung nach `/api/auth/signin`.
+Der gemeinsame Einstiegspunkt ist `src/app/app/layout.tsx`. Dort wird `requirePageUserId()` aufgerufen. Ohne konfigurierten Provider erfolgt eine Umleitung nach `/auth/setup-required`, ohne Session eine Umleitung nach `/removed-auth-route/signin`.
 
 ### API-Routen
 
@@ -51,7 +51,7 @@ Der gemeinsame Einstiegspunkt ist `src/app/app/layout.tsx`. Dort wird `requirePa
 - `GET /api/savegames/[savegameId]`
 - `GET /api/savegames/[savegameId]/teams/[teamId]`
 - `GET /api/savegames/[savegameId]/seasons/[seasonId]`
-- Auth.js Handler unter `/api/auth/[...nextauth]`
+- legacy session system Handler unter `/removed-auth-route/[...nextauth]`
 
 ### Server Actions
 
@@ -200,7 +200,7 @@ Es gibt derzeit noch keine produktiven Schreibpfade fuer:
 - Die Domain-Schicht ist ausserhalb des Gameplay-Moduls weiterhin stark DTO-orientiert.
 - Der neue Gameplay-Kern ist noch nicht in den produktiven Seasons-Write-Flow eingehangen.
 - Es gibt noch keine versionierten Prisma-Migrationen im Repository.
-- Die geschuetzte Anwendung ist lokal erst nach konfiguriertem OAuth-Provider voll nutzbar.
+- Die geschuetzte Anwendung ist lokal erst nach konfiguriertem external provider auth-Provider voll nutzbar.
 - Die aktuelle produktive Matchsimulation ist bewusst vereinfacht; der neue Gameplay-Kern existiert parallel und ist noch nicht live verdrahtet.
 
 ## Weiterfuehrende Dokumente

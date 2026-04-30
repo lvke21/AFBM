@@ -15,7 +15,7 @@ Die lokalen Firebase-Checks, Production-Konfiguration sowie Rules/Indexes sind g
 Hauptgruende:
 
 - Firestore-Browser-E2E ist nicht produktionsnah validiert.
-- Auth.js, SaveGame-Root, Browser-Navigation, E2E-Seeds und mehrere transaktionale Fachpfade bleiben Prisma-basiert.
+- legacy session system, SaveGame-Root, Browser-Navigation, E2E-Seeds und mehrere transaktionale Fachpfade bleiben Prisma-basiert.
 - Es gibt keinen produktionsnahen Backfill mit Count-, ID-, Status-, Score-, Stats- und Report-Vergleich.
 - Kosten- und Monitoring-Gates sind dokumentiert, aber noch nicht produktionsnah bewiesen.
 - `firestoreGuard` blockiert Production-Firestore bewusst weiterhin.
@@ -40,7 +40,7 @@ Hauptgruende:
 | Rollback | Klar fuer aktuellen Zustand | **Go fuer Vorbereitung, No-Go fuer Cutover** | Prisma bleibt Default und sicherer Fallback. Fuer Firestore-Cutover fehlen Backfill-Snapshot, Dual-Run-Strategie und Datenvergleich in staging-naher Umgebung. |
 | Monitoring | Noch unvollstaendig | **No-Go** | Es fehlen produktionsnahe Alerts fuer Firestore Errors, Permission Denied Spikes, Read/Write-Kosten, Latenz, Backfill-Abweichungen und Repository-Fallback-Events. |
 | Prisma-Fallback | Stark | **Go** | Prisma bleibt Default; `DATA_BACKEND` leer oder `prisma` nutzt PostgreSQL. Fallback ist lokal validiert. |
-| Auth-Entscheidung | Offen | **No-Go** | Auth.js/Prisma bleibt fuehrend. Keine Auth-Umstellung, kein Firestore-Browser-Einstieg ohne Prisma-Zwang validiert. |
+| Auth-Entscheidung | Offen | **No-Go** | legacy session system/Prisma bleibt fuehrend. Keine Auth-Umstellung, kein Firestore-Browser-Einstieg ohne Prisma-Zwang validiert. |
 
 ## Entscheidung
 

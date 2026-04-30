@@ -437,7 +437,7 @@
             <h3>Prisma</h3>
             <p>
               Prisma bleibt Runtime-Default, lokale Entwicklungsbasis und Rollback-Pfad.
-              Auth.js, SaveGame-Root, Seeds, Referenzdaten und mehrere transaktionale
+              legacy session system, SaveGame-Root, Seeds, Referenzdaten und mehrere transaktionale
               Fachpfade sind weiterhin Prisma/PostgreSQL-basiert.
             </p>
           </div>
@@ -463,7 +463,7 @@
       <section id="limitations">
         <h2>6. Verbleibende Einschraenkungen</h2>
         <ul>
-          <li>Firestore-Browser-E2E ist nicht produktionsnah validiert, weil Auth.js und SaveGame-Root Prisma-basiert bleiben.</li>
+          <li>Firestore-Browser-E2E ist nicht produktionsnah validiert, weil legacy session system und SaveGame-Root Prisma-basiert bleiben.</li>
           <li>Firestore ist nicht produktiv aktiviert und bleibt Emulator-/Demo-geschuetzt.</li>
           <li>Es gibt keine produktionsnahe Datenmigration mit Backfill, Checksummen und Rollback-Snapshot.</li>
           <li>Der Simulation-Orchestrator hat noch keinen echten Background Worker und keine persistierten Job-Status.</li>
@@ -492,7 +492,7 @@
           </thead>
           <tbody>
             <tr>
-              <td>Auth.js/Session-Persistenz</td>
+              <td>legacy session system/Session-Persistenz</td>
               <td class="status-warn">Offen</td>
               <td>Firestore-Auth-Strategie oder Hybrid-Architektur separat entscheiden.</td>
             </tr>

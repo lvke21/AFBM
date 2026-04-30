@@ -8,7 +8,37 @@ runConfig:
   memoryMiB: 1024
 
 env:
+  - variable: AFBM_DEPLOY_ENV
+    value: staging
+  - variable: NEXT_PUBLIC_AFBM_DEPLOY_ENV
+    value: staging
   - variable: DATA_BACKEND
     value: firestore
+  - variable: AFBM_ONLINE_BACKEND
+    value: firebase
+  - variable: NEXT_PUBLIC_AFBM_ONLINE_BACKEND
+    value: firebase
   - variable: FIREBASE_PROJECT_ID
     value: afbm-staging
+  - variable: FIREBASE_CLIENT_EMAIL
+    secret: afbm-staging-firebase-client-email
+  - variable: FIREBASE_PRIVATE_KEY
+    secret: afbm-staging-firebase-private-key
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: afbm-staging
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: afbm-staging.firebaseapp.com
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: afbm-staging.appspot.com
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    secret: afbm-staging-firebase-api-key
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    secret: afbm-staging-firebase-messaging-sender-id
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    secret: afbm-staging-firebase-app-id
+  - variable: DATABASE_URL
+    secret: afbm-staging-database-url
+  - variable: AFBM_ADMIN_ACCESS_CODE
+    secret: afbm-staging-admin-access-code
+  - variable: AFBM_ADMIN_SESSION_SECRET
+    secret: afbm-staging-admin-session-secret

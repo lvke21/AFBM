@@ -11,7 +11,7 @@ Diese Anleitung beschreibt das einmalige lokale Setup fuer eine neue Entwicklung
 | Node.js | `>= 20.19.0` |
 | npm | passend zu Node 20+ |
 | PostgreSQL | lokal laufend oder als erreichbare Entwicklungsinstanz |
-| GitHub-Account | notwendig, wenn der geschuetzte App-Bereich lokal mit Login getestet werden soll |
+| GitHub-Account | nicht notwendig |
 
 ## 1. Abhaengigkeiten installieren
 
@@ -49,57 +49,22 @@ Aktuelle Variablen:
 | Variable | Zweck |
 |---|---|
 | `DATABASE_URL` | PostgreSQL-Verbindungsstring |
-| `AUTH_SECRET` | Secret fuer Auth.js |
-| `AUTH_GITHUB_ID` | GitHub OAuth Client ID |
-| `AUTH_GITHUB_SECRET` | GitHub OAuth Client Secret |
+| `AFBM_APP_USER_ID` | lokale serverseitige Savegame-Owner-ID |
+| `AFBM_ADMIN_ACCESS_CODE` | optionaler lokaler Admin-Code |
+| `AFBM_ADMIN_SESSION_SECRET` | optionales lokales Admin-Session-Secret |
+| `NEXT_PUBLIC_AFBM_ONLINE_BACKEND` | `local` oder `firebase` fuer Online-Multiplayer |
+| `NEXT_PUBLIC_FIREBASE_*` | nicht geheime Firebase-Web-App-Konfiguration |
 
 Beispiel:
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/afbm_manager?schema=public"
-AUTH_SECRET="replace-with-a-long-random-string"
-AUTH_GITHUB_ID=""
-AUTH_GITHUB_SECRET=""
+AFBM_APP_USER_ID="local-gm"
 ```
 
-### `AUTH_SECRET` sinnvoll setzen
+removed session and provider login wird nicht mehr verwendet. Setze keine `OLD_SESSION_URL`, `NEXTOLD_SESSION_URL`, `OLD_SESSION_KEY`, `OLD_GH_PROVIDER_ID`, `OLD_GH_PROVIDER_KEY`, `OLD_GH_APP_ID`, `OLD_GH_APP_KEY` oder `OLD_PUBLIC_LOGIN_FLAG` Variablen.
 
-Ein moeglicher Weg:
-
-```bash
-openssl rand -base64 32
-```
-
-Den erzeugten Wert anschliessend in `.env` hinter `AUTH_SECRET` eintragen.
-
-## 4. GitHub OAuth fuer lokale Entwicklung einrichten
-
-Ohne konfigurierten Provider startet die App technisch zwar, aber der geschuetzte Bereich `/app` bleibt absichtlich gesperrt.
-
-### GitHub OAuth App anlegen
-
-1. GitHub Developer Settings oeffnen.
-2. Eine neue OAuth App erstellen.
-3. Als Home Page URL eintragen:
-
-```text
-http://localhost:3000
-```
-
-4. Als Authorization callback URL eintragen:
-
-```text
-http://localhost:3000/api/auth/callback/github
-```
-
-5. Die erzeugten Werte in `.env` eintragen:
-   - `AUTH_GITHUB_ID`
-   - `AUTH_GITHUB_SECRET`
-
-Wichtig:
-- Wenn der lokale Dev-Server auf einem anderen Port laeuft, muessen Home Page URL und Callback URL entsprechend angepasst werden.
-
-## 5. Datenbank initialisieren
+## 4. Datenbank initialisieren
 
 ```bash
 npm run prisma:migrate -- --name init
@@ -111,7 +76,7 @@ Wichtige Hinweise:
 - Die erste Migration wird daher lokal erzeugt.
 - `npm run prisma:seed` schreibt nur Referenzdaten, keine Savegames.
 
-## 6. Entwicklungsserver starten
+## 5. Entwicklungsserver starten
 
 ```bash
 npm run dev
@@ -119,19 +84,14 @@ npm run dev
 
 Standardmaessig laeuft die Anwendung danach unter `http://localhost:3000`. Wenn Port `3000` belegt ist, waehlt Next.js einen anderen freien Port.
 
-## 7. Erstvalidierung
-
-### Ohne Auth-Provider
+## 6. Erstvalidierung
 
 - `/` sollte erreichbar sein.
-- `/app` sollte nach `/auth/setup-required` umleiten.
+- `/app/savegames` sollte ohne external provider auth-Redirect erreichbar sein.
+- `/online` sollte keinen external provider auth-Flow oeffnen.
+- `/admin/login` sollte den serverseitigen Admin-Code-Login anzeigen.
 
-### Mit GitHub OAuth
-
-- `/api/auth/signin` sollte einen GitHub-Login anzeigen.
-- Nach erfolgreichem Login sollte `/app/savegames` erreichbar sein.
-
-## 8. Empfohlene Zusatzpruefungen
+## 7. Empfohlene Zusatzpruefungen
 
 ```bash
 npm run test:run
@@ -165,12 +125,12 @@ Loesung:
 npm run prisma:migrate -- --name init
 ```
 
-### `/app` bleibt gesperrt
+### `/app` oder `/online` oeffnet einen external provider auth-Flow
 
 Moegliche Ursachen:
-- `AUTH_GITHUB_ID` oder `AUTH_GITHUB_SECRET` nicht gesetzt
-- GitHub Callback URL passt nicht zum lokalen Port
-- keine gueltige Session vorhanden
+- alter Dev-Server laeuft noch
+- stale `.next/types` oder `.next` Cache
+- alte removed session and provider login-Variablen sind noch in lokalen Env-Dateien gesetzt
 
 ## Weiterfuehrende Dokumente
 

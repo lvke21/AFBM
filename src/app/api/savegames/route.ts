@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import {
-  AuthConfigurationError,
   AuthenticationError,
   requireApiUserId,
 } from "@/lib/auth/session";
@@ -15,13 +14,6 @@ export async function GET() {
 
     return NextResponse.json({ items: saveGames });
   } catch (error) {
-    if (error instanceof AuthConfigurationError) {
-      return NextResponse.json(
-        { message: "Authentication provider is not configured" },
-        { status: 503 },
-      );
-    }
-
     if (error instanceof AuthenticationError) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
@@ -46,13 +38,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(saveGame, { status: 201 });
   } catch (error) {
-    if (error instanceof AuthConfigurationError) {
-      return NextResponse.json(
-        { message: "Authentication provider is not configured" },
-        { status: 503 },
-      );
-    }
-
     if (error instanceof AuthenticationError) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }

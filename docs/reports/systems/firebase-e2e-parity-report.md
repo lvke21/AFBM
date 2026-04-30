@@ -10,7 +10,7 @@ Status: Gruen fuer serverseitige Kern-Parity.
 
 Begruendung: AP 1 und AP 2 haben die gemeinsame Fixture-Basis, lokale PostgreSQL-Reproduzierbarkeit und Firestore-Parity-Gates stabilisiert. `npm run test:firebase:parity` laeuft gegen den Firestore-Emulator gruen und deckt Seed Counts, Team/Player/Season/Match-Readmodels, Week Loop, Game Finish, Advance Week, Stats und Reports ab. Der Prisma-E2E-Seed und der Browser-Week-Loop laufen lokal gegen PostgreSQL.
 
-Wichtige Grenze: Das ist kein Go fuer produktive Firestore-Aktivierung und kein Go fuer Prisma-Entfernung. Auth.js, SaveGame-Root, Browser-Navigation und mehrere transaktionale Fachpfade bleiben bewusst Prisma-basiert.
+Wichtige Grenze: Das ist kein Go fuer produktive Firestore-Aktivierung und kein Go fuer Prisma-Entfernung. legacy session system, SaveGame-Root, Browser-Navigation und mehrere transaktionale Fachpfade bleiben bewusst Prisma-basiert.
 
 ## Gelesene Firebase-Berichte
 
@@ -93,7 +93,7 @@ Abgedeckt:
 ### Nicht als produktionsreif validiert
 
 - Browser-E2E Week Loop mit `DATA_BACKEND=firestore`:
-  - App-Auth und SaveGame-Liste bleiben Prisma/Auth.js.
+  - App-Auth und SaveGame-Liste bleiben Prisma/legacy session system.
   - Ein echter Firestore-Browser-Flow wuerde aktuell gemischte Auth-/SaveGame-Daten oder eine Auth-Migration erfordern.
 - Vollstaendige Produktivmigration:
   - Firestore bleibt Emulator-/`demo-*`-geschuetzt.
@@ -118,11 +118,38 @@ Gruen:
 - `npm run test:e2e:week-loop`
   - Browser-E2E durchlaeuft `PRE_WEEK -> READY -> GAME_RUNNING -> POST_GAME -> PRE_WEEK`.
 
+## Nachpruefung lokale Infrastruktur 2026-04-30
+
+Die lokale Multiplayer-Parity-Infrastruktur wurde erneut geprueft. Keine Game-Engine-, Week-Flow- oder Firestore-Parity-Fachlogik wurde geaendert.
+
+Gruen:
+
+- `npm run db:up`
+  - PostgreSQL laeuft auf `127.0.0.1:5432`.
+  - Datenbank `afbm_manager` ist vorhanden.
+- `npm run prisma:migrate -- --name init`
+  - Schema synchron.
+  - Prisma Client `v6.15.0` generiert.
+- `npm run test:e2e:seed`
+  - Seed erfolgreich: User, Savegame, 2 Teams, 52 Players, Match, Draft Class, 24 Prospects.
+- `node scripts/e2e-preflight.mjs`
+  - Port `3100` frei.
+  - Chromium vorhanden.
+  - DB erreichbar.
+  - Migrationen vorhanden.
+- `npx tsc --noEmit`
+- `npm run lint`
+- `npm run test:firebase:parity`
+  - Firestore Emulator gegen `demo-afbm`.
+  - 1 Testdatei / 3 Tests bestanden.
+
+Freigabe fuer weitere Multiplayer-E2E-Arbeiten: Ja.
+
 ## Dokumentierte Unterschiede
 
 | Bereich | Prisma | Firestore | Status |
 |---|---|---|---|
-| Auth | Auth.js/Prisma | nicht migriert | bewusst unterschiedlich |
+| Auth | legacy session system/Prisma | nicht migriert | bewusst unterschiedlich |
 | SaveGame Root | `SaveGame` | `leagues`/Demo-Seed | bewusst unterschiedlich |
 | E2E IDs | `e2e-*` | `league-demo-2026`, `team-demo-*` | Mapping vorhanden, Browser-Flows bleiben Prisma |
 | Teams/Players | Prisma Records | Firestore Docs mit Prisma-aehnlichem Mapper | Firestore gruen |

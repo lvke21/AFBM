@@ -164,9 +164,9 @@ Aktueller Audit-Lauf:
 
 Bekannte E2E-Risiken aus dem Audit-Kontext:
 
-- `test:e2e:navigation` nutzt den alten `/api/auth/signin`-Pfad und kann mit `MissingCSRF` scheitern, bevor Navigation geprueft wird.
+- `test:e2e:navigation` nutzt den alten `/removed-auth-route/signin`-Pfad und kann mit `MissingCSRF` scheitern, bevor Navigation geprueft wird.
 - `test:e2e:dashboard` ist cold-start-empfindlich und kann am 15s `page.goto`-Timeout scheitern, obwohl die Route danach rendert.
-- Reuse alter Dev-Server ist riskant, wenn `AUTH_URL`/`NEXTAUTH_URL` nicht zum Port passen.
+- Reuse alter Dev-Server ist riskant, wenn `OLD_SESSION_URL`/`NEXTOLD_SESSION_URL` nicht zum Port passen.
 
 ## Konkrete Probleme
 
@@ -226,7 +226,7 @@ Bekannte E2E-Risiken aus dem Audit-Kontext:
 
 ### BF-GUI-02 - Alte E2E Auth-Pfade vereinheitlichen
 
-- Problem: Navigation-E2E nutzt noch `/api/auth/signin` und kann an CSRF scheitern.
+- Problem: Navigation-E2E nutzt noch `/removed-auth-route/signin` und kann an CSRF scheitern.
 - Scope: E2E specs/helpers.
 - Umsetzung: Einheitlichen `/api/e2e/dev-login` helper fuer Dashboard, Navigation und Week Loop verwenden.
 - Gruen wenn: Navigation-E2E prueft wirklich Navigation statt am Login zu scheitern.

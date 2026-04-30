@@ -8,7 +8,7 @@ Scope: Entscheidungsvorlage, ob Prisma entfernt, behalten oder als Legacy-Fallba
 
 Empfehlung: Option A, Prisma behalten.
 
-Begruendung: Die serverseitige Firestore-Kern-Parity ist nach AP 1 bis AP 12 gruen, aber die Voraussetzungen fuer Prisma-Entfernung oder Firestore als alleinigen Runtime-Pfad sind nicht erfuellt. Auth.js, SaveGame-Root, Browser-Navigation, Referenzdaten, lokale Seeds und mehrere transaktionale Fachpfade bleiben Prisma/PostgreSQL-basiert. Firestore ist stark im Emulator abgesichert, aber nicht produktiv aktiviert.
+Begruendung: Die serverseitige Firestore-Kern-Parity ist nach AP 1 bis AP 12 gruen, aber die Voraussetzungen fuer Prisma-Entfernung oder Firestore als alleinigen Runtime-Pfad sind nicht erfuellt. legacy session system, SaveGame-Root, Browser-Navigation, Referenzdaten, lokale Seeds und mehrere transaktionale Fachpfade bleiben Prisma/PostgreSQL-basiert. Firestore ist stark im Emulator abgesichert, aber nicht produktiv aktiviert.
 
 Option B, Prisma nur als Legacy/Fallback, ist ein spaeteres Ziel nach Auth-/SaveGame-Klaerung, produktionsnaher Datenmigration und Firestore-Browser-Strategie. Option C, Prisma entfernen, bleibt aktuell No-Go.
 
@@ -38,7 +38,7 @@ Bewertung: Server-seitige Kern-Parity ist belastbar gruen. Produktive Firestore-
 | Bereich | Dateien | Bedeutung |
 |---|---|---|
 | Prisma Client Singleton | `src/lib/db/prisma.ts` | Zentraler Runtime-Zugriff auf PostgreSQL. |
-| Auth.js Adapter | `src/auth.ts`, `package.json` | `@auth/prisma-adapter` bindet User, Accounts und Sessions an Prisma. |
+| legacy session system Adapter | `src/auth.ts`, `package.json` | `@auth/prisma-adapter` bindet User, Accounts und Sessions an Prisma. |
 | ENV | `.env.example`, lokale `.env` | `DATABASE_URL` ist weiterhin noetig. |
 | Prisma Schema | `prisma/schema.prisma` | Fuehrende Quelle fuer relationale Modelle, Enums und Constraints. |
 | Package Scripts | `package.json` | `postinstall`, `prisma:generate`, `prisma:migrate`, `prisma:seed`, `test:e2e:*` haengen an Prisma/PostgreSQL. |
@@ -63,7 +63,7 @@ Bewertung: Server-seitige Kern-Parity ist belastbar gruen. Produktive Firestore-
 | E2E Seed | `scripts/seeds/e2e-seed.ts` | Erstellt Prisma-E2E-Daten inklusive SaveGame, Teams, Players, Season, Matches, Draft und Stats. |
 | E2E Preflight | `scripts/tools/e2e-preflight.mjs` | Erwartet `DATABASE_URL`, PostgreSQL und Prisma-Migrationen. |
 | QA Simulation Scripts | `scripts/simulations/qa-*.ts` | Nutzen Prisma-nahe Simulationstypen oder Prisma-Enums. |
-| Playwright E2E | `e2e/*`, `package.json` Scripts | E2E-Flows starten ueber Prisma-Seed und Prisma/Auth.js SaveGames. |
+| Playwright E2E | `e2e/*`, `package.json` Scripts | E2E-Flows starten ueber Prisma-Seed und Prisma/legacy session system SaveGames. |
 
 ## Optionenbewertung
 
@@ -79,7 +79,7 @@ Bewertung: Server-seitige Kern-Parity ist belastbar gruen. Produktive Firestore-
 
 ## Kritische Blocker fuer Entfernung
 
-1. Auth.js nutzt Prisma Adapter.
+1. legacy session system nutzt Prisma Adapter.
    - Betroffen: `src/auth.ts`, `@auth/prisma-adapter`, `DATABASE_URL`.
 
 2. SaveGame Root und Navigation bleiben Prisma-basiert.
@@ -103,7 +103,7 @@ Falls Prisma spaeter entfernt werden soll, muss das als eigener Release-Plan erf
 
 Minimaler Removal-Plan:
 
-1. Auth-Strategie entscheiden: Auth.js Firestore-Adapter, eigene Session-Persistenz oder explizite Hybrid-Architektur.
+1. Auth-Strategie entscheiden: legacy session system Firestore-Adapter, eigene Session-Persistenz oder explizite Hybrid-Architektur.
 2. SaveGame Root, Navigation, Inbox, Draft, Scouting, Team Management, Finance, Player History und Reference Data Firestore-faehig machen.
 3. Direkte Imports von `@/lib/db/prisma`, `@prisma/client` und `@auth/prisma-adapter` ausserhalb eines klar markierten Legacy-Pakets entfernen.
 4. Firestore-Browser-E2E mit dedizierter Fixture gruen bekommen.
@@ -131,7 +131,7 @@ Go fuer Option C, Prisma entfernen:
 
 No-Go aktuell:
 
-- Auth.js/SaveGame bleiben Prisma-basiert.
+- legacy session system/SaveGame bleiben Prisma-basiert.
 - Firestore-Browser-E2E ist nicht produktionsnah validiert.
 - Prisma bleibt fuer Seeds, Referenzdaten, Transaktionen und lokale Entwicklung notwendig.
 - Keine vollstaendige produktionsnahe Datenmigration ist validiert.

@@ -49,7 +49,7 @@ async function go(page: Page, path: string) {
   await page.waitForTimeout(500);
 }
 
-async function signIn(page: Page) {
+async function openWithDevLogin(page: Page) {
   await page.goto(
     `${baseUrl}/api/e2e/dev-login?callbackUrl=${encodeURIComponent(dashboardPath)}`,
     { waitUntil: "domcontentloaded", timeout: 45_000 },
@@ -171,7 +171,7 @@ async function main() {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const observations: WeekObservation[] = [];
 
-  await signIn(page);
+  await openWithDevLogin(page);
 
   for (let weekIndex = 1; weekIndex <= 3; weekIndex += 1) {
     observations.push(await captureWeek(page, weekIndex));

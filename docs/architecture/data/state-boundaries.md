@@ -8,7 +8,7 @@ Dieses Dokument beschreibt, welche Datenklassen im Projekt existieren und wie si
 
 | Datenklasse | Beschreibung | Hauptquelle | Mutabilitaet |
 |---|---|---|---|
-| Auth-Daten | Benutzer, Sessions, Providerkonten | Auth.js + Prisma | laufzeitveraenderlich |
+| Auth-Daten | Benutzer, Sessions, Providerkonten | legacy session system + Prisma | laufzeitveraenderlich |
 | Referenzdaten | Stammdaten fuer Liga, Franchises, Positionen, Attribute | Seed und `reference-data.ts` | kontrolliert ueber Seed |
 | Savegame-Zustand | benutzergebundener Spielstand | Application Services | laufzeitveraenderlich |
 | Kuftige Gameplay-Daten | Match-Events, Finanzen, Training usw. | teilweise ueber Season-Simulation angeschoben, sonst offen | offen |
@@ -21,7 +21,7 @@ Modelle:
 - `Session`
 - `VerificationToken`
 
-Sie gehoeren nicht zu einem Savegame und werden durch Auth.js verwaltet.
+Sie gehoeren nicht zu einem Savegame und werden durch legacy session system verwaltet.
 
 ## 2. Referenzdaten
 

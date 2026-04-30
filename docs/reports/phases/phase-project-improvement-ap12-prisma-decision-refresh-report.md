@@ -42,7 +42,7 @@ Details:
 - Der erste AP12-Parity-Lauf fand eine veraltete Erwartung in `firestoreE2eParity.test.ts`: Der Test erwartete `POST_GAME` nach dem ersten abgeschlossenen Match der Woche.
 - Die seit AP5 korrekte Multi-Match-State-Machine bleibt bei weiteren offenen Wochenmatches auf `READY` und erreicht `POST_GAME` erst nach dem letzten offenen Match.
 - Die Parity-Testmatrix wurde so angepasst, dass das Zielmatch das letzte offene Wochenmatch ist, wenn `POST_GAME` erwartet wird.
-- Die finale Entscheidung bleibt konservativ: Prisma behalten. Server-Parity ist gruen, aber Auth.js, SaveGame-Root, Browser-Navigation, Seeds, Referenzdaten und transaktionale Fachpfade blockieren Prisma-Removal weiterhin.
+- Die finale Entscheidung bleibt konservativ: Prisma behalten. Server-Parity ist gruen, aber legacy session system, SaveGame-Root, Browser-Navigation, Seeds, Referenzdaten und transaktionale Fachpfade blockieren Prisma-Removal weiterhin.
 
 ## Tests
 

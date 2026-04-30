@@ -26,7 +26,7 @@ test.describe("E2E Smoke", () => {
       await gotoAppRoute(page, "/app/savegames");
       await expect(page).toHaveURL(/\/app\/savegames$/);
       await expect(page.getByRole("heading", { name: "Savegames", exact: true })).toBeVisible();
-      await expect(page.getByLabel("Savegame-Name")).toBeVisible();
+      await expect(page.getByLabel("Dynasty-Name")).toBeVisible();
       await expect(page.getByText("E2E Minimal Savegame").first()).toBeVisible();
     });
 

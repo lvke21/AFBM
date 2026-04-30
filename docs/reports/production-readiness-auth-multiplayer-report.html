@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Production Readiness Report - Auth & Multiplayer</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f8fa;
+        --surface: #ffffff;
+        --ink: #172033;
+        --muted: #5f6b7a;
+        --line: #d9dee7;
+        --green: #0b7a45;
+        --green-bg: #e7f6ee;
+        --amber: #9a5b00;
+        --amber-bg: #fff3d8;
+        --red: #b42318;
+        --red-bg: #fde7e4;
+        --blue: #245ca8;
+        --blue-bg: #e8f1ff;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.5;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 56px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        letter-spacing: 0;
+      }
+
+      h2 {
+        font-size: 1.35rem;
+        margin-bottom: 16px;
+      }
+
+      h3 {
+        font-size: 1rem;
+        margin-bottom: 8px;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      code {
+        background: #eef1f6;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: 0.92em;
+      }
+
+      .hero {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        align-items: end;
+        margin-bottom: 28px;
+      }
+
+      .eyebrow {
+        color: var(--muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        margin-bottom: 10px;
+      }
+
+      .summary {
+        display: grid;
+        gap: 12px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-weight: 800;
+      }
+
+      .status.green {
+        color: var(--green);
+        background: var(--green-bg);
+      }
+
+      .status.amber {
+        color: var(--amber);
+        background: var(--amber-bg);
+      }
+
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
+      section {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 22px;
+        margin-top: 18px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .tile {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fbfcfe;
+      }
+
+      .tile p {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid var(--line);
+        padding: 11px 12px;
+        font-size: 0.95rem;
+      }
+
+      th {
+        background: #f0f3f8;
+        font-weight: 800;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .badge {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        border-radius: 999px;
+        padding: 3px 9px;
+        font-size: 0.84rem;
+        font-weight: 800;
+      }
+
+      .badge.pass {
+        color: var(--green);
+        background: var(--green-bg);
+      }
+
+      .badge.warn {
+        color: var(--amber);
+        background: var(--amber-bg);
+      }
+
+      .badge.info {
+        color: var(--blue);
+        background: var(--blue-bg);
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li + li {
+        margin-top: 6px;
+      }
+
+      .recommendation {
+        border-color: #b9d8c7;
+        background: #f4fbf7;
+      }
+
+      .footer {
+        color: var(--muted);
+        margin-top: 20px;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 860px) {
+        .hero,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        main {
+          padding: 26px 14px 42px;
+        }
+
+        section {
+          padding: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="hero">
+        <div>
+          <p class="eyebrow">Finaler Release Check nach AP1 bis AP6</p>
+          <h1>Production Readiness: Auth & Multiplayer</h1>
+          <p style="margin-top: 14px; color: var(--muted)">
+            Stand: 30. April 2026, lokale Validierung gegen Test-/Emulator-Infrastruktur.
+          </p>
+        </div>
+        <aside class="summary" aria-label="Gesamtstatus">
+          <span class="status green"><span class="dot"></span>Gesamtstatus: Gruen</span>
+          <p><strong>Release-Empfehlung:</strong> Production-ready</p>
+          <p>
+            Keine blockierenden Security- oder Multiplayer-Probleme in den ausgefuehrten
+            Gates gefunden.
+          </p>
+        </aside>
+      </div>
+
+      <section class="recommendation">
+        <h2>Executive Summary</h2>
+        <div class="grid">
+          <div class="tile">
+            <h3>Security Gate</h3>
+            <p>
+              Admin-Aktionen sind serverseitig gegated, Firestore Rules sind least-privilege
+              validiert, Production-Env startet nicht ohne kritische Secrets.
+            </p>
+          </div>
+          <div class="tile">
+            <h3>Multiplayer Gate</h3>
+            <p>
+              Firebase-Zwei-Kontext-E2E, lokaler Multiplayer-Smoke, Ready-Sync, Reload und
+              Cross-User-Denial sind gruen.
+            </p>
+          </div>
+          <div class="tile">
+            <h3>Regression Gate</h3>
+            <p>
+              Voller Vitest-Lauf, TypeScript und Lint sind bestanden. Singleplayer- und
+              Multiplayer-Unit-Regressionen sind abgedeckt.
+            </p>
+          </div>
+          <div class="tile">
+            <h3>Release-Entscheidung</h3>
+            <p>
+              Production-ready fuer einen kontrollierten Rollout mit real provisionierten
+              Secret-Manager-Werten und Standard-Monitoring.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Command-Nachweis</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Status</th>
+              <th>Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npm run lint</code></td>
+              <td><span class="badge pass">Bestanden</span></td>
+              <td>ESLint ohne Fehler.</td>
+            </tr>
+            <tr>
+              <td><code>npx tsc --noEmit</code></td>
+              <td><span class="badge pass">Bestanden</span></td>
+              <td>TypeScript ohne Fehler.</td>
+            </tr>
+            <tr>
+              <td><code>npm test -- --run</code></td>
+              <td><span class="badge pass">Bestanden</span></td>
+              <td>131 Testdateien, 754 Tests bestanden.</td>
+            </tr>
+            <tr>
+              <td><code>npm run test:firebase:rules</code></td>
+              <td><span class="badge pass">Bestanden</span></td>
+              <td>
+                15 Firestore Rules Tests bestanden. Ein vorheriger paralleler Lauf wurde
+                wegen Emulator-Port-Kollision verworfen und seriell wiederholt.
+              </td>
+            </tr>
+            <tr>
+              <td><code>npm run test:firebase:parity</code></td>
+              <td><span class="badge pass">Bestanden</span></td>
+              <td>3 Firestore-Parity-Tests bestanden.</td>
+            </tr>
+            <tr>
+              <td><code>npm run test:e2e:multiplayer:firebase</code></td>
+              <td><span class="badge pass">Bestanden</span></td>
+              <td>
+                1 Playwright-Test bestanden: zwei unabhaengige Browser-Kontexte, Join,
+                unterschiedliche Teams, Ready-Sync, Reload/Persistenz, Cross-User-Write
+                blockiert, Admin getrennt.
+              </td>
+            </tr>
+            <tr>
+              <td><code>npm run test:e2e:multiplayer</code></td>
+              <td><span class="badge pass">Bestanden</span></td>
+              <td>
+                4 lokale Multiplayer-Smoke-Tests bestanden: Online Hub, Join, Ready,
+                Admin Flow, Contract Confirm.
+              </td>
+            </tr>
+            <tr>
+              <td><code>npx tsx -e 'assertRuntimeEnvironment(...)'</code></td>
+              <td><span class="badge pass">Bestanden</span></td>
+              <td>
+                Missing Production Secrets werden blockiert; vollstaendige synthetische
+                Production-Konfiguration wird akzeptiert.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>AP1 bis AP6 Readiness</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Bereich</th>
+              <th>Status</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Auth-Migration</td>
+              <td><span class="badge pass">Gruen</span></td>
+              <td>
+                Anonymous Auth und Account-Linking sind testabgedeckt; UID-/Membership-Stabilitaet
+                ist im Unit-Test-Set enthalten.
+              </td>
+            </tr>
+            <tr>
+              <td>Admin-Sicherheit</td>
+              <td><span class="badge pass">Gruen</span></td>
+              <td>
+                Admin-Routen pruefen serverseitige Session, normale/anonyme User werden
+                abgelehnt, Client-Admin-Aktionen bleiben blockiert.
+              </td>
+            </tr>
+            <tr>
+              <td>Firestore Rules</td>
+              <td><span class="badge pass">Gruen</span></td>
+              <td>
+                Membership-, Team-, League-, Admin- und unbekannte Collections wurden mit
+                Emulator-Rules-Tests validiert.
+              </td>
+            </tr>
+            <tr>
+              <td>Multiplayer-E2E</td>
+              <td><span class="badge pass">Gruen</span></td>
+              <td>
+                Firebase- und lokaler Multiplayer-E2E sind bestanden. Cross-User-Manipulation
+                liefert erwartetes Permission Denial.
+              </td>
+            </tr>
+            <tr>
+              <td>Secrets / Environment</td>
+              <td><span class="badge pass">Gruen</span></td>
+              <td>
+                Runtime-Validation blockiert fehlende Production-Secrets, Emulator-Flags,
+                Demo-Projekte und lokale Online-Backends in Production.
+              </td>
+            </tr>
+            <tr>
+              <td>Audit Logging</td>
+              <td><span class="badge pass">Gruen</span></td>
+              <td>
+                Admin Login, Admin Actions, Denials und Firestore-Admin-Logs sind strukturiert
+                und redacted. Keine Passwoerter, Codes oder Secrets im Audit-Payload.
+              </td>
+            </tr>
+            <tr>
+              <td>Regression Singleplayer</td>
+              <td><span class="badge pass">Gruen</span></td>
+              <td>
+                Voller Vitest-Lauf deckt Gameplay, Simulation, Savegames, Draft, Team,
+                Finance, Inbox und UI-Modelle ab.
+              </td>
+            </tr>
+            <tr>
+              <td>Regression Multiplayer</td>
+              <td><span class="badge pass">Gruen</span></td>
+              <td>
+                Multiplayer Services, Online Repository, Contracts, Training, Trades,
+                Finance, Rules und E2E-Smokes sind gruen.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Blockierende Risiken</h2>
+        <p>
+          Keine blockierenden Security- oder Multiplayer-Risiken in den ausgefuehrten
+          Gates gefunden.
+        </p>
+      </section>
+
+      <section>
+        <h2>Nicht-blockierende Risiken</h2>
+        <ul>
+          <li>
+            Echte Production-Secret-Manager-Werte wurden lokal nicht ausgelesen. Der Check
+            validiert die Runtime-Regeln synthetisch; Provisioning muss im Deployment-Runbook
+            nachvollzogen werden.
+          </li>
+          <li>
+            Firebase-Emulator-Logs enthalten erwartete Permission-Denied-Stacktraces aus
+            negativen Security-Tests. Das ist kein Produktfehler, kann aber CI-Logs laut machen.
+          </li>
+          <li>
+            Next.js meldet eine Workspace-Root-Warnung wegen mehrerer Lockfiles ausserhalb
+            des Repo-Roots. Kein Testblocker, aber vor CI-Hardening bereinigen oder
+            `outputFileTracingRoot` bewusst setzen.
+          </li>
+          <li>
+            Multiplayer-E2E nutzt Realtime-Emulatoren und ist daher port-/sequencing-sensitiv.
+            Firebase-Emulator-Gates sollten in CI seriell oder mit getrennten Ports laufen.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Release-Empfehlung</h2>
+        <p>
+          <strong>Production-ready.</strong> Empfehlung fuer einen kontrollierten Production
+          Rollout, sofern die echten Production-Secrets vor Deployment im Secret Manager
+          provisioniert sind und das Monitoring fuer Admin-/Permission-Denials aktiv ist.
+        </p>
+      </section>
+
+      <p class="footer">
+        Bericht erzeugt als lokaler QA-/Release-Artifact. Keine Production-Daten oder
+        Production-Secrets wurden fuer diesen Check verwendet.
+      </p>
+    </main>
+  </body>
+</html>

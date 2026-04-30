@@ -132,7 +132,7 @@ async function assertReusableServerAuthTarget(port) {
           `Wiederverwendeter E2E-Server auf Port ${port} hat keinen passenden Dev-Login-Redirect.`,
           `Erwartet: /app/savegames auf Port ${port}`,
           `Erhalten: status=${response.status}, location=${location || "(leer)"}`,
-          "Starte den Server mit passender E2E_PORT/AUTH_URL/NEXTAUTH_URL-Konfiguration neu.",
+          "Starte den Server mit passender E2E_PORT-Konfiguration neu.",
         ].join("\n"),
       );
     }
@@ -141,7 +141,7 @@ async function assertReusableServerAuthTarget(port) {
       [
         `Wiederverwendeter E2E-Server auf Port ${port} konnte nicht ueber /api/e2e/dev-login validiert werden.`,
         error instanceof Error ? error.message : String(error),
-        "Starte den Server mit AUTH_DEV_ENABLED=true und E2E_AUTH_BYPASS=true neu.",
+        "Starte den Server neu und pruefe, ob /api/e2e/dev-login erreichbar ist.",
       ].join("\n"),
     );
   } finally {

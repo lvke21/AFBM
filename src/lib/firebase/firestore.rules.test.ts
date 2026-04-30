@@ -8,6 +8,7 @@ import {
 } from "@firebase/rules-unit-testing";
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -15,6 +16,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -161,6 +163,177 @@ describe("firestore security rules", () => {
     );
   });
 
+  it("allows online lobby reads and self ready updates without role escalation", async () => {
+    const gmDb = testEnv.authenticatedContext("online-gm").firestore();
+    const outsiderDb = testEnv.authenticatedContext("online-outsider").firestore();
+
+    await assertSucceeds(getDoc(doc(outsiderDb, "leagues/online-alpha")));
+    await assertSucceeds(updateDoc(doc(gmDb, "leagues/online-alpha/memberships/online-gm"), {
+      ready: true,
+      lastSeenAt: new Date(),
+    }));
+    await assertFails(updateDoc(doc(gmDb, "leagues/online-alpha/memberships/online-gm"), {
+      role: "admin",
+    }));
+    await assertFails(setDoc(doc(gmDb, "leagues/online-alpha/adminLogs/gm-write"), {
+      action: "unsafe",
+      adminUserId: "online-gm",
+      createdAt: new Date(),
+    }));
+    await assertSucceeds(updateDoc(doc(gmDb, "leagues/online-alpha/teams/online-team-a"), {
+      depthChart: [
+        {
+          position: "QB",
+          starterPlayerId: "qb-1",
+          backupPlayerIds: [],
+          updatedAt: new Date(),
+        },
+      ],
+      updatedAt: new Date(),
+    }));
+    await assertFails(updateDoc(doc(gmDb, "leagues/online-alpha/teams/online-team-a"), {
+      assignedUserId: "other-gm",
+      status: "vacant",
+    }));
+  });
+
+  it("keeps online admin actions server-only for client Firebase users", async () => {
+    const adminDb = testEnv.authenticatedContext("online-admin").firestore();
+    const gmDb = testEnv.authenticatedContext("online-gm").firestore();
+
+    await assertFails(setDoc(doc(adminDb, "leagues/client-created-league"), {
+      createdAt: new Date(),
+      createdByUserId: "online-admin",
+      currentSeason: 1,
+      currentWeek: 1,
+      id: "client-created-league",
+      maxTeams: 16,
+      memberCount: 0,
+      name: "Client Created",
+      settings: {
+        onlineBackbone: true,
+      },
+      status: "lobby",
+      updatedAt: new Date(),
+      version: 1,
+    }));
+    await assertFails(updateDoc(doc(adminDb, "leagues/online-alpha"), {
+      status: "active",
+      updatedAt: new Date(),
+      version: 2,
+    }));
+    await assertFails(deleteDoc(doc(adminDb, "leagues/online-alpha")));
+    await assertFails(updateDoc(doc(adminDb, "leagues/online-alpha/weeks/s1-w1"), {
+      status: "simulated",
+      updatedAt: new Date(),
+    }));
+    await assertFails(getDoc(doc(adminDb, "leagues/online-alpha/adminLogs/server-log")));
+    await assertFails(setDoc(doc(adminDb, "leagues/online-alpha/adminLogs/client-log"), {
+      action: "simulateWeek",
+      adminUserId: "online-admin",
+      createdAt: new Date(),
+    }));
+    await assertFails(updateDoc(doc(adminDb, "leagues/online-alpha/memberships/online-gm"), {
+      ready: true,
+    }));
+    await assertFails(updateDoc(doc(gmDb, "leagues/online-alpha/memberships/online-admin"), {
+      role: "gm",
+    }));
+  });
+
+  it("limits online membership and team writes to the authenticated player", async () => {
+    const gmDb = testEnv.authenticatedContext("online-gm").firestore();
+    const outsiderDb = testEnv.authenticatedContext("online-outsider").firestore();
+    const anonymousDb = testEnv.unauthenticatedContext().firestore();
+
+    await assertSucceeds(getDoc(doc(gmDb, "leagues/online-alpha/memberships/online-gm")));
+    await assertFails(getDoc(doc(outsiderDb, "leagues/online-alpha/memberships/online-gm")));
+    await assertFails(getDoc(doc(anonymousDb, "leagues/online-alpha/memberships/online-gm")));
+    await assertFails(updateDoc(doc(gmDb, "leagues/online-alpha/memberships/online-peer"), {
+      ready: true,
+      lastSeenAt: new Date(),
+    }));
+    await assertFails(updateDoc(doc(gmDb, "leagues/online-alpha/teams/online-team-peer"), {
+      depthChart: [],
+      updatedAt: new Date(),
+    }));
+    await assertFails(updateDoc(doc(anonymousDb, "leagues/online-alpha/teams/online-team-a"), {
+      depthChart: [],
+      updatedAt: new Date(),
+    }));
+  });
+
+  it("allows only atomic self-join writes and blocks spoofed league counters", async () => {
+    const rookieDb = testEnv.authenticatedContext("online-rookie").firestore();
+    const outsiderDb = testEnv.authenticatedContext("online-outsider").firestore();
+    const joinedAt = new Date();
+    const batch = writeBatch(rookieDb);
+
+    batch.update(doc(rookieDb, "leagues/online-alpha"), {
+      memberCount: 3,
+      updatedAt: joinedAt,
+      version: 2,
+    });
+    batch.set(doc(rookieDb, "leagues/online-alpha/memberships/online-rookie"), {
+      displayName: "Online Rookie",
+      joinedAt,
+      lastSeenAt: joinedAt,
+      ready: false,
+      role: "gm",
+      status: "active",
+      teamId: "online-team-b",
+      userId: "online-rookie",
+      username: "Online Rookie",
+    });
+    batch.update(doc(rookieDb, "leagues/online-alpha/teams/online-team-b"), {
+      assignedUserId: "online-rookie",
+      displayName: "Rookie Testers",
+      status: "assigned",
+      teamName: "Testers",
+      updatedAt: joinedAt,
+    });
+    batch.set(doc(collection(rookieDb, "leagues/online-alpha/events")), {
+      createdAt: joinedAt,
+      createdByUserId: "online-rookie",
+      payload: {
+        teamId: "online-team-b",
+      },
+      type: "user_joined_league",
+    });
+
+    await assertSucceeds(batch.commit());
+    await assertFails(updateDoc(doc(outsiderDb, "leagues/online-alpha"), {
+      memberCount: 99,
+      updatedAt: new Date(),
+      version: 99,
+    }));
+    await assertFails(setDoc(doc(outsiderDb, "leagues/online-alpha/memberships/online-outsider"), {
+      displayName: "Online Outsider",
+      joinedAt: new Date(),
+      lastSeenAt: new Date(),
+      ready: false,
+      role: "gm",
+      status: "active",
+      teamId: "online-team-b",
+      userId: "online-outsider",
+      username: "Online Outsider",
+    }));
+  });
+
+  it("denies production control documents to normal and unauthenticated clients", async () => {
+    const gmDb = testEnv.authenticatedContext("online-gm").firestore();
+    const anonymousDb = testEnv.unauthenticatedContext().firestore();
+
+    await assertFails(getDoc(doc(gmDb, "admin/global-control")));
+    await assertFails(setDoc(doc(gmDb, "admin/global-control"), {
+      enabled: true,
+    }));
+    await assertFails(getDoc(doc(anonymousDb, "control/weekly-simulation")));
+    await assertFails(setDoc(doc(anonymousDb, "control/weekly-simulation"), {
+      status: "run",
+    }));
+  });
+
   it("denies unknown collections by default", async () => {
     const aliceDb = testEnv.authenticatedContext("alice").firestore();
 
@@ -260,6 +433,106 @@ async function seedFixtureData(testEnv: RulesTestEnvironment) {
       createdAt: new Date(),
       id: "team-alpha",
       leagueId: "league-alpha",
+      updatedAt: new Date(),
+    });
+    await setDoc(doc(db, "leagues/online-alpha"), {
+      createdAt: new Date(),
+      createdByUserId: "online-admin",
+      currentSeason: 1,
+      currentWeek: 1,
+      id: "online-alpha",
+      maxTeams: 16,
+      memberCount: 2,
+      name: "Online Alpha",
+      settings: {
+        onlineBackbone: true,
+      },
+      status: "lobby",
+      updatedAt: new Date(),
+      version: 1,
+    });
+    await setDoc(doc(db, "leagues/online-alpha/memberships/online-admin"), {
+      displayName: "Online Admin",
+      joinedAt: new Date(),
+      lastSeenAt: new Date(),
+      ready: false,
+      role: "admin",
+      status: "active",
+      teamId: "",
+      userId: "online-admin",
+      username: "Online Admin",
+    });
+    await setDoc(doc(db, "leagues/online-alpha/memberships/online-gm"), {
+      displayName: "Online GM",
+      joinedAt: new Date(),
+      lastSeenAt: new Date(),
+      ready: false,
+      role: "gm",
+      status: "active",
+      teamId: "online-team-a",
+      userId: "online-gm",
+      username: "Online GM",
+    });
+    await setDoc(doc(db, "leagues/online-alpha/memberships/online-peer"), {
+      displayName: "Online Peer",
+      joinedAt: new Date(),
+      lastSeenAt: new Date(),
+      ready: false,
+      role: "gm",
+      status: "active",
+      teamId: "online-team-peer",
+      userId: "online-peer",
+      username: "Online Peer",
+    });
+    await setDoc(doc(db, "leagues/online-alpha/teams/online-team-a"), {
+      assignedUserId: "online-gm",
+      createdAt: new Date(),
+      displayName: "Online Testers",
+      id: "online-team-a",
+      status: "assigned",
+      teamName: "Testers",
+      updatedAt: new Date(),
+    });
+    await setDoc(doc(db, "leagues/online-alpha/teams/online-team-peer"), {
+      assignedUserId: "online-peer",
+      createdAt: new Date(),
+      displayName: "Peer Testers",
+      id: "online-team-peer",
+      status: "assigned",
+      teamName: "Testers",
+      updatedAt: new Date(),
+    });
+    await setDoc(doc(db, "leagues/online-alpha/teams/online-team-b"), {
+      assignedUserId: null,
+      cityId: "rookie-city",
+      cityName: "Rookie City",
+      createdAt: new Date(),
+      displayName: "Available Rookies",
+      id: "online-team-b",
+      status: "available",
+      teamName: "Rookies",
+      teamNameId: "rookies",
+      updatedAt: new Date(),
+    });
+    await setDoc(doc(db, "leagues/online-alpha/weeks/s1-w1"), {
+      createdAt: new Date(),
+      id: "s1-w1",
+      season: 1,
+      status: "scheduled",
+      updatedAt: new Date(),
+      week: 1,
+    });
+    await setDoc(doc(db, "leagues/online-alpha/adminLogs/server-log"), {
+      action: "createLeague",
+      adminUserId: "server-admin",
+      createdAt: new Date(),
+    });
+    await setDoc(doc(db, "admin/global-control"), {
+      enabled: true,
+      updatedAt: new Date(),
+    });
+    await setDoc(doc(db, "control/weekly-simulation"), {
+      status: "idle",
       updatedAt: new Date(),
     });
     await setDoc(doc(db, "teams/team-beta"), {

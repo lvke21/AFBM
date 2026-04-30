@@ -7,7 +7,7 @@ export function CreateSaveGameForm() {
   return (
     <form action={createSaveGameAction} className="grid gap-4 lg:grid-cols-[1.5fr_1fr_auto]">
       <label className="grid gap-2">
-        <span className="text-sm font-medium text-slate-200">Savegame-Name</span>
+        <span className="text-sm font-medium text-slate-200">Dynasty-Name</span>
         <input
           type="text"
           name="name"
@@ -15,7 +15,7 @@ export function CreateSaveGameForm() {
           minLength={3}
           maxLength={60}
           placeholder="Dynasty 2026"
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none ring-0 placeholder:text-slate-500"
+          className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none ring-0 placeholder:text-slate-500 focus:border-emerald-300/60"
         />
       </label>
 
@@ -24,7 +24,7 @@ export function CreateSaveGameForm() {
         <select
           name="managerTeamAbbreviation"
           defaultValue={FRANCHISE_TEMPLATES[0]?.abbreviation}
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none ring-0"
+          className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none ring-0 focus:border-emerald-300/60"
         >
           {FRANCHISE_TEMPLATES.map((team) => (
             <option key={team.abbreviation} value={team.abbreviation}>
@@ -36,7 +36,7 @@ export function CreateSaveGameForm() {
 
       <div className="flex items-end">
         <FormSubmitButton pendingLabel="Savegame wird erstellt...">
-          Savegame erstellen
+          Offline Spielen
         </FormSubmitButton>
       </div>
     </form>

@@ -1,3 +1,5 @@
+import { basename } from "node:path";
+
 import { getFirebaseAdminFirestore } from "../../src/lib/firebase/admin";
 
 import {
@@ -47,6 +49,10 @@ const positionTemplates = PARITY_POSITION_TEMPLATES;
 export function ensureFirestoreEmulatorEnvironment(
   env: Record<string, string | undefined> = process.env,
 ) {
+  if (env.NODE_ENV === "production" || env.AFBM_DEPLOY_ENV === "production") {
+    throw new Error("Refusing to run Firestore fixture seed scripts in production.");
+  }
+
   env.FIREBASE_PROJECT_ID ??= FIRESTORE_SEED_PROJECT_ID;
   env.FIRESTORE_EMULATOR_HOST ??= FIRESTORE_SEED_EMULATOR_HOST;
 
@@ -503,7 +509,7 @@ async function main() {
   }
 }
 
-if (process.argv[1]?.endsWith("firestore-seed.ts")) {
+if (process.argv[1] && basename(process.argv[1]) === "firestore-seed.ts") {
   void main().catch((error) => {
     console.error(error);
     process.exit(1);

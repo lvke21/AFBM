@@ -1,17 +1,17 @@
 # Firebase App Hosting Setup
 
-Status: Vorbereitung nur fuer Staging/Preview. Kein Production-Go-Live.
+Status: Staging/Preview-Setup. Kein Production-Go-Live ohne separate Production-Secret-Matrix.
 
 ## Ziel
 
-Diese Anleitung beschreibt, wie die bestehende Next.js-App fuer Firebase App Hosting vorbereitet werden kann, ohne Firestore als produktiven Datenpfad zu aktivieren. Prisma/PostgreSQL bleibt der aktive Backend-Pfad.
+Diese Anleitung beschreibt, wie die bestehende Next.js-App fuer Firebase App Hosting in Staging betrieben wird. Production nutzt dieselben Secret-Regeln, braucht aber eine eigene Freigabe und `AFBM_DEPLOY_ENV=production`.
 
 ## Grundsatz
 
-- `DATA_BACKEND` bleibt `prisma`.
+- `AFBM_DEPLOY_ENV=staging`.
 - Keine Prisma-Entfernung.
-- Keine Auth-Umstellung.
-- Keine Firestore-Production-Aktivierung.
+- removed session and provider login ist entfernt; Online nutzt Firebase Anonymous Auth, Admin nutzt Code-Login.
+- Keine Firestore-Production-Aktivierung ohne separates Flag.
 - Kein Deployment ohne explizite Freigabe.
 
 ## Voraussetzungen
@@ -20,19 +20,18 @@ Diese Anleitung beschreibt, wie die bestehende Next.js-App fuer Firebase App Hos
 - Dediziertes Firebase-Staging-Projekt.
 - Firebase App Hosting Backend im Firebase Console Flow.
 - Externe oder gemanagte PostgreSQL-Datenbank fuer Staging.
-- GitHub OAuth App fuer die Staging-URL.
-- Cloud Secret Manager Secrets fuer Datenbank und Auth.
+- Cloud Secret Manager Secrets fuer Datenbank, Admin-Code und Firebase Admin SDK.
 
 ## App Hosting Konfiguration
 
 Die Root-Datei `apphosting.yaml` ist bewusst staging-orientiert:
 
 - konservative Cloud-Run-Ressourcen
-- `DATA_BACKEND=prisma`
-- Secret-Referenzen fuer Datenbank und Auth
-- Firestore-Logging deaktiviert
-- keine Firebase Admin Credentials
-- keine `FIRESTORE_PREVIEW_DRY_RUN` Aktivierung
+- `AFBM_DEPLOY_ENV=staging`
+- `DATA_BACKEND=firestore`
+- Secret-Referenzen fuer Datenbank, Admin-Code und Firebase Admin SDK
+- Secret-Referenzen fuer Firebase Admin SDK, falls Firestore Admin SDK genutzt wird
+- keine Emulator- oder Preview-Flags
 
 App Hosting sollte die Next.js-Adapter verwenden. Deshalb werden Build- und Run-Commands nicht in `apphosting.yaml` ueberschrieben.
 
@@ -48,9 +47,13 @@ Erwartetes Build-Verhalten:
 In Cloud Secret Manager fuer das Staging-Projekt anlegen:
 
 - `afbm-staging-database-url`
-- `afbm-staging-auth-secret`
-- `afbm-staging-auth-github-id`
-- `afbm-staging-auth-github-secret`
+- `afbm-staging-admin-access-code`
+- `afbm-staging-admin-session-secret`
+- `afbm-staging-firebase-client-email`
+- `afbm-staging-firebase-private-key`
+- `afbm-staging-firebase-api-key`
+- `afbm-staging-firebase-messaging-sender-id`
+- `afbm-staging-firebase-app-id`
 
 Die App-Hosting-Service-Accounts muessen Zugriff auf diese Secrets erhalten.
 
@@ -58,34 +61,29 @@ Die App-Hosting-Service-Accounts muessen Zugriff auf diese Secrets erhalten.
 
 In `apphosting.yaml` gesetzt:
 
-- `DATA_BACKEND=prisma`
+- `AFBM_DEPLOY_ENV=staging`
+- `NEXT_PUBLIC_AFBM_DEPLOY_ENV=staging`
+- `DATA_BACKEND=firestore`
+- `AFBM_ONLINE_BACKEND=firebase`
+- `NEXT_PUBLIC_AFBM_ONLINE_BACKEND=firebase`
 - `DATABASE_URL` aus Secret
-- `AUTH_SECRET` aus Secret
-- `AUTH_GITHUB_ID` aus Secret
-- `AUTH_GITHUB_SECRET` aus Secret
-- `AFBM_FIRESTORE_OPERATION_LOG=false`
-- `FIRESTORE_USAGE_LOGGING=false`
+- `AFBM_ADMIN_ACCESS_CODE` aus Secret
+- `AFBM_ADMIN_SESSION_SECRET` aus Secret
+- `FIREBASE_PROJECT_ID=afbm-staging`
+- `FIREBASE_CLIENT_EMAIL` aus Secret
+- `FIREBASE_PRIVATE_KEY` aus Secret
+- `NEXT_PUBLIC_FIREBASE_*` aus Staging-Web-App-Konfiguration
 
-Nach Erstellen des Backends pruefen, ob fuer Auth.js zusaetzlich eine feste Canonical URL benoetigt wird:
+Diese Legacy-Variablen duerfen nicht gesetzt werden:
 
-- `AUTH_URL=https://<staging-backend-id>--<project-id>.<region>.hosted.app`
-
-Falls gesetzt, muss die URL zur GitHub OAuth Callback-URL passen.
-
-## GitHub OAuth
-
-Fuer Staging eine eigene GitHub OAuth App verwenden.
-
-Callback:
-
-```text
-https://<staging-host>/api/auth/callback/github
-```
-
-Dev-Credentials duerfen in Production/Staging nicht aktiviert werden:
-
-- `AUTH_DEV_ENABLED` nicht setzen oder `false`
-- `E2E_AUTH_BYPASS` nicht setzen oder `false`
+- `OLD_SESSION_URL`
+- `NEXTOLD_SESSION_URL`
+- `OLD_SESSION_KEY`
+- `OLD_GH_PROVIDER_ID`
+- `OLD_GH_PROVIDER_KEY`
+- `OLD_GH_APP_ID`
+- `OLD_GH_APP_KEY`
+- `OLD_PUBLIC_LOGIN_FLAG`
 
 ## Prisma/PostgreSQL
 
@@ -102,14 +100,16 @@ Wichtig: Dieses Setup startet keine Migration automatisch.
 
 ## Firebase/Firestore
 
-Firestore bleibt fuer die App deaktiviert:
+Firestore bleibt strikt auf Staging begrenzt:
 
-- `DATA_BACKEND=prisma`
+- `AFBM_DEPLOY_ENV=staging`
+- `DATA_BACKEND=firestore`
 - keine `FIRESTORE_EMULATOR_HOST` Variable im Hosting
 - keine `FIRESTORE_PREVIEW_DRY_RUN=true` Variable im Hosting
-- keine Firebase Admin Service Account Secrets im Hosting
+- keine `demo-*` Projekt-ID
+- keine Production-Projekt-ID
 
-Damit greifen die bestehenden Firestore-Guards weiterhin gegen versehentliche Nicht-Emulator-Nutzung.
+Damit greifen die Runtime- und Firestore-Guards gegen versehentliche Emulator-/Production-Vermischung.
 
 ## Staging Rollout
 
@@ -119,11 +119,11 @@ Damit greifen die bestehenden Firestore-Guards weiterhin gegen versehentliche Ni
 4. Secrets im Staging-Projekt anlegen.
 5. Secret-Zugriff fuer App Hosting Service Accounts vergeben.
 6. Staging-Postgres bereitstellen und `DATABASE_URL` als Secret setzen.
-7. GitHub OAuth Callback fuer Staging setzen.
-8. Ersten Rollout manuell freigeben.
-9. Smoke-Test:
+7. Ersten Rollout manuell freigeben.
+8. Smoke-Test:
    - App laedt.
-   - Auth Login funktioniert.
+   - Online Spielen oeffnet keinen external provider auth-Flow.
+   - Admin Login funktioniert ueber Admin-Code.
    - SaveGame-Liste laedt.
    - Dashboard laedt.
    - Prepare Week / Match Flow laeuft gegen Prisma.
@@ -142,7 +142,7 @@ Rollback erfolgt ueber App Hosting Rollout-Historie:
 Rollback-Kriterium:
 
 - 500er im Core-Flow
-- Auth Callback Fehler
+- Admin Login Fehler
 - Datenbankverbindung instabil
 - unerwarteter Firestore-Zugriff
 - stark erhoehte Latenz im Week Loop
@@ -151,5 +151,4 @@ Rollback-Kriterium:
 
 - Next.js-Version ist neuer als die konservativ dokumentierten aktiven App-Hosting-Versionen und muss im Staging real validiert werden.
 - Prisma benoetigt eine stabile PostgreSQL-Verbindung in der Hosting-Umgebung.
-- Auth.js OAuth braucht korrekte Host-/Callback-Konfiguration.
 - Server Actions fuehren echte Prisma-Writes aus; Staging darf keine Production-Datenbank verwenden.

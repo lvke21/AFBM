@@ -140,7 +140,7 @@ Test-Hinweis:
 - Firestore-Season- und Match-Mapper bilden weiterhin Prisma-aehnliche Read Records nach. Das ist fuer diesen Slice bewusst klein, aber noch keine finale DTO-Abstraktion.
 - `weeks` existiert in Prisma nicht als eigenes Model. Fuer Prisma wurde deshalb ein synthetischer `weekRepositoryPrisma` aus `SaveGame.weekState` und `Season.week` angelegt.
 - Match Detail zeigt ohne Stats-/GameEvents-Migration keine Drives, keine Player Lines und keine Team Match Stats.
-- Browser-E2E wurde nicht auf Firestore umgestellt, weil SaveGame/Auth weiter Prisma/Auth.js sind.
+- Browser-E2E wurde nicht auf Firestore umgestellt, weil SaveGame/Auth weiter Prisma/legacy session system sind.
 - Emulator-Suites muessen sequentiell laufen, solange sie denselben Demo-Projekt-Namespace resetten.
 
 ## Empfehlung

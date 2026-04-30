@@ -6,7 +6,7 @@ Die E2E-Testdatenbasis erzeugt einen kleinen, deterministischen Spielstand fuer 
 
 ## Fixture
 
-- 1 Dev-User: `dev-user:<AUTH_DEV_EMAIL>`
+- 1 Dev-User: `dev-user:<E2E_USER_EMAIL>`
 - 1 Savegame: `e2e-savegame-minimal`
 - 1 Liga-Referenz: vorhandene `AFM` Reference Data
 - 2 dynamische Teams: `BOS`, `NYT`
@@ -19,9 +19,9 @@ Die fixen IDs und Login-Daten sind in `e2e/fixtures/minimal-e2e-context.ts` zent
 
 | Bereich | Wert |
 |---|---|
-| Test-User | `dev-user:<AUTH_DEV_EMAIL>` |
-| Test-Login | `AUTH_DEV_EMAIL` oder `e2e-gm@example.test` |
-| Test-Passwort | `AUTH_DEV_PASSWORD` oder `e2e-password` |
+| Test-User | `dev-user:<E2E_USER_EMAIL>` |
+| Test-Login | `E2E_USER_EMAIL` oder `e2e-gm@example.test` |
+| Test-Passwort | `E2E_USER_PASSWORD` oder `e2e-password` |
 | Savegame | `e2e-savegame-minimal` |
 | Manager-Team | `e2e-team-bos` / `Boston Guardians` |
 | Gegnerteam | `e2e-team-nyt` / `New York Titans` |

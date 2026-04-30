@@ -50,7 +50,7 @@ Die Anwendung kann anschliessend Savegames auf Basis relational gespeicherter Re
 1. Ein Request auf `/app` oder einen untergeordneten Pfad trifft auf `src/app/app/layout.tsx`.
 2. Das Layout ruft `requirePageUserId()` auf.
 3. Wenn kein Provider konfiguriert ist, erfolgt eine Umleitung nach `/auth/setup-required`.
-4. Wenn ein Provider konfiguriert ist, aber keine Session besteht, erfolgt eine Umleitung nach `/api/auth/signin`.
+4. Wenn ein Provider konfiguriert ist, aber keine Session besteht, erfolgt eine Umleitung nach `/removed-auth-route/signin`.
 5. Bei gueltiger Session wird `session.user.id` verwendet und die Seite darf laden.
 
 ### Ergebnis

@@ -1,5 +1,5 @@
-export const PARITY_TEST_EMAIL = process.env.AUTH_DEV_EMAIL ?? "e2e-gm@example.test";
-export const PARITY_TEST_PASSWORD = process.env.AUTH_DEV_PASSWORD ?? "e2e-password";
+export const PARITY_TEST_EMAIL = process.env.E2E_USER_EMAIL ?? "e2e-gm@example.test";
+export const PARITY_TEST_PASSWORD = process.env.E2E_USER_PASSWORD ?? "e2e-password";
 
 export const PRISMA_PARITY_IDS = {
   managerTeamId: "e2e-team-bos",

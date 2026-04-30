@@ -1,13 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { signIn } from "@/auth";
-
 function e2eDevLoginEnabled() {
-  return process.env.NODE_ENV !== "production" && process.env.AUTH_DEV_ENABLED === "true";
-}
-
-function e2eAuthBypassEnabled() {
-  return e2eDevLoginEnabled() && process.env.E2E_AUTH_BYPASS === "true";
+  return process.env.NODE_ENV !== "production";
 }
 
 function safeCallbackUrl(request: NextRequest) {
@@ -26,24 +20,5 @@ export async function GET(request: NextRequest) {
   }
 
   const callbackUrl = safeCallbackUrl(request);
-
-  if (e2eAuthBypassEnabled()) {
-    return NextResponse.redirect(new URL(callbackUrl, request.url));
-  }
-
-  const email = process.env.AUTH_DEV_EMAIL;
-  const password = process.env.AUTH_DEV_PASSWORD;
-
-  if (!email || !password) {
-    return NextResponse.json({ error: "Dev credentials are not configured" }, { status: 500 });
-  }
-
-  const redirectUrl = await signIn("dev-credentials", {
-    email,
-    password,
-    redirect: false,
-    redirectTo: callbackUrl,
-  });
-
-  return NextResponse.redirect(new URL(String(redirectUrl), request.url));
+  return NextResponse.redirect(new URL(callbackUrl, request.url));
 }

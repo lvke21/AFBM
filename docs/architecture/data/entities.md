@@ -20,10 +20,10 @@ Fuehrende Quelle:
 
 | Modell | Zweck | Wichtige Felder | Aktueller Writer |
 |---|---|---|---|
-| `User` | Benutzerkonto und Savegame-Besitzer | `id`, `name`, `email`, `createdAt`, `updatedAt` | Auth.js |
-| `Account` | OAuth-Providerkonto | `userId`, `provider`, `providerAccountId`, Token-Felder | Auth.js |
-| `Session` | Datenbank-Session | `sessionToken`, `userId`, `expires` | Auth.js |
-| `VerificationToken` | Tokenbasierte Verifikation | `identifier`, `token`, `expires` | Auth.js |
+| `User` | Benutzerkonto und Savegame-Besitzer | `id`, `name`, `email`, `createdAt`, `updatedAt` | legacy session system |
+| `Account` | external provider auth-Providerkonto | `userId`, `provider`, `providerAccountId`, Token-Felder | legacy session system |
+| `Session` | Datenbank-Session | `sessionToken`, `userId`, `expires` | legacy session system |
+| `VerificationToken` | Tokenbasierte Verifikation | `identifier`, `token`, `expires` | legacy session system |
 
 ## 2. Referenzdaten-Modelle
 

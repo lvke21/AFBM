@@ -10,8 +10,8 @@ async function createSaveGame(page: Page) {
   const saveGameName = `E2E Main Flow ${Date.now()}`;
 
   await gotoAppRoute(page, "/app/savegames");
-  await page.getByLabel("Savegame-Name").fill(saveGameName);
-  await page.getByRole("button", { name: "Savegame erstellen" }).click();
+  await page.getByLabel("Dynasty-Name").fill(saveGameName);
+  await page.getByRole("button", { name: "Offline Spielen" }).click();
   await page.waitForURL(/\/app\/savegames\/[^/?]+/, { timeout: 90_000 });
 
   return {

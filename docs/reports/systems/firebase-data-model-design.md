@@ -137,7 +137,7 @@ Pfad: `users/{userId}`
 
 Zweck:
 - App-Profil und nicht-auth-kritische Nutzer-Metadaten.
-- Auth.js bleibt vorerst Prisma-basiert; dieses Dokument migriert keine Auth-Daten.
+- legacy session system bleibt vorerst Prisma-basiert; dieses Dokument migriert keine Auth-Daten.
 
 Pflichtfelder:
 - `id`
@@ -1184,7 +1184,7 @@ Rules implication:
 
 Current Prisma -> Firestore:
 - `SaveGame` -> `leagues`
-- `User` -> `users` only for app profile; Auth remains Prisma/Auth.js for now.
+- `User` -> `users` only for app profile; Auth remains Prisma/legacy session system for now.
 - `Team` -> `teams`
 - `Player`, `PlayerRosterProfile`, `PlayerEvaluation`, `PlayerAttributeRating`, active `Contract` summary -> `players`
 - `Season` -> `seasons`

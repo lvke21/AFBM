@@ -7,3 +7,9 @@ coverage/
 !.env.example
 .DS_Store
 *.log
+.local/
+*.tsbuildinfo
+firebase-emulator-data/
+reports-output/
+test-results/
+playwright-report/

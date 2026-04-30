@@ -104,7 +104,7 @@ describe("firestore reports and read models", () => {
 
     await expect(
       readModelRepositoryFirestore.getTeamOverview(ownerId, leagueId, teamId),
-    ).rejects.toThrow("DATA_BACKEND=firestore is only available");
+    ).rejects.toThrow("Non-emulator Firestore access requires FIRESTORE_PREVIEW_DRY_RUN=true");
 
     vi.stubEnv("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8080");
   });

@@ -66,7 +66,7 @@ Server Actions:
 API Routes:
 - `src/app/api/savegames/*`: Savegame-, Team-, Player-, Season-Reads und Savegame-Erstellung.
 - `src/app/api/simulation/*`: separate Simulation-API mit in-memory Store, nicht Prisma-persistent.
-- `src/app/api/auth/[...nextauth]/route.ts`: Auth.js, explizit nicht Teil der Migration.
+- `src/app/removed-auth-route/[...nextauth]/route.ts`: legacy session system, explizit nicht Teil der Migration.
 
 ### Services und Repositories
 
@@ -170,10 +170,10 @@ users/{userId}/saveGames/{saveGameId}/inboxTasks/{taskKey}
 
 | Prisma Model | Firestore Ziel | Dokumentstruktur | Subcollections | Queries | Indizes | Risiken |
 |---|---|---|---|---|---|---|
-| `User` | vorerst Prisma/Auth.js | unveraendert | keine | Auth.js | bestehend | Keine Auth-Umstellung im Scope. |
-| `Account` | vorerst Prisma/Auth.js | unveraendert | keine | Auth.js | bestehend | OAuth Tokens nicht in Client-Firestore legen. |
-| `Session` | vorerst Prisma/Auth.js | unveraendert | keine | Auth.js | bestehend | Keine Session-Migration. |
-| `VerificationToken` | vorerst Prisma/Auth.js | unveraendert | keine | Auth.js | bestehend | Keine Token-Migration. |
+| `User` | vorerst Prisma/legacy session system | unveraendert | keine | legacy session system | bestehend | Keine Auth-Umstellung im Scope. |
+| `Account` | vorerst Prisma/legacy session system | unveraendert | keine | legacy session system | bestehend | external provider auth Tokens nicht in Client-Firestore legen. |
+| `Session` | vorerst Prisma/legacy session system | unveraendert | keine | legacy session system | bestehend | Keine Session-Migration. |
+| `VerificationToken` | vorerst Prisma/legacy session system | unveraendert | keine | legacy session system | bestehend | Keine Token-Migration. |
 | `LeagueDefinition` | `reference/leagues/{id}` | `code`, `name` | optional `conferences` | by `code` | `code` | Referenzversionierung noetig. |
 | `ConferenceDefinition` | `reference/conferences/{id}` | `leagueId`, `code`, `name` | keine | by `leagueId`, `code` | `leagueId + code` | Joins zu Teams denormalisieren. |
 | `DivisionDefinition` | `reference/divisions/{id}` | `conferenceId`, `code`, `name` | keine | by `conferenceId`, `code` | `conferenceId + code` | Team-Views brauchen Namen als Snapshot. |

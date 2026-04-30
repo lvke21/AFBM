@@ -29,9 +29,9 @@ Aktualisiert:
   - keine offenen Matches: `POST_GAME`
 - Prisma- und Firestore-Pfad verwenden dieselbe Zustandsregel.
 - Tests decken Multi-Match-Wochen explizit ab.
-- Browser-E2E-Login nutzt einen expliziten E2E-Dev-Login-Pfad statt der NextAuth-Default-Credentials-Form, die im Testlauf ohne gueltiges CSRF-Paar mit `MissingCSRF` scheiterte.
+- Browser-E2E-Login nutzt einen expliziten E2E-Dev-Login-Pfad statt der legacy session library-Default-Credentials-Form, die im Testlauf ohne gueltiges CSRF-Paar mit `MissingCSRF` scheiterte.
 - Playwright laedt `.env` vor der WebServer-Konfiguration, damit Seed-User und Test-Server dieselben Dev-Credentials verwenden.
-- Fuer den lokalen Browser-E2E gibt es einen nicht-produktiven Auth-Bypass, der nur aktiv wird, wenn `NODE_ENV !== "production"`, `AUTH_DEV_ENABLED=true` und `E2E_AUTH_BYPASS=true` gesetzt sind. Dadurch werden NextAuth-Beta/Next-15-Dev-Runtimefehler im Testpfad vermieden, ohne produktive Auth zu schwaechen.
+- Fuer den lokalen Browser-E2E gibt es einen nicht-produktiven Auth-Bypass, der nur aktiv wird, wenn `NODE_ENV !== "production"`, `E2E_DEV_LOGIN_ENABLED=true` und `E2E_DIRECT_LOGIN=true` gesetzt sind. Dadurch werden legacy session library-Beta/Next-15-Dev-Runtimefehler im Testpfad vermieden, ohne produktive Auth zu schwaechen.
 - `e2e/week-loop.spec.ts` wartet auf echte Server-Action-Redirects (`303`) und prueft danach die persistierten Zustandswechsel per frischem Seitenread.
 
 ## Tests

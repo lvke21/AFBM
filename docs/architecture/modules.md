@@ -175,8 +175,8 @@ Details: [gameplay-engine.md](./gameplay-engine.md)
 
 ### Verantwortung
 
-- Auth.js initialisieren
-- GitHub OAuth bei gesetzten Env-Variablen registrieren
+- legacy session system initialisieren
+- GitHub external provider auth bei gesetzten Env-Variablen registrieren
 - Session in `session.user.id` ueberfuehren
 - Zugriffsschutz fuer Pages und APIs bereitstellen
 
@@ -184,10 +184,10 @@ Details: [gameplay-engine.md](./gameplay-engine.md)
 
 | Datei | Rolle |
 |---|---|
-| `src/auth.ts` | Auth.js-Konfiguration mit Prisma Adapter |
+| `src/auth.ts` | legacy session system-Konfiguration mit Prisma Adapter |
 | `src/lib/auth/provider-config.ts` | Provider-Registrierung und Provider-Status |
 | `src/lib/auth/session.ts` | `requirePageUserId()` und `requireApiUserId()` |
-| `src/types/next-auth.d.ts` | erweitert den Session-Typ um `user.id` |
+| `src/types/legacy-auth-package.d.ts` | erweitert den Session-Typ um `user.id` |
 
 ## UI- und Routing-Bereich
 

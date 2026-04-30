@@ -39,7 +39,187 @@ service cloud.firestore {
       return canReadLeague(resource.data.leagueId);
     }
 
-    // TODO(firebase-auth): Revisit role mapping once Auth.js/Firebase Auth and
+    function onlineLeaguePath(leagueId) {
+      return /databases/$(database)/documents/leagues/$(leagueId);
+    }
+
+    function onlineMembershipPath(leagueId, userId) {
+      return /databases/$(database)/documents/leagues/$(leagueId)/memberships/$(userId);
+    }
+
+    function onlineTeamPath(leagueId, teamId) {
+      return /databases/$(database)/documents/leagues/$(leagueId)/teams/$(teamId);
+    }
+
+    function isOnlineLeague(leagueId) {
+      return exists(onlineLeaguePath(leagueId))
+        && get(onlineLeaguePath(leagueId)).data.settings.onlineBackbone == true;
+    }
+
+    function isOnlineLeagueCreator(leagueId) {
+      return isSignedIn()
+        && exists(onlineLeaguePath(leagueId))
+        && get(onlineLeaguePath(leagueId)).data.createdByUserId == request.auth.uid;
+    }
+
+    function isOnlineActiveMember(leagueId) {
+      return isSignedIn()
+        && exists(onlineMembershipPath(leagueId, request.auth.uid))
+        && get(onlineMembershipPath(leagueId, request.auth.uid)).data.status == "active";
+    }
+
+    function isOnlineAdmin(leagueId) {
+      return isOnlineLeagueCreator(leagueId)
+        || (
+          isOnlineActiveMember(leagueId)
+          && get(onlineMembershipPath(leagueId, request.auth.uid)).data.role == "admin"
+        );
+    }
+
+    function isOnlineLobbyListDoc() {
+      return resource.data.settings.onlineBackbone == true
+        && resource.data.status == "lobby";
+    }
+
+    function isOnlineLobby(leagueId) {
+      return isOnlineLeague(leagueId)
+        && get(onlineLeaguePath(leagueId)).data.status == "lobby";
+    }
+
+    function isOnlineSelfJoinedAfter(leagueId) {
+      return isSignedIn()
+        && existsAfter(onlineMembershipPath(leagueId, request.auth.uid))
+        && getAfter(onlineMembershipPath(leagueId, request.auth.uid)).data.userId == request.auth.uid
+        && getAfter(onlineMembershipPath(leagueId, request.auth.uid)).data.status == "active"
+        && getAfter(onlineMembershipPath(leagueId, request.auth.uid)).data.teamId is string
+        && getAfter(onlineMembershipPath(leagueId, request.auth.uid)).data.teamId != "";
+    }
+
+    function isOnlineSelfJoinedTeamAssignedAfter(leagueId) {
+      return isOnlineSelfJoinedAfter(leagueId)
+        && existsAfter(onlineTeamPath(leagueId, getAfter(onlineMembershipPath(leagueId, request.auth.uid)).data.teamId))
+        && getAfter(onlineTeamPath(leagueId, getAfter(onlineMembershipPath(leagueId, request.auth.uid)).data.teamId)).data.assignedUserId == request.auth.uid
+        && getAfter(onlineTeamPath(leagueId, getAfter(onlineMembershipPath(leagueId, request.auth.uid)).data.teamId)).data.status == "assigned";
+    }
+
+    function isOnlineMembershipCreate(leagueId, userId) {
+      return isSignedIn()
+        && isOnlineLobby(leagueId)
+        && isSelf(userId)
+        && request.resource.data.keys().hasOnly([
+          "displayName",
+          "joinedAt",
+          "lastSeenAt",
+          "ready",
+          "role",
+          "status",
+          "teamId",
+          "userId",
+          "username",
+        ])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.role == "gm"
+        && request.resource.data.status == "active"
+        && request.resource.data.ready == false
+        && request.resource.data.teamId is string
+        && request.resource.data.teamId != ""
+        && existsAfter(onlineTeamPath(leagueId, request.resource.data.teamId))
+        && getAfter(onlineTeamPath(leagueId, request.resource.data.teamId)).data.assignedUserId == request.auth.uid
+        && getAfter(onlineTeamPath(leagueId, request.resource.data.teamId)).data.status == "assigned";
+    }
+
+    function isOnlineMembershipReadyUpdate(userId) {
+      return isSelf(userId)
+        && resource.data.userId == request.auth.uid
+        && resource.data.status == "active"
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.ready is bool
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["ready", "lastSeenAt"]);
+    }
+
+    function isOnlineMembershipTeamClaimUpdate(leagueId, userId) {
+      return isSignedIn()
+        && isOnlineLobby(leagueId)
+        && isSelf(userId)
+        && resource.data.userId == request.auth.uid
+        && resource.data.status == "active"
+        && resource.data.teamId == ""
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.status == "active"
+        && request.resource.data.ready == false
+        && request.resource.data.teamId is string
+        && request.resource.data.teamId != ""
+        && existsAfter(onlineTeamPath(leagueId, request.resource.data.teamId))
+        && getAfter(onlineTeamPath(leagueId, request.resource.data.teamId)).data.assignedUserId == request.auth.uid
+        && getAfter(onlineTeamPath(leagueId, request.resource.data.teamId)).data.status == "assigned"
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["displayName", "joinedAt", "lastSeenAt", "ready", "status", "teamId", "username"]);
+    }
+
+    function isOnlineJoinCounterUpdate(leagueId) {
+      return isSignedIn()
+        && isOnlineLobby(leagueId)
+        && resource.data.settings.onlineBackbone == true
+        && (!exists(onlineMembershipPath(leagueId, request.auth.uid))
+          || get(onlineMembershipPath(leagueId, request.auth.uid)).data.teamId == "")
+        && isOnlineSelfJoinedTeamAssignedAfter(leagueId)
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["memberCount", "updatedAt", "version"])
+        && request.resource.data.memberCount <= resource.data.maxTeams
+        && request.resource.data.memberCount == resource.data.memberCount + 1
+        && request.resource.data.version == resource.data.version + 1;
+    }
+
+    function isOnlineTeamClaimUpdate(leagueId, teamId) {
+      return isSignedIn()
+        && isOnlineLobby(leagueId)
+        && resource.data.status in ["available", "vacant"]
+        && request.resource.data.assignedUserId == request.auth.uid
+        && request.resource.data.status == "assigned"
+        && isOnlineSelfJoinedAfter(leagueId)
+        && getAfter(onlineMembershipPath(leagueId, request.auth.uid)).data.teamId == teamId
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly([
+            "assignedUserId",
+            "cityId",
+            "cityName",
+            "displayName",
+            "status",
+            "teamName",
+            "teamNameId",
+            "updatedAt",
+          ]);
+    }
+
+    function isOnlineOwnDepthChartUpdate(leagueId, teamId) {
+      return isOnlineActiveMember(leagueId)
+        && get(onlineMembershipPath(leagueId, request.auth.uid)).data.teamId == teamId
+        && resource.data.assignedUserId == request.auth.uid
+        && resource.data.status == "assigned"
+        && request.resource.data.assignedUserId == resource.data.assignedUserId
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["depthChart", "updatedAt"]);
+    }
+
+    function isOnlineUserEventCreate(leagueId) {
+      return isSignedIn()
+        && (isOnlineActiveMember(leagueId) || isOnlineSelfJoinedAfter(leagueId))
+        && request.resource.data.keys().hasOnly(["createdAt", "createdByUserId", "payload", "type"])
+        && request.resource.data.createdByUserId == request.auth.uid
+        && request.resource.data.type in [
+          "depth_chart_updated",
+          "gm_ready_set",
+          "gm_ready_unset",
+          "user_joined_league",
+        ];
+    }
+
+    // TODO(firebase-auth): Revisit role mapping once Firebase Auth and
     // custom claims are finalized. Until then, membership documents are the
     // only client-visible authorization source.
     // TODO(firebase-writes): Keep all game-state, simulation, stat, finance,
@@ -61,8 +241,44 @@ service cloud.firestore {
     }
 
     match /leagues/{leagueId} {
-      allow read: if canReadLeague(leagueId);
-      allow write: if false;
+      allow read: if canReadLeague(leagueId)
+        || isOnlineLobbyListDoc()
+        || isOnlineActiveMember(leagueId)
+        || isOnlineLeagueCreator(leagueId);
+      allow create: if false;
+      allow update: if isOnlineJoinCounterUpdate(leagueId);
+      allow delete: if false;
+
+      match /memberships/{userId} {
+        allow read: if isSelf(userId) || isOnlineAdmin(leagueId) || isOnlineActiveMember(leagueId);
+        allow create: if isOnlineMembershipCreate(leagueId, userId);
+        allow update: if isOnlineMembershipReadyUpdate(userId)
+          || isOnlineMembershipTeamClaimUpdate(leagueId, userId);
+        allow delete: if false;
+      }
+
+      match /teams/{teamId} {
+        allow read: if isOnlineLobby(leagueId) || isOnlineActiveMember(leagueId) || isOnlineAdmin(leagueId);
+        allow create: if false;
+        allow update: if isOnlineTeamClaimUpdate(leagueId, teamId)
+          || isOnlineOwnDepthChartUpdate(leagueId, teamId);
+        allow delete: if false;
+      }
+
+      match /weeks/{seasonWeekId} {
+        allow read: if isOnlineActiveMember(leagueId) || isOnlineAdmin(leagueId);
+        allow write: if false;
+      }
+
+      match /events/{eventId} {
+        allow read: if isOnlineActiveMember(leagueId) || isOnlineAdmin(leagueId);
+        allow create: if isOnlineUserEventCreate(leagueId);
+        allow update, delete: if false;
+      }
+
+      match /adminLogs/{logId} {
+        allow read, write: if false;
+      }
     }
 
     match /leagueMembers/{leagueMemberId} {
@@ -117,6 +333,14 @@ service cloud.firestore {
     match /reports/{reportId} {
       allow read: if canReadLeagueDoc();
       allow write: if false;
+    }
+
+    match /admin/{document=**} {
+      allow read, write: if false;
+    }
+
+    match /control/{document=**} {
+      allow read, write: if false;
     }
 
     match /{document=**} {

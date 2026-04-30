@@ -9,7 +9,7 @@ Firebase darf fuer Production vorbereitet werden, aber das Spiel nutzt weiterhin
 - `DATA_BACKEND` bleibt leer oder `prisma`.
 - `DATA_BACKEND=firestore` bleibt fuer Production blockiert.
 - Keine Prisma-Entfernung.
-- Keine Auth-Umstellung.
+- removed session and provider login ist entfernt; Online nutzt Firebase Anonymous Auth, Admin nutzt Code-Login.
 - Keine Seeds, Resets oder Migrationen gegen Production Firestore.
 
 ## Production ENV
@@ -17,7 +17,15 @@ Firebase darf fuer Production vorbereitet werden, aber das Spiel nutzt weiterhin
 Diese Werte koennen in der Hosting-/Runtime-Umgebung vorbereitet werden:
 
 ```env
+AFBM_DEPLOY_ENV="production"
+NEXT_PUBLIC_AFBM_DEPLOY_ENV="production"
 DATA_BACKEND="prisma"
+AFBM_ONLINE_BACKEND="firebase"
+NEXT_PUBLIC_AFBM_ONLINE_BACKEND="firebase"
+
+DATABASE_URL="<secret-store>"
+AFBM_ADMIN_ACCESS_CODE="<secret-store>"
+AFBM_ADMIN_SESSION_SECRET="<secret-store>"
 
 NEXT_PUBLIC_FIREBASE_API_KEY="..."
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
@@ -36,8 +44,26 @@ Diese Werte duerfen in Production nicht gesetzt werden:
 ```env
 FIRESTORE_EMULATOR_HOST="127.0.0.1:8080"
 FIREBASE_EMULATOR_HOST="127.0.0.1:8080"
+FIREBASE_AUTH_EMULATOR_HOST="127.0.0.1:9099"
+NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST="127.0.0.1:8080"
+NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST="127.0.0.1:9099"
 DATA_BACKEND="firestore"
+ADMIN_ACCESS_CODE="legacy-alias"
+OLD_SESSION_URL="https://example.invalid"
+NEXTOLD_SESSION_URL="https://example.invalid"
+OLD_SESSION_KEY="<legacy-authjs-secret>"
+OLD_GH_PROVIDER_ID="<legacy-github-client-id>"
+OLD_GH_PROVIDER_KEY="<legacy-github-client-secret>"
+OLD_GH_APP_ID="<legacy-github-client-id>"
+OLD_GH_APP_KEY="<legacy-github-client-secret>"
+OLD_PUBLIC_LOGIN_FLAG="anything"
+FIRESTORE_PREVIEW_DRY_RUN="true"
+FIRESTORE_CLOUD_SEED_CONFIRM="true"
 ```
+
+Production verweigert Build/Start ueber `next.config.ts`, wenn kritische Secrets fehlen,
+Emulator-/Debug-Flags gesetzt sind, lokale Online-Backends aktiv sind oder Demo-Projekte
+verwendet werden.
 
 ## Firebase Console Schritte
 
@@ -66,6 +92,11 @@ DATA_BACKEND="firestore"
 
 6. ENV setzen
    - `DATA_BACKEND="prisma"` setzen oder `DATA_BACKEND` leer lassen.
+   - `AFBM_DEPLOY_ENV="production"` setzen.
+   - `AFBM_ONLINE_BACKEND="firebase"` und `NEXT_PUBLIC_AFBM_ONLINE_BACKEND="firebase"` setzen.
+   - `DATABASE_URL`, `AFBM_ADMIN_ACCESS_CODE` und `AFBM_ADMIN_SESSION_SECRET` aus dem Secret Store setzen.
+   - `AFBM_ADMIN_SESSION_SECRET` muss vom Admin-Code getrennt sein.
+   - Keine removed session and provider login-Variablen setzen.
    - Keine Emulator-Host-Variablen in Production setzen.
    - Deployment erst starten, wenn Secret-Werte vollstaendig sind.
 
@@ -77,6 +108,7 @@ DATA_BACKEND="firestore"
 - `src/lib/firebase/client.ts` liest nur die Firebase Web-App ENV.
 - `src/lib/firebase/admin.ts` verlangt ausserhalb des Emulators Admin Credentials.
 - `src/server/repositories/firestoreGuard.ts` blockiert `DATA_BACKEND=firestore`, wenn kein Emulator-Host und kein `demo-*` Projekt gesetzt sind.
+- `src/lib/env/runtime-env.ts` blockiert unsichere Production-Starts zentral.
 
 ## Seed, Reset und Verify
 

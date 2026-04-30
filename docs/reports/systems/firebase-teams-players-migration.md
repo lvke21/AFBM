@@ -74,7 +74,7 @@ Diese Bereiche bleiben unveraendert Prisma-basiert:
 - Reports
 - Inbox
 - Draft
-- Auth/Auth.js
+- Auth/legacy session system
 - E2E-Prisma-Seed
 - Prisma Schema und Prisma Client
 
@@ -132,7 +132,7 @@ Prisma-Fallback:
 E2E:
 
 - Kein Browser-E2E wurde auf Firestore umgestellt.
-- Begruendung: SaveGame-Liste, Auth und Navigation bleiben bewusst Prisma/Auth.js-basiert. Ein echter Browser-Flow auf Firestore wuerde aktuell entweder Auth/SaveGame migrieren oder gemischte Testdaten erzwingen.
+- Begruendung: SaveGame-Liste, Auth und Navigation bleiben bewusst Prisma/legacy session system-basiert. Ein echter Browser-Flow auf Firestore wuerde aktuell entweder Auth/SaveGame migrieren oder gemischte Testdaten erzwingen.
 - Stattdessen wurden die bestehenden Team-/Player-Query-Pfade serverseitig gegen Firestore getestet. Das ist fuer diesen Slice die risikoaermere Validierung.
 
 ## Risiken

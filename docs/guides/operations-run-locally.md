@@ -33,27 +33,22 @@ npm run dev
 | `http://localhost:3000/` | oeffentliche Startseite |
 | `http://localhost:3000/app` | geschuetzter App-Bereich |
 | `http://localhost:3000/app/savegames` | Savegame-Hub |
+| `http://localhost:3000/online` | Online Hub mit Firebase Anonymous Auth |
+| `http://localhost:3000/admin/login` | Admin-Code-Login |
 | `http://localhost:3000/app/savegames/{savegameId}/players/{playerId}` | Spieler-Detailansicht |
-| `http://localhost:3000/api/auth/signin` | Auth.js Sign-In |
-| `http://localhost:3000/auth/setup-required` | Hinweis bei fehlender Auth-Konfiguration |
 | `http://localhost:3000/docs/architecture` | kleine In-App-Architekturuebersicht |
 
 Hinweis:
 - Wenn `3000` belegt ist, startet Next.js auf einem anderen Port.
-- Bei GitHub OAuth muss dann auch die Callback-URL der OAuth App angepasst werden.
+- Online Spielen und Admin Login benoetigen keine external provider auth Callback URL.
 
 ## Erwartetes Verhalten
 
-### Ohne konfigurierten Auth-Provider
-
 - Die App startet.
 - Oeffentliche Seiten funktionieren.
-- Der geschuetzte Bereich `/app` leitet nach `/auth/setup-required` um.
-
-### Mit konfiguriertem GitHub OAuth
-
-- `/api/auth/signin` zeigt den GitHub-Login.
-- Nach erfolgreichem Login ist `/app` nutzbar.
+- `/app` und `/app/savegames` sind ueber die serverseitige App-User-ID nutzbar.
+- `/online` nutzt Firebase Anonymous Auth oder den lokalen Online-Fallback.
+- `/admin/login` nutzt ausschliesslich den Admin-Code-Login.
 - Savegames koennen ueber UI oder API angelegt werden.
 
 ## Hauefige lokale Routinen
@@ -126,20 +121,18 @@ npm run prisma:migrate -- --name init
 npm run prisma:seed
 ```
 
-### GitHub Login funktioniert lokal nicht
+### external provider auth/legacy session system erscheint lokal
 
 Pruefen:
-- `AUTH_GITHUB_ID` und `AUTH_GITHUB_SECRET`
-- `AUTH_SECRET`
-- Callback-URL der GitHub OAuth App
-- lokalen Port der laufenden App
+- alter Dev-Server laeuft noch
+- alte `.env`/`.env.local` Variablen wie `OLD_SESSION_URL`, `NEXTOLD_SESSION_URL`, `OLD_SESSION_KEY`, `OLD_GH_PROVIDER_ID`, `OLD_GH_PROVIDER_KEY`
+- stale `.next` Cache nach Entfernen der legacy session system-Route
 
 ### Savegame-Erstellung funktioniert nicht
 
 Moegliche Ursachen:
-- keine Anmeldung
-- Referenzdaten nicht geseedet
 - Datenbank noch nicht migriert
+- Referenzdaten nicht geseedet
 
 ## Weiterfuehrende Dokumente
 

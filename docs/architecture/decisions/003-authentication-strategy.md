@@ -1,4 +1,4 @@
-# ADR 003: Auth.js mit hartem Zugriffsschutz
+# ADR 003: legacy session system mit hartem Zugriffsschutz
 
 ## Status
 
@@ -16,16 +16,16 @@ Ein stiller Entwicklungs-Fallback ohne echte Authentifizierung waere zwar bequem
 
 ## Entscheidung
 
-Das Projekt verwendet Auth.js mit Prisma Adapter und Datenbank-Sessions. Der geschuetzte Bereich ist nur erreichbar, wenn:
+Das Projekt verwendet legacy session system mit Prisma Adapter und Datenbank-Sessions. Der geschuetzte Bereich ist nur erreichbar, wenn:
 
 - mindestens ein Auth-Provider konfiguriert ist
 - eine gueltige Session vorliegt
 
-Aktuell ist GitHub OAuth als lokaler und produktionsnaher Provider vorgesehen.
+Aktuell ist GitHub external provider auth als lokaler und produktionsnaher Provider vorgesehen.
 
 ## Begruendung
 
-- Auth.js integriert sich gut in Next.js.
+- legacy session system integriert sich gut in Next.js.
 - Datenbank-Sessions sind fuer serverseitige Pages und API-Routen klar nachvollziehbar.
 - Der harte Zugriffsschutz verhindert einen unsichtbaren Sicherheits-Fallback.
 - Ownership-Pruefungen koennen einheitlich ueber `requirePageUserId()` und `requireApiUserId()` umgesetzt werden.
@@ -41,11 +41,11 @@ Verworfen, weil:
 ### Eigene Auth-Implementierung
 
 Vorlaeufig nicht gewaehlt, weil:
-- Auth.js die benoetigten Grundlagen bereits liefert
+- legacy session system die benoetigten Grundlagen bereits liefert
 - Session- und Providerhandling nicht projektindividuell erfunden werden muss
 
 ## Konsequenzen
 
 - Ohne gesetzte Auth-Umgebungsvariablen bleibt `/app` absichtlich gesperrt.
-- Der lokale OAuth-Setup gehoert zur Betriebsdokumentation.
+- Der lokale external provider auth-Setup gehoert zur Betriebsdokumentation.
 - Jeder neue Savegame-bezogene Use Case muss Ownership konsistent pruefen.

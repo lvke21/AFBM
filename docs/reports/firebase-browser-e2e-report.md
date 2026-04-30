@@ -11,7 +11,7 @@ Production bleibt unveraendert No-Go: keine produktive Aktivierung, keine Prisma
 
 ## Getestete Browser-Flows
 
-- Lokaler Test-Auth-Einstieg ueber `/api/e2e/dev-login` mit `E2E_AUTH_BYPASS=true`
+- Lokaler Test-Auth-Einstieg ueber `/api/e2e/dev-login` mit `E2E_DIRECT_LOGIN=true`
 - SaveGame-Einstieg ueber `/app` mit Redirect auf `/app/savegames/league-demo-2026`
 - Team Overview: `/app/savegames/league-demo-2026/team`
 - Roster: `/app/savegames/league-demo-2026/team/roster`
@@ -44,7 +44,7 @@ npm run firebase:reset
 npm run firebase:seed
 npm run firebase:verify
 npm run firebase:e2e:browser-fixture
-DATA_BACKEND=firestore FIREBASE_PROJECT_ID=demo-afbm NEXT_PUBLIC_FIREBASE_PROJECT_ID=demo-afbm FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 AUTH_DEV_ENABLED=true E2E_AUTH_BYPASS=true E2E_USER_ID=firebase-e2e-owner AUTH_DEV_EMAIL=firebase-owner@example.test AUTH_DEV_PASSWORD=e2e-password E2E_PORT=3101 npx playwright test e2e/firebase-browser-flow.spec.ts
+DATA_BACKEND=firestore FIREBASE_PROJECT_ID=demo-afbm NEXT_PUBLIC_FIREBASE_PROJECT_ID=demo-afbm FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 E2E_DEV_LOGIN_ENABLED=true E2E_DIRECT_LOGIN=true E2E_USER_ID=firebase-e2e-owner E2E_USER_EMAIL=firebase-owner@example.test E2E_USER_PASSWORD=e2e-password E2E_PORT=3101 npx playwright test e2e/firebase-browser-flow.spec.ts
 npx tsc --noEmit
 npm run lint
 ```
@@ -71,7 +71,7 @@ npm run lint
 
 ## Bewusst Nicht Getestet
 
-- Echter Auth.js Login ohne E2E-Bypass
+- Echter legacy session system Login ohne E2E-Bypass
 - Production-Firebase-Credentials oder produktiver Firestore
 - Clientseitige Firestore Rules im Browser
 - Gameplan-/MatchPreparation-Update-Formular
