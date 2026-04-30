@@ -49,9 +49,6 @@ In Cloud Secret Manager fuer das Staging-Projekt anlegen:
 - `afbm-staging-database-url`
 - `afbm-staging-admin-access-code`
 - `afbm-staging-admin-session-secret`
-- `afbm-staging-firebase-api-key`
-- `afbm-staging-firebase-messaging-sender-id`
-- `afbm-staging-firebase-app-id`
 
 Die App-Hosting-Service-Accounts muessen Zugriff auf diese Secrets erhalten.
 
@@ -69,7 +66,7 @@ In `apphosting.yaml` gesetzt:
 - `AFBM_ADMIN_SESSION_SECRET` aus Secret
 - `FIREBASE_PROJECT_ID=afbm-staging`
 - Firebase Admin SDK nutzt in App Hosting die Default Credentials des Runtime-Service-Accounts.
-- `NEXT_PUBLIC_FIREBASE_*` aus Staging-Web-App-Konfiguration
+- `NEXT_PUBLIC_FIREBASE_*` als oeffentliche Staging-Web-App-Konfiguration, nicht als Secret.
 
 Diese Legacy-Variablen duerfen nicht gesetzt werden:
 

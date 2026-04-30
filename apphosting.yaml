@@ -25,13 +25,13 @@ env:
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
     value: afbm-staging.firebaseapp.com
   - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    value: afbm-staging.appspot.com
+    value: afbm-staging.firebasestorage.app
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    secret: afbm-staging-firebase-api-key
+    value: AIzaSyC2JqgkfFuGhvE3KuMIQ1DCvC003m8q320
   - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    secret: afbm-staging-firebase-messaging-sender-id
+    value: "101239771229"
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    secret: afbm-staging-firebase-app-id
+    value: 1:101239771229:web:481057d71c49ab47387db4
   - variable: DATABASE_URL
     secret: afbm-staging-database-url
   - variable: AFBM_ADMIN_ACCESS_CODE
