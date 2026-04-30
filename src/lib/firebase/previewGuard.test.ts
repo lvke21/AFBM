@@ -25,6 +25,19 @@ describe("firestore preview guard", () => {
     ).toThrow("FIRESTORE_PREVIEW_DRY_RUN=true");
   });
 
+  it("allows the App Hosting staging runtime without preview flags", () => {
+    expect(
+      assertFirestorePreviewOrEmulatorAllowed({
+        AFBM_DEPLOY_ENV: "staging",
+        FIREBASE_PROJECT_ID: "afbm-staging",
+        NEXT_PUBLIC_AFBM_DEPLOY_ENV: "staging",
+      }),
+    ).toEqual({
+      mode: "staging",
+      projectId: "afbm-staging",
+    });
+  });
+
   it("blocks non-allowlisted preview projects", () => {
     expect(() =>
       assertFirestorePreviewOrEmulatorAllowed({

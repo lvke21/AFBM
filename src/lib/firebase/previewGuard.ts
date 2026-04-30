@@ -10,6 +10,10 @@ export type FirestorePreviewGuardResult =
   | {
       mode: "preview";
       projectId: string;
+    }
+  | {
+      mode: "staging";
+      projectId: string;
     };
 
 export function readFirestoreProjectId(env: Record<string, string | undefined> = process.env) {
@@ -48,6 +52,13 @@ export function assertFirestorePreviewOrEmulatorAllowed(
   }
 
   if (!truthy(env.FIRESTORE_PREVIEW_DRY_RUN)) {
+    if (projectId && isAppHostingStagingRuntime(env, projectId)) {
+      return {
+        mode: "staging",
+        projectId,
+      };
+    }
+
     throw new Error(
       "Non-emulator Firestore access requires FIRESTORE_PREVIEW_DRY_RUN=true and an allowlisted staging project.",
     );
@@ -84,4 +95,15 @@ export function assertFirestorePreviewOrEmulatorAllowed(
 
 function truthy(value: string | undefined) {
   return TRUE_VALUES.has((value ?? "").toLowerCase());
+}
+
+function isAppHostingStagingRuntime(
+  env: Record<string, string | undefined>,
+  projectId: string,
+) {
+  return (
+    env.AFBM_DEPLOY_ENV === "staging" &&
+    env.NEXT_PUBLIC_AFBM_DEPLOY_ENV === "staging" &&
+    projectId === "afbm-staging"
+  );
 }
