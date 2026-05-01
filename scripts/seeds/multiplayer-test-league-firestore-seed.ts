@@ -5,11 +5,10 @@ import type {
   FirestoreOnlineTeamDoc,
 } from "../../src/lib/online/types";
 import {
-  FIRESTORE_SEED_EMULATOR_HOST,
-  FIRESTORE_SEED_PROJECT_ID,
-  ensureFirestoreEmulatorEnvironment,
-  withEmulatorOperationTimeout,
-} from "./firestore-seed";
+  configureMultiplayerFirestoreEnvironment,
+  logMultiplayerFirestoreEnvironment,
+  withMultiplayerFirestoreTimeout,
+} from "./multiplayer-firestore-env";
 
 export const MULTIPLAYER_TEST_LEAGUE_ID = "afbm-multiplayer-test-league";
 export const MULTIPLAYER_TEST_LEAGUE_SLUG = "afbm-multiplayer-test-league";
@@ -174,18 +173,8 @@ export function buildMultiplayerTestLeagueSeedDocuments(
 }
 
 export async function seedMultiplayerTestLeague() {
-  ensureFirestoreEmulatorEnvironment();
-
-  const projectId = process.env.FIREBASE_PROJECT_ID ?? FIRESTORE_SEED_PROJECT_ID;
-  const emulatorHost = process.env.FIRESTORE_EMULATOR_HOST ?? FIRESTORE_SEED_EMULATOR_HOST;
-
-  if (!projectId.startsWith("demo-")) {
-    throw new Error(`Refusing multiplayer test league seed for non-demo project "${projectId}".`);
-  }
-
-  if (!emulatorHost) {
-    throw new Error("FIRESTORE_EMULATOR_HOST is required for multiplayer test league seed.");
-  }
+  const environment = configureMultiplayerFirestoreEnvironment();
+  logMultiplayerFirestoreEnvironment(environment, "seed multiplayer test league");
 
   const firestore = getFirebaseAdminFirestore();
   const documents = buildMultiplayerTestLeagueSeedDocuments();
@@ -204,7 +193,11 @@ export async function seedMultiplayerTestLeague() {
     { merge: true },
   );
 
-  await withEmulatorOperationTimeout(batch.commit(), "seed multiplayer test league");
+  await withMultiplayerFirestoreTimeout(
+    batch.commit(),
+    "seed multiplayer test league",
+    environment,
+  );
 
   return {
     leagueId: MULTIPLAYER_TEST_LEAGUE_ID,

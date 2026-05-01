@@ -26,12 +26,16 @@ function missingAdminConfig(message: string): Error {
 export function readFirebaseAdminConfig(
   env: Record<string, string | undefined> = process.env,
 ): FirebaseAdminConfig {
-  const projectId = env.FIREBASE_PROJECT_ID ?? env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  const emulatorHost = env.FIRESTORE_EMULATOR_HOST ?? env.FIREBASE_EMULATOR_HOST;
+  const projectId =
+    env.FIREBASE_PROJECT_ID ?? env.GOOGLE_CLOUD_PROJECT ?? env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  const emulatorHost =
+    env.USE_FIRESTORE_EMULATOR === "false"
+      ? undefined
+      : env.FIRESTORE_EMULATOR_HOST ?? env.FIREBASE_EMULATOR_HOST;
 
   if (!projectId) {
     throw missingAdminConfig(
-      "FIREBASE_PROJECT_ID or NEXT_PUBLIC_FIREBASE_PROJECT_ID is required.",
+      "FIREBASE_PROJECT_ID, GOOGLE_CLOUD_PROJECT or NEXT_PUBLIC_FIREBASE_PROJECT_ID is required.",
     );
   }
 

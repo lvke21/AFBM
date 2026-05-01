@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   acceptOnlineTradeProposal,
@@ -80,6 +81,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
   const [currentUser, setCurrentUser] = useState<OnlineUser | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadErrorRequiresSearch, setLoadErrorRequiresSearch] = useState(false);
   const [trainingIntensity, setTrainingIntensity] = useState<TrainingIntensity>("normal");
   const [trainingPrimaryFocus, setTrainingPrimaryFocus] =
     useState<TrainingPrimaryFocus>("balanced");
@@ -115,6 +117,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
   const [expertMode, setExpertMode] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
   const repository = useMemo(() => getOnlineLeagueRepository(), []);
+  const router = useRouter();
   const detailState = toOnlineLeagueDetailState(league, currentUser);
   const modeStatus = getOnlineModeStatusCopy(repository.mode);
   const isFirebaseMvpMode = repository.mode === "firebase";
@@ -125,7 +128,13 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
   function handleRetryLoad() {
     setLoaded(false);
     setLoadError(null);
+    setLoadErrorRequiresSearch(false);
     setReloadToken((currentToken) => currentToken + 1);
+  }
+
+  function handleSearchLeagueAgain() {
+    repository.clearLastLeagueId(leagueId);
+    router.push("/online");
   }
 
   useEffect(() => {
@@ -157,11 +166,13 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
         }
 
         setCurrentUser(null);
-        setLoadError(getOnlineRecoveryCopy(error, {
+        const recovery = getOnlineRecoveryCopy(error, {
           title: "Online-Identitaet nicht verfuegbar",
           message: "Firebase Auth konnte nicht initialisiert werden.",
           helper: "Lade die Seite neu.",
-        }).message);
+        });
+        setLoadError(recovery.message);
+        setLoadErrorRequiresSearch(false);
         setLoaded(true);
       });
 
@@ -179,16 +190,29 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
 
     setLoaded(false);
     setLoadError(null);
+    setLoadErrorRequiresSearch(false);
 
-    const unsubscribe = repository.subscribeToLeague(
-      leagueId,
-      (loadedLeague) => {
+    let unsubscribe = () => {
+      // no active subscription yet
+    };
+
+    repository.getLeagueById(leagueId)
+      .then((initialLeague) => {
         if (!active) {
           return;
         }
 
-        setLeague(loadedLeague);
-        const leagueUser = loadedLeague?.users.find(
+        if (!initialLeague) {
+          repository.clearLastLeagueId(leagueId);
+          setLeague(null);
+          setLoadError("Die Online-Liga ist fuer diesen Account nicht erreichbar.");
+          setLoadErrorRequiresSearch(true);
+          setLoaded(true);
+          return;
+        }
+
+        setLeague(initialLeague);
+        const leagueUser = initialLeague.users.find(
           (candidate) => candidate.userId === currentUser.userId,
         );
         if (leagueUser?.stadiumProfile) {
@@ -200,9 +224,57 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
             leagueUser.franchiseStrategy.strategyType ?? leagueUser.franchiseStrategy.strategy,
           );
         }
-        setLoaded(true);
-      },
-      (error) => {
+        unsubscribe = repository.subscribeToLeague(
+          leagueId,
+          (loadedLeague) => {
+            if (!active) {
+              return;
+            }
+
+            setLeague(loadedLeague);
+            const nextLeagueUser = loadedLeague?.users.find(
+              (candidate) => candidate.userId === currentUser.userId,
+            );
+            if (nextLeagueUser?.stadiumProfile) {
+              setTicketPriceLevel(nextLeagueUser.stadiumProfile.ticketPriceLevel);
+              setMerchPriceLevel(nextLeagueUser.stadiumProfile.merchPriceLevel);
+            }
+            if (nextLeagueUser?.franchiseStrategy) {
+              setFranchiseStrategy(
+                nextLeagueUser.franchiseStrategy.strategyType ?? nextLeagueUser.franchiseStrategy.strategy,
+              );
+            }
+            setLoaded(true);
+          },
+          (error) => {
+            if (!active) {
+              return;
+            }
+
+            if (repository.mode === "local") {
+              setLeague(getOnlineLeagueById(leagueId));
+              setLoaded(true);
+              return;
+            }
+
+            const recovery = getOnlineRecoveryCopy(error, {
+              title: "Online-Liga konnte nicht geladen werden.",
+              message: error.message || "Online-Liga konnte nicht aus Firebase geladen werden.",
+              helper: "Bitte versuche es erneut.",
+            });
+
+            if (recovery.kind === "permission" || recovery.kind === "not-found") {
+              repository.clearLastLeagueId(leagueId);
+              setLoadErrorRequiresSearch(true);
+            }
+
+            setLeague(null);
+            setLoadError(recovery.message);
+            setLoaded(true);
+          },
+        );
+      })
+      .catch((error) => {
         if (!active) {
           return;
         }
@@ -213,15 +285,21 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
           return;
         }
 
-        setLeague(null);
-        setLoadError(getOnlineRecoveryCopy(error, {
+        const recovery = getOnlineRecoveryCopy(error, {
           title: "Online-Liga konnte nicht geladen werden.",
           message: error.message || "Online-Liga konnte nicht aus Firebase geladen werden.",
           helper: "Bitte versuche es erneut.",
-        }).message);
+        });
+
+        if (recovery.kind === "permission" || recovery.kind === "not-found") {
+          repository.clearLastLeagueId(leagueId);
+          setLoadErrorRequiresSearch(true);
+        }
+
+        setLeague(null);
+        setLoadError(recovery.message);
         setLoaded(true);
-      },
-    );
+      });
 
     return () => {
       active = false;
@@ -690,8 +768,8 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
           message: loadError,
           helper: "Bitte versuche es erneut. Lokale Daten werden dabei nicht ueberschrieben.",
         })}
-        onRetry={handleRetryLoad}
-        retryLabel="Liga erneut laden"
+        onRetry={loadErrorRequiresSearch ? handleSearchLeagueAgain : handleRetryLoad}
+        retryLabel={loadErrorRequiresSearch ? "Liga neu suchen" : "Liga erneut laden"}
       />
     );
   }
@@ -705,8 +783,8 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
           message: "Diese Online-Liga konnte nicht geladen werden.",
           helper: modeStatus.missingLeagueHelper,
         }}
-        onRetry={handleRetryLoad}
-        retryLabel="Liga erneut laden"
+        onRetry={handleSearchLeagueAgain}
+        retryLabel="Liga neu suchen"
       />
     );
   }

@@ -26,11 +26,10 @@ import {
 } from "./multiplayer-test-league-firestore-seed";
 import { MULTIPLAYER_PLAYER_POOL_DRAFT_RUN_ID } from "./multiplayer-player-pool-firestore-seed";
 import {
-  FIRESTORE_SEED_EMULATOR_HOST,
-  FIRESTORE_SEED_PROJECT_ID,
-  ensureFirestoreEmulatorEnvironment,
-  withEmulatorOperationTimeout,
-} from "./firestore-seed";
+  configureMultiplayerFirestoreEnvironment,
+  logMultiplayerFirestoreEnvironment,
+  withMultiplayerFirestoreTimeout,
+} from "./multiplayer-firestore-env";
 
 export const MULTIPLAYER_DRAFT_PREPARED_AT = "2026-05-01T11:00:00.000Z";
 export const MULTIPLAYER_DRAFT_ACTOR_ID = "server-draft-foundation";
@@ -54,21 +53,6 @@ type DraftPlayerResult =
         | "roster-limit";
       message: string;
     };
-
-function assertDemoFirestoreEnvironment() {
-  ensureFirestoreEmulatorEnvironment();
-
-  const projectId = process.env.FIREBASE_PROJECT_ID ?? FIRESTORE_SEED_PROJECT_ID;
-  const emulatorHost = process.env.FIRESTORE_EMULATOR_HOST ?? FIRESTORE_SEED_EMULATOR_HOST;
-
-  if (!projectId.startsWith("demo-")) {
-    throw new Error(`Refusing multiplayer draft prep for non-demo project "${projectId}".`);
-  }
-
-  if (!emulatorHost) {
-    throw new Error("FIRESTORE_EMULATOR_HOST is required for multiplayer draft prep.");
-  }
-}
 
 function toFirestoreDraftStateDoc(
   state: OnlineFantasyDraftState,
@@ -137,7 +121,8 @@ export function buildPreparedMultiplayerDraftState(
 }
 
 export async function prepareMultiplayerDraft(leagueId = MULTIPLAYER_TEST_LEAGUE_ID) {
-  assertDemoFirestoreEnvironment();
+  const environment = configureMultiplayerFirestoreEnvironment();
+  logMultiplayerFirestoreEnvironment(environment, "prepare multiplayer draft");
 
   const firestore = getFirebaseAdminFirestore();
   const leagueRef = firestore.collection("leagues").doc(leagueId);
@@ -185,7 +170,7 @@ export async function prepareMultiplayerDraft(leagueId = MULTIPLAYER_TEST_LEAGUE
     },
   });
 
-  await withEmulatorOperationTimeout(batch.commit(), "prepare multiplayer draft");
+  await withMultiplayerFirestoreTimeout(batch.commit(), "prepare multiplayer draft", environment);
 
   return {
     leagueId,
@@ -241,11 +226,12 @@ export async function draftMultiplayerPlayer(
   teamId: string,
   playerId: string,
 ): Promise<DraftPlayerResult> {
-  assertDemoFirestoreEnvironment();
+  const environment = configureMultiplayerFirestoreEnvironment();
+  logMultiplayerFirestoreEnvironment(environment, "draft multiplayer player");
 
   const firestore = getFirebaseAdminFirestore();
 
-  return firestore.runTransaction(async (transaction) => {
+  return withMultiplayerFirestoreTimeout(firestore.runTransaction(async (transaction) => {
     const data = await readDraftTransactionData(transaction, leagueId, playerId);
 
     if (!data.league) {
@@ -354,7 +340,7 @@ export async function draftMultiplayerPlayer(
           ? "Fantasy Draft abgeschlossen."
           : "Pick gespeichert.",
     };
-  });
+  }), "draft multiplayer player", environment);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

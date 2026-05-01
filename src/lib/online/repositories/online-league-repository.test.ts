@@ -10,7 +10,13 @@ import { assertActiveMembership, assertLeagueAdmin } from "../security/roles";
 import {
   mapFirestoreSnapshotToOnlineLeague,
   type FirestoreOnlineLeagueSnapshot,
+  type FirestoreOnlineMembershipDoc,
+  type FirestoreOnlineTeamDoc,
 } from "../types";
+import {
+  canLoadOnlineLeagueFromMembership,
+  chooseFirstAvailableFirestoreTeam,
+} from "./firebase-online-league-repository";
 import { LocalOnlineLeagueRepository } from "./local-online-league-repository";
 
 class MemoryStorage implements Storage {
@@ -75,6 +81,39 @@ const DRAFT_PLAYER: OnlineContractPlayer = {
   },
   status: "active",
 };
+
+function firestoreTeam(
+  id: string,
+  overrides: Partial<FirestoreOnlineTeamDoc> = {},
+): FirestoreOnlineTeamDoc {
+  return {
+    id,
+    teamName: id,
+    displayName: id,
+    assignedUserId: null,
+    status: "available",
+    createdAt: `2026-05-01T09:00:0${id.length % 9}.000Z`,
+    updatedAt: `2026-05-01T09:00:0${id.length % 9}.000Z`,
+    ...overrides,
+  };
+}
+
+function firestoreMembership(
+  overrides: Partial<FirestoreOnlineMembershipDoc> = {},
+): FirestoreOnlineMembershipDoc {
+  return {
+    userId: "firebase-user",
+    username: "Firebase User",
+    displayName: "Firebase User",
+    role: "gm",
+    teamId: "team-a",
+    joinedAt: "2026-05-01T09:00:00.000Z",
+    lastSeenAt: "2026-05-01T09:00:00.000Z",
+    ready: false,
+    status: "active",
+    ...overrides,
+  };
+}
 
 function setUser(storage: Storage, userId: string, username: string) {
   storage.setItem(ONLINE_USER_ID_STORAGE_KEY, userId);
@@ -384,5 +423,49 @@ describe("online league repository backbone", () => {
     expect(() => assertLeagueAdmin("gm", "league-alpha", memberships)).toThrow(
       "not an admin",
     );
+  });
+
+  it("allows Firebase league loading only for active members with valid teams or admins", () => {
+    const teams = [
+      firestoreTeam("team-a", {
+        assignedUserId: "firebase-user",
+        status: "assigned",
+      }),
+    ];
+
+    expect(canLoadOnlineLeagueFromMembership(firestoreMembership(), teams)).toBe(true);
+    expect(
+      canLoadOnlineLeagueFromMembership(
+        firestoreMembership({ userId: "outsider", teamId: "team-a" }),
+        teams,
+      ),
+    ).toBe(false);
+    expect(canLoadOnlineLeagueFromMembership(firestoreMembership({ role: "admin", teamId: "" }), [])).toBe(true);
+    expect(canLoadOnlineLeagueFromMembership(null, teams)).toBe(false);
+  });
+
+  it("chooses the first free Firestore team and skips assigned teams", () => {
+    const teams = [
+      firestoreTeam("team-b", {
+        assignedUserId: "user-b",
+        status: "assigned",
+        createdAt: "2026-05-01T09:00:00.000Z",
+      }),
+      firestoreTeam("team-c", {
+        status: "available",
+        createdAt: "2026-05-01T09:00:02.000Z",
+      }),
+      firestoreTeam("team-a", {
+        status: "available",
+        createdAt: "2026-05-01T09:00:01.000Z",
+      }),
+    ];
+
+    expect(chooseFirstAvailableFirestoreTeam(teams)?.id).toBe("team-a");
+    expect(
+      chooseFirstAvailableFirestoreTeam(
+        teams.map((team) => ({ ...team, status: "assigned" as const })),
+      ),
+    ).toBeNull();
   });
 });

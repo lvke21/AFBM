@@ -7,32 +7,13 @@ import {
   MULTIPLAYER_TEST_LEAGUE_SLUG,
 } from "./multiplayer-test-league-firestore-seed";
 import {
-  FIRESTORE_SEED_EMULATOR_HOST,
-  FIRESTORE_SEED_PROJECT_ID,
-  ensureFirestoreEmulatorEnvironment,
-  withEmulatorOperationTimeout,
-} from "./firestore-seed";
+  configureMultiplayerFirestoreEnvironment,
+  logMultiplayerFirestoreEnvironment,
+  type MultiplayerFirestoreEnvironment,
+  withMultiplayerFirestoreTimeout,
+} from "./multiplayer-firestore-env";
 
 const deleteBatchSize = 400;
-
-function assertSafeMultiplayerResetEnvironment() {
-  ensureFirestoreEmulatorEnvironment();
-
-  const projectId = process.env.FIREBASE_PROJECT_ID ?? FIRESTORE_SEED_PROJECT_ID;
-  const emulatorHost = process.env.FIRESTORE_EMULATOR_HOST ?? FIRESTORE_SEED_EMULATOR_HOST;
-
-  if (process.env.NODE_ENV === "production" || process.env.AFBM_DEPLOY_ENV === "production") {
-    throw new Error("Refusing multiplayer test reset in production.");
-  }
-
-  if (!projectId.startsWith("demo-")) {
-    throw new Error(`Refusing multiplayer test reset for non-demo project "${projectId}".`);
-  }
-
-  if (!emulatorHost) {
-    throw new Error("FIRESTORE_EMULATOR_HOST is required for multiplayer test reset.");
-  }
-}
 
 function isMarkedMultiplayerTestLeague(data: FirebaseFirestore.DocumentData | undefined) {
   if (!data) {
@@ -56,10 +37,14 @@ function isMarkedMultiplayerTestLeague(data: FirebaseFirestore.DocumentData | un
   );
 }
 
-async function deleteCollection(collectionRef: FirebaseFirestore.CollectionReference) {
-  const documents = await withEmulatorOperationTimeout(
+async function deleteCollection(
+  collectionRef: FirebaseFirestore.CollectionReference,
+  environment: MultiplayerFirestoreEnvironment,
+) {
+  const documents = await withMultiplayerFirestoreTimeout(
     collectionRef.listDocuments(),
     `list ${collectionRef.path} before multiplayer reset`,
+    environment,
   );
   let deleted = 0;
 
@@ -68,26 +53,30 @@ async function deleteCollection(collectionRef: FirebaseFirestore.CollectionRefer
     documents.slice(index, index + deleteBatchSize).forEach((documentRef) => {
       batch.delete(documentRef);
     });
-    await withEmulatorOperationTimeout(batch.commit(), `delete ${collectionRef.path}`);
+    await withMultiplayerFirestoreTimeout(batch.commit(), `delete ${collectionRef.path}`, environment);
     deleted += documents.slice(index, index + deleteBatchSize).length;
   }
 
   return deleted;
 }
 
-async function deleteDraftSubtree(leagueRef: DocumentReference) {
+async function deleteDraftSubtree(
+  leagueRef: DocumentReference,
+  environment: MultiplayerFirestoreEnvironment,
+) {
   const draftRef = leagueRef.collection("draft").doc("main");
   const [availablePlayers, picks] = await Promise.all([
-    deleteCollection(draftRef.collection("availablePlayers")),
-    deleteCollection(draftRef.collection("picks")),
+    deleteCollection(draftRef.collection("availablePlayers"), environment),
+    deleteCollection(draftRef.collection("picks"), environment),
   ]);
-  const draftSnapshot = await withEmulatorOperationTimeout(
+  const draftSnapshot = await withMultiplayerFirestoreTimeout(
     draftRef.get(),
     "read multiplayer draft doc before reset",
+    environment,
   );
 
   if (draftSnapshot.exists) {
-    await withEmulatorOperationTimeout(draftRef.delete(), "delete multiplayer draft doc");
+    await withMultiplayerFirestoreTimeout(draftRef.delete(), "delete multiplayer draft doc", environment);
   }
 
   return {
@@ -98,13 +87,15 @@ async function deleteDraftSubtree(leagueRef: DocumentReference) {
 }
 
 export async function resetMultiplayerTestLeague() {
-  assertSafeMultiplayerResetEnvironment();
+  const environment = configureMultiplayerFirestoreEnvironment({ allowReset: true });
+  logMultiplayerFirestoreEnvironment(environment, "reset multiplayer test league");
 
   const firestore = getFirebaseAdminFirestore();
   const leagueRef = firestore.collection("leagues").doc(MULTIPLAYER_TEST_LEAGUE_ID);
-  const leagueSnapshot = await withEmulatorOperationTimeout(
+  const leagueSnapshot = await withMultiplayerFirestoreTimeout(
     leagueRef.get(),
     "read multiplayer test league before reset",
+    environment,
   );
 
   if (!leagueSnapshot.exists) {
@@ -129,15 +120,15 @@ export async function resetMultiplayerTestLeague() {
   }
 
   const [draftSummary, teams, memberships, events, weeks, adminLogs] = await Promise.all([
-    deleteDraftSubtree(leagueRef),
-    deleteCollection(leagueRef.collection("teams")),
-    deleteCollection(leagueRef.collection("memberships")),
-    deleteCollection(leagueRef.collection("events")),
-    deleteCollection(leagueRef.collection("weeks")),
-    deleteCollection(leagueRef.collection("adminLogs")),
+    deleteDraftSubtree(leagueRef, environment),
+    deleteCollection(leagueRef.collection("teams"), environment),
+    deleteCollection(leagueRef.collection("memberships"), environment),
+    deleteCollection(leagueRef.collection("events"), environment),
+    deleteCollection(leagueRef.collection("weeks"), environment),
+    deleteCollection(leagueRef.collection("adminLogs"), environment),
   ]);
 
-  await withEmulatorOperationTimeout(leagueRef.delete(), "delete multiplayer test league");
+  await withMultiplayerFirestoreTimeout(leagueRef.delete(), "delete multiplayer test league", environment);
 
   return {
     deleted: true,

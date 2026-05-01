@@ -8,11 +8,10 @@ import {
 } from "./multiplayer-test-league-firestore-seed";
 import { MULTIPLAYER_PLAYER_POSITION_TARGETS } from "./multiplayer-player-pool-firestore-seed";
 import {
-  FIRESTORE_SEED_EMULATOR_HOST,
-  FIRESTORE_SEED_PROJECT_ID,
-  ensureFirestoreEmulatorEnvironment,
-  withEmulatorOperationTimeout,
-} from "./firestore-seed";
+  configureMultiplayerFirestoreEnvironment,
+  logMultiplayerFirestoreEnvironment,
+  withMultiplayerFirestoreTimeout,
+} from "./multiplayer-firestore-env";
 import type {
   FirestoreOnlineDraftAvailablePlayerDoc,
   FirestoreOnlineDraftPickDoc,
@@ -34,21 +33,6 @@ export type MultiplayerSeedValidationResult = {
   };
 };
 
-function assertSafeValidationEnvironment() {
-  ensureFirestoreEmulatorEnvironment();
-
-  const projectId = process.env.FIREBASE_PROJECT_ID ?? FIRESTORE_SEED_PROJECT_ID;
-  const emulatorHost = process.env.FIRESTORE_EMULATOR_HOST ?? FIRESTORE_SEED_EMULATOR_HOST;
-
-  if (!projectId.startsWith("demo-")) {
-    throw new Error(`Refusing multiplayer seed validation for non-demo project "${projectId}".`);
-  }
-
-  if (!emulatorHost) {
-    throw new Error("FIRESTORE_EMULATOR_HOST is required for multiplayer seed validation.");
-  }
-}
-
 function countByPosition(players: FirestoreOnlineDraftAvailablePlayerDoc[]) {
   return players.reduce<Record<string, number>>((counts, player) => {
     counts[player.position] = (counts[player.position] ?? 0) + 1;
@@ -66,7 +50,8 @@ function hasSafetyMarkers(value: Record<string, unknown> | undefined) {
 }
 
 export async function validateMultiplayerSeedWorkflow(): Promise<MultiplayerSeedValidationResult> {
-  assertSafeValidationEnvironment();
+  const environment = configureMultiplayerFirestoreEnvironment();
+  logMultiplayerFirestoreEnvironment(environment, "validate multiplayer seed workflow");
 
   const issues: string[] = [];
   const firestore = getFirebaseAdminFirestore();
@@ -74,14 +59,23 @@ export async function validateMultiplayerSeedWorkflow(): Promise<MultiplayerSeed
   const draftRef = leagueRef.collection("draft").doc("main");
   const [leagueSnapshot, teamsSnapshot, draftSnapshot, playersSnapshot, picksSnapshot] =
     await Promise.all([
-      withEmulatorOperationTimeout(leagueRef.get(), "validate multiplayer league"),
-      withEmulatorOperationTimeout(leagueRef.collection("teams").get(), "validate multiplayer teams"),
-      withEmulatorOperationTimeout(draftRef.get(), "validate multiplayer draft state"),
-      withEmulatorOperationTimeout(
+      withMultiplayerFirestoreTimeout(leagueRef.get(), "validate multiplayer league", environment),
+      withMultiplayerFirestoreTimeout(
+        leagueRef.collection("teams").get(),
+        "validate multiplayer teams",
+        environment,
+      ),
+      withMultiplayerFirestoreTimeout(draftRef.get(), "validate multiplayer draft state", environment),
+      withMultiplayerFirestoreTimeout(
         draftRef.collection("availablePlayers").get(),
         "validate multiplayer available players",
+        environment,
       ),
-      withEmulatorOperationTimeout(draftRef.collection("picks").get(), "validate multiplayer picks"),
+      withMultiplayerFirestoreTimeout(
+        draftRef.collection("picks").get(),
+        "validate multiplayer picks",
+        environment,
+      ),
     ]);
 
   const league = leagueSnapshot.exists

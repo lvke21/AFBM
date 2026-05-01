@@ -12,11 +12,10 @@ import {
   MULTIPLAYER_TEST_LEAGUE_TEAMS,
 } from "./multiplayer-test-league-firestore-seed";
 import {
-  FIRESTORE_SEED_EMULATOR_HOST,
-  FIRESTORE_SEED_PROJECT_ID,
-  ensureFirestoreEmulatorEnvironment,
-  withEmulatorOperationTimeout,
-} from "./firestore-seed";
+  configureMultiplayerFirestoreEnvironment,
+  logMultiplayerFirestoreEnvironment,
+  withMultiplayerFirestoreTimeout,
+} from "./multiplayer-firestore-env";
 
 export const MULTIPLAYER_PLAYER_POOL_SEED = "afbm-multiplayer-player-pool-v1";
 export const MULTIPLAYER_PLAYER_POOL_CREATED_AT = "2026-05-01T10:00:00.000Z";
@@ -400,18 +399,8 @@ export function summarizeMultiplayerPlayerPool(players: FirestoreOnlineDraftAvai
 }
 
 export async function seedMultiplayerPlayerPool() {
-  ensureFirestoreEmulatorEnvironment();
-
-  const projectId = process.env.FIREBASE_PROJECT_ID ?? FIRESTORE_SEED_PROJECT_ID;
-  const emulatorHost = process.env.FIRESTORE_EMULATOR_HOST ?? FIRESTORE_SEED_EMULATOR_HOST;
-
-  if (!projectId.startsWith("demo-")) {
-    throw new Error(`Refusing multiplayer player pool seed for non-demo project "${projectId}".`);
-  }
-
-  if (!emulatorHost) {
-    throw new Error("FIRESTORE_EMULATOR_HOST is required for multiplayer player pool seed.");
-  }
+  const environment = configureMultiplayerFirestoreEnvironment();
+  logMultiplayerFirestoreEnvironment(environment, "seed multiplayer player pool");
 
   const firestore = getFirebaseAdminFirestore();
   const documents = buildMultiplayerPlayerPoolSeedDocuments();
@@ -436,7 +425,11 @@ export async function seedMultiplayerPlayerPool() {
     },
     { merge: true },
   );
-  await withEmulatorOperationTimeout(setupBatch.commit(), "seed multiplayer player pool setup");
+  await withMultiplayerFirestoreTimeout(
+    setupBatch.commit(),
+    "seed multiplayer player pool setup",
+    environment,
+  );
 
   for (let index = 0; index < documents.players.length; index += 400) {
     const batch = firestore.batch();
@@ -445,7 +438,11 @@ export async function seedMultiplayerPlayerPool() {
     batch.set(draftRef.collection("availablePlayers").doc(player.playerId), player, { merge: true });
     });
 
-    await withEmulatorOperationTimeout(batch.commit(), `seed multiplayer player pool chunk ${index / 400 + 1}`);
+    await withMultiplayerFirestoreTimeout(
+      batch.commit(),
+      `seed multiplayer player pool chunk ${index / 400 + 1}`,
+      environment,
+    );
   }
 
   return summarizeMultiplayerPlayerPool(documents.players);
