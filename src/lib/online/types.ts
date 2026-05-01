@@ -55,6 +55,10 @@ export type FirestoreOnlineDraftStateDoc = {
   startedAt: string | null;
   completedAt: string | null;
   draftRunId?: string;
+  seedKey?: string;
+  testData?: boolean;
+  leagueSlug?: string;
+  createdBySeed?: boolean;
 };
 
 export type FirestoreOnlineDraftPickDoc = {
@@ -71,6 +75,10 @@ export type FirestoreOnlineDraftPickDoc = {
 export type FirestoreOnlineDraftAvailablePlayerDoc = OnlineContractPlayer & {
   displayName: string;
   draftRunId?: string;
+  seedKey?: string;
+  testData?: boolean;
+  leagueSlug?: string;
+  createdBySeed?: boolean;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

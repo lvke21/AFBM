@@ -368,6 +368,7 @@ export type OnlineContractPlayer = {
   playerId: string;
   playerName: string;
   position: string;
+  attributes?: Record<string, number>;
   age: number;
   overall: number;
   potential: number;

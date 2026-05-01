@@ -19,3 +19,4 @@ Neue Reports werden nach `docs/guides/documentation-guidelines.md` benannt. Kurz
 - QA Report: `qa-<system>-check.md`
 - Simulation Report: `sim-<scenario>-<runs>-report.md`
 - System Report: `<domain>-<topic>-report.md`
+ 
