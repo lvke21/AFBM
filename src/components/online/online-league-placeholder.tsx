@@ -821,19 +821,23 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
       <AdminControlsPanel />
 
       <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-        <TeamOverviewCard
-          detailState={detailState}
-          isFirebaseMvpMode={isFirebaseMvpMode}
-          showAdvancedLocalActions={showAdvancedLocalActions}
-          mediaFeedback={mediaFeedback}
-          mediaExpectationGoals={MEDIA_EXPECTATION_GOALS}
-          onClaimVacantTeam={handleClaimVacantTeam}
-          onSetMediaExpectation={handleSetMediaExpectation}
-        />
+        <div id="team">
+          <TeamOverviewCard
+            detailState={detailState}
+            isFirebaseMvpMode={isFirebaseMvpMode}
+            showAdvancedLocalActions={showAdvancedLocalActions}
+            mediaFeedback={mediaFeedback}
+            mediaExpectationGoals={MEDIA_EXPECTATION_GOALS}
+            onClaimVacantTeam={handleClaimVacantTeam}
+            onSetMediaExpectation={handleSetMediaExpectation}
+          />
+        </div>
         <LeagueStatusPanel detailState={detailState} />
       </div>
 
-      <PlayerActionsPanel detailState={detailState} />
+      <div id="roster">
+        <PlayerActionsPanel detailState={detailState} />
+      </div>
 
       <section className="mt-8 rounded-lg border border-white/10 bg-[#07111d]/80 p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

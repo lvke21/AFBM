@@ -43,6 +43,7 @@ import {
 } from "../team-identity-options";
 import {
   mapFirestoreSnapshotToOnlineLeague,
+  type FirestoreLeagueMemberMirrorDoc,
   type FirestoreOnlineEventDoc,
   type FirestoreOnlineDraftAvailablePlayerDoc,
   type FirestoreOnlineDraftPickDoc,
@@ -268,27 +269,48 @@ function rejectClientAdminAction<T>(): Promise<T> {
   );
 }
 
+function getMembershipLoadProblem(
+  membership: FirestoreOnlineMembershipDoc | null,
+  teams: FirestoreOnlineTeamDoc[],
+) {
+  if (!membership) {
+    return "missing-membership";
+  }
+
+  if (membership.status !== "active") {
+    return `inactive-membership:${membership.status}`;
+  }
+
+  if (membership.role === "admin") {
+    return null;
+  }
+
+  if (!membership.teamId) {
+    return "missing-team-id";
+  }
+
+  const team = teams.find((candidate) => candidate.id === membership.teamId);
+
+  if (!team) {
+    return `missing-team:${membership.teamId}`;
+  }
+
+  if (team.assignedUserId !== membership.userId) {
+    return `team-user-mismatch:${team.id}`;
+  }
+
+  if (team.status !== "assigned") {
+    return `team-not-assigned:${team.status}`;
+  }
+
+  return null;
+}
+
 export function canLoadOnlineLeagueFromMembership(
   membership: FirestoreOnlineMembershipDoc | null,
   teams: FirestoreOnlineTeamDoc[],
 ) {
-  if (!membership || membership.status !== "active") {
-    return false;
-  }
-
-  if (membership.role === "admin") {
-    return true;
-  }
-
-  return Boolean(
-    membership.teamId &&
-      teams.some(
-        (team) =>
-          team.id === membership.teamId &&
-          team.assignedUserId === membership.userId &&
-          team.status === "assigned",
-      ),
-  );
+  return getMembershipLoadProblem(membership, teams) === null;
 }
 
 export function chooseFirstAvailableFirestoreTeam(teams: FirestoreOnlineTeamDoc[]) {
@@ -386,21 +408,44 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
   }
 
   private async getMemberScopedSnapshot(leagueId: string, userId: string) {
-    const [leagueSnapshot, membershipSnapshot] = await Promise.all([
+    const [leagueSnapshot, membershipSnapshot, mirrorSnapshot] = await Promise.all([
       getDoc(this.leagueRef(leagueId)),
       getDoc(this.membershipRef(leagueId, userId)),
+      getDoc(this.leagueMemberRef(leagueId, userId)),
     ]);
     const league = readDocData<FirestoreOnlineLeagueDoc>(leagueSnapshot);
     const membership = readDocData<FirestoreOnlineMembershipDoc>(membershipSnapshot);
+    const mirror = readDocData<FirestoreLeagueMemberMirrorDoc>(mirrorSnapshot);
 
     if (!league || !membership) {
+      console.warn("[online-league] member-scoped load failed", {
+        leagueId,
+        userId,
+        hasLeague: Boolean(league),
+        hasMembership: Boolean(membership),
+        hasLeagueMemberMirror: Boolean(mirror),
+        mirrorTeamId: mirror?.teamId,
+        mirrorStatus: mirror?.status,
+      });
       return null;
     }
 
     const teamsSnapshot = await getDocs(this.teamsRef(leagueId));
     const teams = teamsSnapshot.docs.map((team) => team.data() as FirestoreOnlineTeamDoc);
+    const membershipProblem = getMembershipLoadProblem(membership, teams);
 
-    if (!canLoadOnlineLeagueFromMembership(membership, teams)) {
+    if (membershipProblem) {
+      console.warn("[online-league] membership/team connection invalid", {
+        leagueId,
+        userId,
+        reason: membershipProblem,
+        membershipTeamId: membership.teamId,
+        membershipStatus: membership.status,
+        membershipRole: membership.role,
+        mirrorTeamId: mirror?.teamId,
+        mirrorStatus: mirror?.status,
+        team: teams.find((team) => team.id === membership.teamId) ?? null,
+      });
       return null;
     }
 

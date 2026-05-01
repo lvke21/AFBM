@@ -1,96 +1,63 @@
-import { createHmac, timingSafeEqual } from "crypto";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import type { NextRequest } from "next/server";
 
 import { createAuditId } from "@/lib/audit/security-audit-log";
+import { getFirebaseAdminAuth } from "@/lib/firebase/admin";
 
-export const ADMIN_SESSION_COOKIE = "afbm.admin.session";
+export type FirebaseAdminClaims = {
+  uid: string;
+  email?: string | null;
+  admin: boolean;
+  authTime?: number;
+};
 
-function getAdminAccessCode() {
-  return process.env.AFBM_ADMIN_ACCESS_CODE ?? process.env.ADMIN_ACCESS_CODE ?? "";
-}
+function readBearerToken(request: NextRequest) {
+  const header = request.headers.get("authorization") ?? "";
+  const [scheme, token] = header.split(" ");
 
-function getAdminSessionSecret() {
-  const sessionSecret = process.env.AFBM_ADMIN_SESSION_SECRET;
-
-  if (sessionSecret) {
-    return sessionSecret;
+  if (scheme?.toLowerCase() !== "bearer" || !token) {
+    return null;
   }
 
-  if (process.env.NODE_ENV === "production") {
-    return "";
-  }
-
-  return getAdminAccessCode();
+  return token;
 }
 
-function createAdminSessionToken() {
-  const secret = getAdminSessionSecret();
-
-  if (!secret) {
-    return "";
-  }
-
-  return createHmac("sha256", secret).update("afbm-admin-session-v1").digest("hex");
-}
-
-function safeEquals(left: string, right: string) {
-  const leftBuffer = Buffer.from(left);
-  const rightBuffer = Buffer.from(right);
-
-  return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
-}
-
-export function isAdminAccessConfigured() {
-  return getAdminAccessCode().trim().length > 0;
-}
-
-export function verifyAdminAccessCode(code: string) {
-  const expectedCode = getAdminAccessCode();
-
-  return expectedCode.trim().length > 0 && safeEquals(code.trim(), expectedCode);
-}
-
-export function getAdminSessionToken() {
-  return createAdminSessionToken();
-}
-
-export async function hasAdminSession() {
-  const token = createAdminSessionToken();
-
-  if (!token) {
-    return false;
-  }
-
-  const cookieStore = await cookies();
-  const cookieToken = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
-
-  return Boolean(cookieToken) && safeEquals(cookieToken ?? "", token);
-}
-
-export async function getAdminSessionAuditId() {
-  const token = createAdminSessionToken();
+export async function verifyFirebaseAdminBearerToken(
+  request: NextRequest,
+): Promise<FirebaseAdminClaims | null> {
+  const token = readBearerToken(request);
 
   if (!token) {
     return null;
   }
 
-  const cookieStore = await cookies();
-  const cookieToken = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
+  try {
+    const decodedToken = await getFirebaseAdminAuth().verifyIdToken(token, true);
 
-  if (!cookieToken || !safeEquals(cookieToken, token)) {
+    if (decodedToken.admin !== true) {
+      return null;
+    }
+
+    return {
+      uid: decodedToken.uid,
+      email: decodedToken.email ?? null,
+      admin: true,
+      authTime: decodedToken.auth_time,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function getAdminClaimAuditId(uid: string) {
+  return createAuditId(`firebase-admin:${uid}`);
+}
+
+export async function requireFirebaseAdminClaim(request: NextRequest) {
+  const claims = await verifyFirebaseAdminBearerToken(request);
+
+  if (!claims) {
     return null;
   }
 
-  return createAuditId(cookieToken);
-}
-
-export async function requireAdminSession(nextPath = "/admin") {
-  if (!isAdminAccessConfigured()) {
-    redirect(`/admin/login?error=not-configured&next=${encodeURIComponent(nextPath)}`);
-  }
-
-  if (!(await hasAdminSession())) {
-    redirect(`/admin/login?next=${encodeURIComponent(nextPath)}`);
-  }
+  return claims;
 }

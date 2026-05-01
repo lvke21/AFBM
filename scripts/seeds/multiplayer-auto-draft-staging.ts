@@ -2,6 +2,7 @@ import { FieldValue } from "firebase-admin/firestore";
 
 import { getFirebaseAdminFirestore } from "../../src/lib/firebase/admin";
 import type {
+  FirestoreLeagueMemberMirrorDoc,
   FirestoreOnlineDraftAvailablePlayerDoc,
   FirestoreOnlineDraftPickDoc,
   FirestoreOnlineDraftStateDoc,
@@ -50,6 +51,10 @@ type ProtectedManagerAssignment = {
   teamId: string;
   assignedUserId: string;
   membershipUserId: string;
+  membershipTeamId: string;
+  mirrorId: string;
+  mirrorTeamId: string;
+  mirrorUserId: string;
 };
 
 type TeamRosterSummary = {
@@ -204,7 +209,7 @@ function createDepthChart(roster: OnlineContractPlayer[]): OnlineDepthChartEntry
   });
 }
 
-function createAutoDraftPlan(input: {
+export function createAutoDraftPlan(input: {
   existingTeams: FirestoreOnlineTeamDoc[];
   availablePlayers: FirestoreOnlineDraftAvailablePlayerDoc[];
   picks: FirestoreOnlineDraftPickDoc[];
@@ -299,6 +304,69 @@ function createAutoDraftPlan(input: {
   };
 }
 
+export function collectProtectedManagerAssignments(input: {
+  teams: FirestoreOnlineTeamDoc[];
+  memberships: FirestoreOnlineMembershipDoc[];
+  mirrors: FirestoreLeagueMemberMirrorDoc[];
+}): {
+  protectedAssignments: ProtectedManagerAssignment[];
+  issues: string[];
+} {
+  const membershipsByUserId = new Map(input.memberships.map((membership) => [membership.userId, membership]));
+  const mirrorsByUserId = new Map(
+    input.mirrors.map((mirror) => [mirror.userId || mirror.uid || mirror.id.split("_").slice(1).join("_"), mirror]),
+  );
+  const issues: string[] = [];
+  const protectedAssignments: ProtectedManagerAssignment[] = [];
+
+  input.teams
+    .filter((team) => team.assignedUserId)
+    .forEach((team) => {
+      const assignedUserId = team.assignedUserId as string;
+      const membership = membershipsByUserId.get(assignedUserId);
+      const mirror = mirrorsByUserId.get(assignedUserId);
+
+      if (!membership || membership.status !== "active") {
+        issues.push(`Missing active membership for protected team ${team.id} and user ${assignedUserId}.`);
+        return;
+      }
+
+      if (membership.teamId !== team.id) {
+        issues.push(
+          `Membership team mismatch for user ${assignedUserId}: team has ${team.id}, membership has ${membership.teamId}.`,
+        );
+        return;
+      }
+
+      if (!mirror || mirror.status !== "ACTIVE") {
+        issues.push(`Missing active leagueMembers mirror for protected team ${team.id} and user ${assignedUserId}.`);
+        return;
+      }
+
+      if (mirror.teamId !== team.id || mirror.userId !== assignedUserId) {
+        issues.push(
+          `Mirror mismatch for user ${assignedUserId}: team has ${team.id}, mirror has ${mirror.teamId}/${mirror.userId}.`,
+        );
+        return;
+      }
+
+      protectedAssignments.push({
+        teamId: team.id,
+        assignedUserId,
+        membershipUserId: membership.userId,
+        membershipTeamId: membership.teamId,
+        mirrorId: mirror.id,
+        mirrorTeamId: mirror.teamId,
+        mirrorUserId: mirror.userId,
+      });
+    });
+
+  return {
+    protectedAssignments,
+    issues,
+  };
+}
+
 function summarizeRoster(team: FirestoreOnlineTeamDoc, roster: OnlineContractPlayer[]): TeamRosterSummary {
   const positions = roster.reduce<Record<string, number>>((counts, player) => {
     counts[player.position] = (counts[player.position] ?? 0) + 1;
@@ -317,15 +385,17 @@ function summarizeRoster(team: FirestoreOnlineTeamDoc, roster: OnlineContractPla
   };
 }
 
-function validateAutoDraft(input: {
+export function validateAutoDraft(input: {
   teams: FirestoreOnlineTeamDoc[];
   memberships: FirestoreOnlineMembershipDoc[];
+  mirrors: FirestoreLeagueMemberMirrorDoc[];
   preservedManagerTeams: ProtectedManagerAssignment[];
   plan: AutoDraftPlan;
 }) {
   const issues: string[] = [];
   const teamIds = input.teams.map((team) => team.id);
   const pickedPlayerIds = input.plan.picks.map((pick) => pick.playerId);
+  const mirrorsById = new Map(input.mirrors.map((mirror) => [mirror.id, mirror]));
 
   if (input.teams.length !== TARGET_TEAM_COUNT) {
     issues.push(`Expected ${TARGET_TEAM_COUNT} teams, found ${input.teams.length}.`);
@@ -345,6 +415,17 @@ function validateAutoDraft(input: {
 
     if (!membership || membership.teamId !== preserved.teamId) {
       issues.push(`Membership changed for user ${preserved.membershipUserId}.`);
+    }
+
+    const mirror = mirrorsById.get(preserved.mirrorId);
+
+    if (
+      !mirror ||
+      mirror.userId !== preserved.mirrorUserId ||
+      mirror.teamId !== preserved.mirrorTeamId ||
+      mirror.status !== "ACTIVE"
+    ) {
+      issues.push(`League member mirror changed for user ${preserved.membershipUserId}.`);
     }
   }
 
@@ -414,12 +495,19 @@ export async function autoDraftMultiplayerTestLeague(): Promise<MultiplayerAutoD
     leagueSnapshot,
     teamsSnapshot,
     membershipsSnapshot,
+    mirrorsSnapshot,
     availablePlayersSnapshot,
     picksSnapshot,
   ] = await Promise.all([
     withMultiplayerFirestoreTimeout(leagueRef.get(), "read multiplayer test league", environment, 30_000),
     withMultiplayerFirestoreTimeout(leagueRef.collection("teams").get(), "read multiplayer teams", environment, 30_000),
     withMultiplayerFirestoreTimeout(leagueRef.collection("memberships").get(), "read multiplayer memberships", environment, 30_000),
+    withMultiplayerFirestoreTimeout(
+      firestore.collection("leagueMembers").where("leagueId", "==", MULTIPLAYER_TEST_LEAGUE_ID).get(),
+      "read multiplayer league member mirrors",
+      environment,
+      30_000,
+    ),
     withMultiplayerFirestoreTimeout(draftRef.collection("availablePlayers").get(), "read multiplayer players", environment, 30_000),
     withMultiplayerFirestoreTimeout(draftRef.collection("picks").get(), "read multiplayer picks", environment, 30_000),
   ]);
@@ -436,17 +524,24 @@ export async function autoDraftMultiplayerTestLeague(): Promise<MultiplayerAutoD
 
   const existingTeams = teamsSnapshot.docs.map((document) => document.data() as FirestoreOnlineTeamDoc);
   const memberships = membershipsSnapshot.docs.map((document) => document.data() as FirestoreOnlineMembershipDoc);
+  const mirrors = mirrorsSnapshot.docs.map((document) => document.data() as FirestoreLeagueMemberMirrorDoc);
   const availablePlayers = availablePlayersSnapshot.docs.map(
     (document) => document.data() as FirestoreOnlineDraftAvailablePlayerDoc,
   );
   const existingPicks = picksSnapshot.docs.map((document) => document.data() as FirestoreOnlineDraftPickDoc);
-  const preservedManagerTeams = existingTeams
-    .filter((team) => team.assignedUserId)
-    .map((team) => ({
-      teamId: team.id,
-      assignedUserId: team.assignedUserId as string,
-      membershipUserId: memberships.find((membership) => membership.teamId === team.id)?.userId ?? "",
-    }));
+  const protectedManagerState = collectProtectedManagerAssignments({
+    teams: existingTeams,
+    memberships,
+    mirrors,
+  });
+
+  if (protectedManagerState.issues.length > 0) {
+    throw new Error(
+      `Auto-draft found unsafe manager assignments before write: ${protectedManagerState.issues.join("; ")}`,
+    );
+  }
+
+  const preservedManagerTeams = protectedManagerState.protectedAssignments;
   const plan = createAutoDraftPlan({
     existingTeams,
     availablePlayers,
@@ -458,6 +553,7 @@ export async function autoDraftMultiplayerTestLeague(): Promise<MultiplayerAutoD
       assignedUserId: existingTeams.find((existingTeam) => existingTeam.id === team.id)?.assignedUserId ?? team.assignedUserId,
     })),
     memberships,
+    mirrors,
     preservedManagerTeams,
     plan,
   });
@@ -492,7 +588,6 @@ export async function autoDraftMultiplayerTestLeague(): Promise<MultiplayerAutoD
       );
     });
   });
-
   picksSnapshot.docs.forEach((document) => {
     operations.push((batch) => batch.delete(document.ref));
   });
@@ -524,6 +619,10 @@ export async function autoDraftMultiplayerTestLeague(): Promise<MultiplayerAutoD
           settings: {
             ...league.settings,
             foundationStatus: "roster_ready",
+            phase: "roster_ready",
+            currentPhase: "roster_ready",
+            gamePhase: "pre_week",
+            rosterReady: true,
             draftExecuted: true,
             autoDraftBackfilled: true,
             autoDraftCompletedAt: AUTO_DRAFT_COMPLETED_AT,

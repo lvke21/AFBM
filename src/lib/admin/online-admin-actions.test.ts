@@ -16,8 +16,8 @@ import {
 
 const actor = {
   adminSessionId: "admin-session-test",
-  adminUserId: "admin-session",
-  source: "admin-session" as const,
+  adminUserId: "firebase-admin-test",
+  source: "firebase-admin-claim" as const,
 };
 
 function completeFantasyDraftForLocalState(

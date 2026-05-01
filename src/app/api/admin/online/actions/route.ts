@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
   try {
     input = (await request.json()) as OnlineAdminActionInput;
-    actor = await requireAdminActionSession();
+    actor = await requireAdminActionSession(request);
   } catch (error) {
     auditAdminAction({
       request,

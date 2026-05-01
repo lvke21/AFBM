@@ -214,6 +214,19 @@ export type FirestoreOnlineMembershipDoc = {
   displayName: string;
 };
 
+export type FirestoreLeagueMemberMirrorDoc = {
+  id: string;
+  leagueId: string;
+  leagueSlug?: string;
+  uid?: string;
+  userId: string;
+  role: "GM" | "ADMIN" | "OWNER";
+  status: "ACTIVE" | "INACTIVE" | "REMOVED";
+  teamId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type FirestoreOnlineTeamDoc = {
   id: string;
   cityId?: string;

@@ -5,6 +5,7 @@ import {
   initializeApp,
   type App,
 } from "firebase-admin/app";
+import { getAuth, type Auth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 // Server-only module by convention: do not import from Client Components.
@@ -99,4 +100,8 @@ export function getFirebaseAdminApp(): App {
 
 export function getFirebaseAdminFirestore(): Firestore {
   return getFirestore(getFirebaseAdminApp());
+}
+
+export function getFirebaseAdminAuth(): Auth {
+  return getAuth(getFirebaseAdminApp());
 }

@@ -2,15 +2,14 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { auditSecurityEvent } from "@/lib/audit/security-audit-log";
 import {
-  getAdminSessionAuditId,
-  hasAdminSession,
-  isAdminAccessConfigured,
+  getAdminClaimAuditId,
+  requireFirebaseAdminClaim,
 } from "@/lib/admin/admin-session";
 
 export type AdminActionActor = {
   adminSessionId: string;
   adminUserId: string;
-  source: "admin-session";
+  source: "firebase-admin-claim";
 };
 
 export type AdminAuditStatus = "success" | "denied" | "failed";
@@ -25,27 +24,21 @@ export class AdminActionError extends Error {
   }
 }
 
-export async function requireAdminActionSession(): Promise<AdminActionActor> {
-  if (!isAdminAccessConfigured()) {
-    throw new AdminActionError(
-      "Adminzugang ist serverseitig nicht konfiguriert.",
-      503,
-      "ADMIN_NOT_CONFIGURED",
-    );
-  }
+export async function requireAdminActionSession(request: NextRequest): Promise<AdminActionActor> {
+  const claims = await requireFirebaseAdminClaim(request);
 
-  if (!(await hasAdminSession())) {
+  if (!claims) {
     throw new AdminActionError(
-      "Du bist nicht als Admin angemeldet.",
+      "Du bist nicht als Firebase-Admin angemeldet.",
       401,
       "ADMIN_UNAUTHORIZED",
     );
   }
 
   return {
-    adminSessionId: (await getAdminSessionAuditId()) ?? "unknown",
-    adminUserId: "admin-session",
-    source: "admin-session",
+    adminSessionId: getAdminClaimAuditId(claims.uid),
+    adminUserId: claims.uid,
+    source: "firebase-admin-claim",
   };
 }
 
@@ -88,7 +81,7 @@ export function auditAdminAction(input: {
     outcome: input.status,
     actor: {
       adminSessionId: input.actor?.adminSessionId,
-      source: input.actor?.source ?? "admin-session",
+      source: input.actor?.source ?? "firebase-admin-claim",
       userId: input.actor?.adminUserId ?? "anonymous",
     },
     leagueId: input.leagueId,

@@ -352,7 +352,7 @@ export function PlayerActionsPanel({
       </div>
 
       {detailState.roster && detailState.roster.depthChart.length > 0 ? (
-        <div className="mt-5 rounded-lg border border-white/10 bg-white/5 p-4">
+        <div id="depth-chart" className="mt-5 rounded-lg border border-white/10 bg-white/5 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
             <GlossaryTerm term="depthChart">Depth Chart</GlossaryTerm>
           </p>

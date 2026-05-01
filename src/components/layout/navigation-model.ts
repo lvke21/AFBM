@@ -18,6 +18,11 @@ export type AppShellContext = {
     currentRecord: string;
   } | null;
   nextGameHref?: string | null;
+  online?: {
+    draftStatus: "not_started" | "active" | "completed";
+    rosterReady: boolean;
+    teamNavigationReady: boolean;
+  };
 };
 
 export type NavigationItem = {
@@ -44,15 +49,33 @@ function saveGameBase(context: AppShellContext) {
 
 export function buildNavigationItems(context: AppShellContext): NavigationItem[] {
   const base = saveGameBase(context);
-  const teamHref = base && context.managerTeam ? `${base}/team` : null;
-  const rosterHref = teamHref ? `${teamHref}/roster` : null;
-  const depthChartHref = teamHref ? `${teamHref}/depth-chart` : null;
-  const contractsHref = teamHref ? `${teamHref}/contracts` : null;
-  const tradeBoardHref = teamHref ? `${teamHref}/trades` : null;
-  const financeHref = base && context.managerTeam ? `${base}/finance` : null;
-  const seasonHref = base && context.currentSeason ? `${base}/league` : null;
+  const onlineTeamReady = context.online?.teamNavigationReady === true;
+  const onlineDraftActive = context.online?.draftStatus === "active";
+  const isOnlineLeague = Boolean(context.online && base);
+  const teamHref = isOnlineLeague
+    ? onlineTeamReady ? `${base}#team` : null
+    : base && context.managerTeam ? `${base}/team` : null;
+  const rosterHref = isOnlineLeague
+    ? onlineTeamReady ? `${base}#roster` : null
+    : teamHref ? `${teamHref}/roster` : null;
+  const depthChartHref = isOnlineLeague
+    ? onlineTeamReady ? `${base}#depth-chart` : null
+    : teamHref ? `${teamHref}/depth-chart` : null;
+  const contractsHref = isOnlineLeague ? null : teamHref ? `${teamHref}/contracts` : null;
+  const tradeBoardHref = isOnlineLeague ? null : teamHref ? `${teamHref}/trades` : null;
+  const financeHref = isOnlineLeague ? null : base && context.managerTeam ? `${base}/finance` : null;
+  const seasonHref = isOnlineLeague
+    ? base ? `${base}#league` : null
+    : base && context.currentSeason ? `${base}/league` : null;
   const developmentHref = base ? `${base}/development` : null;
   const draftHref = base ? `${base}/draft` : null;
+  const teamDisabledReason = isOnlineLeague
+    ? onlineDraftActive
+      ? "Draft läuft"
+      : context.online?.rosterReady === false
+        ? "Roster nicht vollständig"
+        : "Kein Manager-Team"
+    : "Kein Manager-Team";
 
   return [
     {
@@ -73,14 +96,14 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
       href: rosterHref,
       activePatterns: ["/team/roster", "/players/"],
       section: "Core Actions",
-      disabledReason: teamHref ? undefined : "Kein Manager-Team",
+      disabledReason: rosterHref ? undefined : teamDisabledReason,
     },
     {
       label: "Depth Chart",
       href: depthChartHref,
       activePatterns: ["/team/depth-chart"],
       section: "Core Actions",
-      disabledReason: teamHref ? undefined : "Kein Manager-Team",
+      disabledReason: depthChartHref ? undefined : teamDisabledReason,
     },
     {
       label: "Contracts/Cap",
@@ -102,7 +125,7 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
       activePatterns: ["/team"],
       excludePatterns: ["/team/roster", "/team/depth-chart", "/team/contracts", "/team/trades"],
       section: "Team Management",
-      disabledReason: teamHref ? undefined : "Kein Manager-Team",
+      disabledReason: teamHref ? undefined : teamDisabledReason,
     },
     {
       label: "Trade Board",

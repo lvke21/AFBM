@@ -152,14 +152,19 @@ export function OnlineLeagueDraftPage({ leagueId }: { leagueId: string }) {
   }
 
   if (!league?.fantasyDraft || league.fantasyDraft.status === "completed") {
+    const completedPickCount = league?.fantasyDraft?.picks.length ?? 0;
+
     return (
       <section className="rounded-lg border border-white/10 bg-white/[0.035] p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
           Draft
         </p>
-        <h2 className="mt-2 text-2xl font-semibold text-white">Draftboard nicht aktiv</h2>
+        <h2 className="mt-2 text-2xl font-semibold text-white">Draft abgeschlossen</h2>
         <p className="mt-2 text-sm text-slate-300">
-          Der Draft ist aktuell nicht aktiv oder bereits abgeschlossen.
+          Der Fantasy Draft ist abgeschlossen. Roster und Depth Charts sind im Dashboard verfügbar.
+        </p>
+        <p className="mt-3 w-fit rounded-lg border border-emerald-200/25 bg-emerald-300/10 px-3 py-2 text-sm font-semibold text-emerald-100">
+          {completedPickCount} Picks gespeichert
         </p>
       </section>
     );

@@ -436,6 +436,12 @@ describe("online league repository backbone", () => {
     expect(canLoadOnlineLeagueFromMembership(firestoreMembership(), teams)).toBe(true);
     expect(
       canLoadOnlineLeagueFromMembership(
+        firestoreMembership({ teamId: "team-a" }),
+        [firestoreTeam("team-a", { assignedUserId: "firebase-user", status: "available" })],
+      ),
+    ).toBe(false);
+    expect(
+      canLoadOnlineLeagueFromMembership(
         firestoreMembership({ userId: "outsider", teamId: "team-a" }),
         teams,
       ),

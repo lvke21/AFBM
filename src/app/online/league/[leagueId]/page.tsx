@@ -1,5 +1,5 @@
 import { OnlineAuthGate } from "@/components/auth/online-auth-gate";
-import { AppShell } from "@/components/layout/app-shell";
+import { OnlineLeagueAppShell } from "@/components/online/online-league-app-shell";
 import { OnlineLeaguePlaceholder } from "@/components/online/online-league-placeholder";
 
 type OnlineLeaguePageProps = {
@@ -12,21 +12,10 @@ export default async function OnlineLeaguePage({ params }: OnlineLeaguePageProps
   const { leagueId } = await params;
 
   return (
-    <AppShell
-      context={{
-        saveGame: {
-          id: leagueId,
-          name: "Online Multiplayer",
-          leagueName: "AFBM Online",
-        },
-        baseHref: `/online/league/${leagueId}`,
-        currentSeason: null,
-        managerTeam: null,
-      }}
-    >
+    <OnlineLeagueAppShell leagueId={leagueId}>
       <OnlineAuthGate>
         <OnlineLeaguePlaceholder leagueId={leagueId} />
       </OnlineAuthGate>
-    </AppShell>
+    </OnlineLeagueAppShell>
   );
 }

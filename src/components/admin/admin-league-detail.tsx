@@ -14,6 +14,7 @@ import {
   getLocalAdminBrowserState,
   type LocalAdminBrowserStatePatch,
 } from "@/lib/admin/local-admin-browser-state";
+import { getFirebaseAdminActionHeaders } from "@/lib/admin/admin-api-client";
 import { AdminFeedbackBanner } from "./admin-feedback-banner";
 import { useAdminPendingAction } from "./use-admin-pending-action";
 
@@ -281,9 +282,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
   ): Promise<AdminActionResponse> {
     const response = await fetch("/admin/api/online/actions", {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
+      headers: await getFirebaseAdminActionHeaders(),
       body: JSON.stringify({
         action,
         backendMode: repository.mode,

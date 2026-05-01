@@ -93,15 +93,12 @@ export function assertRuntimeEnvironment(env: RuntimeEnv = process.env) {
     requireStrongSecret("DATABASE_URL", 16);
   }
 
-  const adminAccessCode = requireStrongSecret("AFBM_ADMIN_ACCESS_CODE", 16);
-  const adminSessionSecret = requireStrongSecret("AFBM_ADMIN_SESSION_SECRET", 32);
-
   if (env.ADMIN_ACCESS_CODE) {
-    issues.push("ADMIN_ACCESS_CODE is a legacy alias and must not be set outside local development; use AFBM_ADMIN_ACCESS_CODE.");
+    issues.push("ADMIN_ACCESS_CODE is deprecated; Admin access uses Firebase Auth custom claims.");
   }
 
-  if (adminAccessCode && adminAccessCode === adminSessionSecret) {
-    issues.push("AFBM_ADMIN_SESSION_SECRET must be distinct from AFBM_ADMIN_ACCESS_CODE.");
+  if (env.AFBM_ADMIN_ACCESS_CODE || env.AFBM_ADMIN_SESSION_SECRET) {
+    issues.push("AFBM_ADMIN_ACCESS_CODE and AFBM_ADMIN_SESSION_SECRET are deprecated; use Firebase Auth custom claims.");
   }
 
   for (const name of EMULATOR_ENV_NAMES) {

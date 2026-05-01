@@ -1,40 +1,27 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  ADMIN_SESSION_COOKIE,
-  getAdminSessionToken,
-} from "@/lib/admin/admin-session";
 import { ONLINE_LEAGUES_STORAGE_KEY } from "@/lib/online/online-league-constants";
 
 import { POST } from "./route";
 
-const cookiesMock = vi.hoisted(() => vi.fn());
-const ORIGINAL_ENV = { ...process.env };
+const verifyIdTokenMock = vi.hoisted(() => vi.fn());
 
-vi.mock("next/headers", () => ({
-  cookies: cookiesMock,
+vi.mock("@/lib/firebase/admin", () => ({
+  getFirebaseAdminAuth: () => ({
+    verifyIdToken: verifyIdTokenMock,
+  }),
 }));
 
-function postRequest(body: unknown) {
+function postRequest(body: unknown, token: string | null = null) {
   return new NextRequest("http://localhost/api/admin/online/actions", {
     method: "POST",
     headers: {
       "content-type": "application/json",
       "user-agent": "vitest",
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(body),
-  });
-}
-
-function setCookieToken(value: string | null) {
-  cookiesMock.mockResolvedValue({
-    get: (name: string) =>
-      name === ADMIN_SESSION_COOKIE && value
-        ? {
-            value,
-          }
-        : undefined,
   });
 }
 
@@ -57,25 +44,26 @@ function readConsoleJson(spy: "info" | "warn", index = 0) {
 }
 
 beforeEach(() => {
-  process.env = {
-    ...ORIGINAL_ENV,
-    AFBM_ADMIN_ACCESS_CODE: "route-admin-code",
-    AFBM_ADMIN_SESSION_SECRET: "route-admin-secret",
-  };
-  cookiesMock.mockReset();
+  verifyIdTokenMock.mockReset();
   vi.spyOn(console, "info").mockImplementation(() => undefined);
   vi.spyOn(console, "warn").mockImplementation(() => undefined);
 });
 
 afterEach(() => {
-  process.env = { ...ORIGINAL_ENV };
   vi.restoreAllMocks();
 });
 
+function allowAdmin(uid = "firebase-admin-user") {
+  verifyIdTokenMock.mockResolvedValue({
+    uid,
+    email: `${uid}@example.test`,
+    admin: true,
+    auth_time: 1_765_000_000,
+  });
+}
+
 describe("admin online action route", () => {
   it("rejects anonymous users without an admin session", async () => {
-    setCookieToken(null);
-
     const response = await POST(
       postRequest({
         action: "createLeague",
@@ -98,7 +86,10 @@ describe("admin online action route", () => {
   });
 
   it("rejects normal users even when they send local user data", async () => {
-    setCookieToken(null);
+    verifyIdTokenMock.mockResolvedValue({
+      uid: "normal-user",
+      admin: false,
+    });
 
     const response = await POST(
       postRequest({
@@ -109,7 +100,7 @@ describe("admin online action route", () => {
           username: "NormalGM",
           leaguesJson: "[]",
         },
-      }),
+      }, "normal-token"),
     );
     const body = await response.json();
 
@@ -117,8 +108,8 @@ describe("admin online action route", () => {
     expect(body.code).toBe("ADMIN_UNAUTHORIZED");
   });
 
-  it("allows an admin with a valid server session to execute a local admin action", async () => {
-    setCookieToken(getAdminSessionToken());
+  it("allows an admin with a valid Firebase admin claim to execute a local admin action", async () => {
+    allowAdmin("firebase-admin-user");
 
     const response = await POST(
       postRequest({
@@ -130,7 +121,7 @@ describe("admin online action route", () => {
         localState: {
           leaguesJson: "[]",
         },
-      }),
+      }, "admin-token"),
     );
     const body = await response.json();
     const leagues = JSON.parse(body.localState.leaguesJson) as Array<{
@@ -147,7 +138,7 @@ describe("admin online action route", () => {
       action: "createLeague",
       outcome: "success",
       actor: {
-        userId: "admin-session",
+        userId: "firebase-admin-user",
       },
     });
     expect(readConsoleJson("info").actor?.adminSessionId).toHaveLength(24);
@@ -160,7 +151,7 @@ describe("admin online action route", () => {
   });
 
   it("rejects manipulated admin requests with missing required targets", async () => {
-    setCookieToken(getAdminSessionToken());
+    allowAdmin();
 
     const response = await POST(
       postRequest({
@@ -169,7 +160,7 @@ describe("admin online action route", () => {
         localState: {
           [ONLINE_LEAGUES_STORAGE_KEY]: "[]",
         },
-      }),
+      }, "admin-token"),
     );
     const body = await response.json();
 

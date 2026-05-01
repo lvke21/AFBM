@@ -3,8 +3,6 @@ import { describe, expect, it } from "vitest";
 import { assertRuntimeEnvironment, readDeployEnvironment } from "./runtime-env";
 
 const stagingEnv = {
-  AFBM_ADMIN_ACCESS_CODE: "staging-admin-code-123",
-  AFBM_ADMIN_SESSION_SECRET: "staging-admin-session-secret-123456",
   AFBM_DEPLOY_ENV: "staging",
   AFBM_ONLINE_BACKEND: "firebase",
   DATA_BACKEND: "firestore",
@@ -38,7 +36,7 @@ describe("runtime environment validation", () => {
     expect(readDeployEnvironment({ NODE_ENV: "production" })).toBe("production");
   });
 
-  it("allows staging with server-side secrets and no local backend", () => {
+  it("allows staging with Firebase custom-claim admin and no local backend", () => {
     expect(assertRuntimeEnvironment(stagingEnv)).toEqual({ deployEnvironment: "staging" });
   });
 
@@ -68,12 +66,12 @@ describe("runtime environment validation", () => {
     ).toThrow("NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST");
   });
 
-  it("blocks legacy admin alias and matching admin session secret in production", () => {
+  it("blocks deprecated admin password env in production", () => {
     expect(() =>
       assertRuntimeEnvironment({
         ...productionEnv,
         ADMIN_ACCESS_CODE: "legacy-admin-code",
-        AFBM_ADMIN_SESSION_SECRET: productionEnv.AFBM_ADMIN_ACCESS_CODE,
+        AFBM_ADMIN_ACCESS_CODE: "legacy-admin-code",
       }),
     ).toThrow("ADMIN_ACCESS_CODE");
   });
