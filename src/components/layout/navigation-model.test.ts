@@ -187,4 +187,33 @@ describe("GM navigation model", () => {
     expect(items.find((item) => item.label === "Team Overview")?.href).toBeNull();
     expect(items.find((item) => item.label === "Roster")?.href).toBeNull();
   });
+
+  it("uses the existing sidebar draft item for an online league context", () => {
+    const onlineContext: AppShellContext = {
+      saveGame: {
+        id: "afbm-multiplayer-test-league",
+        name: "Online Multiplayer",
+        leagueName: "AFBM Online",
+      },
+      baseHref: "/online/league/afbm-multiplayer-test-league",
+      currentSeason: null,
+      managerTeam: null,
+    };
+    const items = buildNavigationItems(onlineContext);
+    const dashboard = items.find((item) => item.label === "Dashboard");
+    const draft = items.find((item) => item.label === "Draft");
+
+    expect(dashboard?.href).toBe("/online/league/afbm-multiplayer-test-league");
+    expect(draft?.href).toBe("/online/league/afbm-multiplayer-test-league/draft");
+    expect(
+      dashboard && isNavigationItemActive(dashboard, "/online/league/afbm-multiplayer-test-league"),
+    ).toBe(true);
+    expect(
+      draft &&
+        isNavigationItemActive(
+          draft,
+          "/online/league/afbm-multiplayer-test-league/draft",
+        ),
+    ).toBe(true);
+  });
 });

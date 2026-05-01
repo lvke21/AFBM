@@ -49,7 +49,6 @@ import {
 } from "./online-league-overview-sections";
 import {
   AdminControlsPanel,
-  DraftStatusPanel,
   ErrorState,
   LeagueHeader,
   LeagueStatusPanel,
@@ -101,11 +100,6 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
   const [contractFeedback, setContractFeedback] = useState<string | null>(null);
   const [tradeFeedback, setTradeFeedback] = useState<string | null>(null);
   const [draftFeedback, setDraftFeedback] = useState<string | null>(null);
-  const [fantasyDraftFeedback, setFantasyDraftFeedback] = useState<{
-    tone: "success" | "warning";
-    message: string;
-  } | null>(null);
-  const [pendingFantasyDraftPickId, setPendingFantasyDraftPickId] = useState<string | null>(null);
   const [coachFeedback, setCoachFeedback] = useState<string | null>(null);
   const [mediaFeedback, setMediaFeedback] = useState<string | null>(null);
   const [franchiseStrategy, setFranchiseStrategy] =
@@ -641,42 +635,6 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     setDraftFeedback(result.message);
   }
 
-  async function handleFantasyDraftPick(playerId: string) {
-    if (!currentUser || !currentLeagueUser || pendingFantasyDraftPickId) {
-      return;
-    }
-
-    setPendingFantasyDraftPickId(playerId);
-    setFantasyDraftFeedback(null);
-
-    try {
-      const result = await repository.makeFantasyDraftPick(
-        leagueId,
-        currentLeagueUser.teamId,
-        playerId,
-      );
-
-      if (result.league) {
-        setLeague(result.league);
-      }
-
-      setFantasyDraftFeedback({
-        tone: result.status === "success" || result.status === "completed" ? "success" : "warning",
-        message: result.message,
-      });
-    } catch (error) {
-      setFantasyDraftFeedback({
-        tone: "warning",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Pick konnte nicht gespeichert werden. Bitte versuche es erneut.",
-      });
-    } finally {
-      setPendingFantasyDraftPickId(null);
-    }
-  }
-
   function handleHireCoach(coachId: string) {
     if (!currentUser) {
       return;
@@ -811,23 +769,6 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
         copy={getMissingTeamRecoveryCopy()}
         onRetry={handleRetryLoad}
         retryLabel="Team erneut laden"
-      />
-    );
-  }
-
-  if (
-    league &&
-    currentUser &&
-    league.fantasyDraft &&
-    league.fantasyDraft.status !== "completed"
-  ) {
-    return (
-      <DraftStatusPanel
-        league={league}
-        currentUser={currentUser}
-        pendingPickPlayerId={pendingFantasyDraftPickId}
-        feedback={fantasyDraftFeedback}
-        onPickPlayer={handleFantasyDraftPick}
       />
     );
   }

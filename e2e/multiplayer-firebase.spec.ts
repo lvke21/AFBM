@@ -108,10 +108,6 @@ async function joinSeededLeague(page: Page) {
 
   await expect(joinButton).toBeEnabled();
   await joinButton.click();
-  await expect(page.getByText("Du bist der Liga beigetreten.")).toBeVisible({
-    timeout: 15_000,
-  });
-  await page.getByRole("link", { name: "Liga öffnen" }).click();
   await expect(page.getByRole("heading", { name: "Was jetzt tun?" })).toBeVisible({
     timeout: 15_000,
   });

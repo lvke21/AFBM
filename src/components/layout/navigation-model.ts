@@ -4,6 +4,7 @@ export type AppShellContext = {
     name: string;
     leagueName: string;
   } | null;
+  baseHref?: string | null;
   currentSeason: {
     id: string;
     year: number;
@@ -34,6 +35,10 @@ export type BreadcrumbItem = {
 };
 
 function saveGameBase(context: AppShellContext) {
+  if (context.baseHref) {
+    return context.baseHref;
+  }
+
   return context.saveGame ? `/app/savegames/${context.saveGame.id}` : null;
 }
 

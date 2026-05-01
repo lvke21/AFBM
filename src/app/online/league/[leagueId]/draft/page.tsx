@@ -1,14 +1,14 @@
 import { OnlineAuthGate } from "@/components/auth/online-auth-gate";
 import { AppShell } from "@/components/layout/app-shell";
-import { OnlineLeaguePlaceholder } from "@/components/online/online-league-placeholder";
+import { OnlineLeagueDraftPage } from "@/components/online/online-league-draft-page";
 
-type OnlineLeaguePageProps = {
+type OnlineDraftPageProps = {
   params: Promise<{
     leagueId: string;
   }>;
 };
 
-export default async function OnlineLeaguePage({ params }: OnlineLeaguePageProps) {
+export default async function OnlineDraftPage({ params }: OnlineDraftPageProps) {
   const { leagueId } = await params;
 
   return (
@@ -25,7 +25,7 @@ export default async function OnlineLeaguePage({ params }: OnlineLeaguePageProps
       }}
     >
       <OnlineAuthGate>
-        <OnlineLeaguePlaceholder leagueId={leagueId} />
+        <OnlineLeagueDraftPage leagueId={leagueId} />
       </OnlineAuthGate>
     </AppShell>
   );

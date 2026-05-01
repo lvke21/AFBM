@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { OnlineLeague } from "@/lib/online/online-league-types";
@@ -45,6 +46,7 @@ export function OnlineLeagueSearch() {
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const joiningLeagueIdRef = useRef<string | null>(null);
   const repository = useMemo(() => getOnlineLeagueRepository(), []);
+  const router = useRouter();
   const modeStatus = getOnlineModeStatusCopy(repository.mode);
   const leagueCards = leagues
     .map(toLeagueSearchCard)
@@ -178,6 +180,7 @@ export function OnlineLeagueSearch() {
             ? "Du bist bereits Mitglied dieser Liga."
             : "Du bist der Liga beigetreten.",
       });
+      router.push(`/online/league/${selectedLeague.id}`);
     } catch (error) {
       const recovery = getOnlineRecoveryCopy(error, {
         title: "Beitritt konnte nicht gespeichert werden.",

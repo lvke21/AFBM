@@ -414,6 +414,9 @@ test.describe("Multiplayer Fantasy Draft E2E", () => {
         waitUntil: "domcontentloaded",
       });
 
+      await expect(page.getByRole("heading", { name: "Was jetzt tun?" })).toBeVisible();
+      await expect(page.getByText("Draft Room")).toHaveCount(0);
+      await page.getByRole("link", { name: "Draft" }).click();
       await expect(page.getByText("Draft Room")).toBeVisible();
       await expect(page.getByText("Warte auf anderes Team")).toBeVisible();
       await expect(page.getByRole("button", { name: "Pick bestaetigen" })).toBeDisabled();

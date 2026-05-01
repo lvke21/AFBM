@@ -67,10 +67,9 @@ async function joinFirstLeague(page: Page) {
   await expect(joinButton).toBeEnabled();
   await joinButton.click();
   await joinButton.click({ timeout: 500 }).catch(() => undefined);
-  await expect(
-    page.getByText(/Du bist (der Liga beigetreten|bereits Mitglied dieser Liga)\./),
-  ).toBeVisible({ timeout: 10_000 });
-  await expect(page.getByRole("link", { name: "Liga öffnen" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Was jetzt tun?" })).toBeVisible({
+    timeout: 10_000,
+  });
 
   const memberCount = await page.evaluate(() => {
     const leagues = JSON.parse(localStorage.getItem("afbm.online.leagues") ?? "[]");
@@ -87,7 +86,6 @@ async function joinFirstLeague(page: Page) {
 }
 
 async function openJoinedLeagueDashboard(page: Page) {
-  await page.getByRole("link", { name: "Liga öffnen" }).dispatchEvent("click");
   await expect(page.getByRole("heading", { name: "Was jetzt tun?" })).toBeVisible();
 }
 
