@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { useFirebaseAuthState } from "@/components/auth/firebase-auth-provider";
+import { isAdminUid } from "@/lib/admin/admin-claims";
 import { getOnlineFirebaseAuth } from "@/lib/online/auth/online-auth";
 
 type AdminClaimState =
@@ -46,7 +47,7 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
           return;
         }
 
-        if (token.claims.admin === true) {
+        if (token.claims.admin === true || isAdminUid(firebaseUser.uid)) {
           setClaimState({ status: "allowed", uid: firebaseUser.uid });
           return;
         }

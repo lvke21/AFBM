@@ -34,17 +34,34 @@ gegen das Firebase ID Token geprüft.
 Direkt:
 
 ```bash
-GOOGLE_CLOUD_PROJECT=afbm-staging node scripts/set-admin.js KFy5PrqAzzP7vRbfP4wIDamzbh43
+node scripts/set-admin.js --project afbm-staging KFy5PrqAzzP7vRbfP4wIDamzbh43
 ```
 
 Oder per npm Script:
 
 ```bash
-GOOGLE_CLOUD_PROJECT=afbm-staging npm run firebase:set-admin -- KFy5PrqAzzP7vRbfP4wIDamzbh43
+GOOGLE_CLOUD_PROJECT=afbm-staging npm run firebase:set-admin -- --project afbm-staging KFy5PrqAzzP7vRbfP4wIDamzbh43
 ```
 
 Das Script nutzt Firebase Admin SDK mit Application Default Credentials und setzt
-`admin: true`, ohne bestehende Custom Claims zu entfernen.
+`admin: true`, ohne bestehende Custom Claims zu entfernen. Nach dem Schreiben liest es
+den User erneut und bestätigt `customClaims.admin === true`.
+
+Falls lokale ADC am Quota-Projekt oder an Identity Toolkit scheitern:
+
+```bash
+gcloud config set project afbm-staging
+gcloud auth application-default revoke
+gcloud auth application-default login
+gcloud auth application-default set-quota-project afbm-staging
+gcloud services enable identitytoolkit.googleapis.com --project afbm-staging
+```
+
+Service-Account-Alternative:
+
+```bash
+GOOGLE_APPLICATION_CREDENTIALS=/pfad/zum/service-account.json node scripts/set-admin.js --project afbm-staging KFy5PrqAzzP7vRbfP4wIDamzbh43
+```
 
 ## Token Refresh
 
@@ -55,17 +72,20 @@ erst nach einem ID-Token-Refresh. Der neue Admin-Gate ruft beim Öffnen der Admi
 ## Schutzmodell
 
 - UI: `/admin` und `/admin/league/[leagueId]` rendern Admin-Inhalte nur, wenn der
-  aktuelle Firebase-User `admin: true` im ID Token hat.
+  aktuelle Firebase-User `admin: true` im ID Token hat oder kurzfristig in der
+  serverseitig gepflegten Admin-UID-Allowlist steht.
 - API: Admin-Aktionen akzeptieren nur `Authorization: Bearer <Firebase ID Token>` und
-  verifizieren den Token serverseitig mit Firebase Admin SDK.
+  verifizieren den Token serverseitig mit Firebase Admin SDK. Zugriff gilt bei
+  `admin: true` oder UID-Allowlist.
 - Firestore Rules: `request.auth.token.admin == true` gilt als globaler Admin und darf
-  Admin-Pfade sowie Online-Admin-Rechte nutzen.
+  Admin-Pfade sowie Online-Admin-Rechte nutzen. Die UID-Allowlist ist eine kurzfristige
+  App/API-Ueberbrueckung und ersetzt keinen Rules-Deploy fuer direkte Firestore-Zugriffe.
 - Entfernt: altes Formular, alte Login-Route und altes Cookie-Modell.
 
 ## QA-Checkliste
 
 1. Admin-Claim setzen:
-   `GOOGLE_CLOUD_PROJECT=afbm-staging npm run firebase:set-admin -- KFy5PrqAzzP7vRbfP4wIDamzbh43`
+   `GOOGLE_CLOUD_PROJECT=afbm-staging npm run firebase:set-admin -- --project afbm-staging KFy5PrqAzzP7vRbfP4wIDamzbh43`
 2. Mit `KFy5PrqAzzP7vRbfP4wIDamzbh43` normal per Firebase anmelden.
 3. `/admin` öffnen.
 4. Prüfen, dass kein Admin-Passwort abgefragt wird.

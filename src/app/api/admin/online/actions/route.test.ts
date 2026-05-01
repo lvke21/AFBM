@@ -62,6 +62,15 @@ function allowAdmin(uid = "firebase-admin-user") {
   });
 }
 
+function allowUidListedAdmin() {
+  verifyIdTokenMock.mockResolvedValue({
+    uid: "KFy5PrqAzzP7vRbfP4wIDamzbh43",
+    email: "allowlisted-admin@example.test",
+    admin: false,
+    auth_time: 1_765_000_000,
+  });
+}
+
 describe("admin online action route", () => {
   it("rejects anonymous users without an admin session", async () => {
     const response = await POST(
@@ -104,8 +113,8 @@ describe("admin online action route", () => {
     );
     const body = await response.json();
 
-    expect(response.status).toBe(401);
-    expect(body.code).toBe("ADMIN_UNAUTHORIZED");
+    expect(response.status).toBe(403);
+    expect(body.code).toBe("ADMIN_FORBIDDEN");
   });
 
   it("allows an admin with a valid Firebase admin claim to execute a local admin action", async () => {
@@ -147,6 +156,36 @@ describe("admin online action route", () => {
       name: "Server Guard League",
       maxUsers: 4,
       currentWeek: 2,
+    });
+  });
+
+  it("allows the temporary admin UID allowlist without a custom claim", async () => {
+    allowUidListedAdmin();
+
+    const response = await POST(
+      postRequest({
+        action: "createLeague",
+        backendMode: "local",
+        name: "UID Allowlist League",
+        maxUsers: 4,
+        startWeek: 2,
+        localState: {
+          leaguesJson: "[]",
+        },
+      }, "uid-allowlist-token"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(readConsoleJson("info")).toMatchObject({
+      type: "security_audit",
+      event: "admin_action",
+      action: "createLeague",
+      outcome: "success",
+      actor: {
+        userId: "KFy5PrqAzzP7vRbfP4wIDamzbh43",
+      },
     });
   });
 

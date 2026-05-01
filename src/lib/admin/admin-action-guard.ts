@@ -25,9 +25,17 @@ export class AdminActionError extends Error {
 }
 
 export async function requireAdminActionSession(request: NextRequest): Promise<AdminActionActor> {
-  const claims = await requireFirebaseAdminClaim(request);
+  const result = await requireFirebaseAdminClaim(request);
 
-  if (!claims) {
+  if (result.status === "not-admin") {
+    throw new AdminActionError(
+      "Dein Firebase-Account hat keine Adminrechte.",
+      403,
+      "ADMIN_FORBIDDEN",
+    );
+  }
+
+  if (result.status !== "admin") {
     throw new AdminActionError(
       "Du bist nicht als Firebase-Admin angemeldet.",
       401,
@@ -36,8 +44,8 @@ export async function requireAdminActionSession(request: NextRequest): Promise<A
   }
 
   return {
-    adminSessionId: getAdminClaimAuditId(claims.uid),
-    adminUserId: claims.uid,
+    adminSessionId: getAdminClaimAuditId(result.claims.uid),
+    adminUserId: result.claims.uid,
     source: "firebase-admin-claim",
   };
 }
