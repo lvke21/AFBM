@@ -1,48 +1,43 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import {
   subscribeToOnlineAuthState,
   getOnlineAuthErrorMessage,
 } from "@/lib/online/auth/online-auth";
-import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
 import type { OnlineAuthenticatedUser } from "@/lib/online/types";
 
 import { FirebaseEmailAuthPanel } from "./firebase-email-auth-panel";
 
 export function OnlineAuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const repository = useMemo(() => getOnlineLeagueRepository(), []);
-  const [state, setState] = useState<"loading" | "signed-out" | "signed-in">(
-    repository.mode === "local" ? "signed-in" : "loading",
-  );
+  const [state, setState] = useState<"loading" | "signed-out" | "signed-in">("loading");
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<OnlineAuthenticatedUser | null>(null);
 
   useEffect(() => {
-    if (repository.mode === "local") {
+    try {
+      return subscribeToOnlineAuthState(
+        (nextUser) => {
+          setUser(nextUser);
+          setState(nextUser ? "signed-in" : "signed-out");
+          setError(null);
+        },
+        (authError) => {
+          setUser(null);
+          setState("signed-out");
+          setError(getOnlineAuthErrorMessage(authError));
+        },
+      );
+    } catch (authError) {
+      setUser(null);
+      setState("signed-out");
+      setError(getOnlineAuthErrorMessage(authError));
       return undefined;
     }
-
-    return subscribeToOnlineAuthState(
-      (nextUser) => {
-        setUser(nextUser);
-        setState(nextUser ? "signed-in" : "signed-out");
-        setError(null);
-      },
-      (authError) => {
-        setUser(null);
-        setState("signed-out");
-        setError(getOnlineAuthErrorMessage(authError));
-      },
-    );
-  }, [repository]);
-
-  if (repository.mode === "local") {
-    return <>{children}</>;
-  }
+  }, []);
 
   if (state === "loading") {
     return (

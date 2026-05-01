@@ -163,11 +163,15 @@ describe("firestore security rules", () => {
     );
   });
 
-  it("allows online lobby reads and self ready updates without role escalation", async () => {
+  it("allows signed-in online lobby reads, blocks anonymous reads, and permits self ready updates", async () => {
     const gmDb = testEnv.authenticatedContext("online-gm").firestore();
     const outsiderDb = testEnv.authenticatedContext("online-outsider").firestore();
+    const anonymousDb = testEnv.unauthenticatedContext().firestore();
 
     await assertSucceeds(getDoc(doc(outsiderDb, "leagues/online-alpha")));
+    await assertSucceeds(getDoc(doc(outsiderDb, "leagues/online-alpha/teams/online-team-b")));
+    await assertFails(getDoc(doc(anonymousDb, "leagues/online-alpha")));
+    await assertFails(getDoc(doc(anonymousDb, "leagues/online-alpha/teams/online-team-b")));
     await assertSucceeds(updateDoc(doc(gmDb, "leagues/online-alpha/memberships/online-gm"), {
       ready: true,
       lastSeenAt: new Date(),

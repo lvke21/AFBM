@@ -1,24 +1,21 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import {
-  getOnlineAuthDebugSnapshot,
-  getOnlineAuthErrorDetails,
   getOnlineAuthErrorMessage,
   logOnlineAuthError,
   registerOnlineUserWithEmailPassword,
   signInOnlineUserWithEmailPassword,
   signOutOnlineUser,
   subscribeToOnlineAuthState,
-  type OnlineAuthDebugSnapshot,
   type OnlineAuthErrorDetails,
-  type OnlineAuthMethod,
 } from "@/lib/online/auth/online-auth";
 import { getOnlineBackendMode } from "@/lib/online/online-league-repository-provider";
 import type { OnlineAuthenticatedUser } from "@/lib/online/types";
+import { SAVEGAMES_LOGIN_EVENT } from "./auth-required-actions";
 
 type FirebaseEmailAuthPanelProps = {
   redirectAfterAuth?: string;
@@ -30,6 +27,8 @@ export function FirebaseEmailAuthPanel({
   compact = false,
 }: FirebaseEmailAuthPanelProps) {
   const router = useRouter();
+  const panelRef = useRef<HTMLElement | null>(null);
+  const emailInputRef = useRef<HTMLInputElement | null>(null);
   const onlineMode = getOnlineBackendMode();
   const [authState, setAuthState] = useState<"loading" | "anonymous" | "authenticated">(
     onlineMode === "local" ? "anonymous" : "loading",
@@ -40,27 +39,8 @@ export function FirebaseEmailAuthPanel({
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [debugSnapshot, setDebugSnapshot] = useState<OnlineAuthDebugSnapshot | null>(null);
   const [debugError, setDebugError] = useState<OnlineAuthErrorDetails | null>(null);
   const [pending, setPending] = useState(false);
-
-  const captureDebugSnapshot = useCallback((method: OnlineAuthMethod) => {
-    try {
-      const snapshot = getOnlineAuthDebugSnapshot(method);
-
-      setDebugSnapshot(snapshot);
-      return snapshot;
-    } catch (error) {
-      const details = getOnlineAuthErrorDetails(error);
-
-      setDebugError(details);
-      console.error("AUTH_ERROR", details.code, details.message, {
-        method,
-        error,
-      });
-      return null;
-    }
-  }, []);
 
   useEffect(() => {
     if (onlineMode === "local") {
@@ -73,7 +53,6 @@ export function FirebaseEmailAuthPanel({
       (nextUser) => {
         setUser(nextUser);
         setAuthState(nextUser ? "authenticated" : "anonymous");
-        captureDebugSnapshot("state");
       },
       (error) => {
         const details = logOnlineAuthError("state", error);
@@ -81,11 +60,22 @@ export function FirebaseEmailAuthPanel({
         setUser(null);
         setAuthState("anonymous");
         setDebugError(details);
-        captureDebugSnapshot("state");
         setFeedback(getOnlineAuthErrorMessage(error));
       },
     );
-  }, [captureDebugSnapshot, onlineMode]);
+  }, [onlineMode]);
+
+  useEffect(() => {
+    function handleOpenLogin() {
+      setMode("login");
+      panelRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      window.setTimeout(() => emailInputRef.current?.focus(), 120);
+    }
+
+    window.addEventListener(SAVEGAMES_LOGIN_EVENT, handleOpenLogin);
+
+    return () => window.removeEventListener(SAVEGAMES_LOGIN_EVENT, handleOpenLogin);
+  }, []);
 
   useEffect(() => {
     if (authState === "authenticated" && redirectAfterAuth) {
@@ -106,8 +96,6 @@ export function FirebaseEmailAuthPanel({
 
     const authMethod = mode === "register" ? "register" : "login";
 
-    captureDebugSnapshot(authMethod);
-
     try {
       const nextUser =
         mode === "register"
@@ -122,13 +110,11 @@ export function FirebaseEmailAuthPanel({
       setAuthState("authenticated");
       setPassword("");
       setDebugError(null);
-      captureDebugSnapshot(authMethod);
       setFeedback(mode === "register" ? "Account erstellt." : "Login erfolgreich.");
     } catch (error) {
       const details = logOnlineAuthError(authMethod, error);
 
       setDebugError(details);
-      captureDebugSnapshot(authMethod);
       setFeedback(getOnlineAuthErrorMessage(error));
     } finally {
       setPending(false);
@@ -143,19 +129,16 @@ export function FirebaseEmailAuthPanel({
     setPending(true);
     setFeedback(null);
     setDebugError(null);
-    captureDebugSnapshot("logout");
 
     try {
       await signOutOnlineUser();
       setUser(null);
       setAuthState("anonymous");
-      captureDebugSnapshot("logout");
       setFeedback("Du wurdest ausgeloggt.");
     } catch (error) {
       const details = logOnlineAuthError("logout", error);
 
       setDebugError(details);
-      captureDebugSnapshot("logout");
       setFeedback(getOnlineAuthErrorMessage(error));
     } finally {
       setPending(false);
@@ -173,6 +156,9 @@ export function FirebaseEmailAuthPanel({
   if (onlineMode === "local") {
     return (
       <div
+        ref={(node) => {
+          panelRef.current = node;
+        }}
         className={`rounded-lg border border-amber-200/25 bg-amber-300/10 text-sm text-amber-50 ${
           compact ? "p-4" : "p-5 sm:p-6"
         }`}
@@ -211,13 +197,14 @@ export function FirebaseEmailAuthPanel({
           {pending ? "Logout..." : "Logout"}
         </button>
         {feedback ? <p className="mt-2 text-xs font-semibold">{feedback}</p> : null}
-        <FirebaseAuthDebugPanel snapshot={debugSnapshot} error={debugError} />
+        <FirebaseAuthDebugPanel error={debugError} />
       </div>
     );
   }
 
   return (
     <section
+      ref={panelRef}
       className={`rounded-lg border border-white/10 bg-white/[0.045] ${
         compact ? "p-4" : "p-5 sm:p-6"
       }`}
@@ -261,6 +248,7 @@ export function FirebaseEmailAuthPanel({
         <label className="grid gap-1 text-sm font-semibold text-slate-200">
           Email
           <input
+            ref={emailInputRef}
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -299,70 +287,27 @@ export function FirebaseEmailAuthPanel({
           {feedback}
         </p>
       ) : null}
-      <FirebaseAuthDebugPanel snapshot={debugSnapshot} error={debugError} />
+      <FirebaseAuthDebugPanel error={debugError} />
     </section>
   );
 }
 
 function FirebaseAuthDebugPanel({
-  snapshot,
   error,
 }: {
-  snapshot: OnlineAuthDebugSnapshot | null;
   error: OnlineAuthErrorDetails | null;
 }) {
-  if (!snapshot && !error) {
+  if (!error) {
     return null;
   }
 
   return (
     <div className="mt-4 rounded-lg border border-sky-200/25 bg-sky-300/10 p-3 text-xs text-sky-50">
       <p className="font-semibold text-white">Firebase Auth Debug</p>
-      {error ? (
-        <dl className="mt-2 grid gap-1">
-          <DebugRow label="error.code" value={error.code} />
-          <DebugRow label="error.message" value={error.message} />
-        </dl>
-      ) : null}
-      {snapshot ? (
-        <dl className="mt-2 grid gap-1">
-          <DebugRow label="Methode" value={snapshot.method} />
-          <DebugRow label="projectId" value={snapshot.firebaseConfig.projectId ?? "null"} />
-          <DebugRow label="authDomain" value={snapshot.firebaseConfig.authDomain ?? "null"} />
-          <DebugRow
-            label="apiKey vorhanden"
-            value={snapshot.firebaseConfig.apiKeyPresent ? "ja" : "nein"}
-          />
-          <DebugRow label="appId" value={snapshot.firebaseConfig.appId ?? "null"} />
-          <DebugRow
-            label="storageBucket"
-            value={snapshot.firebaseConfig.storageBucket ?? "null"}
-          />
-          <DebugRow
-            label="messagingSenderId"
-            value={snapshot.firebaseConfig.messagingSenderId ?? "null"}
-          />
-          <DebugRow label="currentUser.uid" value={snapshot.currentUser.uid ?? "null"} />
-          <DebugRow
-            label="currentUser.isAnonymous"
-            value={
-              snapshot.currentUser.isAnonymous === null
-                ? "null"
-                : String(snapshot.currentUser.isAnonymous)
-            }
-          />
-          <DebugRow
-            label="providerData"
-            value={
-              snapshot.currentUser.providerData.length > 0
-                ? snapshot.currentUser.providerData
-                    .map((provider) => `${provider.providerId}:${provider.uid ?? "null"}`)
-                    .join(", ")
-                : "[]"
-            }
-          />
-        </dl>
-      ) : null}
+      <dl className="mt-2 grid gap-1">
+        <DebugRow label="error.code" value={error.code} />
+        <DebugRow label="error.message" value={error.message} />
+      </dl>
     </div>
   );
 }

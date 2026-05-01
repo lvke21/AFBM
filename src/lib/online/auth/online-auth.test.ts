@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { getOnlineAuthErrorMessage } from "./online-auth";
+import { getOnlineAuthErrorDetails, getOnlineAuthErrorMessage } from "./online-auth";
 
 describe("online-auth", () => {
   it.each([
@@ -30,5 +30,18 @@ describe("online-auth", () => {
     expect(source).not.toContain(["signIn", "Anonymously"].join(""));
     expect(source).not.toContain(["link", "WithCredential"].join(""));
     expect(source).not.toContain(["Email", "AuthProvider"].join(""));
+  });
+
+  it("keeps Firebase error codes and messages available for the UI", () => {
+    expect(
+      getOnlineAuthErrorDetails({
+        code: "auth/operation-not-allowed",
+        message: "Email/password sign-in is disabled.",
+      }),
+    ).toEqual({
+      code: "auth/operation-not-allowed",
+      message: "Email/password sign-in is disabled.",
+      name: "UnknownError",
+    });
   });
 });

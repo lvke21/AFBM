@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { FirebaseAuthProvider } from "@/components/auth/firebase-auth-provider";
+
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body>
-        {children}
+        <FirebaseAuthProvider>{children}</FirebaseAuthProvider>
       </body>
     </html>
   );

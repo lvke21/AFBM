@@ -349,7 +349,7 @@ service cloud.firestore {
 
     match /leagues/{leagueId} {
       allow read: if canReadLeague(leagueId)
-        || isOnlineLobbyListDoc()
+        || (isSignedIn() && isOnlineLobbyListDoc())
         || isOnlineActiveMember(leagueId)
         || isOnlineLeagueCreator(leagueId);
       allow create: if false;
@@ -366,7 +366,9 @@ service cloud.firestore {
       }
 
       match /teams/{teamId} {
-        allow read: if isOnlineLobby(leagueId) || isOnlineActiveMember(leagueId) || isOnlineAdmin(leagueId);
+        allow read: if (isSignedIn() && isOnlineLobby(leagueId))
+          || isOnlineActiveMember(leagueId)
+          || isOnlineAdmin(leagueId);
         allow create: if false;
         allow update: if isOnlineTeamClaimUpdate(leagueId, teamId)
           || isOnlineOwnDepthChartUpdate(leagueId, teamId)
