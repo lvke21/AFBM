@@ -56,6 +56,7 @@
     "seed:multiplayer:league:emulator": "USE_FIRESTORE_EMULATOR=true npm run seed:multiplayer:league",
     "seed:multiplayer:league:staging": "CONFIRM_STAGING_SEED=true USE_FIRESTORE_EMULATOR=false GOOGLE_CLOUD_PROJECT=afbm-staging npm run seed:multiplayer:league",
     "seed:multiplayer:validate:staging": "USE_FIRESTORE_EMULATOR=false GOOGLE_CLOUD_PROJECT=afbm-staging npm run seed:multiplayer:validate",
+    "seed:multiplayer:auto-draft:staging": "CONFIRM_STAGING_SEED=true USE_FIRESTORE_EMULATOR=false GOOGLE_CLOUD_PROJECT=afbm-staging tsx scripts/seeds/multiplayer-auto-draft-staging.ts",
     "seed:firestore:cloud": "tsx scripts/seeds/firestore-cloud-seed.ts",
     "firebase:e2e:browser-fixture": "tsx scripts/seeds/firestore-browser-e2e-fixture.ts",
     "firebase:usage:measure": "tsx scripts/firestore-usage-measure.ts",
