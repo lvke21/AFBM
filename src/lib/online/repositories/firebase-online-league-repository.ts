@@ -313,6 +313,10 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
     return doc(this.db, "leagues", leagueId, "memberships", userId);
   }
 
+  private leagueMemberRef(leagueId: string, userId: string) {
+    return doc(this.db, "leagueMembers", `${leagueId}_${userId}`);
+  }
+
   private teamsRef(leagueId: string) {
     return collection(this.db, "leagues", leagueId, "teams");
   }
@@ -631,9 +635,26 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
         status: "active",
         displayName: user.displayName,
       };
+      const leagueMemberMirror = {
+        id: `${leagueId}_${user.userId}`,
+        leagueId,
+        leagueSlug:
+          typeof league.settings.leagueSlug === "string"
+            ? league.settings.leagueSlug
+            : typeof league.settings.slug === "string"
+              ? league.settings.slug
+              : leagueId,
+        userId: user.userId,
+        role: "GM",
+        status: "ACTIVE",
+        teamId: nextTeam.id,
+        createdAt: existingMembership?.joinedAt ?? createdAt,
+        updatedAt: createdAt,
+      };
 
       transaction.set(this.teamRef(leagueId, nextTeam.id), nextTeam, { merge: true });
       transaction.set(this.membershipRef(leagueId, user.userId), membership, { merge: true });
+      transaction.set(this.leagueMemberRef(leagueId, user.userId), leagueMemberMirror, { merge: true });
       transaction.update(this.leagueRef(leagueId), {
         memberCount: increment(existingMembership?.teamId ? 0 : 1),
         updatedAt: createdAt,

@@ -394,6 +394,17 @@ describe("firestore security rules", () => {
       userId: "online-rookie",
       username: "Online Rookie",
     });
+    batch.set(doc(rookieDb, "leagueMembers/online-alpha_online-rookie"), {
+      createdAt: joinedAt,
+      id: "online-alpha_online-rookie",
+      leagueId: "online-alpha",
+      leagueSlug: "online-alpha",
+      role: "GM",
+      status: "ACTIVE",
+      teamId: "online-team-b",
+      updatedAt: joinedAt,
+      userId: "online-rookie",
+    });
     batch.update(doc(rookieDb, "leagues/online-alpha/teams/online-team-b"), {
       assignedUserId: "online-rookie",
       displayName: "Rookie Testers",
@@ -411,6 +422,7 @@ describe("firestore security rules", () => {
     });
 
     await assertSucceeds(batch.commit());
+    await assertSucceeds(getDoc(doc(rookieDb, "leagueMembers/online-alpha_online-rookie")));
     await assertFails(updateDoc(doc(outsiderDb, "leagues/online-alpha"), {
       memberCount: 99,
       updatedAt: new Date(),
@@ -426,6 +438,16 @@ describe("firestore security rules", () => {
       teamId: "online-team-b",
       userId: "online-outsider",
       username: "Online Outsider",
+    }));
+    await assertFails(setDoc(doc(outsiderDb, "leagueMembers/online-alpha_online-outsider"), {
+      createdAt: new Date(),
+      id: "online-alpha_online-outsider",
+      leagueId: "online-alpha",
+      role: "GM",
+      status: "ACTIVE",
+      teamId: "online-team-b",
+      updatedAt: new Date(),
+      userId: "online-outsider",
     }));
   });
 

@@ -136,6 +136,31 @@ service cloud.firestore {
         && getAfter(onlineTeamPath(leagueId, request.resource.data.teamId)).data.status == "assigned";
     }
 
+    function isOnlineLeagueMemberMirrorCreate(leagueMemberId) {
+      return isSignedIn()
+        && request.resource.data.keys().hasOnly([
+          "createdAt",
+          "id",
+          "leagueId",
+          "leagueSlug",
+          "role",
+          "status",
+          "teamId",
+          "updatedAt",
+          "userId",
+        ])
+        && request.resource.data.id == leagueMemberId
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.role == "GM"
+        && request.resource.data.status == "ACTIVE"
+        && request.resource.data.teamId is string
+        && request.resource.data.teamId != ""
+        && leagueMemberId == request.resource.data.leagueId + "_" + request.auth.uid
+        && isOnlineLobby(request.resource.data.leagueId)
+        && isOnlineSelfJoinedTeamAssignedAfter(request.resource.data.leagueId)
+        && getAfter(onlineMembershipPath(request.resource.data.leagueId, request.auth.uid)).data.teamId == request.resource.data.teamId;
+    }
+
     function isOnlineMembershipReadyUpdate(userId) {
       return isSelf(userId)
         && resource.data.userId == request.auth.uid
@@ -417,7 +442,8 @@ service cloud.firestore {
           resource.data.userId == request.auth.uid
           || hasLeagueRole(resource.data.leagueId, ["OWNER", "ADMIN"])
         );
-      allow write: if false;
+      allow create: if isOnlineLeagueMemberMirrorCreate(leagueMemberId);
+      allow update, delete: if false;
     }
 
     match /teams/{teamId} {
