@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { useFirebaseAuthState } from "@/components/auth/firebase-auth-provider";
-import { isAdminUid } from "@/lib/admin/admin-claims";
+import { isAdminUid } from "@/lib/admin/admin-uid-allowlist";
 import { getOnlineFirebaseAuth } from "@/lib/online/auth/online-auth";
 
 type AdminClaimState =

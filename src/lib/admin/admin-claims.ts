@@ -1,9 +1,8 @@
 import type { NextRequest } from "next/server";
 
 import { createAuditId } from "@/lib/audit/security-audit-log";
+import { isAdminUid } from "@/lib/admin/admin-uid-allowlist";
 import { getFirebaseAdminAuth } from "@/lib/firebase/admin";
-
-const ADMIN_UID_ALLOWLIST = new Set(["KFy5PrqAzzP7vRbfP4wIDamzbh43"]);
 
 export type FirebaseAdminClaims = {
   uid: string;
@@ -25,10 +24,6 @@ export type FirebaseAdminVerificationResult =
   | {
       status: "missing-token" | "invalid-token";
     };
-
-export function isAdminUid(uid: string | null | undefined): boolean {
-  return typeof uid === "string" && ADMIN_UID_ALLOWLIST.has(uid);
-}
 
 function readBearerToken(request: NextRequest) {
   const header = request.headers.get("authorization") ?? "";
