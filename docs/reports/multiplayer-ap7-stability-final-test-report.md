@@ -62,7 +62,7 @@ Keine Code-Bugs in AP7 behoben. Diese Runde war ein finaler Stabilitaetstest und
 | Legacy-E2E-Preflight verlangt `DATABASE_URL`/Postgres | Mittel | Separat bereinigen: Befehl in Prisma-Legacy-Smoke umbenennen oder Firestore-kompatiblen lokalen Smoke fuer den Standardpfad einfuehren. |
 | Live-Staging nicht in dieser Runde per Browser gegen echte Firebase-Projektkonfiguration getestet | Mittel | Nach Deployment mit echter Staging-URL einen kurzen Smoke fuer `/online`, Join, Dashboard-Reload und `/admin` wiederholen. |
 | Firestore-Emulator-Logs enthalten erwartete `PERMISSION_DENIED` Meldungen | Niedrig | Kein Fehler, da negative Permission-Tests und Cross-User-Write-Block genau diese Ablehnung erwarten. |
-| Admin-Liga-Erstellung wurde ueber Unit-/Servicepfade validiert, nicht als voller Browser-E2E mit Admin-Code-Login | Niedrig bis Mittel | Optionalen Admin-Playwright-Smoke fuer Create + Simulate gegen Firebase-Emulator ergaenzen. |
+| Admin-Liga-Erstellung wurde ueber Unit-/Servicepfade validiert, nicht als voller Browser-E2E mit Firebase Claim | Niedrig bis Mittel | Optionalen Admin-Playwright-Smoke fuer Create + Simulate gegen Firebase-Emulator ergaenzen. |
 
 ## Empfehlung
 

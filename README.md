@@ -19,7 +19,7 @@ Der aktuelle Stand ist ein solides Grundsystem fuer persistente Savegames:
 ### Bereits implementiert
 
 - Projektstruktur und modulare Schichtung
-- Firebase Email/Passwort Auth fuer Online-Multiplayer und serverseitiger Admin-Code-Login
+- Firebase Email/Passwort Auth fuer Online-Multiplayer und Adminzugriff per Firebase Custom Claim
 - Referenzdaten fuer Liga, Franchises, Positionen, Archetypen, Scheme Fits und Attribute
 - Savegame-Erstellung inklusive World-Bootstrap
 - Persistenz fuer Teams, Spieler, Roster-Profile, Player-Evaluation, Attribute, Vertraege, Seasons und Matches
@@ -55,7 +55,7 @@ Der aktuelle Stand ist ein solides Grundsystem fuer persistente Savegames:
 | Sprache | TypeScript | Typsicherheit in UI, Services und Persistenz |
 | Styling | Tailwind CSS 4 | Styling der Web-Oberflaeche |
 | Persistenz | Prisma 6, PostgreSQL | Relationales Schema und Datenzugriff |
-| Auth | Firebase Email/Passwort Auth, serverseitiger Admin-Code-Login | Online-Identitaet und Admin-Zugriff ohne OAuth-Provider |
+| Auth | Firebase Email/Passwort Auth, Firebase Custom Claims | Online-Identitaet und Admin-Zugriff ohne OAuth-Provider |
 | Validierung | Zod | Eingabevalidierung fuer Savegame-Erstellung |
 | Tests | Vitest | Aktuelle Modultests fuer Bootstrap-Bausteine |
 
@@ -98,7 +98,7 @@ npm run prisma:seed
 npm run dev
 ```
 
-6. Optional Online-Firebase-Emulator oder Admin-Code lokal konfigurieren:
+6. Optional Online-Firebase-Emulator oder Firebase Admin-Claim lokal konfigurieren:
    - Details: [docs/guides/operations-setup.md](./docs/guides/operations-setup.md)
 
 ## Wichtige Commands

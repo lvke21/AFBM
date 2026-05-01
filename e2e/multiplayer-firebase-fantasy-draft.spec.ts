@@ -1,5 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createHmac } from "crypto";
 import { FieldValue } from "firebase-admin/firestore";
 
 import { getFirebaseAdminFirestore } from "../src/lib/firebase/admin";
@@ -12,9 +11,7 @@ import {
 } from "../src/lib/online/online-league-service";
 import { E2E_NAVIGATION_TIMEOUT_MS } from "./helpers/e2e-harness";
 
-const ADMIN_E2E_CODE = process.env.AFBM_ADMIN_ACCESS_CODE ?? "e2e-admin-code";
-const ADMIN_E2E_SESSION_SECRET =
-  process.env.AFBM_ADMIN_SESSION_SECRET ?? ADMIN_E2E_CODE;
+const E2E_FIREBASE_ADMIN_ID_TOKEN = process.env.E2E_FIREBASE_ADMIN_ID_TOKEN ?? "";
 const TEAM_COUNT = 16;
 const EXPECTED_PICK_COUNT = TEAM_COUNT * ONLINE_FANTASY_DRAFT_ROSTER_TARGET_SIZE;
 const EXPECTED_POOL_SIZE = Object.values(ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS).reduce(
@@ -32,28 +29,11 @@ type AdminActionResponse = {
   league?: OnlineLeague | null;
 };
 
-function createAdminSessionToken() {
-  return createHmac("sha256", ADMIN_E2E_SESSION_SECRET)
-    .update("afbm-admin-session-v1")
-    .digest("hex");
-}
-
-async function loginAsAdmin(page: Page) {
+async function openAdminContext(page: Page) {
   await page.goto("/", {
     timeout: E2E_NAVIGATION_TIMEOUT_MS,
     waitUntil: "domcontentloaded",
   });
-
-  await page.context().addCookies([
-    {
-      name: "afbm.admin.session",
-      value: createAdminSessionToken(),
-      url: `${new URL(page.url()).origin}/admin`,
-      httpOnly: true,
-      sameSite: "Lax",
-      expires: Math.floor(Date.now() / 1000) + 60 * 60,
-    },
-  ]);
 }
 
 async function runFirebaseAdminAction(
@@ -62,11 +42,12 @@ async function runFirebaseAdminAction(
   payload: Record<string, unknown> = {},
 ): Promise<AdminActionResponse> {
   return page.evaluate(
-    async ({ targetAction, actionPayload }) => {
+    async ({ targetAction, actionPayload, adminToken }) => {
       const response = await fetch("/admin/api/online/actions", {
         method: "POST",
         headers: {
           "content-type": "application/json",
+          authorization: `Bearer ${adminToken}`,
         },
         body: JSON.stringify({
           action: targetAction,
@@ -85,6 +66,7 @@ async function runFirebaseAdminAction(
     {
       targetAction: action,
       actionPayload: payload,
+      adminToken: E2E_FIREBASE_ADMIN_ID_TOKEN,
     },
   );
 }
@@ -238,7 +220,7 @@ test.describe.serial("Firebase 16-Team Fantasy Draft E2E", () => {
     const leagueName = `Firebase 16 Team Draft ${Date.now()}`;
     let leagueId = "";
 
-    await loginAsAdmin(page);
+    await openAdminContext(page);
 
     await test.step("Liga wird ueber Firebase-Admin-Action erstellt", async () => {
       const created = await runFirebaseAdminAction(page, "createLeague", {

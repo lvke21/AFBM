@@ -16,7 +16,7 @@ Der neue Playwright-End-to-End-Test `e2e/multiplayer-fantasy-draft.spec.ts` deck
 
 ## Abgedecktes Szenario
 
-- Admin-Session wird per bestehendem Admin-Cookie-Mechanismus gesetzt.
+- Adminzugriff wird per Firebase Claim vorbereitet.
 - Admin erstellt eine neue lokale Online-Liga.
 - Spielerpool wird erzeugt und auf eindeutige IDs geprüft.
 - 16 Teams und 16 User werden per Debug-Testaktion erzeugt.

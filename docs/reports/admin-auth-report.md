@@ -12,7 +12,7 @@ gegen das Firebase ID Token geprüft.
 - `package.json`
 - `firestore.rules`
 - `src/lib/firebase/admin.ts`
-- `src/lib/admin/admin-session.ts`
+- `src/lib/admin/admin-claims.ts`
 - `src/lib/admin/admin-action-guard.ts`
 - `src/lib/admin/admin-api-client.ts`
 - `src/components/admin/admin-auth-gate.tsx`
@@ -24,10 +24,10 @@ gegen das Firebase ID Token geprüft.
 - `src/app/api/admin/online/actions/route.test.ts`
 - `src/lib/env/runtime-env.ts`
 - `src/lib/env/runtime-env.test.ts`
-- Entfernt: `src/app/admin/login/page.tsx`
-- Entfernt: `src/app/api/admin/login/route.ts`
-- Entfernt: `src/app/api/admin/login/route.test.ts`
-- Entfernt: `src/lib/admin/admin-session.test.ts`
+- Entfernt: alte Admin-Login-Seite
+- Entfernt: alte Admin-Login-API-Route
+- Entfernt: alte Admin-Login-Tests
+- Entfernt: alte Cookie-Session-Logik
 
 ## Admin-Claim Setzen
 
@@ -60,7 +60,7 @@ erst nach einem ID-Token-Refresh. Der neue Admin-Gate ruft beim Öffnen der Admi
   verifizieren den Token serverseitig mit Firebase Admin SDK.
 - Firestore Rules: `request.auth.token.admin == true` gilt als globaler Admin und darf
   Admin-Pfade sowie Online-Admin-Rechte nutzen.
-- Entfernt: Admin-Code-Formular, Admin-Login-Route, Admin-Session-Cookie.
+- Entfernt: altes Formular, alte Login-Route und altes Cookie-Modell.
 
 ## QA-Checkliste
 

@@ -2069,7 +2069,7 @@
       "characters": 1122
     },
     {
-      "path": "src/app/admin/login/page.tsx",
+      "path": "removed/legacy-admin-access-page.tsx",
       "extension": ".tsx",
       "category": "App-Code",
       "lines": 91,
@@ -2085,7 +2085,7 @@
       "characters": 2837
     },
     {
-      "path": "src/app/api/admin/login/route.test.ts",
+      "path": "removed/legacy-admin-access-route.test.ts",
       "extension": ".ts",
       "category": "Test-Code",
       "lines": 95,
@@ -2093,7 +2093,7 @@
       "characters": 2973
     },
     {
-      "path": "src/app/api/admin/login/route.ts",
+      "path": "removed/legacy-admin-access-route.ts",
       "extension": ".ts",
       "category": "App-Code",
       "lines": 98,
@@ -4357,7 +4357,7 @@
       "characters": 2294
     },
     {
-      "path": "src/lib/admin/admin-session.test.ts",
+      "path": "removed/legacy-admin-cookie-guard.test.ts",
       "extension": ".ts",
       "category": "Test-Code",
       "lines": 46,
@@ -4365,7 +4365,7 @@
       "characters": 1578
     },
     {
-      "path": "src/lib/admin/admin-session.ts",
+      "path": "removed/legacy-admin-cookie-guard.ts",
       "extension": ".ts",
       "category": "App-Code",
       "lines": 96,

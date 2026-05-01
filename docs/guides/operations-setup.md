@@ -50,8 +50,7 @@ Aktuelle Variablen:
 |---|---|
 | `DATABASE_URL` | PostgreSQL-Verbindungsstring |
 | `AFBM_APP_USER_ID` | lokale serverseitige Savegame-Owner-ID |
-| `AFBM_ADMIN_ACCESS_CODE` | optionaler lokaler Admin-Code |
-| `AFBM_ADMIN_SESSION_SECRET` | optionales lokales Admin-Session-Secret |
+| `E2E_FIREBASE_ADMIN_ID_TOKEN` | optionales E2E-Token fuer Admin-Smokes |
 | `NEXT_PUBLIC_AFBM_ONLINE_BACKEND` | `local` oder `firebase` fuer Online-Multiplayer |
 | `NEXT_PUBLIC_FIREBASE_*` | nicht geheime Firebase-Web-App-Konfiguration |
 
@@ -89,7 +88,7 @@ Standardmaessig laeuft die Anwendung danach unter `http://localhost:3000`. Wenn 
 - `/` sollte erreichbar sein.
 - `/app/savegames` sollte ohne external provider auth-Redirect erreichbar sein.
 - `/online` sollte keinen external provider auth-Flow oeffnen.
-- `/admin/login` sollte den serverseitigen Admin-Code-Login anzeigen.
+- `/admin` sollte das Firebase Claim-Gate oder den Adminbereich anzeigen.
 
 ## 7. Empfohlene Zusatzpruefungen
 

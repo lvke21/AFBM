@@ -1,17 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createHmac } from "crypto";
 
 import { E2E_NAVIGATION_TIMEOUT_MS } from "./helpers/e2e-harness";
 
-const ADMIN_E2E_CODE = process.env.AFBM_ADMIN_ACCESS_CODE ?? "e2e-admin-code";
-const ADMIN_E2E_SESSION_SECRET =
-  process.env.AFBM_ADMIN_SESSION_SECRET ?? ADMIN_E2E_CODE;
-
-function createAdminSessionToken() {
-  return createHmac("sha256", ADMIN_E2E_SESSION_SECRET)
-    .update("afbm-admin-session-v1")
-    .digest("hex");
-}
+const E2E_FIREBASE_ADMIN_ID_TOKEN = process.env.E2E_FIREBASE_ADMIN_ID_TOKEN ?? "";
 
 async function openOnlineHub(page: Page) {
   const response = await page.goto("/online", {
@@ -89,24 +80,6 @@ async function openJoinedLeagueDashboard(page: Page) {
   await expect(page.getByRole("heading", { name: "Was jetzt tun?" })).toBeVisible();
 }
 
-async function installAdminSession(page: Page) {
-  await page.goto("/", {
-    timeout: E2E_NAVIGATION_TIMEOUT_MS,
-    waitUntil: "domcontentloaded",
-  });
-
-  await page.context().addCookies([
-    {
-      name: "afbm.admin.session",
-      value: createAdminSessionToken(),
-      url: `${new URL(page.url()).origin}/admin`,
-      httpOnly: true,
-      sameSite: "Lax",
-      expires: Math.floor(Date.now() / 1000) + 60 * 60,
-    },
-  ]);
-}
-
 type LocalAdminActionResult = {
   ok: boolean;
   message: string;
@@ -143,7 +116,7 @@ async function runLocalAdminAction(
   payload: Record<string, unknown> = {},
 ) {
   return page.evaluate(
-    async ({ actionName, actionPayload }) => {
+    async ({ actionName, actionPayload, adminToken }) => {
       const keys = {
         leagues: "afbm.online.leagues",
         lastLeagueId: "afbm.online.lastLeagueId",
@@ -154,6 +127,7 @@ async function runLocalAdminAction(
         method: "POST",
         headers: {
           "content-type": "application/json",
+          authorization: `Bearer ${adminToken}`,
         },
         body: JSON.stringify({
           action: actionName,
@@ -194,7 +168,7 @@ async function runLocalAdminAction(
 
       return result;
     },
-    { actionName: action, actionPayload: payload },
+    { actionName: action, actionPayload: payload, adminToken: E2E_FIREBASE_ADMIN_ID_TOKEN },
   );
 }
 
@@ -276,8 +250,6 @@ test.describe("Multiplayer E2E Smoke", () => {
   test("Admin Flow simuliert eine ready Week und zeigt Ergebnisse nach Reload", async ({
     page,
   }) => {
-    await installAdminSession(page);
-
     const created = await runLocalAdminAction(page, "createLeague", {
       name: "E2E Week Closeout",
       maxUsers: 2,

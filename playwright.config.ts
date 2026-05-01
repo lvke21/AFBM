@@ -5,8 +5,6 @@ loadEnvConfig(process.cwd());
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const BASE_URL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${PORT}`;
-const ADMIN_ACCESS_CODE = process.env.AFBM_ADMIN_ACCESS_CODE ?? "e2e-admin-code";
-const ADMIN_SESSION_SECRET = process.env.AFBM_ADMIN_SESSION_SECRET ?? ADMIN_ACCESS_CODE;
 const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID ?? "demo-afbm";
 const FIRESTORE_EMULATOR_HOST =
   process.env.FIRESTORE_EMULATOR_HOST ??
@@ -68,8 +66,6 @@ export default defineConfig({
     env: {
       ...process.env,
       AFBM_APP_USER_ID: process.env.AFBM_APP_USER_ID ?? process.env.E2E_USER_ID ?? "e2e-gm",
-      AFBM_ADMIN_ACCESS_CODE: ADMIN_ACCESS_CODE,
-      AFBM_ADMIN_SESSION_SECRET: ADMIN_SESSION_SECRET,
       FIREBASE_PROJECT_ID,
       NEXT_PUBLIC_FIREBASE_PROJECT_ID:
         process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? FIREBASE_PROJECT_ID,

@@ -32,7 +32,3 @@ env:
     value: "101239771229"
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
     value: 1:101239771229:web:481057d71c49ab47387db4
-  - variable: AFBM_ADMIN_ACCESS_CODE
-    secret: afbm-staging-admin-access-code
-  - variable: AFBM_ADMIN_SESSION_SECRET
-    secret: afbm-staging-admin-session-secret

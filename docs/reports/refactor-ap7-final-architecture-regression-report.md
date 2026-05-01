@@ -90,7 +90,7 @@ Bewertung:
 | Multiplayer Start | Firebase E2E oeffnet `/online` erfolgreich. | Gruen |
 | Liga laden | Firebase E2E oeffnet Joined-League-Dashboard und prueft Last-League-Persistenz nach Reload. | Gruen |
 | Liga beitreten | Firebase E2E mit zwei unabhaengigen Anonymous-Usern. | Gruen |
-| Adminbereich | Firebase E2E prueft, dass geschuetzte Admin-League-Route auf Admin-Code-Login geht. Admin-Unit/API-Tests in Vitest gruen. | Gruen |
+| Adminbereich | Firebase E2E prueft, dass geschuetzte Admin-League-Route ohne Claim blockiert. Admin-Unit/API-Tests in Vitest gruen. | Gruen |
 | Week Simulation | Unit-/Integrationstests fuer Week/Simulation gruen, QA-Fingerprints rot. | Rot |
 | Roster/Depth Chart | Team-/Roster-/Depth-Chart-Tests im Vitest-Lauf gruen. | Gruen |
 | Save/Load | Savegame-Tests im Vitest-Lauf gruen. Legacy-Local-E2E nicht ausgefuehrt wegen fehlender PostgreSQL-Instanz. | Gelb |

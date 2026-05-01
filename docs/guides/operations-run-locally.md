@@ -34,13 +34,13 @@ npm run dev
 | `http://localhost:3000/app` | geschuetzter App-Bereich |
 | `http://localhost:3000/app/savegames` | Savegame-Hub |
 | `http://localhost:3000/online` | Online Hub mit Firebase Anonymous Auth |
-| `http://localhost:3000/admin/login` | Admin-Code-Login |
+| `http://localhost:3000/admin` | Adminbereich mit Firebase Claim-Gate |
 | `http://localhost:3000/app/savegames/{savegameId}/players/{playerId}` | Spieler-Detailansicht |
 | `http://localhost:3000/docs/architecture` | kleine In-App-Architekturuebersicht |
 
 Hinweis:
 - Wenn `3000` belegt ist, startet Next.js auf einem anderen Port.
-- Online Spielen und Admin Login benoetigen keine external provider auth Callback URL.
+- Online Spielen und Adminbereich benoetigen keine external provider auth Callback URL.
 
 ## Erwartetes Verhalten
 
@@ -48,7 +48,7 @@ Hinweis:
 - Oeffentliche Seiten funktionieren.
 - `/app` und `/app/savegames` sind ueber die serverseitige App-User-ID nutzbar.
 - `/online` nutzt Firebase Anonymous Auth oder den lokalen Online-Fallback.
-- `/admin/login` nutzt ausschliesslich den Admin-Code-Login.
+- `/admin` nutzt Firebase Auth Custom Claim `admin: true`.
 - Savegames koennen ueber UI oder API angelegt werden.
 
 ## Hauefige lokale Routinen

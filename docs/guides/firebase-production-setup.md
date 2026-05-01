@@ -24,8 +24,6 @@ AFBM_ONLINE_BACKEND="firebase"
 NEXT_PUBLIC_AFBM_ONLINE_BACKEND="firebase"
 
 DATABASE_URL="<secret-store>"
-AFBM_ADMIN_ACCESS_CODE="<secret-store>"
-AFBM_ADMIN_SESSION_SECRET="<secret-store>"
 
 NEXT_PUBLIC_FIREBASE_API_KEY="..."
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
@@ -48,7 +46,6 @@ FIREBASE_AUTH_EMULATOR_HOST="127.0.0.1:9099"
 NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST="127.0.0.1:8080"
 NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST="127.0.0.1:9099"
 DATA_BACKEND="firestore"
-ADMIN_ACCESS_CODE="legacy-alias"
 OLD_SESSION_URL="https://example.invalid"
 NEXTOLD_SESSION_URL="https://example.invalid"
 OLD_SESSION_KEY="<legacy-authjs-secret>"
@@ -94,8 +91,8 @@ verwendet werden.
    - `DATA_BACKEND="prisma"` setzen oder `DATA_BACKEND` leer lassen.
    - `AFBM_DEPLOY_ENV="production"` setzen.
    - `AFBM_ONLINE_BACKEND="firebase"` und `NEXT_PUBLIC_AFBM_ONLINE_BACKEND="firebase"` setzen.
-   - `DATABASE_URL`, `AFBM_ADMIN_ACCESS_CODE` und `AFBM_ADMIN_SESSION_SECRET` aus dem Secret Store setzen.
-   - `AFBM_ADMIN_SESSION_SECRET` muss vom Admin-Code getrennt sein.
+   - `DATABASE_URL` aus dem Secret Store setzen.
+   - Adminzugriff per Firebase Auth Custom Claim vergeben.
    - Keine removed session and provider login-Variablen setzen.
    - Keine Emulator-Host-Variablen in Production setzen.
    - Deployment erst starten, wenn Secret-Werte vollstaendig sind.

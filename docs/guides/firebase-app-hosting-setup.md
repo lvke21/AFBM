@@ -19,7 +19,7 @@ Diese Anleitung beschreibt, wie die bestehende Next.js-App fuer Firebase App Hos
 - Git-Repository mit sauberem Baseline-Commit.
 - Dediziertes Firebase-Staging-Projekt.
 - Firebase App Hosting Backend im Firebase Console Flow.
-- Cloud Secret Manager Secrets fuer Admin-Code und Admin-Session.
+- Firebase Auth Custom Claim fuer Admin-User.
 
 ## App Hosting Konfiguration
 
@@ -28,7 +28,7 @@ Die Root-Datei `apphosting.yaml` ist bewusst staging-orientiert:
 - konservative Cloud-Run-Ressourcen
 - `AFBM_DEPLOY_ENV=staging`
 - `DATA_BACKEND=firestore`
-- Secret-Referenzen fuer Admin-Code und Admin-Session
+- Adminzugriff ueber Firebase Auth Custom Claim
 - Secret-Referenzen fuer Firebase Admin SDK, falls Firestore Admin SDK genutzt wird
 - keine Emulator- oder Preview-Flags
 
@@ -41,15 +41,6 @@ Erwartetes Build-Verhalten:
 - Build: `npm run build`
 - Runtime: App Hosting startet die Next.js-App ueber den Framework-Adapter.
 
-## Benoetigte Secrets
-
-In Cloud Secret Manager fuer das Staging-Projekt anlegen:
-
-- `afbm-staging-admin-access-code`
-- `afbm-staging-admin-session-secret`
-
-Die App-Hosting-Service-Accounts muessen Zugriff auf diese Secrets erhalten.
-
 ## Benoetigte ENV
 
 In `apphosting.yaml` gesetzt:
@@ -59,8 +50,6 @@ In `apphosting.yaml` gesetzt:
 - `DATA_BACKEND=firestore`
 - `AFBM_ONLINE_BACKEND=firebase`
 - `NEXT_PUBLIC_AFBM_ONLINE_BACKEND=firebase`
-- `AFBM_ADMIN_ACCESS_CODE` aus Secret
-- `AFBM_ADMIN_SESSION_SECRET` aus Secret
 - `FIREBASE_PROJECT_ID=afbm-staging`
 - Firebase Admin SDK nutzt in App Hosting die Default Credentials des Runtime-Service-Accounts.
 - `NEXT_PUBLIC_FIREBASE_*` als oeffentliche Staging-Web-App-Konfiguration, nicht als Secret.
@@ -105,13 +94,12 @@ Damit greifen die Runtime- und Firestore-Guards gegen versehentliche Emulator-/P
 1. Firebase-Staging-Projekt erstellen.
 2. App Hosting Backend im Firebase Console Flow erstellen.
 3. GitHub Repository und Branch verbinden.
-4. Secrets im Staging-Projekt anlegen.
-5. Secret-Zugriff fuer App Hosting Service Accounts vergeben.
-6. Ersten Rollout manuell freigeben.
-7. Smoke-Test:
+4. Admin-Claim fuer berechtigte UID setzen.
+5. Ersten Rollout manuell freigeben.
+6. Smoke-Test:
    - App laedt.
    - Online Spielen oeffnet keinen external provider auth-Flow.
-   - Admin Login funktioniert ueber Admin-Code.
+   - Adminbereich funktioniert nach normalem Firebase Login mit `admin: true`.
    - SaveGame-Liste laedt.
    - Dashboard laedt.
    - Prepare Week / Match Flow laeuft gegen Firestore.

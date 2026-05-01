@@ -66,16 +66,6 @@ describe("runtime environment validation", () => {
     ).toThrow("NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST");
   });
 
-  it("blocks deprecated admin password env in production", () => {
-    expect(() =>
-      assertRuntimeEnvironment({
-        ...productionEnv,
-        ADMIN_ACCESS_CODE: "legacy-admin-code",
-        AFBM_ADMIN_ACCESS_CODE: "legacy-admin-code",
-      }),
-    ).toThrow("ADMIN_ACCESS_CODE");
-  });
-
   it("allows production when required public config and server secrets are present", () => {
     expect(assertRuntimeEnvironment(productionEnv)).toEqual({ deployEnvironment: "production" });
   });

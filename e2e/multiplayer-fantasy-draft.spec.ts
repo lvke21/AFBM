@@ -1,11 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createHmac } from "crypto";
 
 import { E2E_NAVIGATION_TIMEOUT_MS } from "./helpers/e2e-harness";
 
-const ADMIN_E2E_CODE = process.env.AFBM_ADMIN_ACCESS_CODE ?? "e2e-admin-code";
-const ADMIN_E2E_SESSION_SECRET =
-  process.env.AFBM_ADMIN_SESSION_SECRET ?? ADMIN_E2E_CODE;
+const E2E_FIREBASE_ADMIN_ID_TOKEN = process.env.E2E_FIREBASE_ADMIN_ID_TOKEN ?? "";
 const ONLINE_LEAGUES_STORAGE_KEY = "afbm.online.leagues";
 const ONLINE_LAST_LEAGUE_ID_STORAGE_KEY = "afbm.online.lastLeagueId";
 const ONLINE_USER_ID_STORAGE_KEY = "afbm.online.userId";
@@ -102,12 +99,6 @@ type AdminActionResponse = {
   localState?: LocalAdminStatePatch;
 };
 
-function createAdminSessionToken() {
-  return createHmac("sha256", ADMIN_E2E_SESSION_SECRET)
-    .update("afbm-admin-session-v1")
-    .digest("hex");
-}
-
 async function resetOnlineLocalState(page: Page) {
   await page.goto("/", {
     timeout: E2E_NAVIGATION_TIMEOUT_MS,
@@ -137,22 +128,11 @@ async function resetOnlineLocalState(page: Page) {
   );
 }
 
-async function loginAsAdmin(page: Page) {
+async function openAdminHub(page: Page) {
   await page.goto("/", {
     timeout: E2E_NAVIGATION_TIMEOUT_MS,
     waitUntil: "domcontentloaded",
   });
-
-  await page.context().addCookies([
-    {
-      name: "afbm.admin.session",
-      value: createAdminSessionToken(),
-      url: `${new URL(page.url()).origin}/admin`,
-      httpOnly: true,
-      sameSite: "Lax",
-      expires: Math.floor(Date.now() / 1000) + 60 * 60,
-    },
-  ]);
 
   await page.goto("/admin", {
     timeout: E2E_NAVIGATION_TIMEOUT_MS,
@@ -214,6 +194,7 @@ async function runLocalAdminAction(
       lastLeagueKey,
       userIdKey,
       usernameKey,
+      adminToken,
     }) => {
       const localState = {
         leaguesJson: localStorage.getItem(leaguesKey),
@@ -225,6 +206,7 @@ async function runLocalAdminAction(
         method: "POST",
         headers: {
           "content-type": "application/json",
+          authorization: `Bearer ${adminToken}`,
         },
         body: JSON.stringify({
           action: targetAction,
@@ -267,6 +249,7 @@ async function runLocalAdminAction(
       lastLeagueKey: ONLINE_LAST_LEAGUE_ID_STORAGE_KEY,
       userIdKey: ONLINE_USER_ID_STORAGE_KEY,
       usernameKey: ONLINE_USERNAME_STORAGE_KEY,
+      adminToken: E2E_FIREBASE_ADMIN_ID_TOKEN,
     },
   );
 }
@@ -329,7 +312,7 @@ test.describe("Multiplayer Fantasy Draft E2E", () => {
     const leagueName = `Fantasy Draft E2E ${Date.now()}`;
 
     await test.step("Admin erstellt eine Liga und fuellt sie mit 16 Teams/Usern", async () => {
-      await loginAsAdmin(page);
+      await openAdminHub(page);
       const createResult = await runLocalAdminAction(page, "createLeague", {
         name: leagueName,
         maxUsers: TEAM_COUNT,

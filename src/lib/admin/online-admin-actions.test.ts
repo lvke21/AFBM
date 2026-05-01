@@ -15,7 +15,7 @@ import {
 } from "./online-admin-actions";
 
 const actor = {
-  adminSessionId: "admin-session-test",
+  adminSessionId: "firebase-admin-claim-test",
   adminUserId: "firebase-admin-test",
   source: "firebase-admin-claim" as const,
 };

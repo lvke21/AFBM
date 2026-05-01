@@ -4,7 +4,7 @@ import { auditSecurityEvent } from "@/lib/audit/security-audit-log";
 import {
   getAdminClaimAuditId,
   requireFirebaseAdminClaim,
-} from "@/lib/admin/admin-session";
+} from "@/lib/admin/admin-claims";
 
 export type AdminActionActor = {
   adminSessionId: string;

@@ -108,7 +108,7 @@ Diese Aktionen rufen in `OnlineLeaguePlaceholder` direkt Funktionen aus `online-
 
 ### Adminbereich
 
-Admin-Login ist vom Online-GM getrennt und verwendet serverseitigen Code-Login mit Admin-Session-Cookie. `/admin` und `/admin/league/[leagueId]` rufen `requireAdminSession()`.
+Adminzugriff ist vom Online-GM getrennt und verwendet Firebase Auth Custom Claims. `/admin` und `/admin/league/[leagueId]` nutzen das Claim-Gate.
 
 Admin UI:
 
@@ -218,7 +218,7 @@ Online-Multiplayer-Pfad:
 - `NEXT_PUBLIC_FIREBASE_*`: Firebase Web App Config.
 - `FIREBASE_PROJECT_ID`: Firebase Admin/Firestore Projekt.
 - `AFBM_DEPLOY_ENV`, `NEXT_PUBLIC_AFBM_DEPLOY_ENV`: Staging Guard fuer Firestore.
-- `AFBM_ADMIN_ACCESS_CODE`, `AFBM_ADMIN_SESSION_SECRET`: Admin-Code-Login.
+- Firebase Custom Claim `admin: true`: Adminzugriff.
 
 ## Alle Sync-Pfade
 
@@ -261,7 +261,7 @@ Viele Dashboard-Aktionen schreiben direkt in `afbm.online.leagues`. Im Firebase-
 ### Admin UI -> Server -> Firestore
 
 - Client POST an `/admin/api/online/actions`.
-- Server prueft Admin-Session.
+- Server prueft Firebase ID Token.
 - Firebase-Modus verwendet Admin SDK und schreibt direkt nach Firestore.
 - Audit erfolgt ueber `auditAdminAction()` und zusaetzlich `adminLogs` in der Liga.
 
@@ -356,7 +356,7 @@ Anzeige und Ready-Flow sind Firebase-faehig. Viele interaktive Manager-Systeme b
 
 ### Adminbereich
 
-Admin-Code-Login ist getrennt vom Spieler-Auth. Firebase-Admin-Grundfunktionen existieren. Erweiterte Admin-/GM-Governance-Aktionen sind im Firebase-Modus noch nicht vollstaendig implementiert.
+Adminzugriff ist an Firebase Auth gekoppelt. Firebase-Admin-Grundfunktionen existieren. Erweiterte Admin-/GM-Governance-Aktionen sind im Firebase-Modus noch nicht vollstaendig implementiert.
 
 ### Week Simulation
 

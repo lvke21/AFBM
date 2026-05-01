@@ -324,7 +324,7 @@ test.describe.serial("Firebase Multiplayer E2E", () => {
         timeout: E2E_NAVIGATION_TIMEOUT_MS,
         waitUntil: "domcontentloaded",
       });
-      await expect(pageA.getByRole("heading", { name: "Admin Control Center entsperren" })).toBeVisible();
+      await expect(pageA.getByRole("heading", { name: "Firebase Adminrechte erforderlich" })).toBeVisible();
       await expect(pageA.getByText("Simulationssteuerung")).toHaveCount(0);
   });
 });

@@ -30,7 +30,7 @@ Trotzdem ist das Projekt im aktuellen Zustand keine belastbar spielbare Multipla
 
 ### Staerken
 
-- Auth.js/OAuth ist aus produktiven User-Flows entfernt; Online nutzt Firebase Anonymous Auth, Admin nutzt serverseitigen Admin-Code.
+- Auth.js/OAuth ist aus produktiven User-Flows entfernt; Online nutzt Firebase Auth, Admin nutzt Firebase Custom Claims.
 - Firestore Rules sind defensiv: kritische Game-State- und Admin-Pfade sind fuer Clients gesperrt.
 - Admin-Actions laufen serverseitig ueber `requireAdminActionSession()` und Audit-Logging.
 - Firestore-Join, Ready und Draft-Picks nutzen Transaktionen.
@@ -73,9 +73,9 @@ Trotzdem ist das Projekt im aktuellen Zustand keine belastbar spielbare Multipla
    - Referenz: `src/lib/online/online-league-repository-provider.ts:10`.
    - Auswirkung: Entwickler koennen versehentlich einen lokalen Zustand testen und glauben, Firebase sei validiert. Der Runtime-Guard faengt Staging/Production ab, aber lokale Tests bleiben zweideutig.
 
-7. Admin-Session ist funktional, aber MVP-hart
+7. Adminzugriff ist auf Firebase Custom Claims umgestellt
    - Cookie-Token ist statisch aus Secret + fixer Message abgeleitet.
-   - Referenz: `src/lib/admin/admin-session.ts:27`.
+   - Referenz: `src/lib/admin/admin-claims.ts`.
    - Auswirkung: Fuer Staging akzeptabel, fuer langlebige Production fehlen Ablauf, Rotation, Rate-Limit und CSRF-Haertung.
 
 8. Build- und Test-Infrastruktur ist noch rau
@@ -110,7 +110,7 @@ Trotzdem ist das Projekt im aktuellen Zustand keine belastbar spielbare Multipla
 ## Sicherheit
 
 - Positiv: keine OAuth-Abhaengigkeit, Firebase Anonymous Auth, Firestore Rules restriktiv, Admin-Actions serverseitig geschuetzt.
-- Kritisch: Admin-Code-System ist fuer MVP, nicht fuer Production-Admin mit mehreren Rollen.
+- Kritisch: Adminrollen sollten langfristig um Audit- und Rollenmodell erweitert werden.
 - Kritisch: Admin-Action-Route akzeptiert umfangreiche Payloads und lokale State-Patches im Local-Modus. Das ist fuer lokale Tests praktisch, muss aber klar von Production-Firebase getrennt bleiben.
 - Medium: Firestore Rules enthalten noch TODOs fuer finale Auth/Rollen-Mapping-Strategie.
 

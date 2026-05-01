@@ -10,7 +10,6 @@ const SECRET_PLACEHOLDERS = new Set([
   "changeme",
   "secret",
   "password",
-  "e2e-admin-code",
   "demo-api-key",
 ]);
 const TRUE_VALUES = new Set(["1", "true", "yes", "on"]);
@@ -91,14 +90,6 @@ export function assertRuntimeEnvironment(env: RuntimeEnv = process.env) {
 
   if (env.DATA_BACKEND !== "firestore") {
     requireStrongSecret("DATABASE_URL", 16);
-  }
-
-  if (env.ADMIN_ACCESS_CODE) {
-    issues.push("ADMIN_ACCESS_CODE is deprecated; Admin access uses Firebase Auth custom claims.");
-  }
-
-  if (env.AFBM_ADMIN_ACCESS_CODE || env.AFBM_ADMIN_SESSION_SECRET) {
-    issues.push("AFBM_ADMIN_ACCESS_CODE and AFBM_ADMIN_SESSION_SECRET are deprecated; use Firebase Auth custom claims.");
   }
 
   for (const name of EMULATOR_ENV_NAMES) {

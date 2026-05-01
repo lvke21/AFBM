@@ -26,11 +26,8 @@ Wenn `NEXT_PUBLIC_AFBM_ONLINE_BACKEND=local` aktiv ist, bleibt der alte lokale I
 
 Der Adminbereich ist vom anonymen Online-GM-Login getrennt.
 
-- `/admin` und `/admin/league/:leagueId` prüfen serverseitig eine Admin-Session.
-- Login erfolgt über `/admin/login`.
-- Der Admin-Code wird nur serverseitig gegen `AFBM_ADMIN_ACCESS_CODE` oder `ADMIN_ACCESS_CODE` geprüft.
-- Das Browser-Cookie enthält nicht den Admin-Code, sondern einen HMAC-basierten Session-Token.
-- Optional kann `AFBM_ADMIN_SESSION_SECRET` gesetzt werden, damit der Cookie-Token nicht direkt vom Admin-Code abgeleitet wird.
+- `/admin` und `/admin/league/:leagueId` werden inzwischen ueber Firebase Auth Custom Claims geschuetzt.
+- Admin-Aktionen pruefen serverseitig das Firebase ID Token mit `admin: true`.
 
 ## external provider auth-Isolation
 
@@ -69,14 +66,13 @@ Email/Passwort kann später ergänzt werden, ohne das Repository-Modell zu ände
 Ergänzt wurden Tests für:
 
 - lokalen Username-Wechsel ohne Änderung der Legacy-ID
-- serverseitige Admin-Code-Prüfung
-- Admin-Session-Token ohne Secret-Leak
+- serverseitige Firebase-Claim-Pruefung
 
 Ausgeführt am 2026-04-30:
 
 - `npm run lint` - bestanden
 - `npx tsc --noEmit` - bestanden
-- `npm test -- --run src/lib/admin/admin-session.test.ts src/lib/online/online-user-service.test.ts src/lib/online/repositories/online-league-repository.test.ts src/lib/online/online-league-service.test.ts` - 47 Tests bestanden
+- `npm test -- --run src/app/api/admin/online/actions/route.test.ts src/lib/online/online-user-service.test.ts src/lib/online/repositories/online-league-repository.test.ts src/lib/online/online-league-service.test.ts`
 - `npm run test:firebase:rules` - 11 Tests bestanden; Emulator musste außerhalb der Sandbox laufen, weil localhost-Port-Binding in der Sandbox blockiert war
 - `npm run test:firebase:parity` - 3 Tests bestanden; Emulator musste außerhalb der Sandbox laufen, weil localhost-Port-Binding in der Sandbox blockiert war
 - `npm test -- --run` - 126 Testdateien / 726 Tests bestanden
