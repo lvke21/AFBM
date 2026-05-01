@@ -1,17 +1,28 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { OnlineLeagueWeekSimulationError } from "@/lib/admin/online-week-simulation";
 import { ONLINE_LEAGUES_STORAGE_KEY } from "@/lib/online/online-league-constants";
 
-import { POST } from "./route";
-
 const verifyIdTokenMock = vi.hoisted(() => vi.fn());
+const simulateOnlineLeagueWeekMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/firebase/admin", () => ({
   getFirebaseAdminAuth: () => ({
     verifyIdToken: verifyIdTokenMock,
   }),
 }));
+
+vi.mock("@/lib/admin/online-admin-actions", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/admin/online-admin-actions")>();
+
+  return {
+    ...actual,
+    simulateOnlineLeagueWeek: simulateOnlineLeagueWeekMock,
+  };
+});
+
+import { POST } from "./route";
 
 function postRequest(body: unknown, token: string | null = null) {
   return new NextRequest("http://localhost/api/admin/online/actions", {
@@ -45,6 +56,7 @@ function readConsoleJson(spy: "info" | "warn", index = 0) {
 
 beforeEach(() => {
   verifyIdTokenMock.mockReset();
+  simulateOnlineLeagueWeekMock.mockReset();
   vi.spyOn(console, "info").mockImplementation(() => undefined);
   vi.spyOn(console, "warn").mockImplementation(() => undefined);
 });
@@ -189,6 +201,72 @@ describe("admin online action route", () => {
     });
   });
 
+  it("lists admin-managed leagues through the guarded action route", async () => {
+    allowAdmin("firebase-admin-user");
+
+    const createdResponse = await POST(
+      postRequest({
+        action: "createLeague",
+        backendMode: "local",
+        name: "Route Listed League",
+        maxUsers: 4,
+        localState: {
+          leaguesJson: "[]",
+        },
+      }, "admin-token"),
+    );
+    const createdBody = await createdResponse.json();
+    const listedResponse = await POST(
+      postRequest({
+        action: "listLeagues",
+        backendMode: "local",
+        localState: createdBody.localState,
+      }, "admin-token"),
+    );
+    const listedBody = await listedResponse.json();
+
+    expect(listedResponse.status).toBe(200);
+    expect(listedBody.ok).toBe(true);
+    expect(listedBody.leagues).toHaveLength(1);
+    expect(listedBody.leagues[0]).toMatchObject({
+      name: "Route Listed League",
+      maxUsers: 4,
+    });
+  });
+
+  it("loads one admin-managed league through the guarded action route", async () => {
+    allowAdmin("firebase-admin-user");
+
+    const createdResponse = await POST(
+      postRequest({
+        action: "createLeague",
+        backendMode: "local",
+        name: "Route Detail League",
+        maxUsers: 4,
+        localState: {
+          leaguesJson: "[]",
+        },
+      }, "admin-token"),
+    );
+    const createdBody = await createdResponse.json();
+    const loadedResponse = await POST(
+      postRequest({
+        action: "getLeague",
+        backendMode: "local",
+        leagueId: createdBody.league.id,
+        localState: createdBody.localState,
+      }, "admin-token"),
+    );
+    const loadedBody = await loadedResponse.json();
+
+    expect(loadedResponse.status).toBe(200);
+    expect(loadedBody.ok).toBe(true);
+    expect(loadedBody.league).toMatchObject({
+      id: createdBody.league.id,
+      name: "Route Detail League",
+    });
+  });
+
   it("rejects manipulated admin requests with missing required targets", async () => {
     allowAdmin();
 
@@ -212,6 +290,133 @@ describe("admin online action route", () => {
       action: "setAllReady",
       outcome: "failed",
       code: "ADMIN_ACTION_INVALID",
+    });
+  });
+
+  it("simulates a week through the guarded API action as admin", async () => {
+    allowAdmin("firebase-admin-user");
+    simulateOnlineLeagueWeekMock.mockResolvedValue({
+      gamesSimulated: 1,
+      leagueId: "league-1",
+      nextSeason: 1,
+      nextWeek: 2,
+      results: [],
+      simulatedSeason: 1,
+      simulatedWeek: 1,
+      standingsSummary: [],
+      updatedAt: "2026-01-01T12:00:00.000Z",
+      weekKey: "s1-w1",
+    });
+
+    const response = await POST(
+      postRequest({
+        action: "simulateWeek",
+        backendMode: "firebase",
+        leagueId: "league-1",
+        season: 1,
+        week: 1,
+      }, "admin-token"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      ok: true,
+      simulation: {
+        gamesSimulated: 1,
+        leagueId: "league-1",
+        nextWeek: 2,
+        simulatedWeek: 1,
+      },
+    });
+    expect(simulateOnlineLeagueWeekMock).toHaveBeenCalledWith(
+      "league-1",
+      expect.objectContaining({
+        adminUserId: "firebase-admin-user",
+      }),
+      {
+        expectedSeason: 1,
+        expectedWeek: 1,
+      },
+    );
+  });
+
+  it("rejects simulateWeek without a bearer token", async () => {
+    const response = await POST(
+      postRequest({
+        action: "simulateWeek",
+        backendMode: "firebase",
+        leagueId: "league-1",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body.code).toBe("ADMIN_UNAUTHORIZED");
+    expect(simulateOnlineLeagueWeekMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects simulateWeek for non-admin users", async () => {
+    verifyIdTokenMock.mockResolvedValue({
+      uid: "normal-user",
+      admin: false,
+    });
+
+    const response = await POST(
+      postRequest({
+        action: "simulateWeek",
+        backendMode: "firebase",
+        leagueId: "league-1",
+      }, "normal-token"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body.code).toBe("ADMIN_FORBIDDEN");
+    expect(simulateOnlineLeagueWeekMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects simulateWeek with a missing leagueId", async () => {
+    allowAdmin("firebase-admin-user");
+
+    const response = await POST(
+      postRequest({
+        action: "simulateWeek",
+        backendMode: "firebase",
+        season: 1,
+        week: 1,
+      }, "admin-token"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.code).toBe("ADMIN_ACTION_INVALID");
+    expect(simulateOnlineLeagueWeekMock).not.toHaveBeenCalled();
+  });
+
+  it("maps simulation service errors to client-safe API errors", async () => {
+    allowAdmin("firebase-admin-user");
+    simulateOnlineLeagueWeekMock.mockRejectedValue(
+      new OnlineLeagueWeekSimulationError(
+        "schedule_missing",
+        "Für die aktuelle Woche ist kein gültiger Schedule vorhanden.",
+      ),
+    );
+
+    const response = await POST(
+      postRequest({
+        action: "simulateWeek",
+        backendMode: "firebase",
+        leagueId: "league-1",
+      }, "admin-token"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body).toMatchObject({
+      code: "schedule_missing",
+      message: "Für die aktuelle Woche ist kein gültiger Schedule vorhanden.",
+      ok: false,
     });
   });
 });

@@ -68,6 +68,98 @@ function completeFantasyDraftForLocalState(
 }
 
 describe("online admin actions", () => {
+  it("lists leagues for admin management", async () => {
+    const created = await executeOnlineAdminAction(
+      {
+        action: "createLeague",
+        backendMode: "local",
+        name: "Admin Listed League",
+        maxUsers: 4,
+        localState: {
+          leaguesJson: "[]",
+        },
+      },
+      actor,
+    );
+    const listed = await executeOnlineAdminAction(
+      {
+        action: "listLeagues",
+        backendMode: "local",
+        localState: created.localState,
+      },
+      actor,
+    );
+
+    expect(listed.leagues).toHaveLength(1);
+    expect(listed.leagues?.[0]).toMatchObject({
+      name: "Admin Listed League",
+      maxUsers: 4,
+      currentWeek: 1,
+    });
+  });
+
+  it("loads one league for admin detail views", async () => {
+    const created = await executeOnlineAdminAction(
+      {
+        action: "createLeague",
+        backendMode: "local",
+        name: "Admin Detail League",
+        maxUsers: 4,
+        localState: {
+          leaguesJson: "[]",
+        },
+      },
+      actor,
+    );
+    const loaded = await executeOnlineAdminAction(
+      {
+        action: "getLeague",
+        backendMode: "local",
+        leagueId: created.league?.id,
+        localState: created.localState,
+      },
+      actor,
+    );
+
+    expect(loaded.league).toMatchObject({
+      id: created.league?.id,
+      name: "Admin Detail League",
+      maxUsers: 4,
+    });
+  });
+
+  it("validates admin-created league input before writing", async () => {
+    await expect(
+      executeOnlineAdminAction(
+        {
+          action: "createLeague",
+          backendMode: "local",
+          name: "   ",
+          maxUsers: 8,
+          localState: {
+            leaguesJson: "[]",
+          },
+        },
+        actor,
+      ),
+    ).rejects.toThrow("Liga Name ist erforderlich.");
+
+    await expect(
+      executeOnlineAdminAction(
+        {
+          action: "createLeague",
+          backendMode: "local",
+          name: "Valid League",
+          maxUsers: 33,
+          localState: {
+            leaguesJson: "[]",
+          },
+        },
+        actor,
+      ),
+    ).rejects.toThrow("Max Spieler muss zwischen 2 und 32 liegen.");
+  });
+
   it("starts and controls the fantasy draft from admin actions", async () => {
     const created = await executeOnlineAdminAction(
       {

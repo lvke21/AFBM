@@ -1,6 +1,10 @@
-import { FieldValue, type Transaction, type WriteBatch } from "firebase-admin/firestore";
+import {
+  FieldValue,
+  type DocumentReference,
+  type Transaction,
+  type WriteBatch,
+} from "firebase-admin/firestore";
 
-import { simulateMatch } from "@/modules/gameplay/application/minimal-match-simulation";
 import {
   createAdminSimulationLockId,
   isSafeAdminEntityId,
@@ -12,8 +16,17 @@ import type { AdminActionActor } from "@/lib/admin/admin-action-guard";
 import { LocalAdminMemoryStorage, type LocalAdminStateInput } from "@/lib/admin/local-admin-storage";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 import {
+  assertCanStartOnlineLeagueWeekSimulation,
+  getOnlineLeagueSimulationLockStatus,
+  OnlineLeagueWeekSimulationError,
+  prepareOnlineLeagueWeekSimulation,
+  type OnlineLeagueWeekSimulationSummary,
+} from "@/lib/admin/online-week-simulation";
+import {
   applyOnlineRevenueSharing,
+  canCreateOnlineLeagueSchedule,
   authorizeOnlineGmRemoval,
+  createOnlineLeagueSchedule,
   createFantasyDraftPlayerPool,
   createInitialFantasyDraftState,
   createOnlineLeague,
@@ -37,17 +50,16 @@ import {
   saveOnlineLeague,
   setAllOnlineLeagueUsersReady,
   setAllOnlineLeaguesUsersReady,
-  simulateOnlineLeagueWeek,
+  simulateOnlineLeagueWeek as simulateLocalOnlineLeagueWeek,
   startOnlineFantasyDraft,
   startOnlineLeague,
   warnOnlineGm,
   addFakeUserToOnlineLeague,
   type OnlineContractPlayer,
-  type OnlineCompletedWeek,
   type OnlineFantasyDraftPick,
   type OnlineFantasyDraftState,
   type OnlineLeague,
-  type OnlineMatchResult,
+  type OnlineLeagueTeam,
 } from "@/lib/online/online-league-service";
 import {
   mapFirestoreSnapshotToOnlineLeague,
@@ -62,6 +74,8 @@ import {
 } from "@/lib/online/types";
 
 export type OnlineAdminActionName =
+  | "listLeagues"
+  | "getLeague"
   | "createLeague"
   | "deleteLeague"
   | "resetLeague"
@@ -109,10 +123,34 @@ export type OnlineAdminActionResult = {
   message: string;
   league?: OnlineLeague | null;
   leagues?: OnlineLeague[];
+  simulation?: OnlineLeagueWeekSimulationSummary;
   localState?: ReturnType<LocalAdminMemoryStorage["toLocalState"]>;
 };
 
 class OnlineAdminActionValidationError extends Error {}
+
+const ADMIN_CREATE_LEAGUE_MIN_USERS = 2;
+const ADMIN_CREATE_LEAGUE_MAX_USERS = 32;
+const ADMIN_CREATE_LEAGUE_NAME_MIN_LENGTH = 3;
+const ADMIN_CREATE_LEAGUE_NAME_MAX_LENGTH = 60;
+const ADMIN_EXPANSION_TEAM_POOL: OnlineLeagueTeam[] = [
+  { id: "austin-comets", name: "Austin Comets", abbreviation: "AUS" },
+  { id: "charlotte-copperheads", name: "Charlotte Copperheads", abbreviation: "CHA" },
+  { id: "columbus-forge", name: "Columbus Forge", abbreviation: "COL" },
+  { id: "memphis-riverhawks", name: "Memphis Riverhawks", abbreviation: "MEM" },
+  { id: "okc-mustangs", name: "Oklahoma City Mustangs", abbreviation: "OKC" },
+  { id: "raleigh-redwoods", name: "Raleigh Redwoods", abbreviation: "RAL" },
+  { id: "salt-lake-sentinels", name: "Salt Lake Sentinels", abbreviation: "SLS" },
+  { id: "san-antonio-voyagers", name: "San Antonio Voyagers", abbreviation: "SAV" },
+  { id: "birmingham-steel", name: "Birmingham Steel", abbreviation: "BIR" },
+  { id: "omaha-pioneers", name: "Omaha Pioneers", abbreviation: "OMA" },
+  { id: "tulsa-tempest", name: "Tulsa Tempest", abbreviation: "TUL" },
+  { id: "boise-summit", name: "Boise Summit", abbreviation: "BOI" },
+  { id: "madison-monarchs", name: "Madison Monarchs", abbreviation: "MAD" },
+  { id: "des-moines-aviators", name: "Des Moines Aviators", abbreviation: "DSM" },
+  { id: "richmond-rapids", name: "Richmond Rapids", abbreviation: "RIC" },
+  { id: "hartford-harbor", name: "Hartford Harbor", abbreviation: "HAR" },
+];
 
 function nowIso() {
   return new Date().toISOString();
@@ -131,6 +169,48 @@ function slugify(value: string) {
 function createLeagueId(name: string) {
   const slug = slugify(name) || "online-liga";
   return createSeededId(slug, `admin-league:${slug}:${nowIso()}`, 6);
+}
+
+function getAdminLeagueTeamPool(maxTeams: number) {
+  return [...ONLINE_MVP_TEAM_POOL, ...ADMIN_EXPANSION_TEAM_POOL].slice(0, maxTeams);
+}
+
+function requireCreateLeagueName(input: OnlineAdminActionInput) {
+  const name = input.name?.trim() ?? "";
+
+  if (!name) {
+    throw new OnlineAdminActionValidationError("Liga Name ist erforderlich.");
+  }
+
+  if (name.length < ADMIN_CREATE_LEAGUE_NAME_MIN_LENGTH) {
+    throw new OnlineAdminActionValidationError(
+      `Liga Name muss mindestens ${ADMIN_CREATE_LEAGUE_NAME_MIN_LENGTH} Zeichen lang sein.`,
+    );
+  }
+
+  if (name.length > ADMIN_CREATE_LEAGUE_NAME_MAX_LENGTH) {
+    throw new OnlineAdminActionValidationError(
+      `Liga Name darf maximal ${ADMIN_CREATE_LEAGUE_NAME_MAX_LENGTH} Zeichen lang sein.`,
+    );
+  }
+
+  return name;
+}
+
+function requireCreateLeagueMaxUsers(input: OnlineAdminActionInput) {
+  const maxUsers = input.maxUsers;
+
+  if (typeof maxUsers !== "number" || !Number.isFinite(maxUsers) || Math.floor(maxUsers) !== maxUsers) {
+    throw new OnlineAdminActionValidationError("Max Spieler muss eine ganze Zahl sein.");
+  }
+
+  if (maxUsers < ADMIN_CREATE_LEAGUE_MIN_USERS || maxUsers > ADMIN_CREATE_LEAGUE_MAX_USERS) {
+    throw new OnlineAdminActionValidationError(
+      `Max Spieler muss zwischen ${ADMIN_CREATE_LEAGUE_MIN_USERS} und ${ADMIN_CREATE_LEAGUE_MAX_USERS} liegen.`,
+    );
+  }
+
+  return maxUsers;
 }
 
 function requireLeagueId(input: OnlineAdminActionInput) {
@@ -182,6 +262,46 @@ function createEvent(
   };
 }
 
+async function markFirestoreWeekSimulationFailed(input: {
+  actor: AdminActionActor;
+  error: OnlineLeagueWeekSimulationError;
+  failedAt: string;
+  leagueId: string;
+  lockRef: DocumentReference;
+  season: number;
+  week: number;
+}) {
+  const firestore = getFirebaseAdminFirestore();
+
+  await firestore.runTransaction(async (transaction) => {
+    const lockSnapshot = await transaction.get(input.lockRef);
+    const lockStatus = lockSnapshot.exists
+      ? getOnlineLeagueSimulationLockStatus(lockSnapshot.data())
+      : "idle";
+
+    if (lockStatus === "simulated" || lockStatus === "simulating") {
+      return;
+    }
+
+    transaction.set(
+      input.lockRef,
+      {
+        action: "simulateWeek",
+        adminSessionId: input.actor.adminSessionId,
+        adminUserId: input.actor.adminUserId,
+        errorCode: input.error.code,
+        errorMessage: input.error.message,
+        failedAt: input.failedAt,
+        leagueId: input.leagueId,
+        season: input.season,
+        status: "failed",
+        week: input.week,
+      },
+      { merge: true },
+    );
+  });
+}
+
 async function mapFirestoreLeague(leagueId: string) {
   const firestore = getFirebaseAdminFirestore();
   const leagueRef = firestore.collection("leagues").doc(leagueId);
@@ -223,6 +343,24 @@ async function mapFirestoreLeague(leagueId: string) {
       (snapshot) => snapshot.data() as FirestoreOnlineDraftAvailablePlayerDoc,
     ),
   });
+}
+
+async function listFirestoreAdminLeagues() {
+  const firestore = getFirebaseAdminFirestore();
+  const snapshot = await firestore
+    .collection("leagues")
+    .where("settings.onlineBackbone", "==", true)
+    .get();
+  const leagues = await Promise.all(snapshot.docs.map((document) => mapFirestoreLeague(document.id)));
+
+  return leagues
+    .filter((league): league is OnlineLeague => Boolean(league))
+    .sort((left, right) => {
+      const leftCreatedAt = left.createdAt ?? "";
+      const rightCreatedAt = right.createdAt ?? "";
+
+      return rightCreatedAt.localeCompare(leftCreatedAt);
+    });
 }
 
 function getFirestoreDraftRef(leagueId: string) {
@@ -436,109 +574,6 @@ async function applyFirestoreAdminAutoDraftPick(
       ? "Auto-Draft Pick gespeichert. Fantasy Draft abgeschlossen."
       : "Auto-Draft Pick gespeichert.";
   });
-}
-
-function getFirestoreTeamRating(team: FirestoreOnlineTeamDoc) {
-  const roster = (team.contractRoster ?? []).filter((player) => player.status === "active");
-
-  if (roster.length === 0) {
-    return 70;
-  }
-
-  return Math.round(roster.reduce((sum, player) => sum + player.overall, 0) / roster.length);
-}
-
-function createFirestoreOnlineMatchResultsForWeek(input: {
-  league: FirestoreOnlineLeagueDoc;
-  memberships: FirestoreOnlineMembershipDoc[];
-  simulatedByUserId: string;
-  teams: FirestoreOnlineTeamDoc[];
-  now: string;
-}): OnlineMatchResult[] {
-  const teamsById = new Map(input.teams.map((team) => [team.id, team]));
-  const activeMemberships = input.memberships
-    .filter((membership) => membership.status === "active" && membership.teamId)
-    .sort((left, right) => left.teamId.localeCompare(right.teamId));
-  const results: OnlineMatchResult[] = [];
-
-  for (let index = 0; index < activeMemberships.length; index += 2) {
-    const homeMembership = activeMemberships[index];
-    const awayMembership = activeMemberships[index + 1];
-
-    if (!homeMembership || !awayMembership) {
-      continue;
-    }
-
-    const homeTeam = teamsById.get(homeMembership.teamId);
-    const awayTeam = teamsById.get(awayMembership.teamId);
-
-    if (!homeTeam || !awayTeam) {
-      continue;
-    }
-
-    const matchId = `${input.league.id}-s${input.league.currentSeason}-w${input.league.currentWeek}-${homeTeam.id}-${awayTeam.id}`;
-    const simulated = simulateMatch(
-      {
-        id: homeTeam.id,
-        name: homeTeam.displayName,
-        rating: getFirestoreTeamRating(homeTeam),
-      },
-      {
-        id: awayTeam.id,
-        name: awayTeam.displayName,
-        rating: getFirestoreTeamRating(awayTeam),
-      },
-      {
-        seed: `online-week:${input.league.id}:s${input.league.currentSeason}:w${input.league.currentWeek}:${matchId}`,
-      },
-    );
-    const homeWon = simulated.winner === "A";
-
-    results.push({
-      matchId,
-      season: input.league.currentSeason,
-      week: input.league.currentWeek,
-      homeTeamId: homeTeam.id,
-      awayTeamId: awayTeam.id,
-      homeTeamName: homeTeam.displayName,
-      awayTeamName: awayTeam.displayName,
-      homeScore: simulated.scoreA,
-      awayScore: simulated.scoreB,
-      homeStats: simulated.teamAStats,
-      awayStats: simulated.teamBStats,
-      winnerTeamId: homeWon ? homeTeam.id : awayTeam.id,
-      winnerTeamName: homeWon ? homeTeam.displayName : awayTeam.displayName,
-      tiebreakerApplied: simulated.tiebreakerApplied,
-      simulatedAt: input.now,
-      simulatedByUserId: input.simulatedByUserId,
-      status: "completed",
-      createdAt: input.now,
-    });
-  }
-
-  return results;
-}
-
-function createCompletedOnlineWeek(input: {
-  completedAt: string;
-  nextSeason: number;
-  nextWeek: number;
-  resultMatchIds: string[];
-  season: number;
-  simulatedByUserId: string;
-  week: number;
-}): OnlineCompletedWeek {
-  return {
-    weekKey: `s${input.season}-w${input.week}`,
-    season: input.season,
-    week: input.week,
-    status: "completed",
-    resultMatchIds: input.resultMatchIds,
-    completedAt: input.completedAt,
-    simulatedByUserId: input.simulatedByUserId,
-    nextSeason: input.nextSeason,
-    nextWeek: input.nextWeek,
-  };
 }
 
 function getFirestoreFantasyDraftStatus(
@@ -763,10 +798,32 @@ async function executeFirebaseAction(
 ): Promise<OnlineAdminActionResult> {
   const firestore = getFirebaseAdminFirestore();
 
+  if (input.action === "listLeagues") {
+    return {
+      ok: true,
+      message: "Ligen geladen.",
+      leagues: await listFirestoreAdminLeagues(),
+    };
+  }
+
+  if (input.action === "getLeague") {
+    const league = await mapFirestoreLeague(requireLeagueId(input));
+
+    return {
+      ok: true,
+      message: league ? "Liga geladen." : "Liga konnte nicht gefunden werden.",
+      league,
+    };
+  }
+
   if (input.action === "createLeague") {
-    const name = input.name?.trim() || "Neue Online Liga";
+    const name = requireCreateLeagueName(input);
     const leagueId = createLeagueId(name);
-    const maxTeams = normalizeBoundedAdminInteger(input.maxUsers, 16, 1, 16);
+    const maxTeams = requireCreateLeagueMaxUsers(input);
+    const teamPool = getAdminLeagueTeamPool(maxTeams);
+    const schedule = canCreateOnlineLeagueSchedule(teamPool)
+      ? createOnlineLeagueSchedule(leagueId, teamPool)
+      : [];
     const currentWeek = normalizeBoundedAdminInteger(input.startWeek, 1, 1, 18);
     const createdAt = nowIso();
     const batch = firestore.batch();
@@ -787,6 +844,7 @@ async function executeFirebaseAction(
       settings: {
         onlineBackbone: true,
       },
+      schedule,
       version: 1,
     } satisfies FirestoreOnlineLeagueDoc);
     const initialDraftState = createInitialFantasyDraftState(leagueId, maxTeams);
@@ -794,7 +852,7 @@ async function executeFirebaseAction(
     const draftRunId = createDraftRunId(leagueId, createdAt);
 
     setFirestoreDraftState(batch, leagueId, initialDraftState, draftRunId);
-    ONLINE_MVP_TEAM_POOL.slice(0, maxTeams).forEach((team) => {
+    teamPool.forEach((team) => {
       batch.set(
         leagueRef.collection("teams").doc(team.id),
         mapLocalTeamToFirestoreTeam(team, createdAt),
@@ -1024,8 +1082,7 @@ async function executeFirebaseAction(
             .filter((membership) => membership.status === "active" && membership.teamId)
             .map((membership) => membership.teamId),
         );
-        const draftOrder = ONLINE_MVP_TEAM_POOL
-          .slice(0, league.maxTeams)
+        const draftOrder = getAdminLeagueTeamPool(league.maxTeams)
           .map((team) => team.id)
           .filter((teamId) => activeTeamIds.has(teamId));
         const legacyPlayerPool = getLegacyFirestoreFantasyDraftPlayerPool(league);
@@ -1086,103 +1143,45 @@ async function executeFirebaseAction(
     case "simulateWeek": {
       const expectedStep = requireExpectedSimulationStep(input);
       const createdAt = nowIso();
-      const result = await firestore.runTransaction(async (transaction) => {
+      const lockRef = leagueRef
+        .collection("adminActionLocks")
+        .doc(createAdminSimulationLockId(leagueId, expectedStep.season, expectedStep.week));
+      let simulation: OnlineLeagueWeekSimulationSummary;
+
+      try {
+        simulation = await firestore.runTransaction(async (transaction) => {
         const draftRef = getFirestoreDraftRef(leagueId);
         const [leagueSnapshot, draftSnapshot] = await Promise.all([
           transaction.get(leagueRef),
           transaction.get(draftRef),
         ]);
         const league = leagueSnapshot.data() as FirestoreOnlineLeagueDoc | undefined;
-
-        if (!league) {
-          throw new OnlineAdminActionValidationError("Liga konnte nicht gefunden werden.");
-        }
-
-        if (league.status !== "active") {
-          throw new OnlineAdminActionValidationError("Nur aktive Ligen können simuliert werden.");
-        }
-
         const draftDoc = draftSnapshot.exists
           ? (draftSnapshot.data() as FirestoreOnlineDraftStateDoc)
           : null;
-        const draftStatus = draftDoc?.status ?? getFirestoreFantasyDraftStatus(league);
-
-        if (draftStatus && draftStatus !== "completed") {
-          throw new OnlineAdminActionValidationError(
-            "Fantasy Draft muss vor der Week-Simulation abgeschlossen sein.",
-          );
-        }
-
         const memberships = await transaction.get(leagueRef.collection("memberships"));
         const teams = await transaction.get(leagueRef.collection("teams"));
         const membershipDocs = memberships.docs.map(
           (membership) => membership.data() as FirestoreOnlineMembershipDoc,
         );
         const teamDocs = teams.docs.map((team) => team.data() as FirestoreOnlineTeamDoc);
-        const activeMemberships = membershipDocs.filter(
-          (membership) => membership.status === "active" && membership.teamId,
-        );
-        const missingReadyMemberships = activeMemberships.filter((membership) => !membership.ready);
 
-        if (activeMemberships.length === 0 || missingReadyMemberships.length > 0) {
-          throw new OnlineAdminActionValidationError(
-            "Week-Simulation ist gesperrt, bis alle aktiven Teams ready sind.",
-          );
-        }
-
-        if (
-          league.currentSeason !== expectedStep.season ||
-          league.currentWeek !== expectedStep.week
-        ) {
-          return {
-            message: "Die Woche wurde bereits weitergeschaltet.",
-          };
-        }
-
-        const lockRef = leagueRef
-          .collection("adminActionLocks")
-          .doc(createAdminSimulationLockId(leagueId, expectedStep.season, expectedStep.week));
         const lockSnapshot = await transaction.get(lockRef);
 
         if (lockSnapshot.exists) {
-          return {
-            message: "Die Woche wurde bereits weitergeschaltet.",
-          };
+          assertCanStartOnlineLeagueWeekSimulation(lockSnapshot.data());
         }
 
-        const existingResults = league.matchResults ?? [];
-        const alreadySimulated = existingResults.some(
-          (result) => result.season === expectedStep.season && result.week === expectedStep.week,
-        );
-
-        if (alreadySimulated) {
-          return {
-            message: "Die Woche wurde bereits weitergeschaltet.",
-          };
-        }
-
-        const nextWeek = league.currentWeek + 1;
-        const nextSeason = nextWeek > 18 ? league.currentSeason + 1 : league.currentSeason;
-        const normalizedNextWeek = nextWeek > 18 ? 1 : nextWeek;
-        const matchResults = createFirestoreOnlineMatchResultsForWeek({
+        const preparedSimulation = prepareOnlineLeagueWeekSimulation({
+          actorUserId: actor.adminUserId,
+          draftState: draftDoc,
+          expectedSeason: expectedStep.season,
+          expectedWeek: expectedStep.week,
           league,
           memberships: membershipDocs,
-          simulatedByUserId: actor.adminUserId,
-          teams: teamDocs,
           now: createdAt,
+          teams: teamDocs,
         });
-        const completedWeek = createCompletedOnlineWeek({
-          completedAt: createdAt,
-          nextSeason,
-          nextWeek: normalizedNextWeek,
-          resultMatchIds: matchResults.map((result) => result.matchId),
-          season: expectedStep.season,
-          simulatedByUserId: actor.adminUserId,
-          week: expectedStep.week,
-        });
-        const existingCompletedWeeks = (league.completedWeeks ?? []).filter(
-          (week) => week.weekKey !== completedWeek.weekKey,
-        );
 
         memberships.docs.forEach((membership) => {
           const data = membership.data() as FirestoreOnlineMembershipDoc;
@@ -1191,17 +1190,19 @@ async function executeFirebaseAction(
           }
         });
         transaction.update(leagueRef, {
-          currentWeek: normalizedNextWeek,
-          currentSeason: nextSeason,
+          completedWeeks: preparedSimulation.nextCompletedWeeks,
+          currentSeason: preparedSimulation.nextSeason,
+          currentWeek: preparedSimulation.nextWeek,
+          lastSimulatedWeekKey: preparedSimulation.weekKey,
+          matchResults: [...preparedSimulation.results, ...preparedSimulation.existingMatchResults],
+          standings: preparedSimulation.standingsSummary,
           weekStatus: "pre_week",
-          matchResults: [...matchResults, ...existingResults],
-          completedWeeks: [completedWeek, ...existingCompletedWeeks],
-          updatedAt: createdAt,
+          updatedAt: preparedSimulation.updatedAt,
           version: FieldValue.increment(1),
         });
         transaction.set(lockRef, {
           action: "simulateWeek",
-          status: "completed",
+          status: "simulated",
           createdAt,
           adminSessionId: actor.adminSessionId,
           adminUserId: actor.adminUserId,
@@ -1214,18 +1215,18 @@ async function executeFirebaseAction(
             season: expectedStep.season,
             week: expectedStep.week,
             status: "completed",
-            completedAt: createdAt,
+            completedAt: preparedSimulation.updatedAt,
             simulatedByUserId: actor.adminUserId,
           },
           { merge: true },
         );
         transaction.set(
-          leagueRef.collection("weeks").doc(`s${nextSeason}-w${normalizedNextWeek}`),
+          leagueRef.collection("weeks").doc(`s${preparedSimulation.nextSeason}-w${preparedSimulation.nextWeek}`),
           {
-            season: nextSeason,
-            week: normalizedNextWeek,
+            season: preparedSimulation.nextSeason,
+            week: preparedSimulation.nextWeek,
             status: "pre_week",
-            startedAt: createdAt,
+            startedAt: preparedSimulation.updatedAt,
           },
           { merge: true },
         );
@@ -1237,27 +1238,49 @@ async function executeFirebaseAction(
           payload: {
             previousSeason: expectedStep.season,
             previousWeek: expectedStep.week,
-            nextSeason,
-            nextWeek: normalizedNextWeek,
+            nextSeason: preparedSimulation.nextSeason,
+            nextWeek: preparedSimulation.nextWeek,
+            resultCount: preparedSimulation.gamesSimulated,
           },
         });
         transaction.set(
           leagueRef.collection("events").doc(),
-          createEvent("week_simulated_placeholder", actor, {
-            previousWeek: league.currentWeek,
-            nextWeek: normalizedNextWeek,
-            nextSeason,
+          createEvent("week_simulated", actor, {
+            previousSeason: expectedStep.season,
+            previousWeek: expectedStep.week,
+            nextSeason: preparedSimulation.nextSeason,
+            nextWeek: preparedSimulation.nextWeek,
+            resultCount: preparedSimulation.gamesSimulated,
           }),
         );
 
-        return {
-          message: "Die Woche wurde simuliert. Die nächste Week ist vorbereitet.",
-        };
-      });
+        return preparedSimulation;
+        });
+      } catch (error) {
+        if (
+          error instanceof OnlineLeagueWeekSimulationError &&
+          error.code !== "simulation_in_progress" &&
+          error.code !== "week_already_simulated"
+        ) {
+          await markFirestoreWeekSimulationFailed({
+            actor,
+            error,
+            failedAt: createdAt,
+            leagueId,
+            lockRef,
+            season: expectedStep.season,
+            week: expectedStep.week,
+          });
+        }
+
+        throw error;
+      }
+
       return {
         ok: true,
-        message: result.message,
+        message: `Die Woche wurde simuliert. ${simulation.gamesSimulated} Ergebnisse gespeichert, die nächste Week ist vorbereitet.`,
         league: await mapFirestoreLeague(leagueId),
+        simulation,
       };
     }
     case "initializeFantasyDraft": {
@@ -1545,11 +1568,19 @@ function executeLocalAction(
   let resetCurrentUser = false;
 
   switch (input.action) {
+    case "listLeagues":
+      leagues = getOnlineLeagues(storage);
+      message = "Ligen geladen.";
+      break;
+    case "getLeague":
+      league = getOnlineLeagueById(requireLeagueId(input), storage);
+      message = league ? "Liga geladen." : "Liga konnte nicht gefunden werden.";
+      break;
     case "createLeague":
       league = createOnlineLeague(
         {
-          name: input.name ?? "Neue Online Liga",
-          maxUsers: input.maxUsers,
+          name: requireCreateLeagueName(input),
+          maxUsers: requireCreateLeagueMaxUsers(input),
           startWeek: input.startWeek,
         },
         storage,
@@ -1718,7 +1749,7 @@ function executeLocalAction(
           break;
         }
 
-        league = simulateOnlineLeagueWeek(leagueId, storage, {
+        league = simulateLocalOnlineLeagueWeek(leagueId, storage, {
           simulatedByUserId: actor.adminUserId,
         });
         message = "Die Woche wurde simuliert. Die nächste Week ist vorbereitet.";
@@ -1792,6 +1823,41 @@ function executeLocalAction(
   };
 }
 
+export async function simulateOnlineLeagueWeek(
+  leagueId: string,
+  actor: AdminActionActor,
+  options: { expectedSeason?: number; expectedWeek?: number } = {},
+) {
+  const league = await mapFirestoreLeague(leagueId);
+
+  if (!league) {
+    throw new OnlineLeagueWeekSimulationError(
+      "league_not_found",
+      "Liga konnte nicht gefunden werden.",
+    );
+  }
+
+  const result = await executeOnlineAdminAction(
+    {
+      action: "simulateWeek",
+      backendMode: "firebase",
+      leagueId,
+      season: options.expectedSeason ?? league.currentSeason ?? 1,
+      week: options.expectedWeek ?? league.currentWeek,
+    },
+    actor,
+  );
+
+  if (!result.simulation) {
+    throw new OnlineLeagueWeekSimulationError(
+      "simulation_failed",
+      "Week-Simulation lieferte kein strukturiertes Ergebnis.",
+    );
+  }
+
+  return result.simulation;
+}
+
 export async function executeOnlineAdminAction(
   input: OnlineAdminActionInput,
   actor: AdminActionActor,
@@ -1808,6 +1874,14 @@ export async function executeOnlineAdminAction(
 }
 
 export function toOnlineAdminActionError(error: unknown) {
+  if (error instanceof OnlineLeagueWeekSimulationError) {
+    return {
+      status: 400,
+      code: error.code,
+      message: error.message,
+    };
+  }
+
   if (error instanceof OnlineAdminActionValidationError) {
     return {
       status: 400,

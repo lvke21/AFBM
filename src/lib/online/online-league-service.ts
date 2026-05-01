@@ -1,5 +1,4 @@
 import type { OnlineUser } from "./online-user-service";
-import { simulateMatch } from "@/modules/gameplay/application/minimal-match-simulation";
 import { createRng, createSeededId } from "@/lib/random/seeded-rng";
 import {
   resolveTeamIdentitySelection,
@@ -125,6 +124,11 @@ import {
   isOnlineLeagueUserActiveWeekParticipant,
 } from "./online-league-week-service";
 import {
+  canCreateOnlineLeagueSchedule,
+  createOnlineLeagueSchedule,
+} from "./online-league-schedule";
+import { simulateOnlineGame } from "./online-game-simulation";
+import {
   clearStoredLastOnlineLeagueId,
   getBrowserOnlineLeagueStorage,
   getStoredLastOnlineLeagueId,
@@ -146,6 +150,35 @@ export {
   type OnlineLeagueWeekReadyParticipant,
   type OnlineLeagueWeekReadyState,
 } from "./online-league-week-service";
+export {
+  buildOnlineLeagueTeamRecords,
+  canSimulateWeek,
+  getCurrentWeekGames,
+  hasValidScheduleForWeek,
+  normalizeOnlineLeagueWeekSimulationState,
+  sortOnlineLeagueTeamRecords,
+  type OnlineLeagueTeamRecord,
+  type OnlineLeagueWeekGameStatus,
+  type OnlineLeagueWeekSimulationGame,
+  type OnlineLeagueWeekSimulationState,
+} from "./online-league-week-simulation";
+export {
+  canCreateOnlineLeagueSchedule,
+  createOnlineLeagueSchedule,
+  ONLINE_LEAGUE_REGULAR_SEASON_GAMES_PER_WEEK,
+  ONLINE_LEAGUE_REGULAR_SEASON_WEEKS,
+  ONLINE_LEAGUE_SCHEDULE_TEAM_COUNT,
+  OnlineLeagueScheduleError,
+} from "./online-league-schedule";
+export {
+  adaptOnlineTeamToSimulationTeam,
+  simulateOnlineGame,
+  type OnlineGameSimulationError,
+  type OnlineGameSimulationGame,
+  type OnlineGameSimulationResult,
+  type SimulateOnlineGameOptions,
+  type SimulateOnlineGameResult,
+} from "./online-game-simulation";
 export {
   ONLINE_FANTASY_DRAFT_POSITIONS,
   ONLINE_FANTASY_DRAFT_RESERVE_RATE,
@@ -1674,12 +1707,17 @@ function normalizeLeagueSettings(settings: Partial<OnlineLeagueSettings> | undef
   };
 }
 
+function createScheduleForTeamPool(leagueId: string, teams: OnlineLeagueTeam[]) {
+  return canCreateOnlineLeagueSchedule(teams) ? createOnlineLeagueSchedule(leagueId, teams) : [];
+}
+
 function createGlobalTestLeague(): OnlineLeague {
   return {
     id: GLOBAL_TEST_LEAGUE_ID,
     name: "Global Test League",
     users: [],
     teams: ONLINE_MVP_TEAM_POOL,
+    schedule: createOnlineLeagueSchedule(GLOBAL_TEST_LEAGUE_ID, ONLINE_MVP_TEAM_POOL),
     freeAgents: createDefaultFreeAgents(),
     fantasyDraft: createInitialFantasyDraftState(GLOBAL_TEST_LEAGUE_ID, ONLINE_MVP_TEAM_POOL.length),
     fantasyDraftPlayerPool: createFantasyDraftPlayerPool(GLOBAL_TEST_LEAGUE_ID, ONLINE_MVP_TEAM_POOL.length),
@@ -3452,20 +3490,6 @@ type OnlineWeekMatchup = {
   matchId: string;
 };
 
-function getOnlineTeamRating(user: OnlineLeagueUser) {
-  const roster = getOnlineLeagueUserContractRoster(user).filter(
-    (player) => player.status === "active",
-  );
-
-  if (roster.length === 0) {
-    return 70;
-  }
-
-  return Math.round(
-    roster.reduce((sum, player) => sum + player.overall, 0) / roster.length,
-  );
-}
-
 function getOnlineWeekMatchups(
   league: OnlineLeague,
   season: number,
@@ -3476,7 +3500,7 @@ function getOnlineWeekMatchups(
   const scheduledMatches = (league.schedule ?? []).filter((match) => match.week === week);
 
   if (scheduledMatches.length > 0) {
-    return scheduledMatches
+    const matchups = scheduledMatches
       .map((match) => {
         const home =
           usersByTeamId.get(match.homeTeamName) ??
@@ -3494,6 +3518,10 @@ function getOnlineWeekMatchups(
           : null;
       })
       .filter((matchup): matchup is OnlineWeekMatchup => matchup !== null);
+
+    if (matchups.length > 0) {
+      return matchups;
+    }
   }
 
   const results: OnlineWeekMatchup[] = [];
@@ -3525,47 +3553,26 @@ function createOnlineMatchResultsForWeek(
   const results: OnlineMatchResult[] = [];
 
   for (const matchup of getOnlineWeekMatchups(league, season, league.currentWeek)) {
-    const homeRating = getOnlineTeamRating(matchup.home);
-    const awayRating = getOnlineTeamRating(matchup.away);
-    const simulated = simulateMatch(
+    const simulated = simulateOnlineGame(
       {
-        id: matchup.home.teamId,
-        name: matchup.home.teamDisplayName ?? matchup.home.teamName,
-        rating: homeRating,
+        awayTeamId: matchup.away.teamId,
+        awayTeamName: matchup.away.teamDisplayName ?? matchup.away.teamName,
+        homeTeamId: matchup.home.teamId,
+        homeTeamName: matchup.home.teamDisplayName ?? matchup.home.teamName,
+        id: matchup.matchId,
+        season,
+        week: league.currentWeek,
       },
+      league,
       {
-        id: matchup.away.teamId,
-        name: matchup.away.teamDisplayName ?? matchup.away.teamName,
-        rating: awayRating,
-      },
-      {
-        seed: `online-week:${league.id}:s${season}:w${league.currentWeek}:${matchup.matchId}`,
+        simulatedAt: now,
+        simulatedByUserId,
       },
     );
-    const homeWon = simulated.winner === "A";
 
-    results.push({
-      matchId: matchup.matchId,
-      season,
-      week: league.currentWeek,
-      homeTeamId: matchup.home.teamId,
-      awayTeamId: matchup.away.teamId,
-      homeTeamName: matchup.home.teamDisplayName ?? matchup.home.teamName,
-      awayTeamName: matchup.away.teamDisplayName ?? matchup.away.teamName,
-      homeScore: simulated.scoreA,
-      awayScore: simulated.scoreB,
-      homeStats: simulated.teamAStats,
-      awayStats: simulated.teamBStats,
-      winnerTeamId: homeWon ? matchup.home.teamId : matchup.away.teamId,
-      winnerTeamName: homeWon
-        ? matchup.home.teamDisplayName ?? matchup.home.teamName
-        : matchup.away.teamDisplayName ?? matchup.away.teamName,
-      tiebreakerApplied: simulated.tiebreakerApplied,
-      simulatedAt: now,
-      simulatedByUserId,
-      status: "completed",
-      createdAt: now,
-    });
+    if (simulated.ok) {
+      results.push(simulated.result);
+    }
   }
 
   return results;
@@ -3889,11 +3896,13 @@ export function createOnlineLeague(
   const name = input.name.trim() || "Neue Online Liga";
   const maxUsers = normalizeMaxUsers(input.maxUsers);
   const leagueId = createUserFacingLeagueId(name, existingLeagues);
+  const teams = ONLINE_MVP_TEAM_POOL.slice(0, maxUsers);
   const league: OnlineLeague = {
     id: leagueId,
     name,
     users: [],
-    teams: ONLINE_MVP_TEAM_POOL.slice(0, maxUsers),
+    teams,
+    schedule: createScheduleForTeamPool(leagueId, teams),
     freeAgents: createDefaultFreeAgents(),
     fantasyDraft: createInitialFantasyDraftState(leagueId, maxUsers),
     fantasyDraftPlayerPool: createFantasyDraftPlayerPool(leagueId, maxUsers),
@@ -3954,6 +3963,7 @@ export function resetOnlineLeague(
       currentSeason: 1,
       weekStatus: "pre_week",
       lastSimulatedWeekKey: undefined,
+      schedule: createScheduleForTeamPool(league.id, league.teams),
       matchResults: [],
       completedWeeks: [],
       fantasyDraft: createInitialFantasyDraftState(league.id, league.maxUsers),

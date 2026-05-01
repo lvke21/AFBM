@@ -381,6 +381,7 @@ export type OnlineContractPlayer = {
 
 export type OnlineMatchResult = {
   matchId: string;
+  gameId?: string;
   season: number;
   week: number;
   homeTeamId: string;
@@ -393,6 +394,9 @@ export type OnlineMatchResult = {
   awayStats: OnlineMatchTeamStats;
   winnerTeamId: string;
   winnerTeamName: string;
+  loserTeamId?: string;
+  loserTeamName?: string;
+  simulationWarnings?: string[];
   tiebreakerApplied: boolean;
   simulatedAt: string;
   simulatedByUserId: string;
@@ -859,6 +863,8 @@ export type OnlineLeagueLogEntry = {
 export type OnlineLeague = {
   id: string;
   name: string;
+  createdAt?: string;
+  updatedAt?: string;
   users: OnlineLeagueUser[];
   teams: OnlineLeagueTeam[];
   schedule?: OnlineLeagueScheduleMatch[];

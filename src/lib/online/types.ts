@@ -8,7 +8,9 @@ import type {
   OnlineLeague,
   OnlineCompletedWeek,
   OnlineMatchResult,
+  OnlineLeagueScheduleMatch,
   OnlineLeagueTeam,
+  OnlineLeagueTeamRecord,
 } from "./online-league-service";
 import type { OnlineUser } from "./online-user-service";
 import type { TeamIdentitySelection } from "./team-identity-options";
@@ -40,8 +42,11 @@ export type FirestoreOnlineLeagueDoc = {
   currentSeason: number;
   weekStatus?: FirestoreOnlineWeekStatus;
   settings: Record<string, unknown>;
+  schedule?: OnlineLeagueScheduleMatch[];
   matchResults?: OnlineMatchResult[];
   completedWeeks?: OnlineCompletedWeek[];
+  lastSimulatedWeekKey?: string;
+  standings?: OnlineLeagueTeamRecord[];
   version: number;
 };
 
@@ -383,6 +388,8 @@ export function mapFirestoreSnapshotToOnlineLeague(
   return {
     id: snapshot.league.id,
     name: snapshot.league.name,
+    createdAt: snapshot.league.createdAt,
+    updatedAt: snapshot.league.updatedAt,
     currentWeek: snapshot.league.currentWeek,
     weekStatus: snapshot.league.weekStatus ?? "pre_week",
     maxUsers: snapshot.league.maxTeams,
@@ -392,6 +399,7 @@ export function mapFirestoreSnapshotToOnlineLeague(
       name: team.displayName,
       abbreviation: team.displayName.slice(0, 3).toUpperCase(),
     })),
+    schedule: snapshot.league.schedule ?? [],
     users: snapshot.memberships
       .filter((membership) => membership.status !== "removed" && membership.teamId)
       .map((membership) => {
@@ -415,6 +423,7 @@ export function mapFirestoreSnapshotToOnlineLeague(
     }),
     matchResults: snapshot.league.matchResults ?? [],
     completedWeeks: snapshot.league.completedWeeks ?? [],
+    lastSimulatedWeekKey: snapshot.league.lastSimulatedWeekKey,
     fantasyDraft: subcollectionDraft ?? mapFirestoreFantasyDraftState(snapshot.league.settings.fantasyDraft),
     fantasyDraftPlayerPool: subcollectionPlayerPool ?? mapFirestoreFantasyDraftPlayerPool(
       snapshot.league.settings.fantasyDraftPlayerPool,

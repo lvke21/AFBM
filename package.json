@@ -45,6 +45,7 @@
     "firebase:set-admin": "node scripts/set-admin.js",
     "firebase:staging:backfill": "FIRESTORE_PREVIEW_DRY_RUN=true FIRESTORE_PREVIEW_CONFIRM_WRITE=true tsx scripts/firestore-backfill.ts --append",
     "firebase:staging:compare": "FIRESTORE_PREVIEW_DRY_RUN=true tsx scripts/firestore-compare.ts",
+    "firebase:seed-online-league": "CONFIRM_STAGING_SEED=true USE_FIRESTORE_EMULATOR=false tsx scripts/seed-online-league.ts",
     "firebase:seed": "tsx scripts/seeds/firestore-seed.ts",
     "seed:multiplayer:league": "tsx scripts/seeds/multiplayer-test-league-firestore-seed.ts",
     "seed:multiplayer:players": "tsx scripts/seeds/multiplayer-player-pool-firestore-seed.ts",

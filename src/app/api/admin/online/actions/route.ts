@@ -6,8 +6,10 @@ import {
   auditAdminAction,
   requireAdminActionSession,
 } from "@/lib/admin/admin-action-guard";
+import { isSafeAdminEntityId } from "@/lib/admin/admin-action-hardening";
 import {
   executeOnlineAdminAction,
+  simulateOnlineLeagueWeek,
   toOnlineAdminActionError,
   type OnlineAdminActionInput,
 } from "@/lib/admin/online-admin-actions";
@@ -32,7 +34,14 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await executeOnlineAdminAction(input, actor);
+    const result =
+      input.action === "simulateWeek" && input.backendMode === "firebase"
+        ? {
+            ok: true as const,
+            message: "Die Woche wurde simuliert.",
+            simulation: await simulateWeekFromApi(input, actor),
+          }
+        : await executeOnlineAdminAction(input, actor);
 
     auditAdminAction({
       request,
@@ -46,7 +55,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    const actionError = toOnlineAdminActionError(error);
+    const actionError =
+      error instanceof AdminActionError
+        ? {
+            code: error.code,
+            message: error.message,
+            status: error.status,
+          }
+        : toOnlineAdminActionError(error);
 
     auditAdminAction({
       request,
@@ -68,4 +84,18 @@ export async function POST(request: NextRequest) {
       { status: actionError.status },
     );
   }
+}
+
+function simulateWeekFromApi(
+  input: OnlineAdminActionInput,
+  actor: Awaited<ReturnType<typeof requireAdminActionSession>>,
+) {
+  if (!isSafeAdminEntityId(input.leagueId)) {
+    throw new AdminActionError("Liga-ID fehlt.", 400, "ADMIN_ACTION_INVALID");
+  }
+
+  return simulateOnlineLeagueWeek(input.leagueId, actor, {
+    expectedSeason: input.season,
+    expectedWeek: input.week,
+  });
 }

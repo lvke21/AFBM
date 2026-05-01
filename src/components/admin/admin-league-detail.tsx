@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  buildOnlineLeagueTeamRecords,
+  getCurrentWeekGames,
   getOnlineLeagueById,
   getOnlineLeagueWeekReadyState,
   type OnlineLeague,
+  type OnlineLeagueTeamRecord,
+  type OnlineMatchResult,
 } from "@/lib/online/online-league-service";
 import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
 import {
@@ -160,6 +164,34 @@ function formatCurrency(value: number) {
   }).format(Math.round(value));
 }
 
+function formatDateTime(value: string | null | undefined) {
+  if (!value) {
+    return "Unbekannt";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("de-CH", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function AdminDebugItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+      <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+        {label}
+      </dt>
+      <dd className="mt-2 break-words font-mono text-sm text-slate-100">{value}</dd>
+    </div>
+  );
+}
+
 function averageAttendanceRate(user: OnlineLeague["users"][number]) {
   const history = user.attendanceHistory ?? [];
 
@@ -223,17 +255,81 @@ function getLastTrainingActivity(user: OnlineLeague["users"][number]) {
 }
 
 type AdminActionResponse = {
+  code?: string;
   ok: boolean;
   message: string;
   league?: OnlineLeague | null;
+  simulation?: AdminSimulationResult;
   localState?: LocalAdminBrowserStatePatch;
 };
+
+type AdminSimulationResult = {
+  gamesSimulated: number;
+  leagueId: string;
+  nextSeason?: number;
+  nextWeek: number;
+  results: OnlineMatchResult[];
+  simulatedSeason?: number;
+  simulatedWeek: number;
+  standingsSummary: OnlineLeagueTeamRecord[];
+  updatedAt?: string;
+  weekKey?: string;
+};
+
+function getTeamNameByScheduleValue(league: OnlineLeague, value: string) {
+  const team = league.teams.find((candidate) => candidate.id === value || candidate.name === value);
+
+  if (team) {
+    return team.name;
+  }
+
+  const user = league.users.find(
+    (candidate) =>
+      candidate.teamId === value ||
+      candidate.teamName === value ||
+      candidate.teamDisplayName === value,
+  );
+
+  return user?.teamDisplayName ?? user?.teamName ?? value;
+}
+
+function getAdminActionErrorMessage(error: unknown) {
+  if (!(error instanceof Error)) {
+    return "Admin-Aktion konnte nicht ausgeführt werden.";
+  }
+
+  if (error.message.includes("schedule_missing") || error.message.includes("Schedule")) {
+    return "Für diese Woche ist kein gültiger Schedule vorhanden.";
+  }
+
+  if (error.message.includes("week_already_simulated") || error.message.includes("bereits")) {
+    return "Diese Woche wurde bereits simuliert. Lade die Daten neu.";
+  }
+
+  if (error.message.includes("team_missing") || error.message.includes("fehlendes Team")) {
+    return "Ein geplantes Spiel referenziert ein fehlendes Team.";
+  }
+
+  if (error.message.includes("ADMIN_UNAUTHORIZED") || error.message.includes("angemeldet")) {
+    return "Nicht autorisiert: Bitte melde dich mit deinem Firebase-Admin-Account an.";
+  }
+
+  if (error.message.includes("ADMIN_FORBIDDEN") || error.message.includes("Adminrechte")) {
+    return "Nicht autorisiert: Dein Firebase-Account hat keine Adminrechte.";
+  }
+
+  return error.message;
+}
 
 export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
   const [league, setLeague] = useState<OnlineLeague | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [lastLoadedAt, setLastLoadedAt] = useState<string | null>(null);
+  const [debugVisible, setDebugVisible] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [feedbackTone, setFeedbackTone] = useState<"success" | "warning">("success");
+  const [lastSimulation, setLastSimulation] = useState<AdminSimulationResult | null>(null);
   const [filter, setFilter] = useState<AdminGmFilter>("all");
   const [financeSort, setFinanceSort] = useState<AdminFinanceSort>("revenue");
   const {
@@ -245,26 +341,66 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
   const isFirebaseMode = repository.mode === "firebase";
   const showLocalOnlyAdminActions = !isFirebaseMode;
 
-  useEffect(() => {
-    if (isFirebaseMode) {
-      return repository.subscribeToLeague(
-        leagueId,
-        (nextLeague) => {
-          setLeague(nextLeague);
-          setLoaded(true);
-        },
-        () => {
-          setLeague(null);
-          setLoaded(true);
-        },
+  const requestAdminAction = useCallback(
+    async (
+      action: string,
+      payload: Record<string, unknown> = {},
+    ): Promise<AdminActionResponse> => {
+      const response = await fetch("/admin/api/online/actions", {
+        method: "POST",
+        headers: await getFirebaseAdminActionHeaders(),
+        body: JSON.stringify({
+          action,
+          backendMode: repository.mode,
+          leagueId,
+          localState: showLocalOnlyAdminActions ? getLocalAdminBrowserState() : undefined,
+          ...payload,
+        }),
+      });
+      const result = (await response.json()) as AdminActionResponse;
+
+      if (!response.ok || !result.ok) {
+        const code = result.code ? ` (${result.code})` : "";
+
+        throw new Error(
+          `${result.message || "Admin-Aktion konnte nicht ausgeführt werden."}${code}`,
+        );
+      }
+
+      applyLocalAdminBrowserState(result.localState);
+      return result;
+    },
+    [leagueId, repository.mode, showLocalOnlyAdminActions],
+  );
+
+  const loadLeague = useCallback(async () => {
+    setLoaded(false);
+    setLoadError(null);
+
+    try {
+      const nextLeague = isFirebaseMode
+        ? (await requestAdminAction("getLeague")).league ?? null
+        : getOnlineLeagueById(leagueId);
+
+      setLeague(nextLeague);
+      setLastLoadedAt(new Date().toISOString());
+
+      if (!nextLeague) {
+        setLoadError("Liga konnte nicht gefunden werden.");
+      }
+    } catch (error) {
+      setLeague(null);
+      setLoadError(
+        error instanceof Error ? error.message : "Liga konnte nicht geladen werden.",
       );
+    } finally {
+      setLoaded(true);
     }
+  }, [isFirebaseMode, leagueId, requestAdminAction]);
 
-    setLeague(getOnlineLeagueById(leagueId));
-    setLoaded(true);
-
-    return undefined;
-  }, [isFirebaseMode, leagueId, repository]);
+  useEffect(() => {
+    void loadLeague();
+  }, [loadLeague]);
 
   function updateLeague(
     nextLeague: OnlineLeague | null,
@@ -274,31 +410,6 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
     setLeague(nextLeague);
     setFeedback(nextLeague ? message : "Liga konnte nicht gefunden werden.");
     setFeedbackTone(nextLeague ? tone : "warning");
-  }
-
-  async function requestAdminAction(
-    action: string,
-    payload: Record<string, unknown> = {},
-  ): Promise<AdminActionResponse> {
-    const response = await fetch("/admin/api/online/actions", {
-      method: "POST",
-      headers: await getFirebaseAdminActionHeaders(),
-      body: JSON.stringify({
-        action,
-        backendMode: repository.mode,
-        leagueId,
-        localState: showLocalOnlyAdminActions ? getLocalAdminBrowserState() : undefined,
-        ...payload,
-      }),
-    });
-    const result = (await response.json()) as AdminActionResponse;
-
-    if (!response.ok || !result.ok) {
-      throw new Error(result.message || "Admin-Aktion konnte nicht ausgeführt werden.");
-    }
-
-    applyLocalAdminBrowserState(result.localState);
-    return result;
   }
 
   async function runAdminAction(
@@ -315,7 +426,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
       updateLeague(result.league ?? null, result.message || successMessage);
     } catch (error) {
       setFeedback(
-        error instanceof Error ? error.message : "Admin-Aktion konnte nicht ausgeführt werden.",
+        getAdminActionErrorMessage(error),
       );
       setFeedbackTone("warning");
     } finally {
@@ -329,6 +440,27 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
       () => requestAdminAction("setAllReady"),
       "Alle Spieler wurden auf Ready gesetzt.",
     );
+  }
+
+  async function handleRefreshLeague() {
+    if (!beginAdminAction("refresh-league")) {
+      return;
+    }
+
+    try {
+      const nextLeague = isFirebaseMode
+        ? (await requestAdminAction("getLeague")).league ?? null
+        : getOnlineLeagueById(leagueId);
+
+      updateLeague(nextLeague, "Liga wurde aktualisiert.");
+      setLoadError(nextLeague ? null : "Liga konnte nicht gefunden werden.");
+      setLastLoadedAt(new Date().toISOString());
+    } catch (error) {
+      setFeedback(getAdminActionErrorMessage(error));
+      setFeedbackTone("warning");
+    } finally {
+      endAdminAction();
+    }
   }
 
   async function handleStartLeague() {
@@ -426,15 +558,34 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
       return;
     }
 
-    await runAdminAction(
-      "simulate-week",
-      () =>
-        requestAdminAction("simulateWeek", {
-          season: league?.currentSeason ?? 1,
-          week: league?.currentWeek ?? 1,
-        }),
-      "Die Woche wurde simuliert. Die nächste Week ist vorbereitet.",
-    );
+    if (!beginAdminAction("simulate-week")) {
+      return;
+    }
+
+    try {
+      const result = await requestAdminAction("simulateWeek", {
+        season: league?.currentSeason ?? 1,
+        week: league?.currentWeek ?? 1,
+      });
+      const simulation = result.simulation ?? null;
+      const nextLeague = isFirebaseMode
+        ? (await requestAdminAction("getLeague")).league ?? null
+        : result.league ?? getOnlineLeagueById(leagueId);
+
+      setLastSimulation(simulation);
+      updateLeague(
+        nextLeague,
+        simulation
+          ? `Week ${simulation.simulatedWeek} wurde simuliert. ${simulation.gamesSimulated} Spiele gespeichert, nächste Week: ${simulation.nextWeek}.`
+          : result.message || "Die Woche wurde simuliert.",
+      );
+      setLastLoadedAt(new Date().toISOString());
+    } catch (error) {
+      setFeedback(getAdminActionErrorMessage(error));
+      setFeedbackTone("warning");
+    } finally {
+      endAdminAction();
+    }
   }
 
   function handleApplyRevenueSharing() {
@@ -556,20 +707,65 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
   }
 
   if (!league) {
+    const isMissingLeague = !loadError || loadError === "Liga konnte nicht gefunden werden.";
+
     return (
       <section className="rounded-lg border border-amber-200/25 bg-amber-300/10 p-6 text-amber-100">
         <h1
           className="text-3xl font-semibold text-white"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Liga konnte nicht gefunden werden.
+          {isMissingLeague ? "Liga konnte nicht gefunden werden." : "Liga konnte nicht geladen werden."}
         </h1>
-        <Link
-          href="/admin"
-          className="mt-6 inline-flex rounded-lg border border-amber-100/25 px-4 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-100/10"
+        {loadError ? (
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-amber-50/85">{loadError}</p>
+        ) : null}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={loadLeague}
+            className="inline-flex rounded-lg border border-amber-100/25 px-4 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-100/10"
+          >
+            Erneut laden
+          </button>
+          <Link
+            href="/admin"
+            className="inline-flex rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8"
+          >
+            Zurück zum Admin Control Center
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  const readyState = getOnlineLeagueWeekReadyState(league);
+
+  if (loadError) {
+    return (
+      <section className="rounded-lg border border-rose-200/25 bg-rose-300/10 p-6 text-rose-50">
+        <h1
+          className="text-3xl font-semibold text-white"
+          style={{ fontFamily: "var(--font-display)" }}
         >
-          Zurück zum Admin Hub
-        </Link>
+          Liga konnte nicht geladen werden.
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-rose-50/85">{loadError}</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={loadLeague}
+            className="inline-flex rounded-lg border border-rose-100/30 px-4 py-3 text-sm font-semibold text-rose-50 transition hover:bg-rose-100/10"
+          >
+            Erneut laden
+          </button>
+          <Link
+            href="/admin"
+            className="inline-flex rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8"
+          >
+            Zurück zum Admin Control Center
+          </Link>
+        </div>
       </section>
     );
   }
@@ -610,7 +806,6 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
       return (secondUser.financeProfile?.totalRevenue ?? 0) - (firstUser.financeProfile?.totalRevenue ?? 0);
     }
   });
-  const readyState = getOnlineLeagueWeekReadyState(league);
   const readyUsers = readyState.readyParticipants;
   const missingReadyUsers = readyState.missingParticipants;
   const allPlayersReady = readyState.allReady;
@@ -634,8 +829,43 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
           result.season === lastCompletedWeek.season && result.week === lastCompletedWeek.week,
       )
     : [];
+  const currentWeekGames = getCurrentWeekGames(league);
+  const rawCurrentWeekSchedule = (league.schedule ?? []).filter(
+    (match) => match.week === league.currentWeek,
+  );
+  const displayedCurrentWeekGames =
+    currentWeekGames.length > 0
+      ? currentWeekGames.map((game) => ({
+          awayTeamName: game.awayTeamName,
+          homeTeamName: game.homeTeamName,
+          id: game.id,
+          status: game.status,
+        }))
+      : rawCurrentWeekSchedule.map((game) => ({
+          awayTeamName: getTeamNameByScheduleValue(league, game.awayTeamName),
+          homeTeamName: getTeamNameByScheduleValue(league, game.homeTeamName),
+          id: game.id,
+          status: "scheduled",
+        }));
+  const standings = buildOnlineLeagueTeamRecords(league);
+  const recentSimulatedGames = (league.matchResults ?? [])
+    .slice()
+    .sort((left, right) => {
+      if (right.season !== left.season) {
+        return right.season - left.season;
+      }
+
+      return right.week - left.week;
+    })
+    .slice(0, 12);
   const leagueRulesSummary = getAdminLeagueRulesSummary(league);
   const fantasyDraft = league.fantasyDraft;
+  const simulationStatusLabel = isFirebaseMode
+    ? "Teilweise implementiert"
+    : "Lokal implementiert";
+  const simulationStatusDetail = isFirebaseMode
+    ? "Firebase simuliert über die vorhandene minimale Match-Engine, speichert Match-Ergebnisse, Completed-Week-Daten und setzt Ready-State zurück. Training, Attendance, Finanzen und vollständige Season-Engine-Parität sind noch nicht vollständig angebunden."
+    : "Lokale Ligen nutzen die bestehende Online-Week-Simulation im Browser-State.";
   const draftPlayersById = new Map(
     (league.fantasyDraftPlayerPool ?? []).map((player) => [player.playerId, player]),
   );
@@ -665,7 +895,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
           href="/admin"
           className="w-fit rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/8"
         >
-          Zurück zum Admin Hub
+          Zurück zum Admin Control Center
         </Link>
       </div>
 
@@ -731,7 +961,22 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
           onClick={handleSimulateWeek}
           className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-4 py-3 text-sm font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
         >
-          {pendingAction === "simulate-week" ? "Simulation läuft..." : "Simulation starten"}
+          {pendingAction === "simulate-week" ? "Simulation läuft..." : "Woche simulieren"}
+        </button>
+        <button
+          type="button"
+          disabled={pendingAction !== null}
+          onClick={handleRefreshLeague}
+          className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
+        >
+          {pendingAction === "refresh-league" ? "Lädt..." : "Daten neu laden"}
+        </button>
+        <button
+          type="button"
+          onClick={() => setDebugVisible((current) => !current)}
+          className="rounded-lg border border-violet-200/25 bg-violet-300/10 px-4 py-3 text-sm font-semibold text-violet-50 transition hover:bg-violet-300/16"
+        >
+          {debugVisible ? "Debug-Informationen ausblenden" : "Debug-Informationen anzeigen"}
         </button>
         <Link
           href={`/online/league/${league.id}`}
@@ -763,6 +1008,14 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
             <p className="mt-2 text-sm leading-6 text-sky-50/85">
               {simulationHint}
             </p>
+            <div className="mt-4 rounded-lg border border-white/10 bg-[#07111d]/50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Status Simulation: {simulationStatusLabel}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-200">
+                {simulationStatusDetail}
+              </p>
+            </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-emerald-200/25 bg-emerald-300/10 p-4">
@@ -836,9 +1089,169 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
             </div>
           </div>
         ) : null}
+
+        {lastSimulation ? (
+          <div className="mt-5 rounded-lg border border-sky-200/25 bg-sky-300/10 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-100">
+                  Letzte Simulation
+                </p>
+                <h3 className="mt-2 text-lg font-semibold text-white">
+                  Week {lastSimulation.simulatedWeek} abgeschlossen
+                </h3>
+              </div>
+              <p className="w-fit rounded-full border border-sky-100/25 bg-sky-50/10 px-3 py-1 text-xs font-semibold text-sky-50">
+                Nächste Week: {lastSimulation.nextWeek}
+              </p>
+            </div>
+            <div className="mt-4 grid gap-2 lg:grid-cols-2">
+              {lastSimulation.results.map((result) => (
+                <p
+                  key={result.matchId}
+                  className="rounded-lg border border-white/10 bg-[#07111d]/70 px-3 py-2 text-sm font-semibold text-sky-50"
+                >
+                  {result.homeTeamName} {result.homeScore} - {result.awayScore}{" "}
+                  {result.awayTeamName}
+                </p>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="mt-5 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+          <div className="rounded-lg border border-white/10 bg-[#07111d]/55 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                  Games der aktuellen Woche
+                </p>
+                <h3 className="mt-2 text-lg font-semibold text-white">
+                  Week {league.currentWeek}
+                </h3>
+              </div>
+              <span className="w-fit rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200">
+                {displayedCurrentWeekGames.length} Games
+              </span>
+            </div>
+            <div className="mt-4 grid gap-2 lg:grid-cols-2">
+              {displayedCurrentWeekGames.length > 0 ? (
+                displayedCurrentWeekGames.map((game) => (
+                  <div
+                    key={game.id}
+                    className="rounded-lg border border-white/10 bg-white/5 px-3 py-2"
+                  >
+                    <p className="text-sm font-semibold text-white">
+                      {game.awayTeamName} @ {game.homeTeamName}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-slate-500">{game.id}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="rounded-lg border border-dashed border-amber-200/25 bg-amber-300/10 p-3 text-sm font-semibold text-amber-50 lg:col-span-2">
+                  Für die aktuelle Woche ist kein Schedule geladen.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-white/10 bg-[#07111d]/55 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              Standings / Records
+            </p>
+            <div className="mt-4 space-y-2">
+              {standings.length > 0 ? (
+                standings.map((record) => (
+                  <div
+                    key={record.teamId}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2"
+                  >
+                    <span className="min-w-0 truncate text-sm font-semibold text-white">
+                      {getTeamNameByScheduleValue(league, record.teamId)}
+                    </span>
+                    <span className="shrink-0 font-mono text-xs text-slate-300">
+                      {record.wins}-{record.losses}
+                      {record.ties > 0 ? `-${record.ties}` : ""} · GP {record.gamesPlayed} ·
+                      {" "}DIFF {record.pointDifferential >= 0 ? "+" : ""}
+                      {record.pointDifferential}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="rounded-lg border border-dashed border-white/15 p-3 text-sm text-slate-400">
+                  Noch keine Record-Daten vorhanden.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-lg border border-white/10 bg-[#07111d]/55 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+            Bereits simulierte Games
+          </p>
+          <div className="mt-4 grid gap-2 lg:grid-cols-2">
+            {recentSimulatedGames.length > 0 ? (
+              recentSimulatedGames.map((result) => (
+                <p
+                  key={`${result.season}-${result.week}-${result.matchId}`}
+                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200"
+                >
+                  <span className="font-semibold text-white">
+                    S{result.season} W{result.week}
+                  </span>{" "}
+                  {result.homeTeamName} {result.homeScore} - {result.awayScore}{" "}
+                  {result.awayTeamName}
+                </p>
+              ))
+            ) : (
+              <p className="rounded-lg border border-dashed border-white/15 p-3 text-sm text-slate-400 lg:col-span-2">
+                Noch keine simulierten Games gespeichert.
+              </p>
+            )}
+          </div>
+        </div>
       </section>
 
       <AdminFeedbackBanner message={feedback} tone={feedbackTone} />
+
+      {debugVisible ? (
+        <section className="mt-6 rounded-lg border border-violet-200/20 bg-violet-300/10 p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-200">
+            Debug-Informationen
+          </p>
+          <h2 className="mt-2 text-xl font-semibold text-white">Admin League Snapshot</h2>
+          <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <AdminDebugItem label="Backend-Modus" value={repository.mode} />
+            <AdminDebugItem label="Route League ID" value={leagueId} />
+            <AdminDebugItem label="Geladene League ID" value={league.id} />
+            <AdminDebugItem label="Zuletzt geladen" value={formatDateTime(lastLoadedAt)} />
+            <AdminDebugItem label="Status" value={league.status} />
+            <AdminDebugItem label="Week Status" value={league.weekStatus ?? "Unbekannt"} />
+            <AdminDebugItem
+              label="Season / Week"
+              value={`S${league.currentSeason ?? 1} W${league.currentWeek}`}
+            />
+            <AdminDebugItem
+              label="Teilnehmer / Teams"
+              value={`${league.users.length}/${league.maxUsers} Teilnehmer, ${league.teams.length} Teams`}
+            />
+            <AdminDebugItem
+              label="Ready-State"
+              value={`${readyState.readyCount}/${readyState.requiredCount}`}
+            />
+            <AdminDebugItem
+              label="Draft Status"
+              value={fantasyDraft?.status ?? "nicht initialisiert"}
+            />
+            <AdminDebugItem label="Pending Action" value={pendingAction ?? "keine"} />
+            <AdminDebugItem
+              label="Mutating Actions"
+              value="Admin API mit Bearer Token"
+            />
+          </dl>
+        </section>
+      ) : null}
 
       <section className="mt-8 rounded-lg border border-fuchsia-200/20 bg-fuchsia-300/10 p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
