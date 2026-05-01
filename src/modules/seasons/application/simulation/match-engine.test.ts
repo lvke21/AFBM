@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { createRng } from "@/lib/random/seeded-rng";
 import { buildInitialRoster } from "../../../savegames/application/bootstrap/initial-roster";
 
 import { prepareTeamForSimulation } from "./depth-chart";
@@ -280,6 +281,27 @@ describe("season simulation", () => {
       expect(JSON.stringify(first)).toBe(JSON.stringify(second));
       expect(first).toEqual(second);
     }
+  });
+
+  it("replays explicit RNG instances from the same seed", () => {
+    const matchContext: SimulationMatchContext = {
+      matchId: "rng-propagation-1",
+      saveGameId: "save-1",
+      seasonId: "season-1",
+      kind: "REGULAR_SEASON",
+      simulationSeed: "rng-propagation-seed-1",
+      seasonYear: 2026,
+      week: 3,
+      scheduledAt: new Date("2026-09-15T18:00:00.000Z"),
+      homeTeam: buildSimulationTeam("BOS", "Boston", "Guardians", 0, 74),
+      awayTeam: buildSimulationTeam("NYT", "New York", "Titans", 1, 78),
+    };
+
+    const first = generateMatchStats(matchContext, createRng(matchContext.simulationSeed));
+    const second = generateMatchStats(matchContext, createRng(matchContext.simulationSeed));
+
+    expect(first).toEqual(second);
+    expect(first.simulationSeed).toBe(matchContext.simulationSeed);
   });
 
   it("makes depth-chart starter choices measurable without overwhelming the whole simulation", () => {

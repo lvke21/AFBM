@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { createRng } from "@/lib/random/seeded-rng";
+
 import { simulateMinimalDriveGame } from "./minimal-drive-simulation";
 
 const homeTeam = {
@@ -51,6 +53,21 @@ describe("simulateMinimalDriveGame", () => {
     expect(first.seed).toContain("minimal-drive:match-1");
     expect(first.drives.length).toBeGreaterThanOrEqual(12);
     expect(first.drives.length).toBeLessThanOrEqual(17);
+  });
+
+  it("replays explicit RNG instances from the same seed", () => {
+    const input = {
+      awayTeam,
+      homeTeam,
+      matchId: "rng-minimal-drive-1",
+      week: 7,
+    };
+    const seed = "minimal-drive-explicit-seed-1";
+
+    const first = simulateMinimalDriveGame(input, createRng(seed));
+    const second = simulateMinimalDriveGame(input, createRng(seed));
+
+    expect(second).toEqual(first);
   });
 
   it("produces four-quarter drives with automatic score progression", () => {

@@ -43,7 +43,7 @@ vi.mock("@/modules/savegames/application/bootstrap/player-stat-shells", () => ({
   createSeasonStatShells: mocks.createSeasonStatShells,
 }));
 
-vi.mock("@/modules/seasons/application/simulation/player-development", () => ({
+vi.mock("@/modules/seasons/infrastructure/simulation/player-development", () => ({
   recalculateTeamState: mocks.recalculateTeamState,
 }));
 

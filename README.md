@@ -10,7 +10,7 @@ Der aktuelle Stand ist ein solides Grundsystem fuer persistente Savegames:
 - Team-Schemes, Scheme-Fit-Scoring, Development-Focus und Injured-Reserve-Steuerung machen das usergesteuerte Roster deutlich aktiver.
 - Match-Details zeigen jetzt Boxscore-nahe Teamwerte, Top-Performer und eine kurze Spielzusammenfassung pro Match.
 - Vertragsausblick, Finance-Log und saisonale Gehaltsbuchungen machen Cash und Kaderplanung sichtbarer.
-- Savegame-Ownership nutzt eine serverseitige App-User-ID. Online-Multiplayer nutzt Firebase Anonymous Auth; Admin nutzt einen separaten serverseitigen Code-Login.
+- Savegame-Ownership nutzt eine serverseitige App-User-ID. Online-Multiplayer nutzt Firebase Email/Passwort Auth; Admin nutzt einen separaten serverseitigen Code-Login.
 - Die aktuelle Saison kann wochenweise simuliert werden; Match-, Team- und Spielerstatistiken werden dabei fortgeschrieben, inklusive verbesserter Recovery-, Coverage- und Special-Teams-Logik.
 - Nach einer Offseason kann jetzt direkt eine neue Saison mit frischen Team-/Player-Season-Shells, Schedule und Vertragsfortschreibung gestartet werden.
 
@@ -19,7 +19,7 @@ Der aktuelle Stand ist ein solides Grundsystem fuer persistente Savegames:
 ### Bereits implementiert
 
 - Projektstruktur und modulare Schichtung
-- Firebase Anonymous Auth fuer Online-Multiplayer und serverseitiger Admin-Code-Login
+- Firebase Email/Passwort Auth fuer Online-Multiplayer und serverseitiger Admin-Code-Login
 - Referenzdaten fuer Liga, Franchises, Positionen, Archetypen, Scheme Fits und Attribute
 - Savegame-Erstellung inklusive World-Bootstrap
 - Persistenz fuer Teams, Spieler, Roster-Profile, Player-Evaluation, Attribute, Vertraege, Seasons und Matches
@@ -55,7 +55,7 @@ Der aktuelle Stand ist ein solides Grundsystem fuer persistente Savegames:
 | Sprache | TypeScript | Typsicherheit in UI, Services und Persistenz |
 | Styling | Tailwind CSS 4 | Styling der Web-Oberflaeche |
 | Persistenz | Prisma 6, PostgreSQL | Relationales Schema und Datenzugriff |
-| Auth | Firebase Anonymous Auth, serverseitiger Admin-Code-Login | Online-Identitaet und Admin-Zugriff ohne externen Provider |
+| Auth | Firebase Email/Passwort Auth, serverseitiger Admin-Code-Login | Online-Identitaet und Admin-Zugriff ohne OAuth-Provider |
 | Validierung | Zod | Eingabevalidierung fuer Savegame-Erstellung |
 | Tests | Vitest | Aktuelle Modultests fuer Bootstrap-Bausteine |
 

@@ -4,8 +4,13 @@ import {
   createOnlineLeague,
   generateOnlineTrainingOutcome,
   joinOnlineLeague,
+  makeOnlineFantasyDraftPick,
+  ONLINE_FANTASY_DRAFT_POSITIONS,
+  ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
   saveOnlineLeague,
+  setOnlineLeagueUserReady,
   simulateOnlineLeagueWeek,
+  startOnlineFantasyDraft,
   submitWeeklyTrainingPlan,
   type CoachingStaffProfile,
   type OnlineLeague,
@@ -43,6 +48,49 @@ function createJoinedLeague(storage: MemoryStorage) {
     BERLIN_WOLVES,
     storage,
   ).league;
+}
+
+function completeFantasyDraftForTest(leagueId: string, storage: MemoryStorage) {
+  let league = startOnlineFantasyDraft(leagueId, storage);
+
+  while (league?.fantasyDraft?.status === "active") {
+    const state = league.fantasyDraft;
+    const user = league.users.find((candidate) => candidate.teamId === state.currentTeamId);
+    const playerPool = league.fantasyDraftPlayerPool ?? [];
+    const playersById = new Map(playerPool.map((player) => [player.playerId, player]));
+    const currentTeamPicks = state.picks.filter((pick) => pick.teamId === state.currentTeamId);
+    const neededPosition = ONLINE_FANTASY_DRAFT_POSITIONS.find((position) => {
+      const count = currentTeamPicks.filter(
+        (pick) => playersById.get(pick.playerId)?.position === position,
+      ).length;
+
+      return count < ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS[position];
+    });
+    const playerId =
+      state.availablePlayerIds.find(
+        (candidate) => playersById.get(candidate)?.position === neededPosition,
+      ) ?? state.availablePlayerIds[0];
+
+    if (!user || !playerId) {
+      throw new Error("Expected fantasy draft pick context");
+    }
+
+    const result = makeOnlineFantasyDraftPick(
+      league.id,
+      user.teamId,
+      playerId,
+      user.userId,
+      storage,
+    );
+
+    if (result.status !== "success" && result.status !== "completed") {
+      throw new Error(`Expected fantasy draft pick success, got ${result.status}`);
+    }
+
+    league = result.league;
+  }
+
+  return league;
 }
 
 function createLeagueWithPlan(
@@ -296,6 +344,8 @@ describe("online training system", () => {
   it("does not block week flow when no training plan exists", () => {
     const storage = new MemoryStorage();
     const league = createJoinedLeague(storage);
+    completeFantasyDraftForTest(league.id, storage);
+    setOnlineLeagueUserReady(league.id, "user-1", storage);
 
     const updatedLeague = simulateOnlineLeagueWeek(league.id, storage);
 

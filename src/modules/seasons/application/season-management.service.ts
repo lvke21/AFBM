@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { createPlayerHistoryEvent } from "@/modules/players/application/player-history.service";
 import { createSeasonStatShells } from "@/modules/savegames/application/bootstrap/player-stat-shells";
 import { buildDoubleRoundRobinSchedule } from "@/modules/savegames/application/bootstrap/double-round-robin-schedule";
-import { recalculateTeamState } from "@/modules/seasons/application/simulation/player-development";
+import { recalculateTeamState } from "@/modules/seasons/infrastructure/simulation/player-development";
 import {
   ContractStatus,
   PlayerHistoryEventType,

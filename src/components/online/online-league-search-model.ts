@@ -1,4 +1,4 @@
-import type { OnlineLeague } from "@/lib/online/online-league-service";
+import type { OnlineLeague } from "@/lib/online/online-league-types";
 import {
   getTeamNamesByCategory,
   resolveTeamIdentitySelection,

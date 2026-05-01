@@ -47,7 +47,7 @@ export default async function AdminLoginPage({
               Admin Control Center entsperren
             </h1>
             <p className="mt-4 text-sm leading-6 text-slate-300">
-              Der Adminbereich ist vom normalen Online-GM-Zugang getrennt. Anonymous Auth
+              Der Adminbereich ist vom normalen Online-GM-Zugang getrennt. Firebase Login
               reicht hier nicht aus.
             </p>
 

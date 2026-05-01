@@ -1,924 +1,159 @@
 import type { OnlineUser } from "./online-user-service";
+import { simulateMatch } from "@/modules/gameplay/application/minimal-match-simulation";
+import { createRng, createSeededId } from "@/lib/random/seeded-rng";
 import {
   resolveTeamIdentitySelection,
   type TeamIdentitySelection,
-  type TeamNameCategory,
 } from "./team-identity-options";
 
-export type OwnershipProfile = {
-  ownerId: string;
-  ownerName: string;
-  patience: number;
-  ambition: number;
-  financialPressure: number;
-  loyalty: number;
-  mediaSensitivity: number;
-  rebuildTolerance: number;
-};
-
-export type GmJobSecurityStatus =
-  | "secure"
-  | "stable"
-  | "under_pressure"
-  | "hot_seat"
-  | "termination_risk"
-  | "fired";
-
-export type OnlineGmExpectation = "rebuild" | "competitive" | "playoffs" | "championship";
-export type OnlineGmExpectationResult = "exceeded" | "met" | "below" | "failed";
-export type OnlineMediaExpectationGoal = "rebuild" | "playoffs" | "championship";
-
-export type OnlineMediaExpectationProfile = {
-  teamId: string;
-  userId: string;
-  season: number;
-  goal: OnlineMediaExpectationGoal;
-  ownerExpectation: OnlineGmExpectation;
-  fanPressureModifier: number;
-  ownerPressureModifier: number;
-  mediaNarrative: string;
-  setAt: string;
-  updatedAt: string;
-};
-
-export type FranchiseStrategyType = "rebuild" | "win_now" | "balanced" | "youth_focus";
-
-export type FranchiseStrategyProfile = {
-  strategy: FranchiseStrategyType;
-  strategyType: FranchiseStrategyType;
-  selectedAtSeason: number;
-  expectedWinRate: number;
-  expectedPlayoff: boolean;
-  developmentFocus: number;
-  financialRiskTolerance: number;
-  ownerPressureModifier: number;
-  fanPressureModifier: number;
-  financeRiskModifier: number;
-  trainingDevelopmentModifier: number;
-  trainingPreparationModifier: number;
-  contractYouthPreference: number;
-  starSpendingTolerance: number;
-  narrative: string;
-  riskExplanation: string;
-  impactSummary: string;
-  setAt: string;
-  updatedAt: string;
-};
-
-export type OnlineGmSeasonResult = {
-  season: number;
-  wins: number;
-  losses: number;
-  ties?: number;
-  playoffAppearance?: boolean;
-  playoffWins?: number;
-  championshipWon?: boolean;
-  losingStreak?: number;
-  rivalryLosses?: number;
-  expectation?: OnlineGmExpectation;
-  expectedWins?: number;
-  rosterStrength?: number;
-  capHealth?: number;
-};
-
-export type OnlineGmPerformanceHistoryEntry = {
-  season: number;
-  seasonResults: OnlineGmSeasonResult;
-  expectationResult: OnlineGmExpectationResult;
-  ownerConfidenceDelta: number;
-  fanPressureScore?: number;
-  ownerSensitivityModifier?: number;
-  jobSecurityDeltaFromFans?: number;
-  inactivityPenalty?: number;
-  strategyPenalty?: number;
-  reasonText?: string;
-  finalJobSecurityScore: number;
-};
-
-export type GmJobSecurityScore = {
-  score: number;
-  status: GmJobSecurityStatus;
-  lastUpdatedWeek: number;
-  lastUpdatedSeason: number;
-  gmPerformanceHistory: OnlineGmPerformanceHistoryEntry[];
-};
-
-export type OnlineGmInactiveStatus =
-  | "active"
-  | "warning"
-  | "inactive"
-  | "removal_eligible"
-  | "removed";
-
-export type OnlineGmActivityMetrics = {
-  lastSeenAt: string;
-  lastLeagueActionAt: string;
-  missedWeeklyActions: number;
-  missedLineupSubmissions: number;
-  inactiveSinceWeek?: number;
-  inactiveStatus: OnlineGmInactiveStatus;
-};
-
-export type OnlineGmAdminRemovalStatus =
-  | "none"
-  | "admin_warning"
-  | "admin_authorized_removal"
-  | "admin_removed";
-
-export type OnlineGmAdminRemovalState = {
-  status: OnlineGmAdminRemovalStatus;
-  message?: string;
-  reason?: string;
-  deadlineAt?: string;
-  updatedAt?: string;
-};
-
-export type OnlineTeamStatus = "occupied" | "vacant";
-export type OnlineTeamControl = "user" | "ai_or_commissioner";
-
-export type OnlineGmActivityRules = {
-  warningAfterMissedWeeks: number;
-  inactiveAfterMissedWeeks: number;
-  removalEligibleAfterMissedWeeks: number;
-  autoVacateAfterMissedWeeks: false | number;
-};
-
-export type OnlineFinanceRules = {
-  enableStadiumFinance: boolean;
-  enableFanPressure: boolean;
-  enableMerchRevenue: boolean;
-  equalMediaRevenue: boolean;
-  revenueSharingEnabled: boolean;
-  revenueSharingPercentage: number;
-  ownerBailoutEnabled: boolean;
-  minCashFloor: number;
-  maxTicketPriceLevel: number;
-  allowStadiumUpgrades: false;
-};
-
-export type TrainingIntensity = "light" | "normal" | "hard" | "extreme";
-export type TrainingPrimaryFocus =
-  | "offense"
-  | "defense"
-  | "balanced"
-  | "conditioning"
-  | "recovery"
-  | "player_development"
-  | "team_chemistry";
-export type TrainingSecondaryFocus =
-  | "passing_game"
-  | "running_game"
-  | "pass_protection"
-  | "pass_rush"
-  | "run_defense"
-  | "coverage"
-  | "turnovers"
-  | "red_zone"
-  | "two_minute_drill"
-  | "special_teams";
-export type TrainingRiskTolerance = "low" | "medium" | "high";
-export type TrainingPlanSource = "gm_submitted" | "auto_default";
-export type CoachRole =
-  | "head_coach"
-  | "offensive_coordinator"
-  | "defensive_coordinator"
-  | "development_coach";
-
-export type CoachRatings = {
-  offense: number;
-  defense: number;
-  development: number;
-};
-
-export type Coach = {
-  coachId: string;
-  name: string;
-  role: CoachRole;
-  ratings: CoachRatings;
-};
-
-export type CoachTransactionHistoryEntry = {
-  transactionId: string;
-  action: "hired" | "fired";
-  teamId: string;
-  userId: string;
-  coachId: string;
-  coachName: string;
-  role: CoachRole;
-  createdAt: string;
-};
-
-export type CoachingStaffProfile = {
-  teamId: string;
-  headCoachName: string;
-  offensiveCoordinatorName: string;
-  defensiveCoordinatorName: string;
-  specialTeamsCoachName: string;
-  strengthCoachName: string;
-  developmentCoachName: string;
-  offenseTraining: number;
-  defenseTraining: number;
-  playerDevelopment: number;
-  injuryPrevention: number;
-  discipline: number;
-  motivation: number;
-  gamePreparation: number;
-  adaptability: number;
-};
-
-export type WeeklyTrainingPlan = {
-  planId: string;
-  teamId: string;
-  leagueId: string;
-  season: number;
-  week: number;
-  intensity: TrainingIntensity;
-  primaryFocus: TrainingPrimaryFocus;
-  secondaryFocus?: TrainingSecondaryFocus;
-  riskTolerance: TrainingRiskTolerance;
-  youngPlayerPriority: number;
-  veteranMaintenance: number;
-  notes?: string;
-  submittedByUserId: string;
-  submittedAt: string;
-  source: TrainingPlanSource;
-};
-
-export type SubmitWeeklyTrainingPlanInput = {
-  intensity: TrainingIntensity;
-  primaryFocus: TrainingPrimaryFocus;
-  secondaryFocus?: TrainingSecondaryFocus;
-  riskTolerance: TrainingRiskTolerance;
-  youngPlayerPriority: number;
-  veteranMaintenance: number;
-  notes?: string;
-  season?: number;
-  week?: number;
-};
-
-export type TrainingAffectedPlayer = {
-  playerId: string;
-  playerName: string;
-  position: string;
-  developmentDelta: number;
-  fatigueDelta: number;
-  injuryRiskDelta: number;
-  moraleDelta?: number;
-  note: string;
-};
-
-export type TrainingOutcome = {
-  teamId: string;
-  season: number;
-  week: number;
-  planId: string;
-  developmentDeltaSummary: number;
-  fatigueDelta: number;
-  injuryRiskDelta: number;
-  chemistryDelta: number;
-  preparationBonus: number;
-  coachExecutionRating: number;
-  riskEvents: string[];
-  affectedPlayers: TrainingAffectedPlayer[];
-  createdAt: string;
-};
-
-export type TeamChemistryTier =
-  | "fractured"
-  | "unstable"
-  | "neutral"
-  | "connected"
-  | "elite";
-
-export type TeamChemistryProfile = {
-  teamId: string;
-  score: number;
-  playerSatisfaction: number;
-  gameplayModifier: number;
-  recentTrend: number;
-  lastUpdatedSeason: number;
-  lastUpdatedWeek: number;
-  updatedAt: string;
-};
-
-export type TeamChemistryHistoryEntry = {
-  teamId: string;
-  season: number;
-  week: number;
-  source: "training" | "match_result" | "player_satisfaction";
-  previousScore: number;
-  newScore: number;
-  delta: number;
-  reason: string;
-  createdAt: string;
-};
-
-export type PlayerContract = {
-  salaryPerYear: number;
-  yearsRemaining: number;
-  totalValue: number;
-  guaranteedMoney: number;
-  signingBonus: number;
-  contractType: "rookie" | "regular" | "star";
-  capHitPerYear: number;
-  deadCapPerYear: number;
-};
-
-export type PlayerDevelopmentPath = "star" | "solid" | "bust";
-export type OnlineXFactorAbilityId = "clutch" | "speed_burst" | "playmaker";
-
-export type OnlinePlayerXFactor = {
-  abilityId: OnlineXFactorAbilityId;
-  abilityName: string;
-  description: string;
-  rarity: "rare";
-};
-
-export type OnlineXFactorPlayContext = {
-  quarter: number;
-  scoreDifferential: number;
-  down: number;
-  yardsToGo: number;
-  playType: "pass" | "run" | "return";
-  fieldZone?: "own" | "midfield" | "red_zone";
-  playoffGame?: boolean;
-};
-
-export type OnlineXFactorTriggerResult = {
-  playerId: string;
-  playerName: string;
-  abilityId: OnlineXFactorAbilityId;
-  abilityName: string;
-  active: boolean;
-  impactModifier: number;
-  reason: string;
-};
-
-export type OnlineContractPlayerStatus = "active" | "released" | "free_agent";
-export type OnlineWeekFlowStatus =
-  | "pre_week"
-  | "ready"
-  | "simulating"
-  | "post_game";
-
-export type OnlineDepthChartEntry = {
-  position: string;
-  starterPlayerId: string;
-  backupPlayerIds: string[];
-  updatedAt: string;
-};
-
-export type OnlineContractPlayer = {
-  playerId: string;
-  playerName: string;
-  position: string;
-  age: number;
-  overall: number;
-  potential: number;
-  developmentPath: PlayerDevelopmentPath;
-  developmentProgress: number;
-  xFactors: OnlinePlayerXFactor[];
-  contract: PlayerContract;
-  status: OnlineContractPlayerStatus;
-};
-
-export type OnlineMatchResult = {
-  matchId: string;
-  season: number;
-  week: number;
-  homeTeamId: string;
-  awayTeamId: string;
-  homeTeamName: string;
-  awayTeamName: string;
-  homeScore: number;
-  awayScore: number;
-  status: "completed";
-  createdAt: string;
-};
-
-export type SalaryCap = {
-  capLimit: number;
-  activeSalary: number;
-  currentCapUsage: number;
-  deadCap: number;
-  availableCap: number;
-  softBufferLimit: number;
-  capRiskLevel: "healthy" | "tight" | "over";
-};
-
-export type OnlineDraftPick = {
-  pickId: string;
-  season: number;
-  round: number;
-  originalTeamId: string;
-  currentTeamId: string;
-};
-
-export type TradeStatus = "pending" | "accepted" | "declined";
-
-export type TradeProposal = {
-  tradeId: string;
-  fromTeamId: string;
-  toTeamId: string;
-  fromUserId: string;
-  toUserId: string;
-  playersOffered: string[];
-  playersRequested: string[];
-  picksOffered: string[];
-  picksRequested: string[];
-  status: TradeStatus;
-  fairnessScore: number;
-  fairnessLabel: "fair" | "slightly_unbalanced" | "unbalanced";
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type TradeHistoryEntry = {
-  tradeId: string;
-  fromTeamId: string;
-  toTeamId: string;
-  playersOffered: string[];
-  playersRequested: string[];
-  picksOffered: string[];
-  picksRequested: string[];
-  executedAt: string;
-  summary: string;
-};
-
-export type ProspectStatus = "available" | "drafted";
-
-export type Prospect = {
-  prospectId: string;
-  playerName: string;
-  position: string;
-  age: number;
-  trueRating: number;
-  scoutedRating: number;
-  potential: number;
-  scoutingAccuracy: number;
-  scoutedByTeamIds: string[];
-  status: ProspectStatus;
-  draftedByTeamId?: string;
-};
-
-export type DraftOrderPickStatus = "available" | "made";
-
-export type DraftOrderPick = {
-  pickNumber: number;
-  round: number;
-  teamId: string;
-  userId: string;
-  status: DraftOrderPickStatus;
-  prospectId?: string;
-};
-
-export type DraftOrder = {
-  season: number;
-  picks: DraftOrderPick[];
-};
-
-export type DraftHistoryEntry = {
-  pickNumber: number;
-  round: number;
-  teamId: string;
-  userId: string;
-  prospectId: string;
-  playerName: string;
-  draftedAt: string;
-};
-
-export type ContractActionResult =
-  | {
-      status: "success";
-      league: OnlineLeague;
-      message: string;
-    }
-  | {
-      status: "blocked" | "missing-league" | "missing-user" | "missing-player";
-      league: OnlineLeague | null;
-      message: string;
-    };
-
-export type CreateTradeProposalInput = {
-  toUserId: string;
-  playersOffered: string[];
-  playersRequested: string[];
-  picksOffered?: string[];
-  picksRequested?: string[];
-};
-
-export type TradeActionResult =
-  | {
-      status: "success";
-      league: OnlineLeague;
-      trade: TradeProposal;
-      message: string;
-    }
-  | {
-      status: "blocked" | "missing-league" | "missing-user" | "missing-trade";
-      league: OnlineLeague | null;
-      message: string;
-    };
-
-export type ScoutingActionResult =
-  | {
-      status: "success";
-      league: OnlineLeague;
-      prospect: Prospect;
-      message: string;
-    }
-  | {
-      status: "missing-league" | "missing-user" | "missing-prospect" | "blocked";
-      league: OnlineLeague | null;
-      message: string;
-    };
-
-export type DraftActionResult =
-  | {
-      status: "success";
-      league: OnlineLeague;
-      player: OnlineContractPlayer;
-      prospect: Prospect;
-      message: string;
-    }
-  | {
-      status: "missing-league" | "missing-user" | "missing-prospect" | "blocked";
-      league: OnlineLeague | null;
-      message: string;
-    };
-
-export type CoachActionResult =
-  | {
-      status: "success";
-      league: OnlineLeague;
-      coach: Coach;
-      message: string;
-    }
-  | {
-      status: "missing-league" | "missing-user" | "missing-coach" | "blocked";
-      league: OnlineLeague | null;
-      message: string;
-    };
-
-export type OnlineLeagueSettings = {
-  gmActivityRules: OnlineGmActivityRules;
-  financeRules: OnlineFinanceRules;
-};
-
-export type OnlineLeagueEventType =
-  | "owner_confidence_changed"
-  | "gm_hot_seat"
-  | "gm_warning"
-  | "gm_removal_authorized"
-  | "gm_removed_by_admin"
-  | "owner_fired_gm"
-  | "gm_fired_by_owner"
-  | "team_marked_vacant"
-  | "stadium_attendance_updated"
-  | "fan_mood_changed"
-  | "fan_pressure_changed"
-  | "merchandise_revenue_generated"
-  | "matchday_revenue_generated"
-  | "franchise_finance_updated"
-  | "owner_confidence_changed_by_fans"
-  | "financial_warning"
-  | "training_plan_submitted"
-  | "training_plan_auto_defaulted"
-  | "training_outcome_generated"
-  | "training_fatigue_changed"
-  | "training_chemistry_changed"
-  | "training_injury_risk_changed"
-  | "training_preparation_bonus_applied"
-  | "player_development_updated"
-  | "x_factor_triggered"
-  | "contract_extended"
-  | "player_released"
-  | "free_agent_signed"
-  | "salary_cap_updated"
-  | "trade_proposed"
-  | "trade_declined"
-  | "trade_accepted"
-  | "prospect_scouted"
-  | "draft_pick_made"
-  | "coach_hired"
-  | "coach_fired"
-  | "team_chemistry_changed"
-  | "media_expectation_set"
-  | "franchise_strategy_set"
-  | "stadium_pricing_updated"
-  | "depth_chart_updated"
-  | "online_match_result_recorded";
-
-export type OnlineLeagueEvent = {
-  id: string;
-  eventType: OnlineLeagueEventType;
-  leagueId: string;
-  teamId: string;
-  userId: string;
-  reason: string;
-  season: number;
-  week: number;
-  previousScore?: number;
-  newStatus?: GmJobSecurityStatus | OnlineGmAdminRemovalStatus | OnlineTeamStatus;
-  createdAt: string;
-};
-
-export type StadiumProfile = {
-  stadiumId: string;
-  teamId: string;
-  name: string;
-  city: string;
-  capacity: number;
-  condition: number;
-  comfort: number;
-  atmosphere: number;
-  ticketPriceLevel: number;
-  merchPriceLevel: number;
-  parkingRevenueLevel: number;
-  concessionsQuality: number;
-  luxurySuitesLevel: number;
-  lastRenovatedSeason: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type StadiumAttendance = {
-  matchId: string;
-  teamId: string;
-  season: number;
-  week: number;
-  attendance: number;
-  attendanceRate: number;
-  soldOut: boolean;
-  ticketRevenue: number;
-  concessionsRevenue: number;
-  parkingRevenue: number;
-  merchandiseRevenue: number;
-  totalMatchdayRevenue: number;
-  fanMoodBefore: number;
-  fanMoodAfter: number;
-};
-
-export type FanMoodTier =
-  | "ecstatic"
-  | "excited"
-  | "positive"
-  | "neutral"
-  | "frustrated"
-  | "angry"
-  | "hostile";
-
-export type FanbaseProfile = {
-  teamId: string;
-  marketSize: number;
-  fanLoyalty: number;
-  fanMood: number;
-  expectations: number;
-  patience: number;
-  bandwagonFactor: number;
-  mediaPressure: number;
-  seasonTicketBase: number;
-  merchInterest: number;
-  rivalryIntensity: number;
-  updatedAt: string;
-};
-
-export type FanPressureSnapshot = {
-  teamId: string;
-  fanPressureScore: number;
-  attendanceTrend: number;
-  merchandiseTrend: number;
-  mediaPressure: number;
-  expectationsVsResult: number;
-  rivalryFailures: number;
-  playoffDrought: number;
-  reasonText: string;
-  updatedAt: string;
-};
-
-export type MerchandiseFinancials = {
-  teamId: string;
-  season: number;
-  week: number;
-  baseMerchRevenue: number;
-  performanceMultiplier: number;
-  fanMoodMultiplier: number;
-  marketSizeMultiplier: number;
-  playoffMultiplier: number;
-  totalMerchRevenue: number;
-};
-
-export type FranchiseFinanceProfile = {
-  teamId: string;
-  ticketRevenue: number;
-  concessionsRevenue: number;
-  parkingRevenue: number;
-  merchandiseRevenue: number;
-  sponsorshipRevenue: number;
-  mediaRevenue: number;
-  playoffRevenue: number;
-  totalRevenue: number;
-  playerPayroll: number;
-  staffPayroll: number;
-  stadiumMaintenance: number;
-  gameDayOperations: number;
-  travelCosts: number;
-  adminCosts: number;
-  totalExpenses: number;
-  weeklyProfitLoss: number;
-  seasonProfitLoss: number;
-  cashBalance: number;
-  ownerInvestment: number;
-  updatedAt: string;
-};
-
-export type OnlineMatchdayInput = {
-  matchId: string;
-  teamId: string;
-  season: number;
-  week: number;
-  wins: number;
-  losses: number;
-  winStreak?: number;
-  losingStreak?: number;
-  playoffChances?: number;
-  rivalryGame?: boolean;
-  playoffGame?: boolean;
-  homeGameAttractiveness?: number;
-  won?: boolean;
-};
-
-export type OnlineLeagueUser = {
-  userId: string;
-  username: string;
-  joinedAt: string;
-  teamId: string;
-  teamName: string;
-  cityId?: string;
-  cityName?: string;
-  teamNameId?: string;
-  teamCategory?: TeamNameCategory;
-  teamDisplayName?: string;
-  ownershipProfile?: OwnershipProfile;
-  jobSecurity?: GmJobSecurityScore;
-  activity?: OnlineGmActivityMetrics;
-  adminRemoval?: OnlineGmAdminRemovalState;
-  teamStatus?: OnlineTeamStatus;
-  controlledBy?: OnlineTeamControl;
-  allowNewUserJoin?: boolean;
-  stadiumProfile?: StadiumProfile;
-  attendanceHistory?: StadiumAttendance[];
-  fanbaseProfile?: FanbaseProfile;
-  fanPressure?: FanPressureSnapshot;
-  mediaExpectationProfile?: OnlineMediaExpectationProfile;
-  franchiseStrategy?: FranchiseStrategyProfile;
-  teamChemistryProfile?: TeamChemistryProfile;
-  chemistryHistory?: TeamChemistryHistoryEntry[];
-  merchandiseFinancials?: MerchandiseFinancials[];
-  financeProfile?: FranchiseFinanceProfile;
-  coachingStaffProfile?: CoachingStaffProfile;
-  weeklyTrainingPlans?: WeeklyTrainingPlan[];
-  trainingOutcomes?: TrainingOutcome[];
-  depthChart?: OnlineDepthChartEntry[];
-  salaryCap?: SalaryCap;
-  contractRoster?: OnlineContractPlayer[];
-  draftPicks?: OnlineDraftPick[];
-  previousUserId?: string;
-  vacantSince?: string;
-  readyForWeek: boolean;
-  readyAt?: string;
-};
-
-export type OnlineLeagueTeam = {
-  id: string;
-  name: string;
-  abbreviation: string;
-};
-
-export type OnlineLeagueScheduleMatch = {
-  id: string;
-  week: number;
-  homeTeamName: string;
-  awayTeamName: string;
-};
-
-export type OnlineLeagueLogEntry = {
-  id: string;
-  message: string;
-  createdAt: string;
-};
-
-export type OnlineLeague = {
-  id: string;
-  name: string;
-  users: OnlineLeagueUser[];
-  teams: OnlineLeagueTeam[];
-  schedule?: OnlineLeagueScheduleMatch[];
-  matchResults?: OnlineMatchResult[];
-  freeAgents?: OnlineContractPlayer[];
-  tradeProposals?: TradeProposal[];
-  tradeHistory?: TradeHistoryEntry[];
-  prospects?: Prospect[];
-  draftOrder?: DraftOrder;
-  draftHistory?: DraftHistoryEntry[];
-  availableCoaches?: Coach[];
-  coachHistory?: CoachTransactionHistoryEntry[];
-  logs?: OnlineLeagueLogEntry[];
-  events?: OnlineLeagueEvent[];
-  leagueSettings?: OnlineLeagueSettings;
-  weekStatus?: OnlineWeekFlowStatus;
-  lastSimulatedWeekKey?: string;
-  currentWeek: number;
-  currentSeason?: number;
-  maxUsers: number;
-  status: "waiting" | "active";
-};
-
-export type CreateOnlineLeagueInput = {
-  name: string;
-  maxUsers?: number;
-  startWeek?: number;
-};
-
-export type JoinOnlineLeagueResult =
-  | {
-      status: "joined" | "already-member";
-      league: OnlineLeague;
-    }
-  | {
-      status: "missing-league";
-      league: OnlineLeague;
-      message: string;
-    }
-  | {
-      status: "full" | "invalid-team-identity" | "team-identity-taken";
-      league: OnlineLeague;
-      message: string;
-    };
-
-export type OnlineLeagueStateValidationIssue = {
-  code:
-    | "missing-id"
-    | "invalid-status"
-    | "invalid-week"
-    | "invalid-season"
-    | "invalid-max-users"
-    | "duplicate-user"
-    | "duplicate-team"
-    | "over-capacity"
-    | "ready-vacant-member"
-    | "missing-team-assignment";
-  severity: "warning" | "error";
-  message: string;
-};
-
-export type OnlineLeagueStateValidationResult = {
-  valid: boolean;
-  issues: OnlineLeagueStateValidationIssue[];
-};
-
-export type OnlineLeagueStateRepairResult = {
-  league: OnlineLeague;
-  repaired: boolean;
-  issues: OnlineLeagueStateValidationIssue[];
-};
-
-export type SubmitWeeklyTrainingPlanResult =
-  | {
-      status: "submitted";
-      league: OnlineLeague;
-      plan: WeeklyTrainingPlan;
-    }
-  | {
-      status: "invalid" | "missing-league" | "missing-user";
-      league: OnlineLeague | null;
-      message: string;
-    };
-
-export const ONLINE_LEAGUES_STORAGE_KEY = "afbm.online.leagues";
-export const ONLINE_LAST_LEAGUE_ID_STORAGE_KEY = "afbm.online.lastLeagueId";
-export const GLOBAL_TEST_LEAGUE_ID = "global-test-league";
-
-export const ONLINE_MVP_TEAM_POOL: OnlineLeagueTeam[] = [
-  { id: "bos-guardians", name: "Boston Guardians", abbreviation: "BOS" },
-  { id: "nyt-titans", name: "New York Titans", abbreviation: "NYT" },
-  { id: "mia-cyclones", name: "Miami Cyclones", abbreviation: "MIA" },
-  { id: "hou-outlaws", name: "Houston Outlaws", abbreviation: "HOU" },
-  { id: "chi-blizzard", name: "Chicago Blizzard", abbreviation: "CHI" },
-  { id: "det-iron", name: "Detroit Iron", abbreviation: "DET" },
-  { id: "sdg-breakers", name: "San Diego Breakers", abbreviation: "SDG" },
-  { id: "sea-orcas", name: "Seattle Orcas", abbreviation: "SEA" },
-  { id: "atl-firebirds", name: "Atlanta Firebirds", abbreviation: "ATL" },
-  { id: "den-mountaineers", name: "Denver Mountaineers", abbreviation: "DEN" },
-  { id: "phx-scorch", name: "Phoenix Scorch", abbreviation: "PHX" },
-  { id: "lvk-knights", name: "Las Vegas Knights", abbreviation: "LVK" },
-  { id: "por-lumberjacks", name: "Portland Lumberjacks", abbreviation: "POR" },
-  { id: "stl-archers", name: "St. Louis Archers", abbreviation: "STL" },
-  { id: "orl-storm", name: "Orlando Storm", abbreviation: "ORL" },
-  { id: "sac-condors", name: "Sacramento Condors", abbreviation: "SAC" },
-];
-
-type OnlineLeagueStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+import type {
+  OwnershipProfile,
+  GmJobSecurityStatus,
+  OnlineGmExpectation,
+  OnlineGmExpectationResult,
+  OnlineMediaExpectationGoal,
+  OnlineMediaExpectationProfile,
+  FranchiseStrategyType,
+  FranchiseStrategyProfile,
+  OnlineGmSeasonResult,
+  OnlineGmPerformanceHistoryEntry,
+  GmJobSecurityScore,
+  OnlineGmInactiveStatus,
+  OnlineGmActivityMetrics,
+  OnlineGmAdminRemovalStatus,
+  OnlineGmAdminRemovalState,
+  OnlineTeamStatus,
+  OnlineTeamControl,
+  OnlineGmActivityRules,
+  OnlineFinanceRules,
+  TrainingIntensity,
+  TrainingPrimaryFocus,
+  TrainingSecondaryFocus,
+  TrainingRiskTolerance,
+  TrainingPlanSource,
+  CoachRole,
+  CoachRatings,
+  Coach,
+  CoachTransactionHistoryEntry,
+  CoachingStaffProfile,
+  WeeklyTrainingPlan,
+  SubmitWeeklyTrainingPlanInput,
+  TrainingAffectedPlayer,
+  TrainingOutcome,
+  TeamChemistryTier,
+  TeamChemistryProfile,
+  TeamChemistryHistoryEntry,
+  PlayerContract,
+  PlayerDevelopmentPath,
+  OnlineXFactorAbilityId,
+  OnlinePlayerXFactor,
+  OnlineXFactorPlayContext,
+  OnlineXFactorTriggerResult,
+  OnlineContractPlayerStatus,
+  OnlineWeekFlowStatus,
+  OnlineDepthChartEntry,
+  OnlineContractPlayer,
+  OnlineMatchResult,
+  OnlineCompletedWeek,
+  SalaryCap,
+  OnlineDraftPick,
+  TradeStatus,
+  TradeProposal,
+  TradeHistoryEntry,
+  ProspectStatus,
+  Prospect,
+  DraftOrderPick,
+  DraftOrder,
+  DraftHistoryEntry,
+  OnlineFantasyDraftPick,
+  OnlineFantasyDraftState,
+  ContractActionResult,
+  CreateTradeProposalInput,
+  TradeActionResult,
+  ScoutingActionResult,
+  DraftActionResult,
+  CoachActionResult,
+  OnlineLeagueSettings,
+  OnlineLeagueEventType,
+  OnlineLeagueEvent,
+  StadiumProfile,
+  StadiumAttendance,
+  FanMoodTier,
+  FanbaseProfile,
+  FanPressureSnapshot,
+  MerchandiseFinancials,
+  FranchiseFinanceProfile,
+  OnlineMatchdayInput,
+  OnlineLeagueUser,
+  OnlineLeagueTeam,
+  OnlineLeagueScheduleMatch,
+  OnlineLeagueLogEntry,
+  OnlineLeague,
+  CreateOnlineLeagueInput,
+  JoinOnlineLeagueResult,
+  OnlineLeagueStateValidationIssue,
+  OnlineLeagueStateValidationResult,
+  OnlineLeagueStateRepairResult,
+  SubmitWeeklyTrainingPlanResult,
+} from "./online-league-types";
+import {
+  GLOBAL_TEST_LEAGUE_ID,
+  ONLINE_MVP_TEAM_POOL,
+} from "./online-league-constants";
+import {
+  getNextFantasyDraftStateAfterPick,
+  isOnlineFantasyDraftComplete,
+  ONLINE_FANTASY_DRAFT_POSITIONS,
+  ONLINE_FANTASY_DRAFT_RESERVE_RATE,
+  ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
+  ONLINE_FANTASY_DRAFT_SEED,
+  type OnlineFantasyDraftPosition,
+} from "./online-league-draft-service";
+import {
+  createUserFacingLeagueId,
+  normalizeMaxUsers,
+  normalizeStartWeek,
+} from "./online-league-creation";
+import {
+  getTeamIdentityId,
+  hasTeamDisplayName,
+} from "./online-league-identity";
+import { resolveJoinArguments } from "./online-league-join";
+import { saveOnlineLeagueCollection } from "./online-league-persistence";
+import {
+  getOnlineLeagueWeekReadyState,
+  isOnlineLeagueUserActiveWeekParticipant,
+} from "./online-league-week-service";
+import {
+  clearStoredLastOnlineLeagueId,
+  getBrowserOnlineLeagueStorage,
+  getStoredLastOnlineLeagueId,
+  readStoredOnlineLeagueCollection,
+  removeStoredOnlineLeagueCollection,
+  setStoredLastOnlineLeagueId,
+  type OnlineLeagueStorage,
+} from "./online-league-storage";
+
+export type * from "./online-league-types";
+export {
+  ONLINE_LEAGUES_STORAGE_KEY,
+  ONLINE_LAST_LEAGUE_ID_STORAGE_KEY,
+  GLOBAL_TEST_LEAGUE_ID,
+  ONLINE_MVP_TEAM_POOL,
+} from "./online-league-constants";
+export {
+  getOnlineLeagueWeekReadyState,
+  type OnlineLeagueWeekReadyParticipant,
+  type OnlineLeagueWeekReadyState,
+} from "./online-league-week-service";
+export {
+  ONLINE_FANTASY_DRAFT_POSITIONS,
+  ONLINE_FANTASY_DRAFT_RESERVE_RATE,
+  ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
+  ONLINE_FANTASY_DRAFT_ROSTER_TARGET_SIZE,
+  ONLINE_FANTASY_DRAFT_SEED,
+  type OnlineFantasyDraftPosition,
+} from "./online-league-draft-service";
 type StoredOnlineLeagueUser = Omit<
   OnlineLeagueUser,
   | "readyForWeek"
@@ -1080,6 +315,93 @@ const CONTRACT_ROSTER_TEMPLATE: Array<{
     guaranteedMoney: 16_000_000,
   },
 ];
+
+const FANTASY_DRAFT_FIRST_NAMES = [
+  "Adrian",
+  "Bastian",
+  "Caleb",
+  "Dario",
+  "Elias",
+  "Finn",
+  "Gabriel",
+  "Hugo",
+  "Isaac",
+  "Jonas",
+  "Kian",
+  "Luca",
+  "Milan",
+  "Noah",
+  "Oscar",
+  "Rafael",
+  "Silas",
+  "Theo",
+  "Victor",
+  "Yann",
+  "Zane",
+  "Mateo",
+  "Emil",
+  "Nico",
+];
+const FANTASY_DRAFT_LAST_NAMES = [
+  "Alder",
+  "Berg",
+  "Cross",
+  "Diaz",
+  "Eden",
+  "Frost",
+  "Grant",
+  "Hale",
+  "Ivers",
+  "Jensen",
+  "Keller",
+  "Lang",
+  "Morrow",
+  "Novak",
+  "Ortega",
+  "Price",
+  "Quinn",
+  "Reed",
+  "Stone",
+  "Tanner",
+  "Vale",
+  "West",
+  "Young",
+  "Ziegler",
+  "Voss",
+  "Marin",
+  "Sato",
+  "Moreau",
+  "Peters",
+  "Rossi",
+  "Schneider",
+  "Walker",
+];
+const FANTASY_DRAFT_POSITION_SUFFIX: Record<OnlineFantasyDraftPosition, string> = {
+  QB: "Field General",
+  RB: "Runner",
+  WR: "Receiver",
+  TE: "Tight End",
+  OL: "Lineman",
+  DL: "Defender",
+  LB: "Linebacker",
+  CB: "Corner",
+  S: "Safety",
+  K: "Kicker",
+  P: "Punter",
+};
+const FANTASY_DRAFT_SALARY_BASE: Record<OnlineFantasyDraftPosition, number> = {
+  QB: 18_000_000,
+  RB: 5_500_000,
+  WR: 9_500_000,
+  TE: 6_500_000,
+  OL: 7_500_000,
+  DL: 8_500_000,
+  LB: 6_500_000,
+  CB: 8_500_000,
+  S: 6_000_000,
+  K: 2_500_000,
+  P: 2_200_000,
+};
 
 const FREE_AGENT_TEMPLATE: Array<{
   playerId: string;
@@ -1260,14 +582,6 @@ const OWNER_PROFILE_TEMPLATES: Array<Omit<OwnershipProfile, "ownerId" | "ownerNa
     rebuildTolerance: 58,
   },
 ];
-
-function getBrowserStorage(): OnlineLeagueStorage {
-  if (typeof window === "undefined" || !window.localStorage) {
-    throw new Error("Online league state is only available in the browser.");
-  }
-
-  return window.localStorage;
-}
 
 function clampScore(value: number) {
   return Math.min(100, Math.max(0, Math.round(value)));
@@ -1945,6 +1259,262 @@ function createDefaultContractRoster(teamId: string, teamName: string): OnlineCo
   }));
 }
 
+export function getFantasyDraftPositionTargetCounts(
+  maxUsers: number,
+): Record<OnlineFantasyDraftPosition, number> {
+  const normalizedTeams = normalizeMaxUsers(maxUsers);
+
+  return ONLINE_FANTASY_DRAFT_POSITIONS.reduce(
+    (counts, position) => ({
+      ...counts,
+      [position]: Math.ceil(
+        ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS[position] *
+          normalizedTeams *
+          (1 + ONLINE_FANTASY_DRAFT_RESERVE_RATE),
+      ),
+    }),
+    {} as Record<OnlineFantasyDraftPosition, number>,
+  );
+}
+
+function getFantasyDraftPlayerRating(
+  position: OnlineFantasyDraftPosition,
+  index: number,
+  count: number,
+) {
+  const tier = index / Math.max(1, count - 1);
+
+  if (position === "K" || position === "P") {
+    if (tier < 0.15) {
+      return { min: 82, max: 90 };
+    }
+
+    if (tier < 0.45) {
+      return { min: 74, max: 81 };
+    }
+
+    return { min: 62, max: 73 };
+  }
+
+  if (tier < 0.05) {
+    return { min: 88, max: 94 };
+  }
+
+  if (tier < 0.2) {
+    return { min: 80, max: 87 };
+  }
+
+  if (tier < 0.75) {
+    return { min: 68, max: 79 };
+  }
+
+  return { min: 58, max: 67 };
+}
+
+function getFantasyDraftPlayerAge(
+  position: OnlineFantasyDraftPosition,
+  overall: number,
+  rng: ReturnType<typeof createRng>,
+) {
+  if (position === "K" || position === "P") {
+    return rng.int(23, 36);
+  }
+
+  if (overall >= 86) {
+    return rng.int(24, 31);
+  }
+
+  if (overall >= 76) {
+    return rng.int(22, 32);
+  }
+
+  return rng.int(21, 34);
+}
+
+function getFantasyDraftPlayerName(
+  position: OnlineFantasyDraftPosition,
+  index: number,
+  rng: ReturnType<typeof createRng>,
+) {
+  const firstName = FANTASY_DRAFT_FIRST_NAMES[
+    rng.int(0, FANTASY_DRAFT_FIRST_NAMES.length - 1)
+  ];
+  const lastName = FANTASY_DRAFT_LAST_NAMES[
+    rng.int(0, FANTASY_DRAFT_LAST_NAMES.length - 1)
+  ];
+
+  return `${firstName} ${lastName} ${FANTASY_DRAFT_POSITION_SUFFIX[position]} ${index + 1}`;
+}
+
+function getFantasyDraftSalary(
+  position: OnlineFantasyDraftPosition,
+  overall: number,
+  rng: ReturnType<typeof createRng>,
+) {
+  const base = FANTASY_DRAFT_SALARY_BASE[position];
+  const ratingMultiplier = 0.45 + Math.max(0, overall - 55) / 38;
+  const positionPremium = position === "QB" && overall >= 84 ? 1.35 : 1;
+  const variance = rng.int(88, 114) / 100;
+
+  return Math.round(base * ratingMultiplier * positionPremium * variance);
+}
+
+function createFantasyDraftPlayer(
+  leagueId: string,
+  position: OnlineFantasyDraftPosition,
+  index: number,
+  count: number,
+  seed: string,
+): OnlineContractPlayer {
+  const rng = createRng(`${seed}:${leagueId}:${position}:${index}`);
+  const ratingBand = getFantasyDraftPlayerRating(position, index, count);
+  const overall = rng.int(ratingBand.min, ratingBand.max);
+  const age = getFantasyDraftPlayerAge(position, overall, rng);
+  const developmentPath = inferPlayerDevelopmentPath({
+    age,
+    overall,
+    potential: Math.min(99, overall + rng.int(age <= 24 ? 4 : 0, age <= 27 ? 9 : 4)),
+  });
+  const potential = Math.min(
+    99,
+    overall + rng.int(developmentPath === "star" ? 5 : 0, developmentPath === "bust" ? 3 : 7),
+  );
+  const salaryPerYear = getFantasyDraftSalary(position, overall, rng);
+  const yearsRemaining = rng.int(1, overall >= 82 ? 5 : 4);
+  const guaranteedMoney = Math.round(salaryPerYear * yearsRemaining * rng.int(20, 55) / 100);
+  const player: OnlineContractPlayer = {
+    playerId: createSeededId(
+      `pool-${position.toLowerCase()}-${String(index + 1).padStart(3, "0")}`,
+      `${seed}:${leagueId}:${position}:${index}:id`,
+      8,
+    ),
+    playerName: getFantasyDraftPlayerName(position, index, rng),
+    position,
+    age,
+    overall,
+    potential,
+    developmentPath,
+    developmentProgress: 0,
+    xFactors: [],
+    contract: createContract(
+      salaryPerYear,
+      yearsRemaining,
+      guaranteedMoney,
+      inferContractType({ age, overall }),
+    ),
+    status: "active",
+  };
+
+  return {
+    ...player,
+    xFactors: inferDefaultXFactors(player),
+  };
+}
+
+export function createFantasyDraftPlayerPool(
+  leagueId: string,
+  maxUsers: number,
+): OnlineContractPlayer[] {
+  const counts = getFantasyDraftPositionTargetCounts(maxUsers);
+
+  return ONLINE_FANTASY_DRAFT_POSITIONS.flatMap((position) =>
+    Array.from({ length: counts[position] }, (_, index) =>
+      createFantasyDraftPlayer(
+        leagueId,
+        position,
+        index,
+        counts[position],
+        ONLINE_FANTASY_DRAFT_SEED,
+      ),
+    ),
+  );
+}
+
+export function createInitialFantasyDraftState(
+  leagueId: string,
+  maxUsers: number,
+): OnlineFantasyDraftState {
+  const playerPool = createFantasyDraftPlayerPool(leagueId, maxUsers);
+
+  return {
+    leagueId,
+    status: "not_started",
+    round: 1,
+    pickNumber: 1,
+    currentTeamId: "",
+    draftOrder: [],
+    picks: [],
+    availablePlayerIds: playerPool.map((player) => player.playerId),
+    startedAt: null,
+    completedAt: null,
+  };
+}
+
+function isOnlineFantasyDraftPick(value: unknown): value is OnlineFantasyDraftPick {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const pick = value as Partial<OnlineFantasyDraftPick>;
+
+  return (
+    typeof pick.pickNumber === "number" &&
+    typeof pick.round === "number" &&
+    typeof pick.teamId === "string" &&
+    typeof pick.playerId === "string" &&
+    typeof pick.pickedByUserId === "string" &&
+    typeof pick.timestamp === "string"
+  );
+}
+
+function isOnlineFantasyDraftState(value: unknown): value is OnlineFantasyDraftState {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const state = value as Partial<OnlineFantasyDraftState>;
+
+  return (
+    typeof state.leagueId === "string" &&
+    (state.status === "not_started" || state.status === "active" || state.status === "completed") &&
+    typeof state.round === "number" &&
+    typeof state.pickNumber === "number" &&
+    typeof state.currentTeamId === "string" &&
+    Array.isArray(state.draftOrder) &&
+    state.draftOrder.every((teamId) => typeof teamId === "string") &&
+    Array.isArray(state.picks) &&
+    state.picks.every(isOnlineFantasyDraftPick) &&
+    Array.isArray(state.availablePlayerIds) &&
+    state.availablePlayerIds.every((playerId) => typeof playerId === "string") &&
+    (state.startedAt === null || typeof state.startedAt === "string") &&
+    (state.completedAt === null || typeof state.completedAt === "string")
+  );
+}
+
+function normalizeFantasyDraftState(state: OnlineFantasyDraftState): OnlineFantasyDraftState {
+  const picks = state.picks
+    .map((pick) => ({
+      ...pick,
+      pickNumber: Math.max(1, Math.floor(pick.pickNumber)),
+      round: Math.max(1, Math.floor(pick.round)),
+    }))
+    .sort((left, right) => left.pickNumber - right.pickNumber);
+  const pickedPlayerIds = new Set(picks.map((pick) => pick.playerId));
+
+  return {
+    ...state,
+    round: Math.max(1, Math.floor(state.round)),
+    pickNumber: Math.max(1, Math.floor(state.pickNumber)),
+    draftOrder: Array.from(new Set(state.draftOrder)),
+    picks,
+    availablePlayerIds: Array.from(
+      new Set(state.availablePlayerIds.filter((playerId) => !pickedPlayerIds.has(playerId))),
+    ),
+    startedAt: state.startedAt ?? null,
+    completedAt: state.completedAt ?? null,
+  };
+}
+
 function createDefaultOnlineDepthChart(
   roster: OnlineContractPlayer[],
   now = new Date().toISOString(),
@@ -2111,7 +1681,10 @@ function createGlobalTestLeague(): OnlineLeague {
     users: [],
     teams: ONLINE_MVP_TEAM_POOL,
     freeAgents: createDefaultFreeAgents(),
+    fantasyDraft: createInitialFantasyDraftState(GLOBAL_TEST_LEAGUE_ID, ONLINE_MVP_TEAM_POOL.length),
+    fantasyDraftPlayerPool: createFantasyDraftPlayerPool(GLOBAL_TEST_LEAGUE_ID, ONLINE_MVP_TEAM_POOL.length),
     leagueSettings: createDefaultLeagueSettings(),
+    weekStatus: "pre_week",
     currentWeek: 1,
     currentSeason: 1,
     maxUsers: ONLINE_MVP_TEAM_POOL.length,
@@ -2809,6 +2382,7 @@ function isOnlineWeekFlowStatus(value: unknown): value is OnlineWeekFlowStatus {
     value === "pre_week" ||
     value === "ready" ||
     value === "simulating" ||
+    value === "completed" ||
     value === "post_game"
   );
 }
@@ -2830,8 +2404,52 @@ function isOnlineMatchResult(value: unknown): value is OnlineMatchResult {
     typeof result.awayTeamName === "string" &&
     typeof result.homeScore === "number" &&
     typeof result.awayScore === "number" &&
+    isOnlineMatchTeamStats(result.homeStats) &&
+    isOnlineMatchTeamStats(result.awayStats) &&
+    typeof result.winnerTeamId === "string" &&
+    typeof result.winnerTeamName === "string" &&
+    typeof result.tiebreakerApplied === "boolean" &&
+    typeof result.simulatedAt === "string" &&
+    typeof result.simulatedByUserId === "string" &&
     result.status === "completed" &&
     typeof result.createdAt === "string"
+  );
+}
+
+function isOnlineMatchTeamStats(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const stats = value as Record<string, unknown>;
+
+  return (
+    typeof stats.firstDowns === "number" &&
+    typeof stats.passingYards === "number" &&
+    typeof stats.rushingYards === "number" &&
+    typeof stats.totalYards === "number" &&
+    typeof stats.turnovers === "number"
+  );
+}
+
+function isOnlineCompletedWeek(value: unknown): value is OnlineCompletedWeek {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const completedWeek = value as Partial<OnlineCompletedWeek>;
+
+  return (
+    typeof completedWeek.weekKey === "string" &&
+    typeof completedWeek.season === "number" &&
+    typeof completedWeek.week === "number" &&
+    completedWeek.status === "completed" &&
+    Array.isArray(completedWeek.resultMatchIds) &&
+    completedWeek.resultMatchIds.every((matchId) => typeof matchId === "string") &&
+    typeof completedWeek.completedAt === "string" &&
+    typeof completedWeek.simulatedByUserId === "string" &&
+    typeof completedWeek.nextSeason === "number" &&
+    typeof completedWeek.nextWeek === "number"
   );
 }
 
@@ -3192,6 +2810,10 @@ function isStoredOnlineLeague(value: unknown): value is StoredOnlineLeague {
     (league.draftHistory === undefined ||
       (Array.isArray(league.draftHistory) &&
         league.draftHistory.every(isDraftHistoryEntry))) &&
+    (league.fantasyDraft === undefined || isOnlineFantasyDraftState(league.fantasyDraft)) &&
+    (league.fantasyDraftPlayerPool === undefined ||
+      (Array.isArray(league.fantasyDraftPlayerPool) &&
+        league.fantasyDraftPlayerPool.every(isOnlineContractPlayer))) &&
     (league.availableCoaches === undefined ||
       (Array.isArray(league.availableCoaches) && league.availableCoaches.every(isCoach))) &&
     (league.coachHistory === undefined ||
@@ -3210,6 +2832,9 @@ function isStoredOnlineLeague(value: unknown): value is StoredOnlineLeague {
     (league.matchResults === undefined ||
       (Array.isArray(league.matchResults) &&
         league.matchResults.every(isOnlineMatchResult))) &&
+    (league.completedWeeks === undefined ||
+      (Array.isArray(league.completedWeeks) &&
+        league.completedWeeks.every(isOnlineCompletedWeek))) &&
     (league.currentWeek === undefined ||
       (typeof league.currentWeek === "number" && Number.isFinite(league.currentWeek))) &&
     typeof league.maxUsers === "number" &&
@@ -3821,13 +3446,57 @@ function getOnlineMatchResultForWeek(
   );
 }
 
-function createOnlineMatchResultsForWeek(
+type OnlineWeekMatchup = {
+  away: OnlineLeagueUser;
+  home: OnlineLeagueUser;
+  matchId: string;
+};
+
+function getOnlineTeamRating(user: OnlineLeagueUser) {
+  const roster = getOnlineLeagueUserContractRoster(user).filter(
+    (player) => player.status === "active",
+  );
+
+  if (roster.length === 0) {
+    return 70;
+  }
+
+  return Math.round(
+    roster.reduce((sum, player) => sum + player.overall, 0) / roster.length,
+  );
+}
+
+function getOnlineWeekMatchups(
   league: OnlineLeague,
-  now = new Date().toISOString(),
-): OnlineMatchResult[] {
-  const activeUsers = league.users.filter((user) => user.teamStatus !== "vacant");
-  const season = Math.max(1, Math.ceil(league.currentWeek / 18));
-  const results: OnlineMatchResult[] = [];
+  season: number,
+  week: number,
+): OnlineWeekMatchup[] {
+  const activeUsers = league.users.filter(isOnlineLeagueUserActiveWeekParticipant);
+  const usersByTeamId = new Map(activeUsers.map((user) => [user.teamId, user]));
+  const scheduledMatches = (league.schedule ?? []).filter((match) => match.week === week);
+
+  if (scheduledMatches.length > 0) {
+    return scheduledMatches
+      .map((match) => {
+        const home =
+          usersByTeamId.get(match.homeTeamName) ??
+          activeUsers.find((user) => (user.teamDisplayName ?? user.teamName) === match.homeTeamName);
+        const away =
+          usersByTeamId.get(match.awayTeamName) ??
+          activeUsers.find((user) => (user.teamDisplayName ?? user.teamName) === match.awayTeamName);
+
+        return home && away
+          ? {
+              away,
+              home,
+              matchId: match.id,
+            }
+          : null;
+      })
+      .filter((matchup): matchup is OnlineWeekMatchup => matchup !== null);
+  }
+
+  const results: OnlineWeekMatchup[] = [];
 
   for (let index = 0; index < activeUsers.length; index += 2) {
     const home = activeUsers[index];
@@ -3837,31 +3506,91 @@ function createOnlineMatchResultsForWeek(
       continue;
     }
 
-    const homePower =
-      getOnlineLeagueUserContractRoster(home).reduce((sum, player) => sum + player.overall, 0) /
-      Math.max(1, getOnlineLeagueUserContractRoster(home).length);
-    const awayPower =
-      getOnlineLeagueUserContractRoster(away).reduce((sum, player) => sum + player.overall, 0) /
-      Math.max(1, getOnlineLeagueUserContractRoster(away).length);
-    const homeScore = Math.max(10, Math.round(20 + homePower / 6 + index));
-    const awayScore = Math.max(7, Math.round(18 + awayPower / 7 + index));
+    results.push({
+      away,
+      home,
+      matchId: `${league.id}-s${season}-w${week}-${home.teamId}-${away.teamId}`,
+    });
+  }
+
+  return results;
+}
+
+function createOnlineMatchResultsForWeek(
+  league: OnlineLeague,
+  now = new Date().toISOString(),
+  simulatedByUserId = "admin",
+): OnlineMatchResult[] {
+  const season = normalizeSeasonNumber(league.currentSeason ?? Math.ceil(league.currentWeek / 18));
+  const results: OnlineMatchResult[] = [];
+
+  for (const matchup of getOnlineWeekMatchups(league, season, league.currentWeek)) {
+    const homeRating = getOnlineTeamRating(matchup.home);
+    const awayRating = getOnlineTeamRating(matchup.away);
+    const simulated = simulateMatch(
+      {
+        id: matchup.home.teamId,
+        name: matchup.home.teamDisplayName ?? matchup.home.teamName,
+        rating: homeRating,
+      },
+      {
+        id: matchup.away.teamId,
+        name: matchup.away.teamDisplayName ?? matchup.away.teamName,
+        rating: awayRating,
+      },
+      {
+        seed: `online-week:${league.id}:s${season}:w${league.currentWeek}:${matchup.matchId}`,
+      },
+    );
+    const homeWon = simulated.winner === "A";
 
     results.push({
-      matchId: `${league.id}-s${season}-w${league.currentWeek}-${home.teamId}-${away.teamId}`,
+      matchId: matchup.matchId,
       season,
       week: league.currentWeek,
-      homeTeamId: home.teamId,
-      awayTeamId: away.teamId,
-      homeTeamName: home.teamDisplayName ?? home.teamName,
-      awayTeamName: away.teamDisplayName ?? away.teamName,
-      homeScore: homeScore === awayScore ? homeScore + 3 : homeScore,
-      awayScore,
+      homeTeamId: matchup.home.teamId,
+      awayTeamId: matchup.away.teamId,
+      homeTeamName: matchup.home.teamDisplayName ?? matchup.home.teamName,
+      awayTeamName: matchup.away.teamDisplayName ?? matchup.away.teamName,
+      homeScore: simulated.scoreA,
+      awayScore: simulated.scoreB,
+      homeStats: simulated.teamAStats,
+      awayStats: simulated.teamBStats,
+      winnerTeamId: homeWon ? matchup.home.teamId : matchup.away.teamId,
+      winnerTeamName: homeWon
+        ? matchup.home.teamDisplayName ?? matchup.home.teamName
+        : matchup.away.teamDisplayName ?? matchup.away.teamName,
+      tiebreakerApplied: simulated.tiebreakerApplied,
+      simulatedAt: now,
+      simulatedByUserId,
       status: "completed",
       createdAt: now,
     });
   }
 
   return results;
+}
+
+function createCompletedOnlineWeek(input: {
+  completedAt: string;
+  nextSeason: number;
+  nextWeek: number;
+  resultMatchIds: string[];
+  season: number;
+  simulatedByUserId: string;
+  week: number;
+}): OnlineCompletedWeek {
+  return {
+    weekKey: `s${input.season}-w${input.week}`,
+    season: input.season,
+    week: input.week,
+    status: "completed",
+    resultMatchIds: input.resultMatchIds,
+    completedAt: input.completedAt,
+    simulatedByUserId: input.simulatedByUserId,
+    nextSeason: input.nextSeason,
+    nextWeek: input.nextWeek,
+  };
 }
 
 function getOnlineLeagueUserDraftPicks(user: OnlineLeagueUser) {
@@ -3903,11 +3632,16 @@ function normalizeOnlineLeague(league: StoredOnlineLeague): OnlineLeague {
     prospects: league.prospects?.filter(isProspect).map(normalizeProspect),
     draftOrder: league.draftOrder ? normalizeDraftOrder(league.draftOrder) : undefined,
     draftHistory: league.draftHistory?.filter(isDraftHistoryEntry),
+    fantasyDraft: league.fantasyDraft
+      ? normalizeFantasyDraftState(league.fantasyDraft)
+      : undefined,
+    fantasyDraftPlayerPool: league.fantasyDraftPlayerPool?.map(normalizeContractPlayer),
     availableCoaches: league.availableCoaches?.filter(isCoach).map(normalizeCoach),
     coachHistory: league.coachHistory?.filter(isCoachTransactionHistoryEntry),
     leagueSettings: normalizeLeagueSettings(league.leagueSettings),
     weekStatus: league.weekStatus ?? "pre_week",
     matchResults: (league.matchResults ?? []).filter(isOnlineMatchResult),
+    completedWeeks: (league.completedWeeks ?? []).filter(isOnlineCompletedWeek),
     users: league.users.map((user) => normalizeOnlineLeagueUser(user, currentWeek)),
   };
 }
@@ -4069,42 +3803,6 @@ export function repairOnlineLeagueState(league: OnlineLeague): OnlineLeagueState
   };
 }
 
-function createUserFacingLeagueId(name: string, existingLeagues: OnlineLeague[]) {
-  const base =
-    name
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")
-      .slice(0, 40) || "online-liga";
-  let nextId = base;
-  let suffix = 2;
-  const existingIds = new Set(existingLeagues.map((league) => league.id));
-
-  while (existingIds.has(nextId)) {
-    nextId = `${base}-${suffix}`;
-    suffix += 1;
-  }
-
-  return nextId;
-}
-
-function normalizeMaxUsers(maxUsers: number | undefined) {
-  if (typeof maxUsers !== "number" || !Number.isFinite(maxUsers)) {
-    return ONLINE_MVP_TEAM_POOL.length;
-  }
-
-  return Math.min(Math.max(Math.floor(maxUsers), 1), ONLINE_MVP_TEAM_POOL.length);
-}
-
-function normalizeStartWeek(startWeek: number | undefined) {
-  if (typeof startWeek !== "number" || !Number.isFinite(startWeek)) {
-    return 1;
-  }
-
-  return Math.max(Math.floor(startWeek), 1);
-}
-
 function normalizeSeasonNumber(season: number | undefined) {
   if (typeof season !== "number" || !Number.isFinite(season)) {
     return 1;
@@ -4117,9 +3815,7 @@ function createLeagueLogEntry(message: string): OnlineLeagueLogEntry {
   const createdAt = new Date().toISOString();
 
   return {
-    id: globalThis.crypto?.randomUUID
-      ? globalThis.crypto.randomUUID()
-      : `log-${createdAt}-${Math.random().toString(16).slice(2)}`,
+    id: createSeededId("log", `league-log:${createdAt}:${message}`, 12),
     message,
     createdAt,
   };
@@ -4130,9 +3826,11 @@ function createLeagueEvent(input: Omit<OnlineLeagueEvent, "id" | "createdAt">): 
 
   return {
     ...input,
-    id: globalThis.crypto?.randomUUID
-      ? globalThis.crypto.randomUUID()
-      : `event-${createdAt}-${Math.random().toString(16).slice(2)}`,
+    id: createSeededId(
+      "event",
+      `league-event:${createdAt}:${input.eventType}:${input.leagueId}:${input.teamId}:${input.userId}`,
+      12,
+    ),
     createdAt,
   };
 }
@@ -4148,43 +3846,22 @@ function resetReadyState(user: OnlineLeagueUser): OnlineLeagueUser {
 }
 
 function readOnlineLeagues(storage: OnlineLeagueStorage): OnlineLeague[] {
-  const rawLeagues = storage.getItem(ONLINE_LEAGUES_STORAGE_KEY);
-
-  if (!rawLeagues) {
-    return [];
-  }
-
-  try {
-    const parsedLeagues = JSON.parse(rawLeagues) as unknown;
-
-    return Array.isArray(parsedLeagues)
-      ? parsedLeagues
-          .filter(isStoredOnlineLeague)
-          .map(normalizeOnlineLeague)
-          .map((league) => repairOnlineLeagueState(league).league)
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function dedupeLeagues(leagues: OnlineLeague[]) {
-  return leagues.filter(
-    (league, index, allLeagues) =>
-      allLeagues.findIndex((candidate) => candidate.id === league.id) === index,
-  );
+  return readStoredOnlineLeagueCollection(storage)
+    .filter(isStoredOnlineLeague)
+    .map(normalizeOnlineLeague)
+    .map((league) => repairOnlineLeagueState(league).league);
 }
 
 function saveOnlineLeagues(
   leagues: OnlineLeague[],
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ) {
-  storage.setItem(ONLINE_LEAGUES_STORAGE_KEY, JSON.stringify(dedupeLeagues(leagues)));
+  saveOnlineLeagueCollection(leagues, storage);
 }
 
 export function saveOnlineLeague(
   league: OnlineLeague,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague {
   const repairedLeague = repairOnlineLeagueState(league).league;
   const existingLeagues = readOnlineLeagues(storage);
@@ -4199,27 +3876,31 @@ export function saveOnlineLeague(
 }
 
 export function getOnlineLeagues(
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague[] {
   return readOnlineLeagues(storage);
 }
 
 export function createOnlineLeague(
   input: CreateOnlineLeagueInput,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague {
   const existingLeagues = readOnlineLeagues(storage);
   const name = input.name.trim() || "Neue Online Liga";
   const maxUsers = normalizeMaxUsers(input.maxUsers);
+  const leagueId = createUserFacingLeagueId(name, existingLeagues);
   const league: OnlineLeague = {
-    id: createUserFacingLeagueId(name, existingLeagues),
+    id: leagueId,
     name,
     users: [],
     teams: ONLINE_MVP_TEAM_POOL.slice(0, maxUsers),
     freeAgents: createDefaultFreeAgents(),
+    fantasyDraft: createInitialFantasyDraftState(leagueId, maxUsers),
+    fantasyDraftPlayerPool: createFantasyDraftPlayerPool(leagueId, maxUsers),
     leagueSettings: createDefaultLeagueSettings(),
     weekStatus: "pre_week",
     matchResults: [],
+    completedWeeks: [],
     currentWeek: normalizeStartWeek(input.startWeek),
     currentSeason: 1,
     maxUsers,
@@ -4231,7 +3912,7 @@ export function createOnlineLeague(
 
 export function getOnlineLeagueById(
   leagueId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = readOnlineLeagues(storage).find(
     (candidate) => candidate.id === leagueId,
@@ -4242,22 +3923,20 @@ export function getOnlineLeagueById(
 
 export function deleteOnlineLeague(
   leagueId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague[] {
   const nextLeagues = readOnlineLeagues(storage).filter((league) => league.id !== leagueId);
 
   saveOnlineLeagues(nextLeagues, storage);
 
-  if (storage.getItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY) === leagueId) {
-    storage.removeItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY);
-  }
+  clearStoredLastOnlineLeagueId(storage, leagueId);
 
   return nextLeagues;
 }
 
 export function resetOnlineLeague(
   leagueId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league =
     getOnlineLeagueById(leagueId, storage) ??
@@ -4276,20 +3955,21 @@ export function resetOnlineLeague(
       weekStatus: "pre_week",
       lastSimulatedWeekKey: undefined,
       matchResults: [],
+      completedWeeks: [],
+      fantasyDraft: createInitialFantasyDraftState(league.id, league.maxUsers),
+      fantasyDraftPlayerPool: createFantasyDraftPlayerPool(league.id, league.maxUsers),
       status: "waiting",
     },
     storage,
   );
 
-  if (storage.getItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY) === leagueId) {
-    storage.removeItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY);
-  }
+  clearStoredLastOnlineLeagueId(storage, leagueId);
 
   return resetLeague;
 }
 
 export function getOrCreateGlobalTestLeague(
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague {
   const existingLeague = getOnlineLeagueById(GLOBAL_TEST_LEAGUE_ID, storage);
 
@@ -4310,24 +3990,22 @@ export function getOrCreateGlobalTestLeague(
 }
 
 export function getAvailableOnlineLeagues(
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague[] {
   getOrCreateGlobalTestLeague(storage);
 
   return readOnlineLeagues(storage);
 }
 
-export function resetOnlineLeagues(storage: OnlineLeagueStorage = getBrowserStorage()) {
-  storage.removeItem(ONLINE_LEAGUES_STORAGE_KEY);
-  storage.removeItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY);
+export function resetOnlineLeagues(storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage()) {
+  removeStoredOnlineLeagueCollection(storage);
+  clearStoredLastOnlineLeagueId(storage);
 }
 
 export function getLastOnlineLeagueId(
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): string | null {
-  const leagueId = storage.getItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY);
-
-  return leagueId && leagueId.trim().length > 0 ? leagueId : null;
+  return getStoredLastOnlineLeagueId(storage);
 }
 
 function getFreeTeam(league: OnlineLeague): OnlineLeagueTeam | null {
@@ -4336,47 +4014,421 @@ function getFreeTeam(league: OnlineLeague): OnlineLeagueTeam | null {
   return league.teams.find((team) => !assignedTeamIds.has(team.id)) ?? null;
 }
 
-function getTeamIdentityId(selection: Pick<TeamIdentitySelection, "cityId" | "teamNameId">) {
-  return `${selection.cityId}-${selection.teamNameId}`;
-}
-
-function isOnlineLeagueStorage(value: unknown): value is OnlineLeagueStorage {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const storage = value as Partial<OnlineLeagueStorage>;
-
-  return (
-    typeof storage.getItem === "function" &&
-    typeof storage.setItem === "function" &&
-    typeof storage.removeItem === "function"
+function getFantasyDraftState(league: OnlineLeague): OnlineFantasyDraftState {
+  return normalizeFantasyDraftState(
+    league.fantasyDraft ?? createInitialFantasyDraftState(league.id, league.maxUsers),
   );
 }
 
-function resolveJoinArguments(
-  teamIdentityOrStorage: TeamIdentitySelection | OnlineLeagueStorage | undefined,
-  storage: OnlineLeagueStorage | undefined,
-) {
-  if (isOnlineLeagueStorage(teamIdentityOrStorage)) {
+function getFantasyDraftPlayerPool(league: OnlineLeague): OnlineContractPlayer[] {
+  return (league.fantasyDraftPlayerPool ?? createFantasyDraftPlayerPool(league.id, league.maxUsers))
+    .map(normalizeContractPlayer);
+}
+
+function getOnlineFantasyDraftEligibleUsers(league: OnlineLeague) {
+  return league.users.filter((user) => user.teamStatus !== "vacant");
+}
+
+function getOnlineFantasyDraftOrder(league: OnlineLeague) {
+  const users = getOnlineFantasyDraftEligibleUsers(league);
+
+  return users.map((user) => user.teamId);
+}
+
+function finalizeFantasyDraftLeague(
+  league: OnlineLeague,
+  state: OnlineFantasyDraftState,
+  playerPool: OnlineContractPlayer[],
+  now: string,
+): OnlineLeague {
+  const playersById = new Map(playerPool.map((player) => [player.playerId, player]));
+  const picksByTeamId = state.picks.reduce((map, pick) => {
+    map.set(pick.teamId, [...(map.get(pick.teamId) ?? []), pick]);
+    return map;
+  }, new Map<string, OnlineFantasyDraftPick[]>());
+
+  return appendLeagueAudit(
+    {
+      ...league,
+      currentWeek: 1,
+      status: "active",
+      weekStatus: "ready",
+      fantasyDraft: {
+        ...state,
+        status: "completed",
+        currentTeamId: "",
+        completedAt: state.completedAt ?? now,
+      },
+      users: league.users.map((user) => {
+        const roster = (picksByTeamId.get(user.teamId) ?? [])
+          .map((pick) => playersById.get(pick.playerId))
+          .filter((player): player is OnlineContractPlayer => Boolean(player))
+          .map((player) => ({ ...player, status: "active" as const }));
+
+        if (roster.length === 0) {
+          return user;
+        }
+
+        return getRecalculatedCapUser(
+          {
+            ...user,
+            readyForWeek: false,
+          },
+          roster,
+        );
+      }),
+    },
+    createLeagueEvent({
+      eventType: "draft_pick_made",
+      leagueId: league.id,
+      teamId: "league",
+      userId: "system",
+      reason: "Fantasy Draft completed. League moved to Week 1 ready phase.",
+      season: 1,
+      week: 1,
+    }),
+    "Fantasy Draft abgeschlossen. Liga ist bereit fuer Week 1.",
+  );
+}
+
+export function startOnlineFantasyDraft(
+  leagueId: string,
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
+): OnlineLeague | null {
+  const league = getOnlineLeagueById(leagueId, storage);
+
+  if (!league) {
+    return null;
+  }
+
+  const existingState = getFantasyDraftState(league);
+
+  if (existingState.status === "completed") {
+    return saveOnlineLeague(
+      {
+        ...league,
+        status: "active",
+        weekStatus: "ready",
+        currentWeek: 1,
+      },
+      storage,
+    );
+  }
+
+  if (existingState.status === "active") {
+    return league;
+  }
+
+  const draftOrder = getOnlineFantasyDraftOrder(league);
+  const now = new Date().toISOString();
+  const playerPool = getFantasyDraftPlayerPool(league);
+  const state: OnlineFantasyDraftState = {
+    ...existingState,
+    status: "active",
+    draftOrder,
+    round: 1,
+    pickNumber: 1,
+    currentTeamId: draftOrder[0] ?? "",
+    picks: [],
+    availablePlayerIds: playerPool.map((player) => player.playerId),
+    startedAt: now,
+    completedAt: null,
+  };
+
+  return saveOnlineLeague(
+    appendLeagueAudit(
+      {
+        ...league,
+        fantasyDraft: state,
+        fantasyDraftPlayerPool: playerPool,
+        status: "waiting",
+        weekStatus: "pre_week",
+      },
+      createLeagueEvent({
+        eventType: "draft_pick_made",
+        leagueId: league.id,
+        teamId: state.currentTeamId || "league",
+        userId: "system",
+        reason: "Fantasy Draft started.",
+        season: 1,
+        week: 1,
+      }),
+      "Fantasy Draft gestartet.",
+    ),
+    storage,
+  );
+}
+
+export type OnlineFantasyDraftPickResult =
+  | {
+      status: "success" | "completed";
+      league: OnlineLeague;
+      pick: OnlineFantasyDraftPick;
+      message: string;
+    }
+  | {
+      status:
+        | "missing-league"
+        | "missing-user"
+        | "draft-not-active"
+        | "wrong-team"
+        | "player-unavailable"
+        | "blocked";
+      league: OnlineLeague | null;
+      message: string;
+    };
+
+export function makeOnlineFantasyDraftPick(
+  leagueId: string,
+  teamId: string,
+  playerId: string,
+  pickedByUserId: string,
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
+): OnlineFantasyDraftPickResult {
+  const league = getOnlineLeagueById(leagueId, storage);
+
+  if (!league) {
     return {
-      teamIdentity: undefined,
-      storage: teamIdentityOrStorage,
+      status: "missing-league",
+      league: null,
+      message: "Liga konnte nicht gefunden werden.",
     };
   }
 
+  const state = getFantasyDraftState(league);
+
+  if (state.status !== "active") {
+    return {
+      status: "draft-not-active",
+      league,
+      message: "Fantasy Draft ist nicht aktiv.",
+    };
+  }
+
+  const user = league.users.find(
+    (candidate) => candidate.userId === pickedByUserId && candidate.teamId === teamId,
+  );
+
+  if (!user) {
+    return {
+      status: "missing-user",
+      league,
+      message: "GM gehoert nicht zu diesem Team.",
+    };
+  }
+
+  if (state.currentTeamId !== teamId) {
+    return {
+      status: "wrong-team",
+      league,
+      message: "Dieses Team ist aktuell nicht am Zug.",
+    };
+  }
+
+  if (!state.availablePlayerIds.includes(playerId) || state.picks.some((pick) => pick.playerId === playerId)) {
+    return {
+      status: "player-unavailable",
+      league,
+      message: "Spieler ist nicht mehr verfuegbar.",
+    };
+  }
+
+  const playerPool = getFantasyDraftPlayerPool(league);
+  const selectedPlayer = playerPool.find((player) => player.playerId === playerId);
+
+  if (!selectedPlayer) {
+    return {
+      status: "player-unavailable",
+      league,
+      message: "Spieler ist nicht im Draft-Pool.",
+    };
+  }
+
+  const now = new Date().toISOString();
+  const pick: OnlineFantasyDraftPick = {
+    pickNumber: state.pickNumber,
+    round: state.round,
+    teamId,
+    playerId,
+    pickedByUserId,
+    timestamp: now,
+  };
+  const pickedState: OnlineFantasyDraftState = {
+    ...state,
+    picks: [...state.picks, pick],
+    availablePlayerIds: state.availablePlayerIds.filter((candidate) => candidate !== playerId),
+  };
+  const nextState = getNextFantasyDraftStateAfterPick(pickedState, playerPool, now);
+  const baseLeague = appendLeagueAudit(
+    {
+      ...league,
+      fantasyDraft: nextState,
+      fantasyDraftPlayerPool: playerPool,
+    },
+    createLeagueEvent({
+      eventType: "draft_pick_made",
+      leagueId: league.id,
+      teamId,
+      userId: pickedByUserId,
+      reason: `${user.teamDisplayName ?? user.teamName} picked ${selectedPlayer.playerName}.`,
+      season: 1,
+      week: 1,
+    }),
+    `Fantasy Draft Pick ${pick.pickNumber}: ${user.teamDisplayName ?? user.teamName} waehlt ${selectedPlayer.playerName}.`,
+  );
+  const nextLeague =
+    nextState.status === "completed"
+      ? finalizeFantasyDraftLeague(baseLeague, nextState, playerPool, now)
+      : baseLeague;
+  const savedLeague = saveOnlineLeague(nextLeague, storage);
+
   return {
-    teamIdentity: teamIdentityOrStorage,
-    storage: storage ?? getBrowserStorage(),
+    status: nextState.status === "completed" ? "completed" : "success",
+    league: savedLeague,
+    pick,
+    message:
+      nextState.status === "completed"
+        ? "Fantasy Draft abgeschlossen. Liga ist bereit fuer Week 1."
+        : "Pick gespeichert.",
   };
 }
 
-function hasTeamDisplayName(league: OnlineLeague, teamDisplayName: string) {
-  return league.users.some((user) => {
-    const existingDisplayName = user.teamDisplayName ?? user.teamName;
+export type OnlineFantasyDraftAvailablePlayerFilters = {
+  position?: OnlineFantasyDraftPosition | OnlineFantasyDraftPosition[];
+  search?: string;
+  minOverall?: number;
+  maxOverall?: number;
+  limit?: number;
+  sortBy?: "overall" | "age" | "position" | "playerName";
+  sortDirection?: "asc" | "desc";
+};
 
-    return existingDisplayName.toLowerCase() === teamDisplayName.toLowerCase();
-  });
+export function getOnlineFantasyDraftState(
+  leagueId: string,
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
+): OnlineFantasyDraftState | null {
+  const league = getOnlineLeagueById(leagueId, storage);
+
+  return league ? getFantasyDraftState(league) : null;
+}
+
+export function getOnlineFantasyDraftAvailablePlayers(
+  leagueId: string,
+  filters: OnlineFantasyDraftAvailablePlayerFilters = {},
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
+): OnlineContractPlayer[] {
+  const league = getOnlineLeagueById(leagueId, storage);
+
+  if (!league) {
+    return [];
+  }
+
+  const state = getFantasyDraftState(league);
+  const availableIds = new Set(state.availablePlayerIds);
+  const positions = filters.position
+    ? new Set(Array.isArray(filters.position) ? filters.position : [filters.position])
+    : null;
+  const search = filters.search?.trim().toLowerCase() ?? "";
+  const minOverall = typeof filters.minOverall === "number" ? filters.minOverall : -Infinity;
+  const maxOverall = typeof filters.maxOverall === "number" ? filters.maxOverall : Infinity;
+  const sortBy = filters.sortBy ?? "overall";
+  const sortDirection = filters.sortDirection ?? "desc";
+  const direction = sortDirection === "asc" ? 1 : -1;
+  const players = getFantasyDraftPlayerPool(league)
+    .filter((player) => availableIds.has(player.playerId))
+    .filter((player) => !positions || positions.has(player.position as OnlineFantasyDraftPosition))
+    .filter((player) => !search || player.playerName.toLowerCase().includes(search))
+    .filter((player) => player.overall >= minOverall && player.overall <= maxOverall)
+    .sort((left, right) => {
+      if (sortBy === "age") {
+        return (left.age - right.age) * direction || right.overall - left.overall;
+      }
+
+      if (sortBy === "position") {
+        return left.position.localeCompare(right.position) * direction || right.overall - left.overall;
+      }
+
+      if (sortBy === "playerName") {
+        return left.playerName.localeCompare(right.playerName) * direction || right.overall - left.overall;
+      }
+
+      return (left.overall - right.overall) * direction || left.playerName.localeCompare(right.playerName);
+    });
+
+  return typeof filters.limit === "number" && filters.limit >= 0
+    ? players.slice(0, Math.floor(filters.limit))
+    : players;
+}
+
+export function advanceOnlineFantasyDraftPick(
+  leagueId: string,
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
+): OnlineLeague | null {
+  const league = getOnlineLeagueById(leagueId, storage);
+
+  if (!league) {
+    return null;
+  }
+
+  const state = getFantasyDraftState(league);
+
+  if (state.status !== "active") {
+    return league;
+  }
+
+  const playerPool = getFantasyDraftPlayerPool(league);
+  const nextState = getNextFantasyDraftStateAfterPick(
+    state,
+    playerPool,
+    new Date().toISOString(),
+  );
+
+  return saveOnlineLeague(
+    {
+      ...league,
+      fantasyDraft: nextState,
+      fantasyDraftPlayerPool: playerPool,
+    },
+    storage,
+  );
+}
+
+export function buildOnlineFantasyDraftRosters(
+  leagueId: string,
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
+): OnlineLeague | null {
+  const league = getOnlineLeagueById(leagueId, storage);
+
+  if (!league) {
+    return null;
+  }
+
+  const state = getFantasyDraftState(league);
+  const playerPool = getFantasyDraftPlayerPool(league);
+
+  if (!isOnlineFantasyDraftComplete(state, playerPool)) {
+    return league;
+  }
+
+  const completedAt = state.completedAt ?? new Date().toISOString();
+  const completedState: OnlineFantasyDraftState = {
+    ...state,
+    status: "completed",
+    currentTeamId: "",
+    completedAt,
+  };
+
+  return saveOnlineLeague(
+    finalizeFantasyDraftLeague(league, completedState, playerPool, completedAt),
+    storage,
+  );
+}
+
+export function completeOnlineFantasyDraftIfReady(
+  leagueId: string,
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
+): OnlineLeague | null {
+  return buildOnlineFantasyDraftRosters(leagueId, storage);
 }
 
 function appendLeagueAudit(
@@ -5045,7 +5097,7 @@ function updateFinanceAfterMatchday(
 export function recordOnlineMatchdayAttendance(
   leagueId: string,
   input: OnlineMatchdayInput,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league =
     getOnlineLeagueById(leagueId, storage) ??
@@ -5322,7 +5374,7 @@ export function setOnlineStadiumPricing(
     ticketPriceLevel: number;
     merchPriceLevel: number;
   },
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -5383,7 +5435,7 @@ export function setOnlineStadiumPricing(
 
 export function applyOnlineRevenueSharing(
   leagueId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -5567,7 +5619,7 @@ export function evaluateOnlineTeamXFactors(
   leagueId: string,
   userId: string,
   context: OnlineXFactorPlayContext,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineXFactorTriggerResult[] {
   const league = getOnlineLeagueById(leagueId, storage);
   const leagueUser = league?.users.find((user) => user.userId === userId);
@@ -5644,7 +5696,7 @@ export function extendOnlinePlayerContract(
   userId: string,
   playerId: string,
   contract: PlayerContract,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): ContractActionResult {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -5716,7 +5768,7 @@ export function releaseOnlinePlayer(
   leagueId: string,
   userId: string,
   playerId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): ContractActionResult {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -5778,7 +5830,7 @@ export function signOnlineFreeAgent(
   userId: string,
   freeAgentId: string,
   contract: PlayerContract | undefined,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): ContractActionResult {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -5855,7 +5907,7 @@ export function signOnlineFreeAgent(
 
 export function advanceOnlineContractsOneYear(
   leagueId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -5967,7 +6019,7 @@ export function scoutOnlineProspect(
   leagueId: string,
   userId: string,
   prospectId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): ScoutingActionResult {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -6072,7 +6124,7 @@ export function makeOnlineDraftPick(
   leagueId: string,
   userId: string,
   prospectId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): DraftActionResult {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -6283,7 +6335,7 @@ export function createOnlineTradeProposal(
   leagueId: string,
   fromUserId: string,
   input: CreateTradeProposalInput,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): TradeActionResult {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -6327,9 +6379,11 @@ export function createOnlineTradeProposal(
     picksRequested,
   });
   const trade: TradeProposal = {
-    tradeId: globalThis.crypto?.randomUUID
-      ? globalThis.crypto.randomUUID()
-      : `trade-${now}-${Math.random().toString(16).slice(2)}`,
+    tradeId: createSeededId(
+      "trade",
+      `trade:${now}:${fromUserId}:${toUser.userId}:${playersOffered.join(",")}:${playersRequested.join(",")}:${picksOffered.join(",")}:${picksRequested.join(",")}`,
+      12,
+    ),
     fromTeamId: fromUser.teamId,
     toTeamId: toUser.teamId,
     fromUserId,
@@ -6425,7 +6479,7 @@ export function acceptOnlineTradeProposal(
   leagueId: string,
   tradeId: string,
   acceptingUserId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): TradeActionResult {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -6529,7 +6583,7 @@ export function declineOnlineTradeProposal(
   leagueId: string,
   tradeId: string,
   decliningUserId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): TradeActionResult {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -6886,9 +6940,7 @@ function calculateTrainingOutcome(
 }
 
 function createOnlineLocalId(prefix: string, now = new Date().toISOString()) {
-  return globalThis.crypto?.randomUUID
-    ? `${prefix}-${globalThis.crypto.randomUUID()}`
-    : `${prefix}-${now}-${Math.random().toString(16).slice(2)}`;
+  return createSeededId(prefix, `${prefix}:${now}`, 12);
 }
 
 function getInterimCoach(role: CoachRole): Coach {
@@ -7064,7 +7116,7 @@ export function hireOnlineCoach(
   leagueId: string,
   userId: string,
   coachId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): CoachActionResult {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -7141,7 +7193,7 @@ export function fireOnlineCoach(
   leagueId: string,
   userId: string,
   role: CoachRole,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): CoachActionResult {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -7238,7 +7290,7 @@ export function submitWeeklyTrainingPlan(
   leagueId: string,
   userId: string,
   input: SubmitWeeklyTrainingPlanInput,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): SubmitWeeklyTrainingPlanResult {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -7338,7 +7390,7 @@ export function resetWeeklyTrainingPlan(
   userId: string,
   season: number,
   week: number,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -7371,7 +7423,7 @@ export function resetWeeklyTrainingPlan(
 export function generateOnlineTrainingOutcome(
   leagueId: string,
   userId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -7635,7 +7687,7 @@ function createDebugLeagueUser(
 }
 
 export function addFakeUserToOnlineLeague(
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague {
   const league = getFirstOrCreateOnlineLeague(storage);
   const freeTeam = getFreeTeam(league);
@@ -7654,7 +7706,7 @@ export function addFakeUserToOnlineLeague(
 }
 
 export function fillOnlineLeagueWithFakeUsers(
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague {
   const league = getFirstOrCreateOnlineLeague(storage);
   const users = [...league.users];
@@ -7688,7 +7740,7 @@ export function fillOnlineLeagueWithFakeUsers(
 }
 
 export function setAllOnlineLeaguesUsersReady(
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague[] {
   const readyAt = new Date().toISOString();
   const leagues = readOnlineLeagues(storage).map((league) => ({
@@ -7746,7 +7798,7 @@ export function joinOnlineLeague(
   );
 
   if (existingUser) {
-    storage.setItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY, league.id);
+    setStoredLastOnlineLeagueId(storage, league.id);
 
     return {
       status: "already-member",
@@ -7856,7 +7908,7 @@ export function joinOnlineLeague(
     storage,
   );
 
-  storage.setItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY, updatedLeague.id);
+  setStoredLastOnlineLeagueId(storage, updatedLeague.id);
 
   return {
     status: "joined",
@@ -7867,7 +7919,16 @@ export function joinOnlineLeague(
 export function setOnlineLeagueUserReady(
   leagueId: string,
   userId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
+): OnlineLeague | null {
+  return setOnlineLeagueUserReadyState(leagueId, userId, true, storage);
+}
+
+export function setOnlineLeagueUserReadyState(
+  leagueId: string,
+  userId: string,
+  ready: boolean,
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -7881,36 +7942,43 @@ export function setOnlineLeagueUserReady(
     return league;
   }
 
-  if (
-    existingUser.teamStatus === "vacant" ||
-    existingUser.adminRemoval?.status === "admin_removed" ||
-    existingUser.jobSecurity?.status === "fired"
-  ) {
+  if (!isOnlineLeagueUserActiveWeekParticipant(existingUser)) {
     return league;
   }
 
-  if (existingUser.readyForWeek) {
+  if (existingUser.readyForWeek === ready) {
     return league;
   }
+
+  const now = new Date().toISOString();
 
   return saveOnlineLeague(
     {
       ...league,
       users: league.users.map((leagueUser) =>
         leagueUser.userId === userId
-          ? {
-              ...leagueUser,
-              readyForWeek: true,
-              readyAt: new Date().toISOString(),
-              activity: {
-                ...getOnlineLeagueUserActivity(leagueUser),
-                lastSeenAt: new Date().toISOString(),
-                lastLeagueActionAt: new Date().toISOString(),
-                missedWeeklyActions: 0,
-                inactiveSinceWeek: undefined,
-                inactiveStatus: "active",
-              },
-            }
+          ? ready
+            ? {
+                ...leagueUser,
+                readyForWeek: true,
+                readyAt: now,
+                activity: {
+                  ...getOnlineLeagueUserActivity(leagueUser),
+                  lastSeenAt: now,
+                  lastLeagueActionAt: now,
+                  missedWeeklyActions: 0,
+                  inactiveSinceWeek: undefined,
+                  inactiveStatus: "active",
+                },
+              }
+            : {
+                ...resetReadyState(leagueUser),
+                activity: {
+                  ...getOnlineLeagueUserActivity(leagueUser),
+                  lastSeenAt: now,
+                  lastLeagueActionAt: now,
+                },
+              }
           : leagueUser,
       ),
     },
@@ -7920,7 +7988,7 @@ export function setOnlineLeagueUserReady(
 
 export function setAllOnlineLeagueUsersReady(
   leagueId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -7934,9 +8002,7 @@ export function setAllOnlineLeagueUsersReady(
     {
       ...league,
       users: league.users.map((leagueUser) =>
-        leagueUser.teamStatus === "vacant" ||
-        leagueUser.adminRemoval?.status === "admin_removed" ||
-        leagueUser.jobSecurity?.status === "fired"
+        !isOnlineLeagueUserActiveWeekParticipant(leagueUser)
           ? resetReadyState(leagueUser)
           : {
               ...leagueUser,
@@ -7953,7 +8019,7 @@ export function updateOnlineLeagueUserDepthChart(
   leagueId: string,
   userId: string,
   depthChart: OnlineDepthChartEntry[],
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -8010,7 +8076,7 @@ export function updateOnlineLeagueUserDepthChart(
 
 export function startOnlineLeague(
   leagueId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -8018,10 +8084,18 @@ export function startOnlineLeague(
     return null;
   }
 
+  const draftState = getFantasyDraftState(league);
+
+  if (draftState.status !== "completed") {
+    return startOnlineFantasyDraft(leagueId, storage);
+  }
+
   return saveOnlineLeague(
     {
       ...league,
       status: "active",
+      currentWeek: 1,
+      weekStatus: "ready",
     },
     storage,
   );
@@ -8030,7 +8104,7 @@ export function startOnlineLeague(
 export function removeOnlineLeagueUser(
   leagueId: string,
   userId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -8049,7 +8123,10 @@ export function removeOnlineLeagueUser(
 
 export function simulateOnlineLeagueWeek(
   leagueId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
+  options: {
+    simulatedByUserId?: string;
+  } = {},
 ): OnlineLeague | null {
   let league = getOnlineLeagueById(leagueId, storage);
 
@@ -8057,11 +8134,21 @@ export function simulateOnlineLeagueWeek(
     return null;
   }
 
+  if (league.fantasyDraft && league.fantasyDraft.status !== "completed") {
+    return league;
+  }
+
   if (league.weekStatus === "simulating") {
     return league;
   }
 
-  const season = Math.max(1, Math.ceil(league.currentWeek / 18));
+  const readyState = getOnlineLeagueWeekReadyState(league);
+
+  if (!readyState.canSimulate) {
+    return league;
+  }
+
+  const season = normalizeSeasonNumber(league.currentSeason ?? Math.ceil(league.currentWeek / 18));
   const weekKey = `s${season}-w${league.currentWeek}`;
 
   if (league.lastSimulatedWeekKey === weekKey || getOnlineMatchResultForWeek(league, season, league.currentWeek)) {
@@ -8108,14 +8195,34 @@ export function simulateOnlineLeagueWeek(
   }
 
   const now = new Date().toISOString();
-  const matchResults = createOnlineMatchResultsForWeek(league, now);
+  const matchResults = createOnlineMatchResultsForWeek(
+    league,
+    now,
+    options.simulatedByUserId ?? "admin",
+  );
+  const nextWeek = league.currentWeek + 1;
+  const nextSeason = normalizeSeasonNumber(league.currentSeason ?? Math.ceil(nextWeek / 18));
+  const completedWeek = createCompletedOnlineWeek({
+    completedAt: now,
+    nextSeason,
+    nextWeek,
+    resultMatchIds: matchResults.map((result) => result.matchId),
+    season,
+    simulatedByUserId: options.simulatedByUserId ?? "admin",
+    week: league.currentWeek,
+  });
+  const existingCompletedWeeks = (league.completedWeeks ?? []).filter(
+    (week) => week.weekKey !== completedWeek.weekKey,
+  );
   const advancedLeague = saveOnlineLeague(
     {
       ...league,
-      currentWeek: league.currentWeek + 1,
+      currentWeek: nextWeek,
+      currentSeason: nextSeason,
       weekStatus: "pre_week",
       lastSimulatedWeekKey: weekKey,
       matchResults: [...matchResults, ...(league.matchResults ?? [])],
+      completedWeeks: [completedWeek, ...existingCompletedWeeks],
       users: league.users.map(resetReadyState),
       logs: [
         createLeagueLogEntry(
@@ -8155,7 +8262,7 @@ export function setOnlineMediaExpectation(
   userId: string,
   goal: OnlineMediaExpectationGoal,
   season?: number,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -8211,7 +8318,7 @@ export function setOnlineFranchiseStrategy(
   leagueId: string,
   userId: string,
   strategy: FranchiseStrategyType,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -8271,7 +8378,7 @@ export function recordOnlineGmSeasonResult(
   leagueId: string,
   userId: string,
   seasonResult: OnlineGmSeasonResult,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -8499,7 +8606,7 @@ export function recordOnlineGmSeasonResult(
 export function recordOnlineGmMissedWeek(
   leagueId: string,
   userId: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
 
@@ -8544,7 +8651,7 @@ export function warnOnlineGm(
   userId: string,
   message: string,
   deadlineAt: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
   const reason = message.trim();
@@ -8604,7 +8711,7 @@ export function authorizeOnlineGmRemoval(
   leagueId: string,
   userId: string,
   reason: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
   const trimmedReason = reason.trim();
@@ -8657,7 +8764,7 @@ export function markOnlineTeamVacant(
   leagueId: string,
   userId: string,
   reason: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
   const trimmedReason = reason.trim();
@@ -8710,7 +8817,7 @@ export function removeOnlineGmByAdmin(
   leagueId: string,
   userId: string,
   reason: string,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): OnlineLeague | null {
   const league = getOnlineLeagueById(leagueId, storage);
   const trimmedReason = reason.trim();
@@ -8794,7 +8901,7 @@ export function claimVacantOnlineTeam(
   leagueId: string,
   teamId: string,
   user: OnlineUser,
-  storage: OnlineLeagueStorage = getBrowserStorage(),
+  storage: OnlineLeagueStorage = getBrowserOnlineLeagueStorage(),
 ): JoinOnlineLeagueResult {
   const league = getOnlineLeagueById(leagueId, storage) ?? getOrCreateGlobalTestLeague(storage);
   const existingUser = league.users.some(
@@ -8802,7 +8909,7 @@ export function claimVacantOnlineTeam(
   );
 
   if (existingUser) {
-    storage.setItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY, league.id);
+    setStoredLastOnlineLeagueId(storage, league.id);
 
     return {
       status: "already-member",
@@ -8851,7 +8958,7 @@ export function claimVacantOnlineTeam(
     storage,
   );
 
-  storage.setItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY, updatedLeague.id);
+  setStoredLastOnlineLeagueId(storage, updatedLeague.id);
 
   return {
     status: "joined",

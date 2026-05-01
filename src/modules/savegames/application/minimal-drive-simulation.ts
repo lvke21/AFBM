@@ -1,3 +1,5 @@
+import { createRng, randomSourceNext, type RandomSource } from "@/lib/random/seeded-rng";
+
 type MinimalDriveTeam = {
   abbreviation: string;
   id: string;
@@ -65,27 +67,6 @@ type GameProfile = {
   touchdownWeight: number;
   turnoverWeight: number;
 };
-
-function hashSeed(value: string) {
-  let hash = 2166136261;
-
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return hash >>> 0;
-}
-
-function createRandom(seed: string) {
-  let state = hashSeed(seed) || 1;
-
-  return () => {
-    state = Math.imul(state ^ (state >>> 15), 1 | state);
-    state ^= state + Math.imul(state ^ (state >>> 7), 61 | state);
-    return ((state ^ (state >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -234,9 +215,16 @@ function applyDriveStats(stats: GeneratedTeamStats, drive: GeneratedDrive) {
   stats.turnovers += drive.turnover ? 1 : 0;
 }
 
-export function simulateMinimalDriveGame(input: SimulationInput): MinimalDriveSimulationResult {
-  const seed = `minimal-drive:${input.matchId}:w${input.week}:${input.homeTeam.overallRating}-${input.awayTeam.overallRating}`;
-  const random = createRandom(seed);
+function buildMinimalDriveSeed(input: SimulationInput) {
+  return `minimal-drive:${input.matchId}:w${input.week}:${input.homeTeam.overallRating}-${input.awayTeam.overallRating}`;
+}
+
+export function simulateMinimalDriveGame(
+  input: SimulationInput,
+  rng: RandomSource = createRng(buildMinimalDriveSeed(input)),
+): MinimalDriveSimulationResult {
+  const seed = buildMinimalDriveSeed(input);
+  const random = randomSourceNext(rng);
   const drives: GeneratedDrive[] = [];
   const homeStats = emptyStats();
   const awayStats = emptyStats();

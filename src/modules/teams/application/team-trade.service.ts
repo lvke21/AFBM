@@ -1,4 +1,4 @@
-import { recalculateTeamState } from "@/modules/seasons/application/simulation/player-development";
+import { recalculateTeamState } from "@/modules/seasons/infrastructure/simulation/player-development";
 import { PlayerStatus, RosterStatus } from "@/modules/shared/domain/enums";
 import { shouldClearLineupAssignments } from "@/modules/shared/domain/roster-status";
 import {

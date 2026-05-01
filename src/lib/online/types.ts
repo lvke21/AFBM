@@ -2,7 +2,12 @@ import type {
   CreateOnlineLeagueInput,
   JoinOnlineLeagueResult,
   OnlineDepthChartEntry,
+  OnlineFantasyDraftPickResult,
+  OnlineFantasyDraftState,
+  OnlineContractPlayer,
   OnlineLeague,
+  OnlineCompletedWeek,
+  OnlineMatchResult,
   OnlineLeagueTeam,
 } from "./online-league-service";
 import type { OnlineUser } from "./online-user-service";
@@ -17,7 +22,7 @@ export type FirestoreOnlineWeekStatus = "pre_week" | "ready" | "simulating" | "c
 
 export type OnlineAuthenticatedUser = OnlineUser & {
   displayName: string;
-  isAnonymous: boolean;
+  email?: string | null;
   createdAt?: string;
   lastSeenAt?: string;
 };
@@ -33,9 +38,161 @@ export type FirestoreOnlineLeagueDoc = {
   memberCount: number;
   currentWeek: number;
   currentSeason: number;
+  weekStatus?: FirestoreOnlineWeekStatus;
   settings: Record<string, unknown>;
+  matchResults?: OnlineMatchResult[];
+  completedWeeks?: OnlineCompletedWeek[];
   version: number;
 };
+
+export type FirestoreOnlineDraftStateDoc = {
+  leagueId: string;
+  status: "not_started" | "active" | "completed";
+  round: number;
+  pickNumber: number;
+  currentTeamId: string;
+  draftOrder: string[];
+  startedAt: string | null;
+  completedAt: string | null;
+  draftRunId?: string;
+};
+
+export type FirestoreOnlineDraftPickDoc = {
+  pickNumber: number;
+  round: number;
+  teamId: string;
+  playerId: string;
+  pickedByUserId: string;
+  timestamp: string;
+  draftRunId?: string;
+  playerSnapshot?: OnlineContractPlayer;
+};
+
+export type FirestoreOnlineDraftAvailablePlayerDoc = OnlineContractPlayer & {
+  displayName: string;
+  draftRunId?: string;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((entry) => typeof entry === "string");
+}
+
+function mapFirestoreFantasyDraftState(value: unknown): OnlineFantasyDraftState | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const status = value.status;
+  const leagueId = value.leagueId;
+  const round = value.round;
+  const pickNumber = value.pickNumber;
+  const currentTeamId = value.currentTeamId;
+  const draftOrder = value.draftOrder;
+  const picks = value.picks;
+  const availablePlayerIds = value.availablePlayerIds;
+  const startedAt = value.startedAt;
+  const completedAt = value.completedAt;
+
+  if (
+    typeof leagueId !== "string" ||
+    (status !== "not_started" && status !== "active" && status !== "completed") ||
+    typeof round !== "number" ||
+    typeof pickNumber !== "number" ||
+    typeof currentTeamId !== "string" ||
+    !isStringArray(draftOrder) ||
+    !Array.isArray(picks) ||
+    !isStringArray(availablePlayerIds) ||
+    (startedAt !== null && typeof startedAt !== "string") ||
+    (completedAt !== null && typeof completedAt !== "string")
+  ) {
+    return undefined;
+  }
+
+  return {
+    leagueId,
+    status,
+    round,
+    pickNumber,
+    currentTeamId,
+    draftOrder,
+    picks: picks as OnlineFantasyDraftState["picks"],
+    availablePlayerIds,
+    startedAt,
+    completedAt,
+  };
+}
+
+function mapFirestoreFantasyDraftPlayerPool(value: unknown): OnlineContractPlayer[] | undefined {
+  return Array.isArray(value) ? (value as OnlineContractPlayer[]) : undefined;
+}
+
+function mapFirestoreDraftStateFromSubcollections(
+  draftState: FirestoreOnlineDraftStateDoc | undefined,
+  picks: FirestoreOnlineDraftPickDoc[] | undefined,
+  availablePlayers: FirestoreOnlineDraftAvailablePlayerDoc[] | undefined,
+): OnlineFantasyDraftState | undefined {
+  if (!draftState) {
+    return undefined;
+  }
+
+  const draftRunId = draftState.draftRunId;
+  const filteredPicks = (picks ?? [])
+    .filter((pick) => !draftRunId || pick.draftRunId === draftRunId)
+    .sort((left, right) => left.pickNumber - right.pickNumber);
+  const filteredAvailablePlayers = (availablePlayers ?? [])
+    .filter((player) => !draftRunId || player.draftRunId === draftRunId);
+
+  return {
+    leagueId: draftState.leagueId,
+    status: draftState.status,
+    round: draftState.round,
+    pickNumber: draftState.pickNumber,
+    currentTeamId: draftState.currentTeamId,
+    draftOrder: draftState.draftOrder,
+    picks: filteredPicks.map((pick) => ({
+      pickNumber: pick.pickNumber,
+      round: pick.round,
+      teamId: pick.teamId,
+      playerId: pick.playerId,
+      pickedByUserId: pick.pickedByUserId,
+      timestamp: pick.timestamp,
+    })),
+    availablePlayerIds: filteredAvailablePlayers.map((player) => player.playerId),
+    startedAt: draftState.startedAt,
+    completedAt: draftState.completedAt,
+  };
+}
+
+function mapFirestoreDraftPlayerPoolFromSubcollections(
+  picks: FirestoreOnlineDraftPickDoc[] | undefined,
+  availablePlayers: FirestoreOnlineDraftAvailablePlayerDoc[] | undefined,
+  draftRunId?: string,
+): OnlineContractPlayer[] | undefined {
+  if (!picks && !availablePlayers) {
+    return undefined;
+  }
+
+  const playersById = new Map<string, OnlineContractPlayer>();
+
+  (availablePlayers ?? [])
+    .filter((player) => !draftRunId || player.draftRunId === draftRunId)
+    .forEach((player) => {
+      playersById.set(player.playerId, player);
+    });
+  (picks ?? [])
+    .filter((pick) => !draftRunId || pick.draftRunId === draftRunId)
+    .forEach((pick) => {
+      if (pick.playerSnapshot) {
+        playersById.set(pick.playerId, pick.playerSnapshot);
+      }
+    });
+
+  return Array.from(playersById.values());
+}
 
 export type FirestoreOnlineMembershipDoc = {
   userId: string;
@@ -57,6 +214,7 @@ export type FirestoreOnlineTeamDoc = {
   teamName: string;
   displayName: string;
   depthChart?: OnlineDepthChartEntry[];
+  contractRoster?: OnlineContractPlayer[];
   assignedUserId?: string | null;
   status: OnlineTeamAssignmentStatus;
   createdAt: string;
@@ -106,6 +264,11 @@ export type OnlineLeagueRepository = {
     leagueId: string,
     depthChart: OnlineDepthChartEntry[],
   ): Promise<OnlineLeague | null>;
+  makeFantasyDraftPick(
+    leagueId: string,
+    teamId: string,
+    playerId: string,
+  ): Promise<OnlineFantasyDraftPickResult>;
   getLastLeagueId(): string | null;
   setLastLeagueId(leagueId: string): void;
   clearLastLeagueId(leagueId?: string): void;
@@ -155,6 +318,9 @@ export type FirestoreOnlineLeagueSnapshot = {
   memberships: FirestoreOnlineMembershipDoc[];
   teams: FirestoreOnlineTeamDoc[];
   events?: FirestoreOnlineEventDoc[];
+  draftState?: FirestoreOnlineDraftStateDoc;
+  draftPicks?: FirestoreOnlineDraftPickDoc[];
+  draftAvailablePlayers?: FirestoreOnlineDraftAvailablePlayerDoc[];
 };
 
 export function mapFirestoreStatusToLocalStatus(
@@ -182,11 +348,22 @@ export function mapFirestoreSnapshotToOnlineLeague(
   snapshot: FirestoreOnlineLeagueSnapshot,
 ): OnlineLeague {
   const teamsById = new Map(snapshot.teams.map((team) => [team.id, team]));
+  const subcollectionDraft = mapFirestoreDraftStateFromSubcollections(
+    snapshot.draftState,
+    snapshot.draftPicks,
+    snapshot.draftAvailablePlayers,
+  );
+  const subcollectionPlayerPool = mapFirestoreDraftPlayerPoolFromSubcollections(
+    snapshot.draftPicks,
+    snapshot.draftAvailablePlayers,
+    snapshot.draftState?.draftRunId,
+  );
 
   return {
     id: snapshot.league.id,
     name: snapshot.league.name,
     currentWeek: snapshot.league.currentWeek,
+    weekStatus: snapshot.league.weekStatus ?? "pre_week",
     maxUsers: snapshot.league.maxTeams,
     status: mapFirestoreStatusToLocalStatus(snapshot.league.status),
     teams: snapshot.teams.map((team) => ({
@@ -210,10 +387,17 @@ export function mapFirestoreSnapshotToOnlineLeague(
           teamNameId: team?.teamNameId,
           teamDisplayName: team?.displayName ?? membership.teamId,
           depthChart: team?.depthChart,
+          contractRoster: team?.contractRoster,
           teamStatus: team?.status === "vacant" ? "vacant" : "occupied",
           readyForWeek: membership.ready,
         };
-      }),
+    }),
+    matchResults: snapshot.league.matchResults ?? [],
+    completedWeeks: snapshot.league.completedWeeks ?? [],
+    fantasyDraft: subcollectionDraft ?? mapFirestoreFantasyDraftState(snapshot.league.settings.fantasyDraft),
+    fantasyDraftPlayerPool: subcollectionPlayerPool ?? mapFirestoreFantasyDraftPlayerPool(
+      snapshot.league.settings.fantasyDraftPlayerPool,
+    ),
     events: snapshot.events?.map((event) => ({
       id: `${event.type}-${event.createdAt}`,
       eventType: event.type as never,

@@ -4,6 +4,7 @@ import {
   ONLINE_USERNAME_STORAGE_KEY,
   ONLINE_USER_ID_STORAGE_KEY,
 } from "../online-user-service";
+import type { OnlineContractPlayer } from "../online-league-service";
 import type { TeamIdentitySelection } from "../team-identity-options";
 import { assertActiveMembership, assertLeagueAdmin } from "../security/roles";
 import {
@@ -50,6 +51,29 @@ const PARIS_GUARDIANS: TeamIdentitySelection = {
   cityId: "paris",
   category: "identity_city",
   teamNameId: "guardians",
+};
+
+const DRAFT_PLAYER: OnlineContractPlayer = {
+  playerId: "player-qb-1",
+  playerName: "Test Quarterback",
+  position: "QB",
+  age: 24,
+  overall: 82,
+  potential: 88,
+  developmentPath: "solid",
+  developmentProgress: 0,
+  xFactors: [],
+  contract: {
+    salaryPerYear: 1_000_000,
+    yearsRemaining: 2,
+    totalValue: 2_000_000,
+    guaranteedMoney: 500_000,
+    signingBonus: 250_000,
+    contractType: "regular",
+    capHitPerYear: 1_000_000,
+    deadCapPerYear: 250_000,
+  },
+  status: "active",
 };
 
 function setUser(storage: Storage, userId: string, username: string) {
@@ -192,6 +216,141 @@ describe("online league repository backbone", () => {
       teamDisplayName: "Berlin Wolves",
       readyForWeek: true,
     });
+  });
+
+  it("maps split Firestore draft subcollections without reading the legacy league blob", () => {
+    const snapshot: FirestoreOnlineLeagueSnapshot = {
+      league: {
+        id: "league-draft",
+        name: "Split Draft",
+        status: "lobby",
+        createdByUserId: "admin",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        maxTeams: 16,
+        memberCount: 1,
+        currentWeek: 1,
+        currentSeason: 1,
+        settings: {
+          onlineBackbone: true,
+          fantasyDraft: {
+            leagueId: "legacy",
+            status: "completed",
+            round: 99,
+            pickNumber: 99,
+            currentTeamId: "",
+            draftOrder: [],
+            picks: [],
+            availablePlayerIds: [],
+            startedAt: null,
+            completedAt: "legacy",
+          },
+        },
+        version: 1,
+      },
+      memberships: [],
+      teams: [],
+      draftState: {
+        leagueId: "league-draft",
+        status: "active",
+        round: 1,
+        pickNumber: 2,
+        currentTeamId: "team-b",
+        draftOrder: ["team-a", "team-b"],
+        startedAt: "2026-01-01T00:05:00.000Z",
+        completedAt: null,
+        draftRunId: "run-1",
+      },
+      draftPicks: [
+        {
+          pickNumber: 1,
+          round: 1,
+          teamId: "team-a",
+          playerId: DRAFT_PLAYER.playerId,
+          pickedByUserId: "gm-a",
+          timestamp: "2026-01-01T00:06:00.000Z",
+          draftRunId: "run-1",
+          playerSnapshot: DRAFT_PLAYER,
+        },
+        {
+          pickNumber: 1,
+          round: 1,
+          teamId: "old-team",
+          playerId: "stale-player",
+          pickedByUserId: "gm-old",
+          timestamp: "2026-01-01T00:01:00.000Z",
+          draftRunId: "old-run",
+        },
+      ],
+      draftAvailablePlayers: [
+        {
+          ...DRAFT_PLAYER,
+          playerId: "player-wr-1",
+          playerName: "Available Receiver",
+          position: "WR",
+          displayName: "Available Receiver",
+          draftRunId: "run-1",
+        },
+      ],
+    };
+
+    const league = mapFirestoreSnapshotToOnlineLeague(snapshot);
+
+    expect(league.fantasyDraft).toMatchObject({
+      leagueId: "league-draft",
+      status: "active",
+      round: 1,
+      pickNumber: 2,
+      currentTeamId: "team-b",
+      availablePlayerIds: ["player-wr-1"],
+    });
+    expect(league.fantasyDraft?.picks).toHaveLength(1);
+    expect(league.fantasyDraft?.picks[0]?.playerId).toBe(DRAFT_PLAYER.playerId);
+    expect(league.fantasyDraftPlayerPool?.map((player) => player.playerId).sort()).toEqual([
+      "player-qb-1",
+      "player-wr-1",
+    ]);
+  });
+
+  it("keeps legacy draft blobs readable while old leagues are migrated", () => {
+    const snapshot: FirestoreOnlineLeagueSnapshot = {
+      league: {
+        id: "league-legacy-draft",
+        name: "Legacy Draft",
+        status: "lobby",
+        createdByUserId: "admin",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        maxTeams: 16,
+        memberCount: 1,
+        currentWeek: 1,
+        currentSeason: 1,
+        settings: {
+          onlineBackbone: true,
+          fantasyDraft: {
+            leagueId: "league-legacy-draft",
+            status: "not_started",
+            round: 1,
+            pickNumber: 1,
+            currentTeamId: "",
+            draftOrder: [],
+            picks: [],
+            availablePlayerIds: [DRAFT_PLAYER.playerId],
+            startedAt: null,
+            completedAt: null,
+          },
+          fantasyDraftPlayerPool: [DRAFT_PLAYER],
+        },
+        version: 1,
+      },
+      memberships: [],
+      teams: [],
+    };
+
+    const league = mapFirestoreSnapshotToOnlineLeague(snapshot);
+
+    expect(league.fantasyDraft?.availablePlayerIds).toEqual([DRAFT_PLAYER.playerId]);
+    expect(league.fantasyDraftPlayerPool).toEqual([DRAFT_PLAYER]);
   });
 
   it("enforces role guards for member and admin operations", () => {

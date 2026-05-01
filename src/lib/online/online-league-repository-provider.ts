@@ -3,6 +3,8 @@ import { LocalOnlineLeagueRepository } from "./repositories/local-online-league-
 import type { OnlineBackendMode, OnlineLeagueRepository } from "./types";
 
 let repositoryOverride: OnlineLeagueRepository | null = null;
+let cachedRepository: OnlineLeagueRepository | null = null;
+let cachedRepositoryMode: OnlineBackendMode | null = null;
 const publicOnlineBackendMode = process.env.NEXT_PUBLIC_AFBM_ONLINE_BACKEND;
 
 export function getOnlineBackendMode(
@@ -19,11 +21,23 @@ export function getOnlineLeagueRepository(): OnlineLeagueRepository {
     return repositoryOverride;
   }
 
-  return getOnlineBackendMode() === "firebase"
-    ? new FirebaseOnlineLeagueRepository()
-    : new LocalOnlineLeagueRepository();
+  const mode = getOnlineBackendMode();
+
+  if (cachedRepository && cachedRepositoryMode === mode) {
+    return cachedRepository;
+  }
+
+  cachedRepository =
+    mode === "firebase"
+      ? new FirebaseOnlineLeagueRepository()
+      : new LocalOnlineLeagueRepository();
+  cachedRepositoryMode = mode;
+
+  return cachedRepository;
 }
 
 export function setOnlineLeagueRepositoryForTest(repository: OnlineLeagueRepository | null) {
   repositoryOverride = repository;
+  cachedRepository = null;
+  cachedRepositoryMode = null;
 }

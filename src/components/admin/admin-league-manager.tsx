@@ -5,15 +5,16 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import {
   getOnlineLeagues,
-  ONLINE_LAST_LEAGUE_ID_STORAGE_KEY,
-  ONLINE_LEAGUES_STORAGE_KEY,
   type OnlineLeague,
 } from "@/lib/online/online-league-service";
 import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
 import {
-  ONLINE_USERNAME_STORAGE_KEY,
-  ONLINE_USER_ID_STORAGE_KEY,
-} from "@/lib/online/online-user-service";
+  applyLocalAdminBrowserState,
+  getLocalAdminBrowserState,
+  type LocalAdminBrowserStatePatch,
+} from "@/lib/admin/local-admin-browser-state";
+import { AdminFeedbackBanner } from "./admin-feedback-banner";
+import { useAdminPendingAction } from "./use-admin-pending-action";
 
 function formatStatus(status: OnlineLeague["status"]) {
   return status;
@@ -23,48 +24,8 @@ type AdminActionResponse = {
   ok: boolean;
   message: string;
   leagues?: OnlineLeague[];
-  localState?: {
-    leaguesJson: string | null;
-    lastLeagueId: string | null;
-    resetCurrentUser?: boolean;
-  };
+  localState?: LocalAdminBrowserStatePatch;
 };
-
-function getLocalAdminState() {
-  if (typeof window === "undefined") {
-    return undefined;
-  }
-
-  return {
-    leaguesJson: window.localStorage.getItem(ONLINE_LEAGUES_STORAGE_KEY),
-    lastLeagueId: window.localStorage.getItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY),
-    userId: window.localStorage.getItem(ONLINE_USER_ID_STORAGE_KEY),
-    username: window.localStorage.getItem(ONLINE_USERNAME_STORAGE_KEY),
-  };
-}
-
-function applyLocalAdminState(localState: AdminActionResponse["localState"]) {
-  if (typeof window === "undefined" || !localState) {
-    return;
-  }
-
-  if (localState.leaguesJson) {
-    window.localStorage.setItem(ONLINE_LEAGUES_STORAGE_KEY, localState.leaguesJson);
-  } else {
-    window.localStorage.removeItem(ONLINE_LEAGUES_STORAGE_KEY);
-  }
-
-  if (localState.lastLeagueId) {
-    window.localStorage.setItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY, localState.lastLeagueId);
-  } else {
-    window.localStorage.removeItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY);
-  }
-
-  if (localState.resetCurrentUser) {
-    window.localStorage.removeItem(ONLINE_USER_ID_STORAGE_KEY);
-    window.localStorage.removeItem(ONLINE_USERNAME_STORAGE_KEY);
-  }
-}
 
 export function AdminLeagueManager() {
   const [leagues, setLeagues] = useState<OnlineLeague[]>([]);
@@ -73,8 +34,14 @@ export function AdminLeagueManager() {
   const [startWeek, setStartWeek] = useState(1);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [feedbackTone, setFeedbackTone] = useState<"success" | "warning">("success");
-  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const {
+    beginAdminAction,
+    endAdminAction,
+    hasPendingAdminAction,
+    pendingAction,
+  } = useAdminPendingAction();
   const repository = useMemo(() => getOnlineLeagueRepository(), []);
+  const isFirebaseMode = repository.mode === "firebase";
 
   function showFeedback(message: string, tone: "success" | "warning" = "success") {
     setFeedback(message);
@@ -84,7 +51,7 @@ export function AdminLeagueManager() {
   async function refreshLeagues() {
     try {
       setLeagues(
-        repository.mode === "firebase"
+        isFirebaseMode
           ? await repository.getAvailableLeagues()
           : getOnlineLeagues(),
       );
@@ -95,23 +62,21 @@ export function AdminLeagueManager() {
   }
 
   useEffect(() => {
-    if (repository.mode === "firebase") {
+    if (isFirebaseMode) {
       return repository.subscribeToAvailableLeagues(setLeagues);
     }
 
     setLeagues(getOnlineLeagues());
 
     return undefined;
-  }, [repository]);
+  }, [isFirebaseMode, repository]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (pendingAction) {
+    if (!beginAdminAction("create")) {
       return;
     }
-
-    setPendingAction("create");
 
     try {
       const result = await runServerAdminAction("createLeague", {
@@ -127,12 +92,12 @@ export function AdminLeagueManager() {
     } catch {
       showFeedback("Liga konnte nicht erstellt werden.", "warning");
     } finally {
-      setPendingAction(null);
+      endAdminAction();
     }
   }
 
   async function handleDeleteLeague(league: OnlineLeague) {
-    if (pendingAction) {
+    if (hasPendingAdminAction()) {
       return;
     }
 
@@ -144,7 +109,9 @@ export function AdminLeagueManager() {
       return;
     }
 
-    setPendingAction(`delete:${league.id}`);
+    if (!beginAdminAction(`delete:${league.id}`)) {
+      return;
+    }
 
     try {
       const result = await runServerAdminAction("deleteLeague", {
@@ -157,12 +124,12 @@ export function AdminLeagueManager() {
     } catch {
       showFeedback(`${league.name} konnte nicht gelöscht werden.`, "warning");
     } finally {
-      setPendingAction(null);
+      endAdminAction();
     }
   }
 
   async function handleResetLeague(league: OnlineLeague) {
-    if (pendingAction) {
+    if (hasPendingAdminAction()) {
       return;
     }
 
@@ -174,7 +141,9 @@ export function AdminLeagueManager() {
       return;
     }
 
-    setPendingAction(`reset:${league.id}`);
+    if (!beginAdminAction(`reset:${league.id}`)) {
+      return;
+    }
 
     try {
       const result = await runServerAdminAction("resetLeague", {
@@ -187,7 +156,7 @@ export function AdminLeagueManager() {
     } catch {
       showFeedback(`${league.name} konnte nicht zurückgesetzt werden.`, "warning");
     } finally {
-      setPendingAction(null);
+      endAdminAction();
     }
   }
 
@@ -239,7 +208,7 @@ export function AdminLeagueManager() {
       body: JSON.stringify({
         action,
         backendMode: repository.mode,
-        localState: repository.mode === "local" ? getLocalAdminState() : undefined,
+        localState: !isFirebaseMode ? getLocalAdminBrowserState() : undefined,
         ...payload,
       }),
     });
@@ -249,16 +218,14 @@ export function AdminLeagueManager() {
       throw new Error(result.message || "Admin-Aktion konnte nicht ausgeführt werden.");
     }
 
-    applyLocalAdminState(result.localState);
+    applyLocalAdminBrowserState(result.localState);
     return result;
   }
 
   async function runDebugAction(action: string, successMessage: string) {
-    if (pendingAction) {
+    if (!beginAdminAction(action)) {
       return;
     }
-
-    setPendingAction(action);
 
     try {
       await runServerAdminAction(action);
@@ -271,7 +238,7 @@ export function AdminLeagueManager() {
         "warning",
       );
     } finally {
-      setPendingAction(null);
+      endAdminAction();
     }
   }
 
@@ -300,7 +267,7 @@ export function AdminLeagueManager() {
             />
           </label>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={`grid gap-4 ${isFirebaseMode ? "" : "sm:grid-cols-2"}`}>
             <label className="grid gap-2">
               <span className="text-sm font-semibold text-slate-200">Max Spieler</span>
               <input
@@ -313,16 +280,18 @@ export function AdminLeagueManager() {
               />
             </label>
 
-            <label className="grid gap-2">
-              <span className="text-sm font-semibold text-slate-200">Start Woche</span>
-              <input
-                type="number"
-                min={1}
-                value={startWeek}
-                onChange={(event) => setStartWeek(Number(event.target.value))}
-                className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-200/60"
-              />
-            </label>
+            {!isFirebaseMode ? (
+              <label className="grid gap-2">
+                <span className="text-sm font-semibold text-slate-200">Start Woche</span>
+                <input
+                  type="number"
+                  min={1}
+                  value={startWeek}
+                  onChange={(event) => setStartWeek(Number(event.target.value))}
+                  className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-200/60"
+                />
+              </label>
+            ) : null}
           </div>
 
           <button
@@ -334,18 +303,7 @@ export function AdminLeagueManager() {
           </button>
         </form>
 
-        {feedback ? (
-          <div
-            aria-live="polite"
-            className={`mt-4 rounded-lg border px-4 py-3 text-sm font-semibold ${
-              feedbackTone === "success"
-                ? "border-emerald-200/25 bg-emerald-300/10 text-emerald-100"
-                : "border-amber-200/25 bg-amber-300/10 text-amber-100"
-            }`}
-          >
-            {feedback}
-          </div>
-        ) : null}
+        <AdminFeedbackBanner className="mt-4" message={feedback} tone={feedbackTone} />
       </section>
 
       <section
@@ -356,7 +314,7 @@ export function AdminLeagueManager() {
           Ligen verwalten
         </p>
         <h2 className="mt-2 text-2xl font-semibold text-white">
-          {repository.mode === "firebase" ? "Firebase Ligen" : "Lokale Ligen"}
+          {isFirebaseMode ? "Firebase Ligen" : "Lokale Ligen"}
         </h2>
 
         {leagues.length > 0 ? (
@@ -385,7 +343,7 @@ export function AdminLeagueManager() {
                   </span>
                 </div>
 
-                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <div className={`mt-4 grid gap-2 ${isFirebaseMode ? "" : "sm:grid-cols-3"}`}>
                   <Link
                     href={`/admin/league/${league.id}`}
                     aria-label={`Öffnen ${league.name}`}
@@ -393,24 +351,28 @@ export function AdminLeagueManager() {
                   >
                     Öffnen
                   </Link>
-                  <button
-                    type="button"
-                    aria-label={`Löschen ${league.name}`}
-                    disabled={pendingAction !== null}
-                    onClick={() => handleDeleteLeague(league)}
-                    className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-sm font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {pendingAction === `delete:${league.id}` ? "Löscht..." : "Löschen"}
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`Zurücksetzen ${league.name}`}
-                    disabled={pendingAction !== null}
-                    onClick={() => handleResetLeague(league)}
-                    className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {pendingAction === `reset:${league.id}` ? "Setzt zurück..." : "Zurücksetzen"}
-                  </button>
+                  {!isFirebaseMode ? (
+                    <>
+                      <button
+                        type="button"
+                        aria-label={`Löschen ${league.name}`}
+                        disabled={pendingAction !== null}
+                        onClick={() => handleDeleteLeague(league)}
+                        className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-sm font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {pendingAction === `delete:${league.id}` ? "Löscht..." : "Löschen"}
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Zurücksetzen ${league.name}`}
+                        disabled={pendingAction !== null}
+                        onClick={() => handleResetLeague(league)}
+                        className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {pendingAction === `reset:${league.id}` ? "Setzt zurück..." : "Zurücksetzen"}
+                      </button>
+                    </>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -422,65 +384,64 @@ export function AdminLeagueManager() {
         )}
       </section>
 
-      <section
-        id="debug-tools"
-        className="rounded-lg border border-rose-200/20 bg-rose-300/5 p-5 lg:col-span-2"
-      >
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-200">
-          Nur für Entwicklung
-        </p>
-        <h2 className="mt-2 text-2xl font-semibold text-white">Debug Tools</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-300">
-          Diese Aktionen verändern nur den lokalen Online-State im Browser und haben keinen
-          Einfluss auf Singleplayer-Daten.
-          {repository.mode === "firebase"
-            ? " Im Firebase-Modus sind sie deaktiviert, damit Backend- und Legacy-State nicht vermischt werden."
-            : ""}
-        </p>
+      {!isFirebaseMode ? (
+        <section
+          id="debug-tools"
+          className="rounded-lg border border-rose-200/20 bg-rose-300/5 p-5 lg:col-span-2"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-200">
+            Nur für Entwicklung
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">Debug Tools</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-300">
+            Diese Aktionen verändern nur den lokalen Online-State im Browser und haben keinen
+            Einfluss auf Singleplayer-Daten.
+          </p>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <button
-            type="button"
-            disabled={repository.mode === "firebase"}
-            onClick={handleDeleteAllLeagues}
-            className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-3 text-sm font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Alle Ligen löschen
-          </button>
-          <button
-            type="button"
-            disabled={repository.mode === "firebase"}
-            onClick={handleAddFakeUser}
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Fake User hinzufügen
-          </button>
-          <button
-            type="button"
-            disabled={repository.mode === "firebase"}
-            onClick={handleFillLeague}
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Liga mit 16 Spielern füllen
-          </button>
-          <button
-            type="button"
-            disabled={repository.mode === "firebase"}
-            onClick={handleSetAllReady}
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Alle Spieler ready setzen
-          </button>
-          <button
-            type="button"
-            disabled={repository.mode === "firebase"}
-            onClick={handleResetOnlineState}
-            className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            LocalStorage reset (Online State)
-          </button>
-        </div>
-      </section>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <button
+              type="button"
+              disabled={pendingAction !== null}
+              onClick={handleDeleteAllLeagues}
+              className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-3 text-sm font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Alle Ligen löschen
+            </button>
+            <button
+              type="button"
+              disabled={pendingAction !== null}
+              onClick={handleAddFakeUser}
+              className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Fake User hinzufügen
+            </button>
+            <button
+              type="button"
+              disabled={pendingAction !== null}
+              onClick={handleFillLeague}
+              className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Liga mit 16 Spielern füllen
+            </button>
+            <button
+              type="button"
+              disabled={pendingAction !== null}
+              onClick={handleSetAllReady}
+              className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Alle Spieler ready setzen
+            </button>
+            <button
+              type="button"
+              disabled={pendingAction !== null}
+              onClick={handleResetOnlineState}
+              className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              LocalStorage reset (Online State)
+            </button>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

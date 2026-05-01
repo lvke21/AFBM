@@ -1,7 +1,7 @@
 import {
   ONLINE_LAST_LEAGUE_ID_STORAGE_KEY,
   ONLINE_LEAGUES_STORAGE_KEY,
-} from "@/lib/online/online-league-service";
+} from "@/lib/online/online-league-constants";
 import {
   ONLINE_USER_ID_STORAGE_KEY,
   ONLINE_USERNAME_STORAGE_KEY,

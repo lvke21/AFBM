@@ -1,6 +1,7 @@
 import {
   getAvailableOnlineCoaches,
   getFanMoodTier,
+  getOnlineLeagueWeekReadyState,
   getOnlineLeagueDraftOrderForDisplay,
   getOnlineLeagueProspectsForDisplay,
   getTeamChemistryTier,
@@ -29,15 +30,19 @@ export type OnlineLeagueVacantTeam = {
 export type OnlineLeagueWeekFlowState = {
   title: string;
   weekLabel: string;
+  phaseLabel: string;
   statusLabel: string;
   simulationStatusLabel: string;
   playerReadyStatusLabel: string;
   waitingStatusLabel: string;
   adminProgressLabel: string;
   nextMatchLabel: string;
+  nextActionCtaLabel: string;
+  completedResultsLabel: string | null;
   showStartWeekButton: boolean;
   startWeekButtonLabel: string;
   startWeekHint: string;
+  lastCompletedWeekLabel: string | null;
 };
 
 export type OnlineLeagueRulesState = {
@@ -304,6 +309,36 @@ function getWeekFlowStatusLabel(allPlayersReady: boolean) {
   return allPlayersReady ? "Alle Spieler bereit" : "Wartet auf Ready-States";
 }
 
+function getWeekFlowPhaseLabel(league: OnlineLeague, allPlayersReady: boolean) {
+  if (league.weekStatus === "simulating") {
+    return "Simulation läuft";
+  }
+
+  if (league.weekStatus === "completed" || league.weekStatus === "post_game") {
+    return "Woche abgeschlossen";
+  }
+
+  if (league.completedWeeks?.[0]?.nextWeek === league.currentWeek) {
+    return allPlayersReady ? "Nächste Woche simulierbar" : "Nächste Woche offen";
+  }
+
+  return allPlayersReady ? "Simulation möglich" : "Woche offen";
+}
+
+function getWeekFlowSimulationStatusLabel(league: OnlineLeague, allPlayersReady: boolean) {
+  if (league.weekStatus === "simulating") {
+    return "Die Woche wird gerade simuliert. Bitte warte auf den Abschluss.";
+  }
+
+  if (league.completedWeeks?.[0]?.nextWeek === league.currentWeek) {
+    return "Die letzte Woche ist abgeschlossen. Die neue Woche wartet auf Ready-States.";
+  }
+
+  return allPlayersReady
+    ? "Alle aktiven Teams sind ready. Der Admin kann simulieren."
+    : "Simulation bleibt gesperrt, bis alle aktiven Teams ready sind.";
+}
+
 function getWeekFlowNextMatchLabel(league: OnlineLeague) {
   const currentWeekMatch = league.schedule?.find(
     (match) => match.week === league.currentWeek,
@@ -314,6 +349,30 @@ function getWeekFlowNextMatchLabel(league: OnlineLeague) {
   }
 
   return `${currentWeekMatch.homeTeamName} vs. ${currentWeekMatch.awayTeamName}`;
+}
+
+function getLastCompletedWeekLabel(league: OnlineLeague) {
+  const completedWeek = league.completedWeeks?.[0];
+
+  if (!completedWeek) {
+    return null;
+  }
+
+  return `Zuletzt abgeschlossen: Season ${completedWeek.season}, Week ${completedWeek.week}.`;
+}
+
+function getCompletedResultsLabel(league: OnlineLeague) {
+  const completedWeek = league.completedWeeks?.[0];
+
+  if (!completedWeek) {
+    return null;
+  }
+
+  const resultCount = (league.matchResults ?? []).filter(
+    (result) => result.season === completedWeek.season && result.week === completedWeek.week,
+  ).length;
+
+  return `${resultCount} Ergebnis${resultCount === 1 ? "" : "se"} gespeichert`;
 }
 
 function getTeamDisplayName(user: OnlineLeague["users"][number]) {
@@ -1304,9 +1363,9 @@ export function toOnlineLeagueDetailState(
     };
   }
 
-  const readyCount = league.users.filter((user) => user.readyForWeek).length;
-  const allPlayersReady =
-    league.users.length > 0 && league.users.every((user) => user.readyForWeek);
+  const readyState = getOnlineLeagueWeekReadyState(league);
+  const readyCount = readyState.readyCount;
+  const allPlayersReady = readyState.allReady;
   const currentLeagueUser = league.users.find(
     (user) => currentUser?.userId === user.userId,
   );
@@ -1317,7 +1376,7 @@ export function toOnlineLeagueDetailState(
     statusLabel: getStatusLabel(league.status),
     currentWeekLabel: `Week ${league.currentWeek}`,
     playerCountLabel: `${league.users.length}/${league.maxUsers}`,
-    readyProgressLabel: `${readyCount}/${league.maxUsers} Spieler bereit`,
+    readyProgressLabel: `${readyCount}/${readyState.requiredCount} aktive Teams bereit`,
     allPlayersReady,
     allPlayersReadyLabel: allPlayersReady
       ? "Alle Spieler sind bereit. Der Admin kann die Woche simulieren."
@@ -1347,8 +1406,9 @@ export function toOnlineLeagueDetailState(
     weekFlow: {
       title: "Ligawoche",
       weekLabel: `Week ${league.currentWeek}`,
+      phaseLabel: getWeekFlowPhaseLabel(league, allPlayersReady),
       statusLabel: getWeekFlowStatusLabel(allPlayersReady),
-      simulationStatusLabel: "Die Woche wird aktuell vom Liga-Admin weitergeschaltet.",
+      simulationStatusLabel: getWeekFlowSimulationStatusLabel(league, allPlayersReady),
       playerReadyStatusLabel: getPlayerReadyStatusLabel(
         currentLeagueUser,
         `Week ${league.currentWeek}`,
@@ -1357,10 +1417,13 @@ export function toOnlineLeagueDetailState(
       adminProgressLabel:
         "Sobald alle Spieler bereit sind, kann der Admin die Woche simulieren.",
       nextMatchLabel: getWeekFlowNextMatchLabel(league),
+      nextActionCtaLabel: getNextActionLabel(league, currentLeagueUser, allPlayersReady),
+      completedResultsLabel: getCompletedResultsLabel(league),
       showStartWeekButton: allPlayersReady,
       startWeekButtonLabel: "Admin simuliert die Woche",
       startWeekHint:
         "Der Admin schaltet die Liga weiter. Danach beginnt die nächste Week mit zurückgesetztem Ready-State.",
+      lastCompletedWeekLabel: getLastCompletedWeekLabel(league),
     },
     roster: getRosterState(currentLeagueUser),
     standings: getStandings(league),

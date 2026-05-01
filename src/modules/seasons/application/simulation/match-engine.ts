@@ -2,7 +2,7 @@ import { prepareTeamForSimulation, type PreparedTeam } from "./depth-chart";
 import { MATCH_ENGINE_RULES } from "./engine-rules";
 import { GAME_BALANCE } from "./game-balance";
 import type { PreGameXFactorPlan } from "@/modules/gameplay/domain/pre-game-x-factor";
-import { createSeededRandom } from "./simulation-random";
+import { createRng, randomSourceNext, type RandomSource, type SeededRng } from "@/lib/random/seeded-rng";
 import type {
   MatchDriveResult,
   MatchSimulationResult,
@@ -3048,8 +3048,9 @@ function resolvePlayoffOvertime(
 
 export function simulateMatch(
   context: SimulationMatchContext,
-  random: () => number = createSeededRandom(context.simulationSeed),
+  rng: RandomSource = createRng(context.simulationSeed),
 ): MatchSimulationResult {
+  const random = randomSourceNext(rng);
   const home = prepareTeamForSimulation(context.homeTeam, context.simulationSeed);
   const away = prepareTeamForSimulation(context.awayTeam, context.simulationSeed);
   const homeMetrics = calculateTeamMetrics(home);
@@ -5211,7 +5212,14 @@ export function simulateMatch(
 
 export function generateMatchStats(
   context: SimulationMatchContext,
-  random: () => number = createSeededRandom(context.simulationSeed),
+  random: RandomSource = createRng(context.simulationSeed),
 ) {
   return simulateMatch(context, random);
+}
+
+export function simulateGame(
+  context: SimulationMatchContext,
+  rng: SeededRng = createRng(context.simulationSeed),
+) {
+  return simulateMatch(context, rng);
 }

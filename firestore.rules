@@ -51,6 +51,14 @@ service cloud.firestore {
       return /databases/$(database)/documents/leagues/$(leagueId)/teams/$(teamId);
     }
 
+    function onlineDraftPath(leagueId) {
+      return /databases/$(database)/documents/leagues/$(leagueId)/draft/main;
+    }
+
+    function onlineDraftAvailablePlayerPath(leagueId, playerId) {
+      return /databases/$(database)/documents/leagues/$(leagueId)/draft/main/availablePlayers/$(playerId);
+    }
+
     function isOnlineLeague(leagueId) {
       return exists(onlineLeaguePath(leagueId))
         && get(onlineLeaguePath(leagueId)).data.settings.onlineBackbone == true;
@@ -174,6 +182,25 @@ service cloud.firestore {
         && request.resource.data.version == resource.data.version + 1;
     }
 
+    function isOnlineDraftLeagueTouchUpdate(leagueId) {
+      return isOnlineActiveMember(leagueId)
+        && resource.data.settings.onlineBackbone == true
+        && request.resource.data.settings.onlineBackbone == true
+        && request.resource.data.version == resource.data.version + 1
+        && (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(["updatedAt", "version"])
+          || (
+            existsAfter(onlineDraftPath(leagueId))
+            && getAfter(onlineDraftPath(leagueId)).data.status == "completed"
+            && request.resource.data.status == "active"
+            && request.resource.data.currentSeason == 1
+            && request.resource.data.currentWeek == 1
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(["currentSeason", "currentWeek", "settings", "status", "updatedAt", "version"])
+          )
+        );
+    }
+
     function isOnlineTeamClaimUpdate(leagueId, teamId) {
       return isSignedIn()
         && isOnlineLobby(leagueId)
@@ -206,6 +233,84 @@ service cloud.firestore {
           .hasOnly(["depthChart", "updatedAt"]);
     }
 
+    function isOnlineDraftRosterFinalizeUpdate(leagueId) {
+      return isOnlineActiveMember(leagueId)
+        && existsAfter(onlineDraftPath(leagueId))
+        && getAfter(onlineDraftPath(leagueId)).data.status == "completed"
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["contractRoster", "depthChart", "updatedAt"]);
+    }
+
+    function isOnlineDraftStateUpdate(leagueId, draftId) {
+      return isOnlineActiveMember(leagueId)
+        && draftId == "main"
+        && resource.data.status == "active"
+        && resource.data.currentTeamId == get(onlineMembershipPath(leagueId, request.auth.uid)).data.teamId
+        && request.resource.data.leagueId == resource.data.leagueId
+        && request.resource.data.draftOrder == resource.data.draftOrder
+        && request.resource.data.startedAt == resource.data.startedAt
+        && request.resource.data.status in ["active", "completed"]
+        && (
+          (
+            request.resource.data.status == "active"
+            && request.resource.data.pickNumber == resource.data.pickNumber + 1
+            && request.resource.data.round >= resource.data.round
+            && request.resource.data.currentTeamId is string
+            && request.resource.data.currentTeamId != ""
+          )
+          || (
+            request.resource.data.status == "completed"
+            && request.resource.data.pickNumber == resource.data.pickNumber
+            && request.resource.data.round == resource.data.round
+            && request.resource.data.currentTeamId == ""
+            && request.resource.data.completedAt is timestamp
+          )
+        )
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["completedAt", "currentTeamId", "pickNumber", "round", "status"]);
+    }
+
+    function isOnlineDraftPickCreate(leagueId) {
+      return isOnlineActiveMember(leagueId)
+        && exists(onlineDraftPath(leagueId))
+        && get(onlineDraftPath(leagueId)).data.status == "active"
+        && exists(onlineMembershipPath(leagueId, request.auth.uid))
+        && request.resource.data.keys().hasOnly([
+          "draftRunId",
+          "pickedByUserId",
+          "pickNumber",
+          "playerId",
+          "playerSnapshot",
+          "round",
+          "teamId",
+          "timestamp",
+        ])
+        && request.resource.data.pickedByUserId == request.auth.uid
+        && request.resource.data.teamId == get(onlineMembershipPath(leagueId, request.auth.uid)).data.teamId
+        && request.resource.data.teamId == get(onlineDraftPath(leagueId)).data.currentTeamId
+        && request.resource.data.pickNumber == get(onlineDraftPath(leagueId)).data.pickNumber
+        && request.resource.data.round == get(onlineDraftPath(leagueId)).data.round
+        && request.resource.data.playerId is string
+        && (
+          !("draftRunId" in get(onlineDraftPath(leagueId)).data)
+          || request.resource.data.draftRunId == get(onlineDraftPath(leagueId)).data.draftRunId
+        )
+        && exists(onlineDraftAvailablePlayerPath(leagueId, request.resource.data.playerId));
+    }
+
+    function isOnlineDraftAvailablePlayerDelete(leagueId, playerId) {
+      return isOnlineActiveMember(leagueId)
+        && exists(onlineDraftPath(leagueId))
+        && get(onlineDraftPath(leagueId)).data.status == "active"
+        && get(onlineDraftPath(leagueId)).data.currentTeamId ==
+          get(onlineMembershipPath(leagueId, request.auth.uid)).data.teamId
+        && resource.data.playerId == playerId
+        && (
+          !("draftRunId" in get(onlineDraftPath(leagueId)).data)
+          || resource.data.draftRunId == get(onlineDraftPath(leagueId)).data.draftRunId
+        );
+    }
+
     function isOnlineUserEventCreate(leagueId) {
       return isSignedIn()
         && (isOnlineActiveMember(leagueId) || isOnlineSelfJoinedAfter(leagueId))
@@ -213,6 +318,8 @@ service cloud.firestore {
         && request.resource.data.createdByUserId == request.auth.uid
         && request.resource.data.type in [
           "depth_chart_updated",
+          "draft_pick_made",
+          "fantasy_draft_completed",
           "gm_ready_set",
           "gm_ready_unset",
           "user_joined_league",
@@ -246,7 +353,8 @@ service cloud.firestore {
         || isOnlineActiveMember(leagueId)
         || isOnlineLeagueCreator(leagueId);
       allow create: if false;
-      allow update: if isOnlineJoinCounterUpdate(leagueId);
+      allow update: if isOnlineJoinCounterUpdate(leagueId)
+        || isOnlineDraftLeagueTouchUpdate(leagueId);
       allow delete: if false;
 
       match /memberships/{userId} {
@@ -261,8 +369,28 @@ service cloud.firestore {
         allow read: if isOnlineLobby(leagueId) || isOnlineActiveMember(leagueId) || isOnlineAdmin(leagueId);
         allow create: if false;
         allow update: if isOnlineTeamClaimUpdate(leagueId, teamId)
-          || isOnlineOwnDepthChartUpdate(leagueId, teamId);
+          || isOnlineOwnDepthChartUpdate(leagueId, teamId)
+          || isOnlineDraftRosterFinalizeUpdate(leagueId);
         allow delete: if false;
+      }
+
+      match /draft/{draftId} {
+        allow read: if isOnlineActiveMember(leagueId) || isOnlineAdmin(leagueId);
+        allow create: if false;
+        allow update: if isOnlineDraftStateUpdate(leagueId, draftId);
+        allow delete: if false;
+
+        match /picks/{pickId} {
+          allow read: if isOnlineActiveMember(leagueId) || isOnlineAdmin(leagueId);
+          allow create: if isOnlineDraftPickCreate(leagueId);
+          allow update, delete: if false;
+        }
+
+        match /availablePlayers/{playerId} {
+          allow read: if isOnlineActiveMember(leagueId) || isOnlineAdmin(leagueId);
+          allow create, update: if false;
+          allow delete: if isOnlineDraftAvailablePlayerDelete(leagueId, playerId);
+        }
       }
 
       match /weeks/{seasonWeekId} {

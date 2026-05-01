@@ -12,7 +12,7 @@ vi.mock("@/modules/players/application/player-history.service", () => ({
   createPlayerHistoryEvent: mocks.createPlayerHistoryEvent,
 }));
 
-vi.mock("@/modules/seasons/application/simulation/player-development", () => ({
+vi.mock("@/modules/seasons/infrastructure/simulation/player-development", () => ({
   applyAdvanceWeekPlayerDevelopment: mocks.applyAdvanceWeekPlayerDevelopment,
   recalculateTeamState: mocks.recalculateTeamState,
 }));

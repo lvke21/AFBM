@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { ONLINE_MVP_TEAM_POOL, type OnlineLeague } from "@/lib/online/online-league-service";
+import { ONLINE_MVP_TEAM_POOL } from "@/lib/online/online-league-constants";
+import type { OnlineLeague } from "@/lib/online/online-league-types";
 
 import {
   getOnlineLeaguePriceChangeHint,
@@ -86,7 +87,7 @@ describe("toOnlineLeagueDetailState", () => {
       statusLabel: "Wartet auf Spieler",
       currentWeekLabel: "Week 1",
       playerCountLabel: "2/16",
-      readyProgressLabel: "1/16 Spieler bereit",
+      readyProgressLabel: "1/2 aktive Teams bereit",
       allPlayersReady: false,
       allPlayersReadyLabel: null,
       ownTeamName: "New York Titans",
@@ -123,13 +124,15 @@ describe("toOnlineLeagueDetailState", () => {
       weekFlow: {
         title: "Ligawoche",
         weekLabel: "Week 1",
+        phaseLabel: "Woche offen",
         statusLabel: "Wartet auf Ready-States",
-        simulationStatusLabel: "Die Woche wird aktuell vom Liga-Admin weitergeschaltet.",
+        simulationStatusLabel: "Simulation bleibt gesperrt, bis alle aktiven Teams ready sind.",
         playerReadyStatusLabel: "Du bist noch nicht bereit für Week 1.",
         waitingStatusLabel: "Prüfe Team und Training. Setze dich bereit, wenn deine Woche passt.",
         adminProgressLabel:
           "Sobald alle Spieler bereit sind, kann der Admin die Woche simulieren.",
         nextMatchLabel: "Spielplan wird im nächsten Schritt erstellt",
+        nextActionCtaLabel: "Depth Chart prüfen, bevor du die Woche freigibst.",
         showStartWeekButton: false,
         startWeekButtonLabel: "Admin simuliert die Woche",
         startWeekHint:
@@ -192,7 +195,7 @@ describe("toOnlineLeagueDetailState", () => {
       ownCoachName: null,
       currentUserReady: false,
       playerCountLabel: "0/16",
-      readyProgressLabel: "0/16 Spieler bereit",
+      readyProgressLabel: "0/0 aktive Teams bereit",
       weekFlow: {
         statusLabel: "Wartet auf Ready-States",
         playerReadyStatusLabel: "Du hast in dieser Liga noch kein Team.",
@@ -266,20 +269,120 @@ describe("toOnlineLeagueDetailState", () => {
         allPlayersReady: true,
         allPlayersReadyLabel: "Alle Spieler sind bereit. Der Admin kann die Woche simulieren.",
         currentUserReady: true,
-        readyProgressLabel: "1/16 Spieler bereit",
+        readyProgressLabel: "1/1 aktive Teams bereit",
         weekFlow: {
+          phaseLabel: "Simulation möglich",
           statusLabel: "Alle Spieler bereit",
-          simulationStatusLabel: "Die Woche wird aktuell vom Liga-Admin weitergeschaltet.",
+          simulationStatusLabel: "Alle aktiven Teams sind ready. Der Admin kann simulieren.",
           playerReadyStatusLabel: "Du bist bereit für Week 1.",
           waitingStatusLabel: "Alle Spieler sind bereit. Es wartet nur noch der Liga-Admin.",
           adminProgressLabel:
             "Sobald alle Spieler bereit sind, kann der Admin die Woche simulieren.",
           nextMatchLabel: "Spielplan wird im nächsten Schritt erstellt",
+          nextActionCtaLabel: "Depth Chart prüfen, bevor du die Woche freigibst.",
           showStartWeekButton: true,
           startWeekButtonLabel: "Admin simuliert die Woche",
           startWeekHint:
             "Der Admin schaltet die Liga weiter. Danach beginnt die nächste Week mit zurückgesetztem Ready-State.",
         },
+      });
+  });
+
+  it("shows completed week results and prepares the next ready cycle", () => {
+    const league: OnlineLeague = {
+      id: "completed-week-league",
+      name: "Completed Week League",
+      maxUsers: 2,
+      status: "active",
+      teams: ONLINE_MVP_TEAM_POOL.slice(0, 2),
+      currentWeek: 2,
+      currentSeason: 1,
+      weekStatus: "pre_week",
+      completedWeeks: [
+        {
+          weekKey: "s1-w1",
+          season: 1,
+          week: 1,
+          status: "completed",
+          resultMatchIds: ["match-1"],
+          completedAt: "2026-05-01T08:00:00.000Z",
+          simulatedByUserId: "admin-session",
+          nextSeason: 1,
+          nextWeek: 2,
+        },
+      ],
+      matchResults: [
+        {
+          matchId: "match-1",
+          season: 1,
+          week: 1,
+          homeTeamId: "bos-guardians",
+          awayTeamId: "nyt-titans",
+          homeTeamName: "Boston Guardians",
+          awayTeamName: "New York Titans",
+          homeScore: 24,
+          awayScore: 17,
+          homeStats: {
+            totalYards: 360,
+            passingYards: 220,
+            rushingYards: 140,
+            turnovers: 1,
+            firstDowns: 21,
+          },
+          awayStats: {
+            totalYards: 318,
+            passingYards: 205,
+            rushingYards: 113,
+            turnovers: 2,
+            firstDowns: 18,
+          },
+          winnerTeamId: "bos-guardians",
+          winnerTeamName: "Boston Guardians",
+          tiebreakerApplied: false,
+          simulatedAt: "2026-05-01T08:00:00.000Z",
+          simulatedByUserId: "admin-session",
+          status: "completed",
+          createdAt: "2026-05-01T08:00:00.000Z",
+        },
+      ],
+      users: [
+        {
+          userId: "user-1",
+          username: "Coach_1234",
+          joinedAt: "2026-04-29T19:00:00.000Z",
+          teamId: "bos-guardians",
+          teamName: "Boston Guardians",
+          readyForWeek: false,
+        },
+        {
+          userId: "user-2",
+          username: "Coach_5678",
+          joinedAt: "2026-04-29T19:01:00.000Z",
+          teamId: "nyt-titans",
+          teamName: "New York Titans",
+          readyForWeek: false,
+        },
+      ],
+    };
+
+    expect(toOnlineLeagueDetailState(league, { userId: "user-1", username: "Coach_1234" }))
+      .toMatchObject({
+        status: "found",
+        currentWeekLabel: "Week 2",
+        readyProgressLabel: "0/2 aktive Teams bereit",
+        weekFlow: {
+          phaseLabel: "Nächste Woche offen",
+          simulationStatusLabel:
+            "Die letzte Woche ist abgeschlossen. Die neue Woche wartet auf Ready-States.",
+          lastCompletedWeekLabel: "Zuletzt abgeschlossen: Season 1, Week 1.",
+          completedResultsLabel: "1 Ergebnis gespeichert",
+        },
+        recentResults: [
+          {
+            matchId: "match-1",
+            label: "Boston Guardians 24 - 17 New York Titans",
+          },
+        ],
       });
   });
 

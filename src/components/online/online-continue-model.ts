@@ -1,4 +1,4 @@
-import type { OnlineLeague } from "@/lib/online/online-league-service";
+import type { OnlineLeague } from "@/lib/online/online-league-types";
 
 export type OnlineContinueState =
   | {
@@ -11,10 +11,19 @@ export type OnlineContinueState =
       helper: string;
     }
   | {
+      status: "invalid-last-league";
+      message: string;
+      helper: string;
+    }
+  | {
       status: "missing-league";
       message: string;
       helper: string;
     };
+
+export function isSafeOnlineLeagueId(leagueId: string | null): leagueId is string {
+  return Boolean(leagueId && /^[A-Za-z0-9_-]{3,80}$/.test(leagueId));
+}
 
 export function buildOnlineContinueState(
   lastLeagueId: string | null,
@@ -28,7 +37,15 @@ export function buildOnlineContinueState(
     };
   }
 
-  if (!league) {
+  if (!isSafeOnlineLeagueId(lastLeagueId)) {
+    return {
+      status: "invalid-last-league",
+      message: "Die gespeicherte Online-Liga ist ungültig.",
+      helper: "Suche erneut nach einer Liga.",
+    };
+  }
+
+  if (!league || league.id !== lastLeagueId) {
     return {
       status: "missing-league",
       message: "Die zuletzt gespielte Online-Liga konnte nicht gefunden werden.",

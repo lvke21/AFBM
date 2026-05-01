@@ -2,6 +2,7 @@ import {
   measureAsyncPerformance,
   measureSyncPerformance,
 } from "@/lib/observability/performance";
+import { createRng, type SeededRng } from "@/lib/random/seeded-rng";
 import { MatchStatus, SeasonPhase, type SeasonPhase as SeasonPhaseValue } from "@/modules/shared/domain/enums";
 
 import { assertTeamCanSimulate } from "./simulation/depth-chart";
@@ -12,12 +13,12 @@ import {
   buildSeasonTransition,
 } from "./simulation/engine-state-machine";
 import { generateMatchStats } from "./simulation/match-engine";
-import { buildMatchContext } from "./simulation/match-context";
-import { persistMatchResult } from "./simulation/match-result-persistence";
+import { buildMatchContext } from "../infrastructure/simulation/match-context";
+import { persistMatchResult } from "../infrastructure/simulation/match-result-persistence";
 import {
   createPlayoffFinal,
   createPlayoffSemifinals,
-} from "./simulation/playoff-scheduling";
+} from "../infrastructure/simulation/playoff-scheduling";
 import {
   completeSimulationOrchestratorStep,
   createSimulationOrchestratorSnapshot,
@@ -28,8 +29,8 @@ import {
   type SimulationOrchestratorSnapshot,
   type SimulationOrchestratorStepId,
 } from "./simulation/simulation-orchestrator";
-import { ensureSimulationStatAnchors } from "./simulation/stat-anchors";
-import { runWeeklyPreparation } from "./simulation/weekly-preparation";
+import { ensureSimulationStatAnchors } from "../infrastructure/simulation/stat-anchors";
+import { runWeeklyPreparation } from "../infrastructure/simulation/weekly-preparation";
 import { seasonSimulationCommandRepository } from "../infrastructure/simulation/season-simulation.command-repository";
 import { seasonSimulationRepository } from "../infrastructure/simulation/season-simulation.repository";
 
@@ -37,6 +38,10 @@ type SimulateSeasonWeekInput = {
   userId: string;
   saveGameId: string;
   seasonId: string;
+};
+
+type SimulateSeasonWeekOptions = {
+  rng?: SeededRng;
 };
 
 type SimulateSeasonWeekResult = {
@@ -54,7 +59,7 @@ export async function simulateSeasonWeekForUser({
   userId,
   saveGameId,
   seasonId,
-}: SimulateSeasonWeekInput): Promise<SimulateSeasonWeekResult | null> {
+}: SimulateSeasonWeekInput, options: SimulateSeasonWeekOptions = {}): Promise<SimulateSeasonWeekResult | null> {
   const season = await seasonSimulationRepository.findSeasonHeaderForUser(
     userId,
     saveGameId,
@@ -271,7 +276,12 @@ export async function simulateSeasonWeekForUser({
         }),
       },
       () => contexts.map((context) =>
-        generateMatchStats(context),
+        generateMatchStats(
+          context,
+          options.rng
+            ? options.rng.fork(`match:${context.matchId}:${context.simulationSeed}`)
+            : createRng(context.simulationSeed),
+        ),
       ),
     );
     orchestrator = completeSimulationOrchestratorStep(orchestrator, "simulate");
@@ -368,6 +378,13 @@ export async function simulateSeasonWeekForUser({
     orchestrator = completeSimulationOrchestratorStep(orchestrator, "unlock");
     throw error;
   }
+}
+
+export function simulateWeek(
+  input: SimulateSeasonWeekInput,
+  rng: SeededRng = createRng(`season-week:${input.saveGameId}:${input.seasonId}`),
+) {
+  return simulateSeasonWeekForUser(input, { rng });
 }
 
 function skipRemainingSimulationSteps(

@@ -1,5 +1,11 @@
 import Link from "next/link";
 
+import {
+  FirebaseEmailAuthPanel,
+  OnlinePlayLink,
+} from "@/components/auth/firebase-email-auth-panel";
+import { MinimalMatchResultDemo } from "@/components/match/minimal-match-result-demo";
+
 export default function LandingPage() {
   return (
     <main className="app-shell grid-stripes">
@@ -57,16 +63,15 @@ export default function LandingPage() {
 
           <div className="glass-panel rounded-[2rem] p-8">
             <p className="text-sm uppercase tracking-[0.25em] text-slate-300">
-              Abgedeckt
+              Online Zugang
             </p>
-            <ul className="mt-6 space-y-4 text-base text-slate-100">
-              <li>Projektstruktur und Modulgrenzen</li>
-              <li>Relationales Prisma-Schema mit Savegame-Isolation</li>
-              <li>Grundseiten fuer Savegames, Teams und Saison</li>
-              <li>Erste Application Services und API-Endpunkte</li>
-              <li>Bootstrap-Datenfluss fuer ein neues Savegame</li>
-            </ul>
+            <div className="mt-6">
+              <FirebaseEmailAuthPanel compact />
+            </div>
+            <OnlinePlayLink />
           </div>
+
+          <MinimalMatchResultDemo />
         </section>
       </div>
     </main>

@@ -1,74 +1,66 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import {
-  OnlineAccountLinkingError,
-  secureCurrentOnlineAccount,
-} from "@/lib/online/auth/account-linking";
-import { updateCurrentAuthenticatedOnlineUsername } from "@/lib/online/auth/online-auth";
+  getOnlineAuthErrorMessage,
+  signOutOnlineUser,
+  subscribeToOnlineAuthState,
+  updateCurrentAuthenticatedOnlineUsername,
+} from "@/lib/online/auth/online-auth";
 import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
 import { ensureCurrentOnlineUser } from "@/lib/online/online-user-service";
 import type { OnlineAuthenticatedUser } from "@/lib/online/types";
 import { getOnlineModeStatusCopy } from "./online-mode-status-model";
 
-function accountLinkingFeedbackMessage(error: unknown) {
-  if (error instanceof OnlineAccountLinkingError) {
-    return error.message;
-  }
-
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    (error as { name?: string }).name === "OnlineAccountLinkingError" &&
-    typeof (error as { message?: unknown }).message === "string"
-  ) {
-    return (error as { message: string }).message;
-  }
-
-  return "Account konnte nicht gesichert werden. Deine Liga-Daten bleiben unveraendert.";
-}
-
 export function OnlineUserStatus() {
   const [user, setUser] = useState<OnlineAuthenticatedUser | null>(null);
+  const [userLoadState, setUserLoadState] = useState<"loading" | "ready" | "error">("loading");
+  const [userLoadError, setUserLoadError] = useState<string | null>(null);
   const [usernameInput, setUsernameInput] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [accountEmail, setAccountEmail] = useState("");
-  const [accountPassword, setAccountPassword] = useState("");
-  const [accountFeedback, setAccountFeedback] = useState<string | null>(null);
-  const [accountFeedbackTone, setAccountFeedbackTone] = useState<"error" | "success">("success");
-  const [isSecuringAccount, setIsSecuringAccount] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const repository = useMemo(() => getOnlineLeagueRepository(), []);
   const modeStatus = getOnlineModeStatusCopy(repository.mode);
 
   useEffect(() => {
-    let active = true;
+    if (repository.mode === "local") {
+      const fallbackUser = ensureCurrentOnlineUser();
 
-    repository
-      .getCurrentUser()
-      .then((currentUser) => {
-        if (active) {
-          setUser(currentUser);
-          setUsernameInput(currentUser.username);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          const fallbackUser = ensureCurrentOnlineUser();
-
-          setUser({
-            ...fallbackUser,
-            displayName: fallbackUser.username,
-            isAnonymous: true,
-          });
-          setUsernameInput(fallbackUser.username);
-        }
+      setUser({
+        ...fallbackUser,
+        displayName: fallbackUser.username,
       });
+      setUsernameInput(fallbackUser.username);
+      setUserLoadState("ready");
+      return undefined;
+    }
 
-    return () => {
-      active = false;
-    };
+    setUserLoadState("loading");
+    setUserLoadError(null);
+
+    return subscribeToOnlineAuthState(
+      (currentUser) => {
+        if (!currentUser) {
+          setUser(null);
+          setUsernameInput("");
+          setUserLoadState("error");
+          setUserLoadError("Bitte melde dich mit Email und Passwort an.");
+          return;
+        }
+
+        setUser(currentUser);
+        setUsernameInput(currentUser.username);
+        setUserLoadState("ready");
+        setUserLoadError(null);
+      },
+      (error) => {
+        setUser(null);
+        setUserLoadState("error");
+        setUserLoadError(getOnlineAuthErrorMessage(error));
+      },
+    );
   }, [repository]);
 
   async function handleSaveUsername() {
@@ -88,51 +80,30 @@ export function OnlineUserStatus() {
       setUser(updatedUser);
       setUsernameInput(updatedUser.username);
       setFeedback("Anzeigename gespeichert.");
-    } catch {
-      setFeedback("Anzeigename konnte nicht gespeichert werden.");
+    } catch (error) {
+      setFeedback(getOnlineAuthErrorMessage(error));
     } finally {
       setIsSaving(false);
     }
   }
 
-  async function handleSecureAccount(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (isSecuringAccount) {
+  async function handleLogout() {
+    if (repository.mode !== "firebase" || isLoggingOut) {
       return;
     }
 
-    setIsSecuringAccount(true);
-    setAccountFeedback(null);
+    setIsLoggingOut(true);
+    setFeedback(null);
 
     try {
-      const previousUid = user?.userId;
-      const result = await secureCurrentOnlineAccount({
-        email: accountEmail,
-        password: accountPassword,
-        displayName: usernameInput,
-        mode: repository.mode,
-      });
-
-      setUser({
-        userId: result.userId,
-        username: result.displayName,
-        displayName: result.displayName,
-        isAnonymous: result.isAnonymous,
-      });
-      setUsernameInput(result.displayName);
-      setAccountPassword("");
-      setAccountFeedbackTone("success");
-      setAccountFeedback(
-        result.uidPreserved && previousUid === result.userId
-          ? "Account gesichert. Deine Online-Liga bleibt mit derselben UID verbunden."
-          : "Account gesichert.",
-      );
+      await signOutOnlineUser();
+      setUser(null);
+      setUserLoadState("error");
+      setUserLoadError("Bitte melde dich mit Email und Passwort an.");
     } catch (error) {
-      setAccountFeedbackTone("error");
-      setAccountFeedback(accountLinkingFeedbackMessage(error));
+      setFeedback(getOnlineAuthErrorMessage(error));
     } finally {
-      setIsSecuringAccount(false);
+      setIsLoggingOut(false);
     }
   }
 
@@ -152,16 +123,32 @@ export function OnlineUserStatus() {
           {modeStatus.roleBadge}
         </span>
       </div>
-      {user ? (
+      {userLoadState === "loading" ? (
+        <div
+          aria-live="polite"
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-300 sm:w-72"
+        >
+          Firebase Login wird geprüft...
+        </div>
+      ) : null}
+      {userLoadState === "error" ? (
+        <div
+          aria-live="polite"
+          className="w-full rounded-lg border border-amber-200/25 bg-amber-300/10 px-4 py-3 text-sm text-amber-100 sm:w-72"
+        >
+          <p className="font-semibold text-white">Nicht eingeloggt</p>
+          <p className="mt-1 text-xs leading-5 text-amber-100/85">
+            {userLoadError ?? "Bitte melde dich an."}
+          </p>
+        </div>
+      ) : null}
+      {userLoadState === "ready" && user ? (
         <div className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 sm:w-72">
           <p className="font-semibold text-white">{user.username}</p>
+          <p className="mt-1 text-xs text-slate-300">{user.email ?? "Lokaler Testmodus"}</p>
           <p className="mt-1 font-mono text-xs text-slate-400">{user.userId}</p>
           <p className="mt-1 text-xs font-semibold text-slate-300">
-            {repository.mode === "firebase"
-              ? user.isAnonymous
-                ? "Temporärer Firebase-Account"
-                : "Gesicherter Firebase-Account"
-              : "Lokaler Test-Account"}
+            {repository.mode === "firebase" ? "Firebase Email/Passwort" : "Lokaler Testmodus"}
           </p>
           <div className="mt-3 grid gap-2">
             <label className="grid gap-1 text-xs font-semibold text-slate-300">
@@ -175,86 +162,30 @@ export function OnlineUserStatus() {
                 className="rounded-lg border border-white/10 bg-[#07111d] px-3 py-2 text-sm text-white outline-none focus:border-emerald-200/60"
               />
             </label>
-            <button
-              type="button"
-              disabled={isSaving || usernameInput.trim().length === 0}
-              onClick={handleSaveUsername}
-              className="w-fit rounded-lg border border-emerald-200/25 bg-emerald-300/10 px-3 py-2 text-xs font-semibold text-emerald-50 transition hover:bg-emerald-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-            >
-              {isSaving ? "Speichert..." : "Name speichern"}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={isSaving || usernameInput.trim().length === 0}
+                onClick={handleSaveUsername}
+                className="w-fit rounded-lg border border-emerald-200/25 bg-emerald-300/10 px-3 py-2 text-xs font-semibold text-emerald-50 transition hover:bg-emerald-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                {isSaving ? "Speichert..." : "Name speichern"}
+              </button>
+              {repository.mode === "firebase" ? (
+                <button
+                  type="button"
+                  disabled={isLoggingOut}
+                  onClick={handleLogout}
+                  className="w-fit rounded-lg border border-white/15 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {isLoggingOut ? "Logout..." : "Logout"}
+                </button>
+              ) : null}
+            </div>
             {feedback ? (
               <p className="text-xs font-semibold text-slate-300">{feedback}</p>
             ) : null}
           </div>
-          <form
-            className="mt-4 grid gap-2 border-t border-white/10 pt-4"
-            onSubmit={handleSecureAccount}
-          >
-            <div>
-              <p className="text-sm font-semibold text-white">Account sichern</p>
-              <p className="mt-1 text-xs leading-5 text-slate-300">
-                Fuege Email und Passwort hinzu, ohne deine Firebase UID zu wechseln.
-                Memberships, Teams und Ligen bleiben verbunden.
-              </p>
-            </div>
-            {repository.mode === "firebase" && user.isAnonymous ? (
-              <>
-                <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  Email
-                  <input
-                    type="email"
-                    autoComplete="email"
-                    value={accountEmail}
-                    onChange={(event) => {
-                      setAccountEmail(event.target.value);
-                      setAccountFeedback(null);
-                    }}
-                    className="rounded-lg border border-white/10 bg-[#07111d] px-3 py-2 text-sm text-white outline-none focus:border-emerald-200/60"
-                  />
-                </label>
-                <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  Passwort
-                  <input
-                    type="password"
-                    autoComplete="new-password"
-                    value={accountPassword}
-                    onChange={(event) => {
-                      setAccountPassword(event.target.value);
-                      setAccountFeedback(null);
-                    }}
-                    className="rounded-lg border border-white/10 bg-[#07111d] px-3 py-2 text-sm text-white outline-none focus:border-emerald-200/60"
-                  />
-                </label>
-                <button
-                  type="submit"
-                  disabled={
-                    isSecuringAccount ||
-                    accountEmail.trim().length === 0 ||
-                    accountPassword.length === 0
-                  }
-                  className="w-fit rounded-lg border border-sky-200/25 bg-sky-300/10 px-3 py-2 text-xs font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-                >
-                  {isSecuringAccount ? "Sichert..." : "Account sichern"}
-                </button>
-              </>
-            ) : (
-              <p className="text-xs leading-5 text-slate-300">
-                {repository.mode === "firebase"
-                  ? "Dieser Account ist bereits mit einem dauerhaften Login verbunden."
-                  : "Im lokalen Testmodus werden keine Firebase-Logins verknuepft."}
-              </p>
-            )}
-            {accountFeedback ? (
-              <p
-                className={`text-xs font-semibold ${
-                  accountFeedbackTone === "success" ? "text-emerald-200" : "text-rose-200"
-                }`}
-              >
-                {accountFeedback}
-              </p>
-            ) : null}
-          </form>
         </div>
       ) : null}
     </div>

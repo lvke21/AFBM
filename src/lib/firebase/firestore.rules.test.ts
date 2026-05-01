@@ -239,6 +239,111 @@ describe("firestore security rules", () => {
     await assertFails(updateDoc(doc(gmDb, "leagues/online-alpha/memberships/online-admin"), {
       role: "gm",
     }));
+    await assertFails(setDoc(doc(adminDb, "leagues/online-alpha/draft/main"), {
+      leagueId: "online-alpha",
+      status: "active",
+      round: 1,
+      pickNumber: 1,
+      currentTeamId: "online-team-a",
+      draftOrder: ["online-team-a", "online-team-peer"],
+      startedAt: new Date(),
+      completedAt: null,
+    }));
+  });
+
+  it("allows online league members to read split draft state, picks, and available players only inside their league", async () => {
+    const gmDb = testEnv.authenticatedContext("online-gm").firestore();
+    const adminDb = testEnv.authenticatedContext("online-admin").firestore();
+    const outsiderDb = testEnv.authenticatedContext("online-outsider").firestore();
+    const anonymousDb = testEnv.unauthenticatedContext().firestore();
+
+    await assertSucceeds(getDoc(doc(gmDb, "leagues/online-alpha/draft/main")));
+    await assertSucceeds(getDoc(doc(gmDb, "leagues/online-alpha/draft/main/picks/0000")));
+    await assertSucceeds(
+      getDoc(doc(gmDb, "leagues/online-alpha/draft/main/availablePlayers/player-qb-1")),
+    );
+    await assertSucceeds(getDoc(doc(adminDb, "leagues/online-alpha/draft/main")));
+
+    await assertFails(getDoc(doc(outsiderDb, "leagues/online-alpha/draft/main")));
+    await assertFails(
+      getDoc(doc(outsiderDb, "leagues/online-alpha/draft/main/availablePlayers/player-qb-1")),
+    );
+    await assertFails(getDoc(doc(anonymousDb, "leagues/online-alpha/draft/main/picks/0000")));
+  });
+
+  it("blocks manipulative online draft writes and forged picks", async () => {
+    const gmDb = testEnv.authenticatedContext("online-gm").firestore();
+    const peerDb = testEnv.authenticatedContext("online-peer").firestore();
+
+    await assertFails(updateDoc(doc(gmDb, "leagues/online-alpha/draft/main"), {
+      pickNumber: 99,
+      currentTeamId: "online-team-a",
+      round: 99,
+      status: "active",
+    }));
+    await assertFails(setDoc(doc(gmDb, "leagues/online-alpha/draft/main/picks/0001"), {
+      draftRunId: "draft-run-1",
+      pickedByUserId: "online-peer",
+      pickNumber: 1,
+      playerId: "player-qb-1",
+      round: 1,
+      teamId: "online-team-peer",
+      timestamp: new Date(),
+    }));
+    await assertFails(setDoc(doc(gmDb, "leagues/online-alpha/draft/main/availablePlayers/player-hack"), {
+      playerId: "player-hack",
+      playerName: "Injected Player",
+      position: "QB",
+      overall: 99,
+    }));
+    await assertFails(updateDoc(doc(gmDb, "leagues/online-alpha/draft/main/availablePlayers/player-qb-1"), {
+      overall: 99,
+    }));
+    await assertFails(deleteDoc(doc(peerDb, "leagues/online-alpha/draft/main/availablePlayers/player-qb-1")));
+  });
+
+  it("allows only the current team to commit a valid atomic online draft pick", async () => {
+    const gmDb = testEnv.authenticatedContext("online-gm").firestore();
+    const pickedAt = new Date();
+    const batch = writeBatch(gmDb);
+
+    batch.set(doc(gmDb, "leagues/online-alpha/draft/main/picks/0001"), {
+      draftRunId: "draft-run-1",
+      pickedByUserId: "online-gm",
+      pickNumber: 1,
+      playerId: "player-qb-1",
+      playerSnapshot: {
+        playerId: "player-qb-1",
+        playerName: "Draft Quarterback",
+        position: "QB",
+        overall: 81,
+      },
+      round: 1,
+      teamId: "online-team-a",
+      timestamp: pickedAt,
+    });
+    batch.delete(doc(gmDb, "leagues/online-alpha/draft/main/availablePlayers/player-qb-1"));
+    batch.update(doc(gmDb, "leagues/online-alpha/draft/main"), {
+      currentTeamId: "online-team-peer",
+      pickNumber: 2,
+      round: 1,
+      status: "active",
+    });
+    batch.update(doc(gmDb, "leagues/online-alpha"), {
+      updatedAt: pickedAt,
+      version: 2,
+    });
+    batch.set(doc(collection(gmDb, "leagues/online-alpha/events")), {
+      createdAt: pickedAt,
+      createdByUserId: "online-gm",
+      payload: {
+        playerId: "player-qb-1",
+        teamId: "online-team-a",
+      },
+      type: "draft_pick_made",
+    });
+
+    await assertSucceeds(batch.commit());
   });
 
   it("limits online membership and team writes to the authenticated player", async () => {
@@ -526,6 +631,36 @@ async function seedFixtureData(testEnv: RulesTestEnvironment) {
       action: "createLeague",
       adminUserId: "server-admin",
       createdAt: new Date(),
+    });
+    await setDoc(doc(db, "leagues/online-alpha/draft/main"), {
+      completedAt: null,
+      currentTeamId: "online-team-a",
+      draftOrder: ["online-team-a", "online-team-peer"],
+      draftRunId: "draft-run-1",
+      leagueId: "online-alpha",
+      pickNumber: 1,
+      round: 1,
+      startedAt: new Date(),
+      status: "active",
+    });
+    await setDoc(doc(db, "leagues/online-alpha/draft/main/picks/0000"), {
+      draftRunId: "draft-run-1",
+      pickedByUserId: "online-admin",
+      pickNumber: 0,
+      playerId: "player-history",
+      round: 0,
+      teamId: "online-team-peer",
+      timestamp: new Date(),
+    });
+    await setDoc(doc(db, "leagues/online-alpha/draft/main/availablePlayers/player-qb-1"), {
+      age: 24,
+      displayName: "Draft Quarterback",
+      draftRunId: "draft-run-1",
+      overall: 81,
+      playerId: "player-qb-1",
+      playerName: "Draft Quarterback",
+      position: "QB",
+      status: "active",
     });
     await setDoc(doc(db, "admin/global-control"), {
       enabled: true,

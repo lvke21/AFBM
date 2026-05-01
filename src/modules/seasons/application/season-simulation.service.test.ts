@@ -35,11 +35,11 @@ vi.mock("../infrastructure/simulation/season-simulation.command-repository", () 
   seasonSimulationCommandRepository: seasonSimulationCommandRepositoryMock,
 }));
 
-vi.mock("./simulation/weekly-preparation", () => ({
+vi.mock("../infrastructure/simulation/weekly-preparation", () => ({
   runWeeklyPreparation: runWeeklyPreparationMock,
 }));
 
-vi.mock("./simulation/stat-anchors", () => ({
+vi.mock("../infrastructure/simulation/stat-anchors", () => ({
   ensureSimulationStatAnchors: ensureSimulationStatAnchorsMock,
 }));
 
@@ -47,7 +47,7 @@ vi.mock("./simulation/depth-chart", () => ({
   assertTeamCanSimulate: assertTeamCanSimulateMock,
 }));
 
-vi.mock("./simulation/match-context", () => ({
+vi.mock("../infrastructure/simulation/match-context", () => ({
   buildMatchContext: buildMatchContextMock,
 }));
 
@@ -55,11 +55,11 @@ vi.mock("./simulation/match-engine", () => ({
   generateMatchStats: generateMatchStatsMock,
 }));
 
-vi.mock("./simulation/match-result-persistence", () => ({
+vi.mock("../infrastructure/simulation/match-result-persistence", () => ({
   persistMatchResult: persistMatchResultMock,
 }));
 
-vi.mock("./simulation/playoff-scheduling", () => ({
+vi.mock("../infrastructure/simulation/playoff-scheduling", () => ({
   createPlayoffSemifinals: createPlayoffSemifinalsMock,
   createPlayoffFinal: createPlayoffFinalMock,
 }));

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AFBM Full Project Audit 2026-05-01</title>
+    <style>
+      body {
+        margin: 0;
+        background: #07111d;
+        color: #e5edf7;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 40px 20px 56px;
+      }
+
+      h1,
+      h2 {
+        line-height: 1.2;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 4vw, 3rem);
+      }
+
+      h2 {
+        margin-top: 32px;
+        font-size: 1.35rem;
+      }
+
+      .badge {
+        display: inline-flex;
+        border: 1px solid rgba(248, 113, 113, 0.5);
+        border-radius: 999px;
+        background: rgba(248, 113, 113, 0.12);
+        color: #fecaca;
+        padding: 6px 12px;
+        font-weight: 800;
+      }
+
+      .summary {
+        margin-top: 20px;
+        border: 1px solid rgba(251, 191, 36, 0.35);
+        border-radius: 8px;
+        background: rgba(251, 191, 36, 0.08);
+        padding: 16px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 14px;
+      }
+
+      .card strong {
+        display: block;
+        color: #fff;
+        font-size: 1.3rem;
+      }
+
+      .critical {
+        border-color: rgba(248, 113, 113, 0.45);
+        background: rgba(248, 113, 113, 0.08);
+      }
+
+      .green {
+        border-color: rgba(52, 211, 153, 0.35);
+        background: rgba(52, 211, 153, 0.08);
+      }
+
+      code {
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 2px 5px;
+      }
+
+      li {
+        margin: 7px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="badge">No-Go fuer spielbare Multiplayer-Version</span>
+      <h1>AFBM Full Project Audit</h1>
+      <p>Datum: 2026-05-01</p>
+
+      <section class="summary">
+        <strong>Harte Bewertung:</strong> Der Multiplayer-Kern ist technisch nachweisbar, aber das
+        Projekt ist noch keine voll spielbare Multiplayer-Version. Draft und Join sind stark genug
+        fuer einen Prototyp. Die erste echte Week nach dem Draft ist der Blocker.
+      </section>
+
+      <h2>Validierung</h2>
+      <div class="grid">
+        <div class="card green"><strong>Gruen</strong><code>npx tsc --noEmit</code></div>
+        <div class="card green"><strong>Gruen</strong><code>npm run lint</code></div>
+        <div class="card green"><strong>802/802</strong><code>npm test -- --run</code></div>
+        <div class="card green"><strong>Gruen</strong>Local 16-Team Draft E2E</div>
+        <div class="card green"><strong>Gruen</strong>Firebase Rules / Parity / Multiplayer E2E</div>
+        <div class="card critical"><strong>Rot</strong>Simulation Production QA</div>
+        <div class="card critical"><strong>Rot</strong>Simulation Balancing QA</div>
+        <div class="card green"><strong>Gruen</strong>Build mit staging-aehnlicher Env</div>
+      </div>
+
+      <h2>Kritische Befunde</h2>
+      <ol>
+        <li>Multiplayer-Week-Simulation ist noch placeholder-lastig und liefert keinen echten Spieltags-Payoff.</li>
+        <li>Simulation-QA ist rot: Fingerprints weichen ab, Scoring liegt unter Grenzwert.</li>
+        <li>Firestore-Draft-State liegt als grosser wachsender Blob im League-Dokument.</li>
+        <li>Online-Service und Online-Dashboard sind weiterhin zu gross und zu risikoreich.</li>
+        <li>Im Firebase-Multiplayer sind noch UI-Aktionen sichtbar, die nicht synchronisiert sind.</li>
+      </ol>
+
+      <h2>Top-Massnahmen</h2>
+      <ol>
+        <li>Echte Multiplayer-Week-Simulation anschliessen.</li>
+        <li>Simulation-QA-Baselines klaeren und gruen bekommen.</li>
+        <li>Ergebnisse/Reports im Spieler-Dashboard sichtbar machen.</li>
+        <li>Firebase-Draft-E2E fuer kompletten 16-Team-Flow ergaenzen.</li>
+        <li>Unsynchronisierte Aktionen aus dem Firebase-MVP-Flow ausblenden.</li>
+        <li>Firestore-Draft-Datenmodell entschlacken.</li>
+        <li>Online-League-Service und Dashboard weiter modularisieren.</li>
+        <li>Admin-Security fuer Closed Staging Tests haerten.</li>
+        <li>Mobile Smoke testen.</li>
+        <li>Release-Hygiene und Testskripte eindeutig machen.</li>
+      </ol>
+
+      <h2>Aufwand</h2>
+      <p>Spielbarer Multiplayer-MVP: <strong>80 bis 140 Stunden</strong>.</p>
+      <p>Release-nahe Staging-Version: <strong>160 bis 260 Stunden</strong>.</p>
+    </main>
+  </body>
+</html>

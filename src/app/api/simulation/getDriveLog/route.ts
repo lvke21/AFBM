@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getDriveLog } from "@/modules/seasons/application/simulation/simulation-api.service";
+import { getDriveLog } from "@/modules/seasons/infrastructure/simulation/simulation-api.service";
 
 import { readRequiredGameIdFromUrl, simulationApiErrorResponse } from "../route-utils";
 

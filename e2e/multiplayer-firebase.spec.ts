@@ -7,6 +7,7 @@ const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "demo
 const FIRESTORE_EMULATOR_ORIGIN = `http://${
   process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST ?? "127.0.0.1:8080"
 }`;
+let e2eAccountCounter = 0;
 
 type FirebaseAuthSession = {
   uid: string;
@@ -36,6 +37,32 @@ function fieldBoolean(document: FirestoreDocument, fieldName: string) {
   return document.fields?.[fieldName]?.booleanValue ?? false;
 }
 
+function createE2eEmail(label: string) {
+  e2eAccountCounter += 1;
+  return `afbm-${label.toLowerCase()}-${Date.now()}-${e2eAccountCounter}@example.test`;
+}
+
+async function registerOnlineUser(page: Page, label: string) {
+  const response = await page.goto("/online", {
+    timeout: E2E_NAVIGATION_TIMEOUT_MS,
+    waitUntil: "domcontentloaded",
+  });
+
+  expect(response?.status()).toBeLessThan(400);
+  await expect(page.getByRole("heading", { name: "Anmelden" })).toBeVisible();
+  await page.getByRole("button", { name: "Registrieren" }).click();
+  await page.getByLabel("Anzeigename").fill(`E2E Coach ${label}`);
+  await page.getByLabel("Email").fill(createE2eEmail(label));
+  await page.getByLabel("Passwort").fill("AFBM-e2e-pass-123!");
+  await page.getByRole("button", { name: "Account erstellen" }).click();
+  await expect(page.getByRole("heading", { name: "Online Liga" })).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(page.getByText("Firebase Email/Passwort").first()).toBeVisible({
+    timeout: 15_000,
+  });
+}
+
 async function openOnlineHub(page: Page) {
   const response = await page.goto("/online", {
     timeout: E2E_NAVIGATION_TIMEOUT_MS,
@@ -46,7 +73,7 @@ async function openOnlineHub(page: Page) {
   await expect(page.getByRole("heading", { name: "Online Liga" })).toBeVisible();
   await expect(page.getByText("Live Multiplayer").first()).toBeVisible();
   await expect(page.getByText("Firebase verbunden").first()).toBeVisible();
-  await expect(page.getByText("Temporärer Firebase-Account")).toBeVisible({
+  await expect(page.getByText("Firebase Email/Passwort").first()).toBeVisible({
     timeout: 15_000,
   });
 }
@@ -222,11 +249,13 @@ test.describe.serial("Firebase Multiplayer E2E", () => {
     const pageA = await contextA.newPage();
     const pageB = await contextB.newPage();
 
+      await registerOnlineUser(pageA, "A");
       const teamNameA = await joinSeededLeague(pageA);
       const sessionA = await getFirebaseAuthSession(pageA);
 
       await expect(pageA.getByText("1/2 Spieler", { exact: true }).first()).toBeVisible();
 
+      await registerOnlineUser(pageB, "B");
       const teamNameB = await joinSeededLeague(pageB);
       const sessionB = await getFirebaseAuthSession(pageB);
 
@@ -255,7 +284,7 @@ test.describe.serial("Firebase Multiplayer E2E", () => {
 
       await clickReadyForWeek(pageA, 1);
       await expect(pageA.getByText("Du bist bereit für Week 1.").first()).toBeVisible();
-      await expect(pageB.getByText("1/2 Spieler bereit").first()).toBeVisible({
+      await expect(pageB.getByText(/1\/2 .*bereit/).first()).toBeVisible({
         timeout: 15_000,
       });
 

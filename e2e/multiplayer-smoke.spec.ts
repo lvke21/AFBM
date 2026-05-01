@@ -91,7 +91,7 @@ async function openJoinedLeagueDashboard(page: Page) {
   await expect(page.getByRole("heading", { name: "Was jetzt tun?" })).toBeVisible();
 }
 
-async function loginAsAdmin(page: Page, leagueId = "global-test-league") {
+async function installAdminSession(page: Page) {
   await page.goto("/", {
     timeout: E2E_NAVIGATION_TIMEOUT_MS,
     waitUntil: "domcontentloaded",
@@ -107,12 +107,104 @@ async function loginAsAdmin(page: Page, leagueId = "global-test-league") {
       expires: Math.floor(Date.now() / 1000) + 60 * 60,
     },
   ]);
+}
 
-  await page.goto(`/admin/league/${leagueId}`, {
-    timeout: E2E_NAVIGATION_TIMEOUT_MS,
-    waitUntil: "domcontentloaded",
-  });
-  await expect(page.getByText("Simulationssteuerung")).toBeVisible();
+type LocalAdminActionResult = {
+  ok: boolean;
+  message: string;
+  league?: {
+    id: string;
+    currentWeek: number;
+    weekStatus?: string;
+    users?: Array<{ userId: string; username: string }>;
+    matchResults?: Array<{
+      matchId: string;
+      homeTeamName: string;
+      awayTeamName: string;
+      homeScore: number;
+      awayScore: number;
+    }>;
+    completedWeeks?: Array<{
+      weekKey: string;
+      season: number;
+      week: number;
+      resultMatchIds: string[];
+      nextWeek: number;
+    }>;
+  } | null;
+  localState?: {
+    leaguesJson: string | null;
+    lastLeagueId: string | null;
+    resetCurrentUser?: boolean;
+  };
+};
+
+async function runLocalAdminAction(
+  page: Page,
+  action: string,
+  payload: Record<string, unknown> = {},
+) {
+  return page.evaluate(
+    async ({ actionName, actionPayload }) => {
+      const keys = {
+        leagues: "afbm.online.leagues",
+        lastLeagueId: "afbm.online.lastLeagueId",
+        userId: "afbm.online.userId",
+        username: "afbm.online.username",
+      };
+      const response = await fetch("/admin/api/online/actions", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          action: actionName,
+          backendMode: "local",
+          localState: {
+            leaguesJson: localStorage.getItem(keys.leagues),
+            lastLeagueId: localStorage.getItem(keys.lastLeagueId),
+            userId: localStorage.getItem(keys.userId),
+            username: localStorage.getItem(keys.username),
+          },
+          ...actionPayload,
+        }),
+      });
+      const result = (await response.json()) as LocalAdminActionResult;
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.message || `Admin action failed: ${actionName}`);
+      }
+
+      if (result.localState) {
+        if (result.localState.leaguesJson) {
+          localStorage.setItem(keys.leagues, result.localState.leaguesJson);
+        } else {
+          localStorage.removeItem(keys.leagues);
+        }
+
+        if (result.localState.lastLeagueId) {
+          localStorage.setItem(keys.lastLeagueId, result.localState.lastLeagueId);
+        } else {
+          localStorage.removeItem(keys.lastLeagueId);
+        }
+
+        if (result.localState.resetCurrentUser) {
+          localStorage.removeItem(keys.userId);
+          localStorage.removeItem(keys.username);
+        }
+      }
+
+      return result;
+    },
+    { actionName: action, actionPayload: payload },
+  );
+}
+
+async function useOnlineUser(page: Page, user: { userId: string; username: string }) {
+  await page.evaluate((nextUser) => {
+    localStorage.setItem("afbm.online.userId", nextUser.userId);
+    localStorage.setItem("afbm.online.username", nextUser.username);
+  }, user);
 }
 
 test.describe("Multiplayer E2E Smoke", () => {
@@ -183,24 +275,82 @@ test.describe("Multiplayer E2E Smoke", () => {
     await expect(page.getByRole("button", { name: /Du bist bereit für Week 1/ })).toBeDisabled();
   });
 
-  test("Admin Flow zeigt Ready-Spieler und bestaetigt Simulation", async ({ page }) => {
-    await joinFirstLeague(page);
-    await openJoinedLeagueDashboard(page);
-    await page.getByRole("button", { name: /^Bereit für Week 1$/ }).dispatchEvent("click");
-    await expect(page.getByText("Du bist bereit für Week 1.").first()).toBeVisible();
+  test("Admin Flow simuliert eine ready Week und zeigt Ergebnisse nach Reload", async ({
+    page,
+  }) => {
+    await installAdminSession(page);
 
-    await loginAsAdmin(page);
-    await expect(page.getByText("Ready", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("1/1", { exact: true })).toBeVisible();
-    await expect(page.getByText("Fehlt noch", { exact: true })).toBeVisible();
-
-    let simulationConfirm = "";
-    page.once("dialog", async (dialog) => {
-      simulationConfirm = dialog.message();
-      await dialog.dismiss();
+    const created = await runLocalAdminAction(page, "createLeague", {
+      name: "E2E Week Closeout",
+      maxUsers: 2,
     });
-    await page.getByRole("button", { name: "Simulation starten" }).dispatchEvent("click");
-    expect(simulationConfirm).toContain("Ready-States werden zurückgesetzt");
+    const leagueId = created.league?.id;
+
+    expect(leagueId).toBeTruthy();
+
+    await runLocalAdminAction(page, "debugAddFakeUser");
+    await runLocalAdminAction(page, "debugAddFakeUser");
+    await runLocalAdminAction(page, "startFantasyDraft", { leagueId });
+    await runLocalAdminAction(page, "autoDraftToEndFantasyDraft", { leagueId });
+
+    const blocked = await runLocalAdminAction(page, "simulateWeek", {
+      leagueId,
+      season: 1,
+      week: 1,
+    });
+
+    expect(blocked.message).toContain("gesperrt");
+
+    await runLocalAdminAction(page, "setAllReady", { leagueId });
+
+    const simulated = await runLocalAdminAction(page, "simulateWeek", {
+      leagueId,
+      season: 1,
+      week: 1,
+    });
+
+    expect(simulated.league?.currentWeek).toBe(2);
+    expect(simulated.league?.weekStatus).toBe("pre_week");
+    expect(simulated.league?.matchResults).toHaveLength(1);
+    expect(simulated.league?.completedWeeks?.[0]).toMatchObject({
+      weekKey: "s1-w1",
+      season: 1,
+      week: 1,
+      nextWeek: 2,
+    });
+
+    const repeated = await runLocalAdminAction(page, "simulateWeek", {
+      leagueId,
+      season: 1,
+      week: 1,
+    });
+
+    expect(repeated.message).toContain("bereits weitergeschaltet");
+    expect(repeated.league?.currentWeek).toBe(2);
+    expect(repeated.league?.matchResults).toEqual(simulated.league?.matchResults);
+
+    const firstUser = simulated.league?.users?.[0];
+
+    if (!leagueId || !firstUser) {
+      throw new Error("Expected a simulated league with at least one user.");
+    }
+
+    await useOnlineUser(page, firstUser);
+    await page.goto(`/online/league/${leagueId}`, {
+      timeout: E2E_NAVIGATION_TIMEOUT_MS,
+      waitUntil: "domcontentloaded",
+    });
+    await expect(page.getByText("Zuletzt abgeschlossen: Season 1, Week 1.")).toBeVisible();
+    await expect(page.getByText("1 Ergebnis gespeichert")).toBeVisible();
+    await expect(page.getByText("Nächste Woche offen")).toBeVisible();
+
+    await page.goto(`/admin/league/${leagueId}`, {
+      timeout: E2E_NAVIGATION_TIMEOUT_MS,
+      waitUntil: "domcontentloaded",
+    });
+    await expect(page.getByText("Woche abgeschlossen")).toBeVisible();
+    await expect(page.getByText("1 Ergebnis fixiert")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Simulation starten" })).toBeDisabled();
   });
 
   test("Gefaehrliche Contract-Aktionen zeigen Confirm Dialog und koennen abgebrochen werden", async ({

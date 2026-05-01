@@ -5,7 +5,7 @@ import {
   ADMIN_SESSION_COOKIE,
   getAdminSessionToken,
 } from "@/lib/admin/admin-session";
-import { ONLINE_LEAGUES_STORAGE_KEY } from "@/lib/online/online-league-service";
+import { ONLINE_LEAGUES_STORAGE_KEY } from "@/lib/online/online-league-constants";
 
 import { POST } from "./route";
 

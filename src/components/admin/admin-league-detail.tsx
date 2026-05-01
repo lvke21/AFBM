@@ -5,15 +5,17 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   getOnlineLeagueById,
-  ONLINE_LAST_LEAGUE_ID_STORAGE_KEY,
-  ONLINE_LEAGUES_STORAGE_KEY,
+  getOnlineLeagueWeekReadyState,
   type OnlineLeague,
 } from "@/lib/online/online-league-service";
 import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
 import {
-  ONLINE_USERNAME_STORAGE_KEY,
-  ONLINE_USER_ID_STORAGE_KEY,
-} from "@/lib/online/online-user-service";
+  applyLocalAdminBrowserState,
+  getLocalAdminBrowserState,
+  type LocalAdminBrowserStatePatch,
+} from "@/lib/admin/local-admin-browser-state";
+import { AdminFeedbackBanner } from "./admin-feedback-banner";
+import { useAdminPendingAction } from "./use-admin-pending-action";
 
 function readyLabel(readyForWeek: boolean) {
   return readyForWeek ? "Ready" : "Nicht bereit";
@@ -21,6 +23,48 @@ function readyLabel(readyForWeek: boolean) {
 
 function statusLabel(status: OnlineLeague["status"]) {
   return status === "waiting" ? "Wartet auf Spieler" : "Saison läuft";
+}
+
+function adminWeekPhaseLabel(input: {
+  allPlayersReady: boolean;
+  hasCompletedWeek: boolean;
+  league: OnlineLeague;
+  simulationInProgress: boolean;
+}) {
+  if (input.simulationInProgress || input.league.weekStatus === "simulating") {
+    return "Simulation läuft";
+  }
+
+  if (input.league.status !== "active") {
+    return "Woche noch nicht aktiv";
+  }
+
+  if (input.hasCompletedWeek && !input.allPlayersReady) {
+    return "Nächste Woche offen";
+  }
+
+  return input.allPlayersReady ? "Simulation möglich" : "Woche offen";
+}
+
+function adminSimulationHint(input: {
+  allPlayersReady: boolean;
+  league: OnlineLeague;
+  missingReadyCount: number;
+  simulationInProgress: boolean;
+}) {
+  if (input.simulationInProgress || input.league.weekStatus === "simulating") {
+    return "Simulation läuft. Mehrfachklicks sind gesperrt, bis die Aktion abgeschlossen ist.";
+  }
+
+  if (input.league.status !== "active") {
+    return "Liga muss aktiv sein, bevor Wochen simuliert werden können.";
+  }
+
+  if (!input.allPlayersReady) {
+    return `${input.missingReadyCount} aktive Team${input.missingReadyCount === 1 ? "" : "s"} fehlen noch.`;
+  }
+
+  return "Alle aktiven Teams sind ready. Der Admin kann diese Woche einmal simulieren.";
 }
 
 function teamDisplayName(user: OnlineLeague["users"][number]) {
@@ -47,7 +91,7 @@ function lastLeagueActionAt(user: OnlineLeague["users"][number]) {
   return user.activity?.lastLeagueActionAt ?? user.joinedAt;
 }
 
-function formatUserList(users: OnlineLeague["users"]) {
+function formatUserList(users: Array<{ username: string }>) {
   if (users.length === 0) {
     return "Niemand";
   }
@@ -181,55 +225,27 @@ type AdminActionResponse = {
   ok: boolean;
   message: string;
   league?: OnlineLeague | null;
-  localState?: {
-    leaguesJson: string | null;
-    lastLeagueId: string | null;
-  };
+  localState?: LocalAdminBrowserStatePatch;
 };
-
-function getLocalAdminState() {
-  if (typeof window === "undefined") {
-    return undefined;
-  }
-
-  return {
-    leaguesJson: window.localStorage.getItem(ONLINE_LEAGUES_STORAGE_KEY),
-    lastLeagueId: window.localStorage.getItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY),
-    userId: window.localStorage.getItem(ONLINE_USER_ID_STORAGE_KEY),
-    username: window.localStorage.getItem(ONLINE_USERNAME_STORAGE_KEY),
-  };
-}
-
-function applyLocalAdminState(localState: AdminActionResponse["localState"]) {
-  if (typeof window === "undefined" || !localState) {
-    return;
-  }
-
-  if (localState.leaguesJson) {
-    window.localStorage.setItem(ONLINE_LEAGUES_STORAGE_KEY, localState.leaguesJson);
-  } else {
-    window.localStorage.removeItem(ONLINE_LEAGUES_STORAGE_KEY);
-  }
-
-  if (localState.lastLeagueId) {
-    window.localStorage.setItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY, localState.lastLeagueId);
-  } else {
-    window.localStorage.removeItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY);
-  }
-}
 
 export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
   const [league, setLeague] = useState<OnlineLeague | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [feedbackTone, setFeedbackTone] = useState<"success" | "warning">("success");
-  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [filter, setFilter] = useState<AdminGmFilter>("all");
   const [financeSort, setFinanceSort] = useState<AdminFinanceSort>("revenue");
+  const {
+    beginAdminAction,
+    endAdminAction,
+    pendingAction,
+  } = useAdminPendingAction();
   const repository = useMemo(() => getOnlineLeagueRepository(), []);
+  const isFirebaseMode = repository.mode === "firebase";
+  const showLocalOnlyAdminActions = !isFirebaseMode;
 
   useEffect(() => {
-    if (repository.mode === "firebase") {
+    if (isFirebaseMode) {
       return repository.subscribeToLeague(
         leagueId,
         (nextLeague) => {
@@ -247,7 +263,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
     setLoaded(true);
 
     return undefined;
-  }, [leagueId, repository]);
+  }, [isFirebaseMode, leagueId, repository]);
 
   function updateLeague(
     nextLeague: OnlineLeague | null,
@@ -272,7 +288,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
         action,
         backendMode: repository.mode,
         leagueId,
-        localState: repository.mode === "local" ? getLocalAdminState() : undefined,
+        localState: showLocalOnlyAdminActions ? getLocalAdminBrowserState() : undefined,
         ...payload,
       }),
     });
@@ -282,7 +298,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
       throw new Error(result.message || "Admin-Aktion konnte nicht ausgeführt werden.");
     }
 
-    applyLocalAdminState(result.localState);
+    applyLocalAdminBrowserState(result.localState);
     return result;
   }
 
@@ -291,11 +307,9 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
     action: () => Promise<AdminActionResponse>,
     successMessage: string,
   ) {
-    if (pendingAction) {
+    if (!beginAdminAction(actionId)) {
       return;
     }
-
-    setPendingAction(actionId);
 
     try {
       const result = await action();
@@ -306,7 +320,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
       );
       setFeedbackTone("warning");
     } finally {
-      setPendingAction(null);
+      endAdminAction();
     }
   }
 
@@ -323,6 +337,66 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
       "start-league",
       () => requestAdminAction("startLeague"),
       "Liga wurde gestartet.",
+    );
+  }
+
+  function handleInitializeFantasyDraft() {
+    void runAdminAction(
+      "draft-init",
+      () => requestAdminAction("initializeFantasyDraft"),
+      "Fantasy Draft wurde initialisiert.",
+    );
+  }
+
+  function handleStartFantasyDraft() {
+    void runAdminAction(
+      "draft-start",
+      () => requestAdminAction("startFantasyDraft"),
+      "Fantasy Draft wurde gestartet.",
+    );
+  }
+
+  function handleCompleteFantasyDraft() {
+    void runAdminAction(
+      "draft-complete",
+      () => requestAdminAction("completeFantasyDraftIfReady"),
+      "Fantasy Draft wurde abgeschlossen.",
+    );
+  }
+
+  function handleAutoDraftNext() {
+    void runAdminAction(
+      "draft-auto-next",
+      () => requestAdminAction("autoDraftNextFantasyDraft"),
+      "Auto-Draft Pick wurde ausgeführt.",
+    );
+  }
+
+  function handleAutoDraftToEnd() {
+    const confirmed = window.confirm("Auto-Draft bis zum Ende ausführen?");
+
+    if (!confirmed) {
+      return;
+    }
+
+    void runAdminAction(
+      "draft-auto-end",
+      () => requestAdminAction("autoDraftToEndFantasyDraft"),
+      "Auto-Draft wurde ausgeführt.",
+    );
+  }
+
+  function handleResetFantasyDraft() {
+    const confirmed = window.confirm("Fantasy Draft zurücksetzen? Nur für Development/Test gedacht.");
+
+    if (!confirmed) {
+      return;
+    }
+
+    void runAdminAction(
+      "draft-reset",
+      () => requestAdminAction("resetFantasyDraft"),
+      "Fantasy Draft wurde zurückgesetzt.",
     );
   }
 
@@ -355,7 +429,11 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
 
     await runAdminAction(
       "simulate-week",
-      () => requestAdminAction("simulateWeek"),
+      () =>
+        requestAdminAction("simulateWeek", {
+          season: league?.currentSeason ?? 1,
+          week: league?.currentWeek ?? 1,
+        }),
       "Die Woche wurde simuliert. Die nächste Week ist vorbereitet.",
     );
   }
@@ -533,10 +611,40 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
       return (secondUser.financeProfile?.totalRevenue ?? 0) - (firstUser.financeProfile?.totalRevenue ?? 0);
     }
   });
-  const readyUsers = league.users.filter((user) => user.readyForWeek);
-  const missingReadyUsers = league.users.filter((user) => !user.readyForWeek);
-  const allPlayersReady = league.users.length > 0 && missingReadyUsers.length === 0;
+  const readyState = getOnlineLeagueWeekReadyState(league);
+  const readyUsers = readyState.readyParticipants;
+  const missingReadyUsers = readyState.missingParticipants;
+  const allPlayersReady = readyState.allReady;
+  const lastCompletedWeek = league.completedWeeks?.[0];
+  const simulationInProgress = pendingAction === "simulate-week" || league.weekStatus === "simulating";
+  const weekPhaseLabel = adminWeekPhaseLabel({
+    allPlayersReady,
+    hasCompletedWeek: Boolean(lastCompletedWeek),
+    league,
+    simulationInProgress,
+  });
+  const simulationHint = adminSimulationHint({
+    allPlayersReady,
+    league,
+    missingReadyCount: missingReadyUsers.length,
+    simulationInProgress,
+  });
+  const lastCompletedResults = lastCompletedWeek
+    ? (league.matchResults ?? []).filter(
+        (result) =>
+          result.season === lastCompletedWeek.season && result.week === lastCompletedWeek.week,
+      )
+    : [];
   const leagueRulesSummary = getAdminLeagueRulesSummary(league);
+  const fantasyDraft = league.fantasyDraft;
+  const draftPlayersById = new Map(
+    (league.fantasyDraftPlayerPool ?? []).map((player) => [player.playerId, player]),
+  );
+  const currentDraftTeam = fantasyDraft?.currentTeamId
+    ? league.users.find((user) => user.teamId === fantasyDraft.currentTeamId)
+    : null;
+  const recentDraftPicks = (fantasyDraft?.picks ?? []).slice().reverse().slice(0, 12);
+  const draftCanReset = process.env.NODE_ENV !== "production";
 
   return (
     <section className="rounded-lg border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/30 sm:p-6">
@@ -568,12 +676,18 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
             Status
           </p>
           <p className="mt-2 text-lg font-semibold text-white">{statusLabel(league.status)}</p>
+          <p className="mt-2 text-xs font-semibold text-amber-100">{weekPhaseLabel}</p>
         </div>
         <div className="rounded-lg border border-white/10 bg-white/5 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
             Woche
           </p>
           <p className="mt-2 text-lg font-semibold text-white">Week {league.currentWeek}</p>
+          {lastCompletedWeek ? (
+            <p className="mt-2 text-xs font-semibold text-slate-400">
+              Zuletzt abgeschlossen: S{lastCompletedWeek.season} W{lastCompletedWeek.week}
+            </p>
+          ) : null}
         </div>
         <div className="rounded-lg border border-white/10 bg-white/5 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -610,7 +724,11 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
         </button>
         <button
           type="button"
-          disabled={pendingAction !== null || league.weekStatus === "simulating"}
+          disabled={
+            pendingAction !== null ||
+            league.status !== "active" ||
+            !readyState.canSimulate
+          }
           onClick={handleSimulateWeek}
           className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-4 py-3 text-sm font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
         >
@@ -622,14 +740,16 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
         >
           Spieleransicht öffnen
         </Link>
-        <button
-          type="button"
-          disabled={league.users.length === 0 || pendingAction !== null}
-          onClick={handleApplyRevenueSharing}
-          className="rounded-lg border border-cyan-200/25 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-50 transition hover:bg-cyan-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-        >
-          Revenue Sharing anwenden
-        </button>
+        {showLocalOnlyAdminActions ? (
+          <button
+            type="button"
+            disabled={league.users.length === 0 || pendingAction !== null}
+            onClick={handleApplyRevenueSharing}
+            className="rounded-lg border border-cyan-200/25 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-50 transition hover:bg-cyan-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+          >
+            Revenue Sharing anwenden
+          </button>
+        ) : null}
       </div>
 
       <section className="mt-6 rounded-lg border border-sky-200/20 bg-sky-300/10 p-5">
@@ -642,8 +762,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
               Week {league.currentWeek} bereit machen
             </h2>
             <p className="mt-2 text-sm leading-6 text-sky-50/85">
-              Der Liga-Admin schaltet die Woche weiter. Sobald alle Spieler bereit sind,
-              kann die Simulation gestartet werden.
+              {simulationHint}
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -652,7 +771,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
                 Ready
               </p>
               <p className="mt-2 text-lg font-semibold text-white">
-                {readyUsers.length}/{league.users.length}
+                {readyState.readyCount}/{readyState.requiredCount}
               </p>
               <p className="mt-2 text-sm leading-6 text-emerald-50/85">
                 {formatUserList(readyUsers)}
@@ -679,23 +798,181 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
           >
             {allPlayersReady
               ? "Alle Spieler sind bereit. Simulation starten ist möglich."
-              : "Noch nicht alle Spieler sind bereit. Der Admin kann bei Bedarf trotzdem eingreifen."}
+              : "Noch nicht alle aktiven Teams sind bereit. Simulation bleibt gesperrt."}
           </p>
         </div>
+
+        {lastCompletedWeek ? (
+          <div className="mt-5 rounded-lg border border-emerald-200/25 bg-emerald-300/10 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-100">
+                  Woche abgeschlossen
+                </p>
+                <h3 className="mt-2 text-lg font-semibold text-white">
+                  Season {lastCompletedWeek.season}, Week {lastCompletedWeek.week}
+                </h3>
+              </div>
+              <p className="w-fit rounded-full border border-emerald-100/25 bg-emerald-50/10 px-3 py-1 text-xs font-semibold text-emerald-50">
+                {lastCompletedResults.length} Ergebnis
+                {lastCompletedResults.length === 1 ? "" : "se"} fixiert
+              </p>
+            </div>
+            <div className="mt-4 grid gap-2 lg:grid-cols-2">
+              {lastCompletedResults.length > 0 ? (
+                lastCompletedResults.map((result) => (
+                  <p
+                    key={result.matchId}
+                    className="rounded-lg border border-white/10 bg-[#07111d]/70 px-3 py-2 text-sm font-semibold text-emerald-50"
+                  >
+                    {result.homeTeamName} {result.homeScore} - {result.awayScore}{" "}
+                    {result.awayTeamName}
+                  </p>
+                ))
+              ) : (
+                <p className="rounded-lg border border-white/10 bg-[#07111d]/70 px-3 py-2 text-sm font-semibold text-emerald-50">
+                  Abschluss gespeichert, noch keine Ergebnisdetails geladen.
+                </p>
+              )}
+            </div>
+          </div>
+        ) : null}
       </section>
 
-      {feedback ? (
-        <div
-          aria-live="polite"
-          className={`mt-5 rounded-lg border px-4 py-3 text-sm font-semibold ${
-            feedbackTone === "success"
-              ? "border-emerald-200/25 bg-emerald-300/10 text-emerald-100"
-              : "border-amber-200/25 bg-amber-300/10 text-amber-100"
-          }`}
-        >
-          {feedback}
+      <AdminFeedbackBanner message={feedback} tone={feedbackTone} />
+
+      <section className="mt-8 rounded-lg border border-fuchsia-200/20 bg-fuchsia-300/10 p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-fuchsia-200">
+              Fantasy Draft Control
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-white">
+              Draft überwachen und Test-Picks steuern
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-fuchsia-50/85">
+              Minimalsteuerung für Testligen. Auto-Draft wählt nur verfügbare Spieler und
+              priorisiert fehlende Mindestpositionen.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[420px]">
+            <button
+              type="button"
+              disabled={pendingAction !== null}
+              onClick={handleInitializeFantasyDraft}
+              className="rounded-lg border border-fuchsia-200/25 bg-fuchsia-300/10 px-3 py-2 text-xs font-semibold text-fuchsia-50 transition hover:bg-fuchsia-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+            >
+              Initialisieren
+            </button>
+            <button
+              type="button"
+              disabled={pendingAction !== null || fantasyDraft?.status === "active"}
+              onClick={handleStartFantasyDraft}
+              className="rounded-lg border border-emerald-200/25 bg-emerald-300/10 px-3 py-2 text-xs font-semibold text-emerald-50 transition hover:bg-emerald-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+            >
+              Starten
+            </button>
+            <button
+              type="button"
+              disabled={pendingAction !== null || fantasyDraft?.status !== "active"}
+              onClick={handleAutoDraftNext}
+              className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-3 py-2 text-xs font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+            >
+              Auto-Pick nächstes Team
+            </button>
+            <button
+              type="button"
+              disabled={pendingAction !== null || fantasyDraft?.status !== "active"}
+              onClick={handleAutoDraftToEnd}
+              className="rounded-lg border border-cyan-200/25 bg-cyan-300/10 px-3 py-2 text-xs font-semibold text-cyan-50 transition hover:bg-cyan-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+            >
+              Auto-Draft bis Ende
+            </button>
+            <button
+              type="button"
+              disabled={pendingAction !== null || fantasyDraft?.status !== "completed"}
+              onClick={handleCompleteFantasyDraft}
+              className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-2 text-xs font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+            >
+              Abschluss prüfen
+            </button>
+            {showLocalOnlyAdminActions && draftCanReset ? (
+              <button
+                type="button"
+                disabled={pendingAction !== null}
+                onClick={handleResetFantasyDraft}
+                className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-xs font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                Reset Dev/Test
+              </button>
+            ) : null}
+          </div>
         </div>
-      ) : null}
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              Status
+            </p>
+            <p className="mt-2 text-lg font-semibold text-white">
+              {fantasyDraft?.status ?? "nicht initialisiert"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              Runde / Pick
+            </p>
+            <p className="mt-2 text-lg font-semibold text-white">
+              R{fantasyDraft?.round ?? 0} · #{fantasyDraft?.pickNumber ?? 0}
+            </p>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              Am Zug
+            </p>
+            <p className="mt-2 text-lg font-semibold text-white">
+              {currentDraftTeam ? teamDisplayName(currentDraftTeam) : "Kein Team"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              Picks
+            </p>
+            <p className="mt-2 text-lg font-semibold text-white">
+              {fantasyDraft?.picks.length ?? 0}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-lg border border-white/10 bg-white/5 p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-300">
+            Pick-Historie
+          </h3>
+          <div className="mt-3 grid gap-2 lg:grid-cols-2">
+            {recentDraftPicks.length > 0 ? (
+              recentDraftPicks.map((pick) => {
+                const player = draftPlayersById.get(pick.playerId);
+
+                return (
+                  <p
+                    key={`${pick.pickNumber}-${pick.playerId}`}
+                    className="rounded-lg border border-white/10 bg-[#07111d]/70 px-3 py-2 text-sm text-slate-200"
+                  >
+                    <span className="font-semibold text-white">#{pick.pickNumber}</span>{" "}
+                    {player?.playerName ?? pick.playerId} · {player?.position ?? "?"} ·{" "}
+                    {league.users.find((user) => user.teamId === pick.teamId)?.teamDisplayName ??
+                      pick.teamId}
+                  </p>
+                );
+              })
+            ) : (
+              <p className="rounded-lg border border-dashed border-white/15 p-3 text-sm text-slate-400">
+                Noch keine Draft-Picks.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
 
       <section className="mt-8 rounded-lg border border-white/10 bg-white/[0.035] p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -862,14 +1139,20 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
                         </p>
                       </td>
                       <td className="px-4 py-4">
-                        <button
-                          type="button"
-                          disabled={pendingAction !== null}
-                          onClick={() => handleResetTrainingPlan(user)}
-                          className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
-                        >
-                          Plan zurücksetzen
-                        </button>
+                        {showLocalOnlyAdminActions ? (
+                          <button
+                            type="button"
+                            disabled={pendingAction !== null}
+                            onClick={() => handleResetTrainingPlan(user)}
+                            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
+                          >
+                            Plan zurücksetzen
+                          </button>
+                        ) : (
+                          <span className="text-xs font-semibold text-slate-400">
+                            Nur Anzeige im Firebase-MVP
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );
@@ -964,57 +1247,65 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
                     {user.joinedAt}
                   </td>
                   <td className="px-4 py-4">
-                    <div className="grid min-w-44 gap-2">
-                      <button
-                        type="button"
-                        disabled={pendingAction !== null}
-                        onClick={() => handleMissedWeek(user.userId, user.username)}
-                        className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
-                      >
-                        Verpasste Woche +1
-                      </button>
-                      <button
-                        type="button"
-                        disabled={pendingAction !== null}
-                        onClick={() => handleWarnGm(user.userId, user.username)}
-                        className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-2 text-xs font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-                      >
-                        Verwarnen
-                      </button>
-                      <button
-                        type="button"
-                        disabled={pendingAction !== null}
-                        onClick={() => handleAuthorizeRemoval(user.userId, user.username)}
-                        className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-3 py-2 text-xs font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-                      >
-                        Entlassung ermächtigen
-                      </button>
-                      <button
-                        type="button"
-                        disabled={pendingAction !== null}
-                        onClick={() => handleAdminRemoveGm(user.userId, user.username)}
-                        className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-xs font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-                      >
-                        GM entfernen
-                      </button>
-                      <button
-                        type="button"
-                        disabled={pendingAction !== null}
-                        onClick={() => handleMarkVacant(user.userId, user.username)}
-                        className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
-                      >
-                        Team vakant setzen
-                      </button>
-                    </div>
-                    <button
-                      type="button"
-                      aria-label={`Spieler entfernen ${user.username}`}
-                      disabled={pendingAction !== null}
-                      onClick={() => handleRemovePlayer(user.userId, user.username)}
-                      className="mt-2 rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-xs font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-                    >
-                      Legacy entfernen
-                    </button>
+                    {showLocalOnlyAdminActions ? (
+                      <>
+                        <div className="grid min-w-44 gap-2">
+                          <button
+                            type="button"
+                            disabled={pendingAction !== null}
+                            onClick={() => handleMissedWeek(user.userId, user.username)}
+                            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
+                          >
+                            Verpasste Woche +1
+                          </button>
+                          <button
+                            type="button"
+                            disabled={pendingAction !== null}
+                            onClick={() => handleWarnGm(user.userId, user.username)}
+                            className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-2 text-xs font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+                          >
+                            Verwarnen
+                          </button>
+                          <button
+                            type="button"
+                            disabled={pendingAction !== null}
+                            onClick={() => handleAuthorizeRemoval(user.userId, user.username)}
+                            className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-3 py-2 text-xs font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+                          >
+                            Entlassung ermächtigen
+                          </button>
+                          <button
+                            type="button"
+                            disabled={pendingAction !== null}
+                            onClick={() => handleAdminRemoveGm(user.userId, user.username)}
+                            className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-xs font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+                          >
+                            GM entfernen
+                          </button>
+                          <button
+                            type="button"
+                            disabled={pendingAction !== null}
+                            onClick={() => handleMarkVacant(user.userId, user.username)}
+                            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
+                          >
+                            Team vakant setzen
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          aria-label={`Spieler entfernen ${user.username}`}
+                          disabled={pendingAction !== null}
+                          onClick={() => handleRemovePlayer(user.userId, user.username)}
+                          className="mt-2 rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-xs font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+                        >
+                          Legacy entfernen
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs font-semibold text-slate-400">
+                        Admin-Eingriffe im Firebase-MVP ausgeblendet.
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))

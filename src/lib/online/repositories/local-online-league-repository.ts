@@ -4,13 +4,19 @@ import {
   getLastOnlineLeagueId,
   getOnlineLeagueById,
   joinOnlineLeague,
-  setOnlineLeagueUserReady,
+  makeOnlineFantasyDraftPick,
+  setOnlineLeagueUserReadyState,
   updateOnlineLeagueUserDepthChart,
   type CreateOnlineLeagueInput,
   type OnlineDepthChartEntry,
   type JoinOnlineLeagueResult,
   type OnlineLeague,
 } from "../online-league-service";
+import {
+  clearStoredLastOnlineLeagueId,
+  getOptionalBrowserOnlineLeagueStorage,
+  setStoredLastOnlineLeagueId,
+} from "../online-league-storage";
 import { ensureCurrentOnlineUser } from "../online-user-service";
 import type { TeamIdentitySelection } from "../team-identity-options";
 import type {
@@ -22,23 +28,12 @@ import type {
   OnlineLeagueRepositoryUnsubscribe,
 } from "../types";
 
-const LAST_LEAGUE_ID_STORAGE_KEY = "afbm.online.lastLeagueId";
-
-function getBrowserStorage(): Storage | null {
-  if (typeof window === "undefined" || !window.localStorage) {
-    return null;
-  }
-
-  return window.localStorage;
-}
-
 function localUserToAuthenticatedUser(storage?: Storage): OnlineAuthenticatedUser {
   const user = storage ? ensureCurrentOnlineUser(storage) : ensureCurrentOnlineUser();
 
   return {
     ...user,
     displayName: user.username,
-    isAnonymous: true,
   };
 }
 
@@ -116,13 +111,9 @@ export class LocalOnlineLeagueRepository implements OnlineLeagueRepository {
   }
 
   async setUserReady(leagueId: string, ready: boolean) {
-    if (!ready) {
-      return getOnlineLeagueById(leagueId, this.storage);
-    }
-
     const user = this.storage ? ensureCurrentOnlineUser(this.storage) : ensureCurrentOnlineUser();
 
-    return setOnlineLeagueUserReady(leagueId, user.userId, this.storage);
+    return setOnlineLeagueUserReadyState(leagueId, user.userId, ready, this.storage);
   }
 
   async updateDepthChart(leagueId: string, depthChart: OnlineDepthChartEntry[]) {
@@ -131,24 +122,32 @@ export class LocalOnlineLeagueRepository implements OnlineLeagueRepository {
     return updateOnlineLeagueUserDepthChart(leagueId, user.userId, depthChart, this.storage);
   }
 
+  async makeFantasyDraftPick(leagueId: string, teamId: string, playerId: string) {
+    const user = this.storage ? ensureCurrentOnlineUser(this.storage) : ensureCurrentOnlineUser();
+
+    return makeOnlineFantasyDraftPick(leagueId, teamId, playerId, user.userId, this.storage);
+  }
+
   getLastLeagueId() {
     return getLastOnlineLeagueId(this.storage);
   }
 
   setLastLeagueId(leagueId: string) {
-    (this.storage ?? getBrowserStorage())?.setItem(LAST_LEAGUE_ID_STORAGE_KEY, leagueId);
+    const storage = this.storage ?? getOptionalBrowserOnlineLeagueStorage();
+
+    if (storage) {
+      setStoredLastOnlineLeagueId(storage, leagueId);
+    }
   }
 
   clearLastLeagueId(leagueId?: string) {
-    const storage = this.storage ?? getBrowserStorage();
+    const storage = this.storage ?? getOptionalBrowserOnlineLeagueStorage();
 
     if (!storage) {
       return;
     }
 
-    if (!leagueId || storage.getItem(LAST_LEAGUE_ID_STORAGE_KEY) === leagueId) {
-      storage.removeItem(LAST_LEAGUE_ID_STORAGE_KEY);
-    }
+    clearStoredLastOnlineLeagueId(storage, leagueId);
   }
 
   subscribeToLeague(

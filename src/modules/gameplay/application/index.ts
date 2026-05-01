@@ -5,6 +5,8 @@ export * from "./game-stats-reporting";
 export * from "./gameplay-calibration";
 export * from "./head-coach-momentum-service";
 export * from "./engine-decision-reporting";
+export * from "./minimal-match-flow";
+export * from "./minimal-match-simulation";
 export * from "./outcome-model-parameters";
 export * from "./outcome-resolution-engine";
 export * from "./pass-protection-resolution";

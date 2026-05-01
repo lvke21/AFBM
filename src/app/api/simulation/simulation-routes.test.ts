@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { resetSimulationApiStoreForTests } from "@/modules/seasons/application/simulation/simulation-api.service";
+import { resetSimulationApiStoreForTests } from "@/modules/seasons/infrastructure/simulation/simulation-api.service";
 
 import { POST as createGameRoute } from "./createGame/route";
 import { GET as getDriveLogRoute } from "./getDriveLog/route";

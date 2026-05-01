@@ -1,3 +1,6 @@
+import { createRng } from "@/lib/random/seeded-rng";
+import { getRequiredBrowserStorage, type BrowserStorage } from "./browser-storage";
+
 export type OnlineUser = {
   userId: string;
   username: string;
@@ -6,30 +9,24 @@ export type OnlineUser = {
 export const ONLINE_USER_ID_STORAGE_KEY = "afbm.online.userId";
 export const ONLINE_USERNAME_STORAGE_KEY = "afbm.online.username";
 
-type OnlineUserStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+type OnlineUserStorage = BrowserStorage;
 
 function getBrowserStorage(): OnlineUserStorage {
-  if (typeof window === "undefined" || !window.localStorage) {
-    throw new Error("Online identity is only available in the browser.");
-  }
-
-  return window.localStorage;
+  return getRequiredBrowserStorage("Online identity is only available in the browser.");
 }
 
 function createUserId() {
-  if (globalThis.crypto?.randomUUID) {
-    return globalThis.crypto.randomUUID();
-  }
+  const random = createRng(`online-user-id:${Date.now()}:${globalThis.navigator?.userAgent ?? ""}`);
 
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
-    const random = Math.floor(Math.random() * 16);
-    const value = char === "x" ? random : (random & 0x3) | 0x8;
+    const valueByte = random.int(0, 15);
+    const value = char === "x" ? valueByte : (valueByte & 0x3) | 0x8;
     return value.toString(16);
   });
 }
 
 function createUsername() {
-  const suffix = Math.floor(1000 + Math.random() * 9000);
+  const suffix = createRng(`online-username:${Date.now()}`).int(1000, 9999);
   return `Coach_${suffix}`;
 }
 

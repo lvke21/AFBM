@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getGameResult } from "@/modules/seasons/application/simulation/simulation-api.service";
+import { getGameResult } from "@/modules/seasons/infrastructure/simulation/simulation-api.service";
 
 import { readRequiredGameIdFromUrl, simulationApiErrorResponse } from "../route-utils";
 

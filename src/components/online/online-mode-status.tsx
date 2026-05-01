@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 
 import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
 import { getOnlineModeStatusCopy } from "./online-mode-status-model";

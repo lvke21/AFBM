@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Multiplayer Fantasy Draft E2E Report</title>
+    <style>
+      body {
+        margin: 0;
+        background: #07111d;
+        color: #e5edf7;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 40px 20px 56px;
+      }
+
+      h1,
+      h2 {
+        line-height: 1.18;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 4vw, 3rem);
+      }
+
+      h2 {
+        margin: 32px 0 12px;
+        font-size: 1.35rem;
+      }
+
+      .summary {
+        border: 1px solid rgba(52, 211, 153, 0.35);
+        border-radius: 8px;
+        background: rgba(16, 185, 129, 0.1);
+        padding: 16px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        border-radius: 999px;
+        border: 1px solid rgba(52, 211, 153, 0.5);
+        padding: 0 12px;
+        color: #a7f3d0;
+        font-weight: 700;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+
+      .metric {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 14px;
+      }
+
+      .metric strong {
+        display: block;
+        color: #ffffff;
+        font-size: 1.45rem;
+      }
+
+      code {
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 2px 5px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      a {
+        color: #67e8f9;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="badge">Status: Grün</p>
+      <h1>Multiplayer Fantasy Draft E2E Report</h1>
+      <p>Datum: 2026-05-01</p>
+
+      <section class="summary">
+        <strong>Ergebnis:</strong> Der komplette lokale 16-Team-Multiplayer-Fantasy-Draft ist
+        end-to-end grün. Der Test erstellt eine Liga, startet den Draft, prüft Reload und
+        falsches Team, draftet alle Spieler, validiert vollständige Kader und bestätigt die
+        Week-1-Ready-Phase.
+      </section>
+
+      <h2>Testdateien</h2>
+      <ul>
+        <li><code>e2e/multiplayer-fantasy-draft.spec.ts</code></li>
+        <li><code>docs/reports/multiplayer-fantasy-draft-e2e-report.md</code></li>
+        <li><code>docs/reports/multiplayer-fantasy-draft-e2e-report.html</code></li>
+      </ul>
+
+      <h2>Kennzahlen</h2>
+      <div class="grid">
+        <div class="metric"><strong>16</strong>Teams/User</div>
+        <div class="metric"><strong>792</strong>Spieler im Pool</div>
+        <div class="metric"><strong>656</strong>Gesamtpicks</div>
+        <div class="metric"><strong>41</strong>Spieler je Kader</div>
+        <div class="metric"><strong>136</strong>Spieler nach Draft verfügbar</div>
+        <div class="metric"><strong>1</strong>Playwright-Test grün</div>
+      </div>
+
+      <h2>Geprüfte Akzeptanzkriterien</h2>
+      <ul>
+        <li>Admin erstellt Liga über authentifizierten Admin-Action-Pfad.</li>
+        <li>Spielerpool wird erzeugt und eindeutige Player-IDs werden validiert.</li>
+        <li>16 Teams und 16 User werden simuliert.</li>
+        <li>Draft wird initialisiert, gestartet und abgeschlossen.</li>
+        <li>Falsches Team sieht einen deaktivierten Pick-Button.</li>
+        <li>Reload während aktivem Draft erhält Pick-State und UI.</li>
+        <li>Snake-Draft-Reihenfolge wird über Runde 1 hinaus geprüft.</li>
+        <li>Verfügbare Spieler aktualisieren sich nach Picks.</li>
+        <li>Alle Picks haben eindeutige Spieler und fortlaufende Picknummern.</li>
+        <li>Alle Teams erhalten vollständige Positionsmindestkader.</li>
+        <li>Liga landet nach Abschluss in <code>status: active</code>, <code>currentWeek: 1</code>,
+          <code>weekStatus: ready</code>.</li>
+      </ul>
+
+      <h2>Validierung</h2>
+      <ul>
+        <li><code>npx playwright test e2e/multiplayer-fantasy-draft.spec.ts</code>: Grün, 1 passed, 32.7s</li>
+        <li><code>npx tsc --noEmit</code>: Grün</li>
+        <li><code>npm run lint</code>: Grün</li>
+      </ul>
+
+      <h2>Reports</h2>
+      <ul>
+        <li>Playwright HTML: <code>/tmp/afbm-playwright-report/index.html</code></li>
+        <li>Playwright JSON: <code>/tmp/afbm-playwright-results.json</code></li>
+      </ul>
+
+      <h2>Offene Risiken</h2>
+      <ul>
+        <li>Dieser E2E nutzt den lokalen Multiplayer-Backendmodus, nicht Firestore live.</li>
+        <li>Parallele Player-Pick-Races bleiben primär durch Service-/Repository-Tests abgedeckt.</li>
+        <li>Admin-Create wurde über die echte Admin-Action-Route ausgeführt, weil ein rein klickbasierter Submit im Next-Dev-Server vor Hydration flaky war.</li>
+      </ul>
+    </main>
+  </body>
+</html>

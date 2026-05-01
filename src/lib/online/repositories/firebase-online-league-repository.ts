@@ -1,6 +1,7 @@
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -18,13 +19,25 @@ import {
 import { getFirebaseClientApp } from "@/lib/firebase/client";
 
 import {
-  ONLINE_LAST_LEAGUE_ID_STORAGE_KEY,
+  ONLINE_FANTASY_DRAFT_POSITIONS,
+  ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
+  ONLINE_FANTASY_DRAFT_ROSTER_TARGET_SIZE,
   ONLINE_MVP_TEAM_POOL,
   type JoinOnlineLeagueResult,
+  type OnlineContractPlayer,
   type OnlineDepthChartEntry,
+  type OnlineFantasyDraftPick,
+  type OnlineFantasyDraftPickResult,
+  type OnlineFantasyDraftState,
   type OnlineLeague,
 } from "../online-league-service";
 import { getCurrentAuthenticatedOnlineUser } from "../auth/online-auth";
+import {
+  clearStoredLastOnlineLeagueId,
+  getOptionalBrowserOnlineLeagueStorage,
+  getStoredLastOnlineLeagueId,
+  setStoredLastOnlineLeagueId,
+} from "../online-league-storage";
 import {
   resolveTeamIdentitySelection,
   type TeamIdentitySelection,
@@ -33,6 +46,9 @@ import {
   mapFirestoreSnapshotToOnlineLeague,
   mapLocalTeamToFirestoreTeam,
   type FirestoreOnlineEventDoc,
+  type FirestoreOnlineDraftAvailablePlayerDoc,
+  type FirestoreOnlineDraftPickDoc,
+  type FirestoreOnlineDraftStateDoc,
   type FirestoreOnlineLeagueDoc,
   type FirestoreOnlineLeagueSnapshot,
   type FirestoreOnlineMembershipDoc,
@@ -40,6 +56,11 @@ import {
   type OnlineLeagueRepository,
   type OnlineLeagueRepositoryUnsubscribe,
 } from "../types";
+import {
+  createOrderedAsyncEmitter,
+  hasSameDepthChartPayload,
+  isSafeOnlineSyncId,
+} from "../sync-guards";
 
 function nowIso() {
   return new Date().toISOString();
@@ -58,20 +79,189 @@ function createEvent(
   };
 }
 
-function getBrowserStorage(): Storage | null {
-  if (typeof window === "undefined" || !window.localStorage) {
-    return null;
-  }
-
-  return window.localStorage;
-}
-
 function readDocData<T>(snapshot: { exists(): boolean; data(): unknown } | null): T | null {
   if (!snapshot?.exists()) {
     return null;
   }
 
   return snapshot.data() as T;
+}
+
+function createUnavailableOnlineLeague(leagueId: string): OnlineLeague {
+  return {
+    id: leagueId,
+    name: "Unbekannte Online-Liga",
+    users: [],
+    teams: [],
+    currentWeek: 1,
+    currentSeason: 1,
+    maxUsers: 0,
+    status: "waiting",
+  };
+}
+
+function isFirestoreFantasyDraftState(value: unknown): value is OnlineFantasyDraftState {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const state = value as Partial<OnlineFantasyDraftState>;
+
+  return (
+    typeof state.leagueId === "string" &&
+    (state.status === "not_started" || state.status === "active" || state.status === "completed") &&
+    typeof state.round === "number" &&
+    typeof state.pickNumber === "number" &&
+    typeof state.currentTeamId === "string" &&
+    Array.isArray(state.draftOrder) &&
+    Array.isArray(state.picks) &&
+    Array.isArray(state.availablePlayerIds)
+  );
+}
+
+function readFirestoreFantasyDraftState(league: FirestoreOnlineLeagueDoc) {
+  return isFirestoreFantasyDraftState(league.settings.fantasyDraft)
+    ? league.settings.fantasyDraft
+    : null;
+}
+
+function readFirestoreFantasyDraftPlayerPool(league: FirestoreOnlineLeagueDoc) {
+  return Array.isArray(league.settings.fantasyDraftPlayerPool)
+    ? (league.settings.fantasyDraftPlayerPool as OnlineContractPlayer[])
+    : [];
+}
+
+function toFirestoreDraftStateDoc(
+  state: OnlineFantasyDraftState,
+  draftRunId: string | undefined,
+): FirestoreOnlineDraftStateDoc {
+  return {
+    leagueId: state.leagueId,
+    status: state.status,
+    round: state.round,
+    pickNumber: state.pickNumber,
+    currentTeamId: state.currentTeamId,
+    draftOrder: state.draftOrder,
+    startedAt: state.startedAt,
+    completedAt: state.completedAt,
+    ...(draftRunId ? { draftRunId } : {}),
+  };
+}
+
+function toFirestoreDraftPickDoc(
+  pick: OnlineFantasyDraftPick,
+  player: OnlineContractPlayer,
+  draftRunId: string | undefined,
+): FirestoreOnlineDraftPickDoc {
+  return {
+    ...pick,
+    ...(draftRunId ? { draftRunId } : {}),
+    playerSnapshot: player,
+  };
+}
+
+function getSnakeDraftTeamId(draftOrder: string[], pickIndex: number) {
+  if (draftOrder.length === 0) {
+    return "";
+  }
+
+  const roundIndex = Math.floor(pickIndex / draftOrder.length);
+  const indexInRound = pickIndex % draftOrder.length;
+  const order = roundIndex % 2 === 0 ? draftOrder : [...draftOrder].reverse();
+
+  return order[indexInRound] ?? "";
+}
+
+function createRosterDepthChart(
+  roster: OnlineContractPlayer[],
+  updatedAt: string,
+): OnlineDepthChartEntry[] {
+  const playersByPosition = new Map<string, OnlineContractPlayer[]>();
+
+  roster.forEach((player) => {
+    if (player.status !== "active") {
+      return;
+    }
+
+    playersByPosition.set(player.position, [
+      ...(playersByPosition.get(player.position) ?? []),
+      player,
+    ]);
+  });
+
+  return Array.from(playersByPosition.entries()).map(([position, players]) => {
+    const sortedPlayers = [...players].sort((left, right) => right.overall - left.overall);
+
+    return {
+      position,
+      starterPlayerId: sortedPlayers[0]?.playerId ?? "",
+      backupPlayerIds: sortedPlayers.slice(1).map((player) => player.playerId),
+      updatedAt,
+    };
+  });
+}
+
+function hasCompletedDraftRoster(
+  teamId: string,
+  picks: OnlineFantasyDraftPick[],
+  playersById: Map<string, OnlineContractPlayer>,
+) {
+  const teamPicks = picks.filter((pick) => pick.teamId === teamId);
+
+  if (teamPicks.length < ONLINE_FANTASY_DRAFT_ROSTER_TARGET_SIZE) {
+    return false;
+  }
+
+  return ONLINE_FANTASY_DRAFT_POSITIONS.every((position) => {
+    const count = teamPicks.filter(
+      (pick) => playersById.get(pick.playerId)?.position === position,
+    ).length;
+
+    return count >= ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS[position];
+  });
+}
+
+function getNextFantasyDraftState(
+  state: OnlineFantasyDraftState,
+  playerPool: OnlineContractPlayer[],
+  now: string,
+): OnlineFantasyDraftState {
+  const playersById = new Map(playerPool.map((player) => [player.playerId, player]));
+  const completed = state.draftOrder.length > 0 &&
+    state.draftOrder.every((teamId) => hasCompletedDraftRoster(teamId, state.picks, playersById));
+
+  if (completed) {
+    return {
+      ...state,
+      status: "completed",
+      currentTeamId: "",
+      completedAt: state.completedAt ?? now,
+    };
+  }
+
+  const nextPickIndex = state.picks.length;
+
+  return {
+    ...state,
+    status: "active",
+    round: Math.floor(nextPickIndex / Math.max(1, state.draftOrder.length)) + 1,
+    pickNumber: nextPickIndex + 1,
+    currentTeamId: getSnakeDraftTeamId(state.draftOrder, nextPickIndex),
+  };
+}
+
+function createUnsafeLeagueIdError() {
+  return new Error("Ungueltige Online-Liga-ID. Bitte suche die Liga erneut.");
+}
+
+function assertWritableOnlineUser(user: { userId: string; username: string }) {
+  if (!isSafeOnlineSyncId(user.userId)) {
+    throw new Error("Firebase Auth ist noch nicht bereit. Bitte lade die Seite neu.");
+  }
+
+  if (!user.username.trim()) {
+    throw new Error("Online-Profil ist unvollstaendig. Bitte lade die Seite neu.");
+  }
 }
 
 function rejectClientAdminAction<T>(): Promise<T> {
@@ -108,13 +298,36 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
     return collection(this.db, "leagues", leagueId, "events");
   }
 
+  private draftRef(leagueId: string) {
+    return doc(this.db, "leagues", leagueId, "draft", "main");
+  }
+
+  private draftPicksRef(leagueId: string) {
+    return collection(this.db, "leagues", leagueId, "draft", "main", "picks");
+  }
+
+  private draftAvailablePlayersRef(leagueId: string) {
+    return collection(this.db, "leagues", leagueId, "draft", "main", "availablePlayers");
+  }
+
   private async getSnapshot(leagueId: string) {
-    const [leagueSnapshot, membershipsSnapshot, teamsSnapshot, eventsSnapshot] =
+    const [
+      leagueSnapshot,
+      membershipsSnapshot,
+      teamsSnapshot,
+      eventsSnapshot,
+      draftSnapshot,
+      draftPicksSnapshot,
+      draftAvailablePlayersSnapshot,
+    ] =
       await Promise.all([
         getDoc(this.leagueRef(leagueId)),
         getDocs(collection(this.db, "leagues", leagueId, "memberships")),
         getDocs(collection(this.db, "leagues", leagueId, "teams")),
         getDocs(query(this.eventsRef(leagueId), orderBy("createdAt", "desc"), limit(20))),
+        getDoc(this.draftRef(leagueId)),
+        getDocs(this.draftPicksRef(leagueId)),
+        getDocs(this.draftAvailablePlayersRef(leagueId)),
       ]);
     const league = readDocData<FirestoreOnlineLeagueDoc>(leagueSnapshot);
 
@@ -129,6 +342,15 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
       ),
       teams: teamsSnapshot.docs.map((team) => team.data() as FirestoreOnlineTeamDoc),
       events: eventsSnapshot.docs.map((event) => event.data() as FirestoreOnlineEventDoc),
+      draftState: draftSnapshot.exists()
+        ? (draftSnapshot.data() as FirestoreOnlineDraftStateDoc)
+        : undefined,
+      draftPicks: draftPicksSnapshot.docs.map(
+        (draftPick) => draftPick.data() as FirestoreOnlineDraftPickDoc,
+      ),
+      draftAvailablePlayers: draftAvailablePlayersSnapshot.docs.map(
+        (player) => player.data() as FirestoreOnlineDraftAvailablePlayerDoc,
+      ),
     };
   }
 
@@ -198,6 +420,10 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
   }
 
   async getLeagueById(leagueId: string) {
+    if (!isSafeOnlineSyncId(leagueId)) {
+      return null;
+    }
+
     return this.mapLeague(leagueId);
   }
 
@@ -205,18 +431,27 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
     leagueId: string,
     teamIdentity?: TeamIdentitySelection,
   ): Promise<JoinOnlineLeagueResult> {
+    if (!isSafeOnlineSyncId(leagueId)) {
+      return {
+        status: "missing-league",
+        league: createUnavailableOnlineLeague(leagueId),
+        message: "Ungueltige Liga-ID. Bitte suche die Liga erneut.",
+      };
+    }
+
     const user = await this.getCurrentUser();
-    const preloadedTeamsSnapshot = await getDocs(this.teamsRef(leagueId));
+    assertWritableOnlineUser(user);
+
     const joinedLeague = await runTransaction(this.db, async (transaction) => {
       const leagueSnapshot = await transaction.get(this.leagueRef(leagueId));
       const league = readDocData<FirestoreOnlineLeagueDoc>(leagueSnapshot);
 
       if (!league) {
-        throw new Error("Liga konnte nicht gefunden werden.");
-      }
-
-      if (league.status !== "lobby") {
-        throw new Error("Diese Liga ist nicht mehr in der Lobby.");
+        return {
+          status: "missing-league" as const,
+          leagueId,
+          message: "Diese Liga konnte nicht gefunden werden.",
+        };
       }
 
       const membershipSnapshot = await transaction.get(this.membershipRef(leagueId, user.userId));
@@ -229,6 +464,26 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
         };
       }
 
+      if (league.status !== "lobby") {
+        return {
+          status: "missing-league" as const,
+          leagueId,
+          message: "Diese Liga ist nicht mehr in der Lobby.",
+        };
+      }
+
+      const resolvedIdentity = teamIdentity
+        ? resolveTeamIdentitySelection(teamIdentity)
+        : null;
+
+      if (!resolvedIdentity) {
+        return {
+          status: "invalid-team-identity" as const,
+          leagueId,
+          message: "Bitte wähle zuerst Stadt, Kategorie und Teamnamen.",
+        };
+      }
+
       if (league.memberCount >= league.maxTeams) {
         return {
           status: "full" as const,
@@ -236,23 +491,21 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
         };
       }
 
-      let teams = preloadedTeamsSnapshot.docs.map(
-        (team) => team.data() as FirestoreOnlineTeamDoc,
+      const teamPool = ONLINE_MVP_TEAM_POOL.slice(0, league.maxTeams);
+      const teamRefs = teamPool.map((team) => this.teamRef(leagueId, team.id));
+      const teamSnapshots = await Promise.all(
+        teamRefs.map((teamRef) => transaction.get(teamRef)),
       );
       const createdAt = nowIso();
-
-      if (teams.length === 0) {
-        teams = ONLINE_MVP_TEAM_POOL.slice(0, league.maxTeams).map((team) =>
-          mapLocalTeamToFirestoreTeam(team, createdAt),
+      const teams = teamPool.map((team, index) => {
+        const existingTeam = readDocData<FirestoreOnlineTeamDoc>(
+          teamSnapshots[index] ?? null,
         );
-        teams.forEach((team) => transaction.set(this.teamRef(leagueId, team.id), team));
-      }
 
-      const resolvedIdentity = teamIdentity
-        ? resolveTeamIdentitySelection(teamIdentity)
-        : null;
+        return existingTeam ?? mapLocalTeamToFirestoreTeam(team, createdAt);
+      });
+
       const identityTaken =
-        resolvedIdentity &&
         teams.some(
           (team) =>
             team.status !== "available" &&
@@ -276,13 +529,7 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
         };
       }
 
-      const currentAvailableTeam = preloadedTeamsSnapshot.empty
-        ? availableTeam
-        : (readDocData<FirestoreOnlineTeamDoc>(
-            await transaction.get(this.teamRef(leagueId, availableTeam.id)),
-          ) ?? availableTeam);
-
-      if (currentAvailableTeam.status !== "available" && currentAvailableTeam.status !== "vacant") {
+      if (availableTeam.status !== "available" && availableTeam.status !== "vacant") {
         return {
           status: "full" as const,
           leagueId,
@@ -290,7 +537,7 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
       }
 
       const nextTeam: FirestoreOnlineTeamDoc = {
-        ...currentAvailableTeam,
+        ...availableTeam,
         cityId: resolvedIdentity?.cityId ?? availableTeam.cityId,
         cityName: resolvedIdentity?.cityName ?? availableTeam.cityName,
         teamNameId: resolvedIdentity?.teamNameId ?? availableTeam.teamNameId,
@@ -312,6 +559,11 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
         displayName: user.displayName,
       };
 
+      teamSnapshots.forEach((snapshot, index) => {
+        if (!snapshot.exists() && teams[index].id !== nextTeam.id) {
+          transaction.set(teamRefs[index], teams[index]);
+        }
+      });
       transaction.set(this.teamRef(leagueId, nextTeam.id), nextTeam, { merge: true });
       transaction.set(this.membershipRef(leagueId, user.userId), membership, { merge: true });
       transaction.update(this.leagueRef(leagueId), {
@@ -332,34 +584,33 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
         leagueId,
       };
     });
-    const league = (await this.mapLeague(leagueId)) ?? mapFirestoreSnapshotToOnlineLeague({
-      league: {
-        id: leagueId,
-        name: "Online Liga",
-        status: "lobby",
-        createdByUserId: user.userId,
-        createdAt: nowIso(),
-        updatedAt: nowIso(),
-        maxTeams: 16,
-        memberCount: 0,
-        currentWeek: 1,
-        currentSeason: 1,
-        settings: {
-          onlineBackbone: true,
-        },
-        version: 1,
-      },
-      memberships: [],
-      teams: [],
-    });
+    const league = (await this.mapLeague(leagueId)) ?? createUnavailableOnlineLeague(leagueId);
 
-    this.setLastLeagueId(leagueId);
+    if (joinedLeague.status === "joined" || joinedLeague.status === "already-member") {
+      this.setLastLeagueId(leagueId);
+    }
+
+    if (joinedLeague.status === "missing-league") {
+      return {
+        status: "missing-league",
+        league,
+        message: joinedLeague.message,
+      };
+    }
 
     if (joinedLeague.status === "full") {
       return {
         status: "full",
         league,
         message: "Diese Liga ist bereits voll.",
+      };
+    }
+
+    if (joinedLeague.status === "invalid-team-identity") {
+      return {
+        status: "invalid-team-identity",
+        league,
+        message: joinedLeague.message,
       };
     }
 
@@ -378,7 +629,12 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
   }
 
   async setUserReady(leagueId: string, ready: boolean) {
+    if (!isSafeOnlineSyncId(leagueId)) {
+      throw createUnsafeLeagueIdError();
+    }
+
     const user = await this.getCurrentUser();
+    assertWritableOnlineUser(user);
     const updatedAt = nowIso();
 
     await runTransaction(this.db, async (transaction) => {
@@ -387,6 +643,10 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
 
       if (!membership || membership.status !== "active") {
         throw new Error("Nur aktive Liga-Mitglieder können Ready setzen.");
+      }
+
+      if (membership.ready === ready) {
+        return;
       }
 
       transaction.update(this.membershipRef(leagueId, user.userId), {
@@ -405,7 +665,12 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
   }
 
   async updateDepthChart(leagueId: string, depthChart: OnlineDepthChartEntry[]) {
+    if (!isSafeOnlineSyncId(leagueId)) {
+      throw createUnsafeLeagueIdError();
+    }
+
     const user = await this.getCurrentUser();
+    assertWritableOnlineUser(user);
     const updatedAt = nowIso();
 
     await runTransaction(this.db, async (transaction) => {
@@ -421,6 +686,10 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
 
       if (!team || team.assignedUserId !== user.userId) {
         throw new Error("GM darf nur das eigene Team bearbeiten.");
+      }
+
+      if (hasSameDepthChartPayload(team.depthChart, depthChart)) {
+        return;
       }
 
       transaction.update(this.teamRef(leagueId, membership.teamId), {
@@ -441,24 +710,219 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
     return this.mapLeague(leagueId);
   }
 
+  async makeFantasyDraftPick(
+    leagueId: string,
+    teamId: string,
+    playerId: string,
+  ): Promise<OnlineFantasyDraftPickResult> {
+    if (!isSafeOnlineSyncId(leagueId) || !isSafeOnlineSyncId(teamId) || !isSafeOnlineSyncId(playerId)) {
+      throw createUnsafeLeagueIdError();
+    }
+
+    const user = await this.getCurrentUser();
+    assertWritableOnlineUser(user);
+    const now = nowIso();
+    const mappedLeagueBeforePick = await this.mapLeague(leagueId);
+    const result = await runTransaction(this.db, async (transaction) => {
+      const draftRef = this.draftRef(leagueId);
+      const availablePlayerRef = doc(this.draftAvailablePlayersRef(leagueId), playerId);
+      const [leagueSnapshot, draftSnapshot, availablePlayerSnapshot] = await Promise.all([
+        transaction.get(this.leagueRef(leagueId)),
+        transaction.get(draftRef),
+        transaction.get(availablePlayerRef),
+      ]);
+      const league = readDocData<FirestoreOnlineLeagueDoc>(leagueSnapshot);
+
+      if (!league) {
+        return {
+          status: "missing-league" as const,
+          message: "Liga konnte nicht gefunden werden.",
+        };
+      }
+
+      const draftDoc = readDocData<FirestoreOnlineDraftStateDoc>(draftSnapshot);
+      const state = mappedLeagueBeforePick?.fantasyDraft ?? readFirestoreFantasyDraftState(league);
+      const playerPool =
+        mappedLeagueBeforePick?.fantasyDraftPlayerPool ?? readFirestoreFantasyDraftPlayerPool(league);
+
+      if (!state || state.status !== "active") {
+        return {
+          status: "draft-not-active" as const,
+          message: "Fantasy Draft ist nicht aktiv.",
+        };
+      }
+
+      const membershipSnapshot = await transaction.get(this.membershipRef(leagueId, user.userId));
+      const membership = readDocData<FirestoreOnlineMembershipDoc>(membershipSnapshot);
+
+      if (!membership || membership.status !== "active" || membership.teamId !== teamId) {
+        return {
+          status: "missing-user" as const,
+          message: "GM gehoert nicht zu diesem Team.",
+        };
+      }
+
+      if (state.currentTeamId !== teamId) {
+        return {
+          status: "wrong-team" as const,
+          message: "Dieses Team ist aktuell nicht am Zug.",
+        };
+      }
+
+      if (
+        draftDoc &&
+        (draftDoc.pickNumber !== state.pickNumber ||
+          draftDoc.currentTeamId !== state.currentTeamId ||
+          draftDoc.status !== state.status)
+      ) {
+        return {
+          status: "draft-not-active" as const,
+          message: "Draft-State wurde aktualisiert. Bitte lade den Draft neu.",
+        };
+      }
+
+      if (
+        !state.availablePlayerIds.includes(playerId) ||
+        state.picks.some((pick) => pick.playerId === playerId) ||
+        !availablePlayerSnapshot.exists()
+      ) {
+        return {
+          status: "player-unavailable" as const,
+          message: "Spieler ist nicht mehr verfuegbar.",
+        };
+      }
+
+      const selectedPlayer = playerPool.find((player) => player.playerId === playerId);
+
+      if (!selectedPlayer) {
+        return {
+          status: "player-unavailable" as const,
+          message: "Spieler ist nicht im Draft-Pool.",
+        };
+      }
+
+      const draftRunId = draftDoc?.draftRunId;
+      const pick: OnlineFantasyDraftPick = {
+        pickNumber: state.pickNumber,
+        round: state.round,
+        teamId,
+        playerId,
+        pickedByUserId: user.userId,
+        timestamp: now,
+      };
+      const pickedState: OnlineFantasyDraftState = {
+        ...state,
+        picks: [...state.picks, pick],
+        availablePlayerIds: state.availablePlayerIds.filter((candidate) => candidate !== playerId),
+      };
+      const nextState = getNextFantasyDraftState(pickedState, playerPool, now);
+
+      transaction.set(
+        doc(this.draftPicksRef(leagueId), String(pick.pickNumber).padStart(4, "0")),
+        toFirestoreDraftPickDoc(pick, selectedPlayer, draftRunId),
+      );
+      transaction.delete(availablePlayerRef);
+      transaction.set(draftRef, toFirestoreDraftStateDoc(nextState, draftRunId), { merge: true });
+      transaction.set(
+        doc(this.eventsRef(leagueId)),
+        createEvent("draft_pick_made", user.userId, {
+          teamId,
+          playerId,
+          playerName: selectedPlayer.playerName,
+          pickNumber: pick.pickNumber,
+          round: pick.round,
+        }),
+      );
+
+      if (nextState.status === "completed") {
+        const playersById = new Map(playerPool.map((player) => [player.playerId, player]));
+
+        nextState.draftOrder.forEach((draftTeamId) => {
+          const roster = nextState.picks
+            .filter((candidate) => candidate.teamId === draftTeamId)
+            .sort((left, right) => left.pickNumber - right.pickNumber)
+            .map((candidate) => playersById.get(candidate.playerId))
+            .filter((player): player is OnlineContractPlayer => Boolean(player));
+
+          transaction.update(this.teamRef(leagueId, draftTeamId), {
+            contractRoster: roster,
+            depthChart: createRosterDepthChart(roster, now),
+            updatedAt: now,
+          });
+        });
+        transaction.update(this.leagueRef(leagueId), {
+          status: "active",
+          currentWeek: 1,
+          currentSeason: 1,
+          "settings.fantasyDraft": deleteField(),
+          "settings.fantasyDraftPlayerPool": deleteField(),
+          updatedAt: now,
+          version: increment(1),
+        });
+        transaction.set(
+          doc(this.eventsRef(leagueId)),
+          createEvent("fantasy_draft_completed", user.userId, {
+            totalPicks: nextState.picks.length,
+          }),
+        );
+      } else {
+        transaction.update(this.leagueRef(leagueId), {
+          updatedAt: now,
+          version: increment(1),
+        });
+      }
+
+      return {
+        status: nextState.status === "completed" ? "completed" as const : "success" as const,
+        pick,
+        message:
+          nextState.status === "completed"
+            ? "Fantasy Draft abgeschlossen. Liga ist bereit fuer Week 1."
+            : "Pick gespeichert.",
+      };
+    });
+    const mappedLeague = await this.mapLeague(leagueId);
+
+    if ("pick" in result) {
+      return {
+        ...result,
+        league: mappedLeague ?? createUnavailableOnlineLeague(leagueId),
+      };
+    }
+
+    return {
+      ...result,
+      league: mappedLeague,
+    };
+  }
+
   getLastLeagueId() {
-    return getBrowserStorage()?.getItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY) ?? null;
+    const storage = getOptionalBrowserOnlineLeagueStorage();
+    const lastLeagueId = storage ? getStoredLastOnlineLeagueId(storage) : null;
+
+    return isSafeOnlineSyncId(lastLeagueId) ? lastLeagueId : null;
   }
 
   setLastLeagueId(leagueId: string) {
-    getBrowserStorage()?.setItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY, leagueId);
+    if (!isSafeOnlineSyncId(leagueId)) {
+      return;
+    }
+
+    const storage = getOptionalBrowserOnlineLeagueStorage();
+
+    if (storage) {
+      setStoredLastOnlineLeagueId(storage, leagueId);
+    }
   }
 
   clearLastLeagueId(leagueId?: string) {
-    const storage = getBrowserStorage();
+    const storage = getOptionalBrowserOnlineLeagueStorage();
 
     if (!storage) {
       return;
     }
 
-    if (!leagueId || storage.getItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY) === leagueId) {
-      storage.removeItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY);
-    }
+    clearStoredLastOnlineLeagueId(storage, leagueId);
   }
 
   subscribeToLeague(
@@ -466,7 +930,18 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
     onNext: (league: OnlineLeague | null) => void,
     onError?: (error: Error) => void,
   ): OnlineLeagueRepositoryUnsubscribe {
-    const emit = async () => onNext(await this.mapLeague(leagueId));
+    if (!isSafeOnlineSyncId(leagueId)) {
+      queueMicrotask(() => onError?.(createUnsafeLeagueIdError()));
+
+      return () => undefined;
+    }
+
+    const emitter = createOrderedAsyncEmitter(
+      onNext,
+      onError,
+      "Online-Liga konnte nicht aus Firebase geladen werden.",
+    );
+    const emit = () => emitter.emit(() => this.mapLeague(leagueId));
     const unsubscribers = [
       onSnapshot(this.leagueRef(leagueId), emit, (error) => onError?.(error)),
       onSnapshot(
@@ -475,6 +950,9 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
         (error) => onError?.(error),
       ),
       onSnapshot(this.teamsRef(leagueId), emit, (error) => onError?.(error)),
+      onSnapshot(this.draftRef(leagueId), emit, (error) => onError?.(error)),
+      onSnapshot(this.draftPicksRef(leagueId), emit, (error) => onError?.(error)),
+      onSnapshot(this.draftAvailablePlayersRef(leagueId), emit, (error) => onError?.(error)),
       onSnapshot(
         query(this.eventsRef(leagueId), orderBy("createdAt", "desc"), limit(20)),
         emit,
@@ -482,33 +960,45 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
       ),
     ];
 
-    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+    return () => {
+      emitter.close();
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
   }
 
   subscribeToAvailableLeagues(
     onNext: (leagues: OnlineLeague[]) => void,
     onError?: (error: Error) => void,
   ): OnlineLeagueRepositoryUnsubscribe {
-    return onSnapshot(
+    const emitter = createOrderedAsyncEmitter(
+      onNext,
+      onError,
+      "Verfuegbare Online-Ligen konnten nicht synchronisiert werden.",
+    );
+    const unsubscribe = onSnapshot(
       query(
         collection(this.db, "leagues"),
         where("status", "==", "lobby"),
         where("settings.onlineBackbone", "==", true),
       ),
-      async (snapshot) => {
-        const leagues = await Promise.all(
-          snapshot.docs.map((league) =>
-            this.mapPublicLobbyLeague(
-              league.id,
-              league.data() as FirestoreOnlineLeagueDoc,
+      (snapshot) =>
+        emitter.emit(() =>
+          Promise.all(
+            snapshot.docs.map((league) =>
+              this.mapPublicLobbyLeague(
+                league.id,
+                league.data() as FirestoreOnlineLeagueDoc,
+              ),
             ),
           ),
-        );
-
-        onNext(leagues);
-      },
+        ),
       (error) => onError?.(error),
     );
+
+    return () => {
+      emitter.close();
+      unsubscribe();
+    };
   }
 
   subscribeToMemberships(

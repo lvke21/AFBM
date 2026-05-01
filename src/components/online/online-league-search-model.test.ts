@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { ONLINE_MVP_TEAM_POOL, type OnlineLeague } from "@/lib/online/online-league-service";
+import { ONLINE_MVP_TEAM_POOL } from "@/lib/online/online-league-constants";
+import type { OnlineLeague } from "@/lib/online/online-league-types";
 
 import { suggestTeamIdentityForLeagues, toLeagueSearchCard } from "./online-league-search-model";
 

@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 
-import { MultiplayerIdentityInitializer } from "@/components/multiplayer/multiplayer-identity-initializer";
-
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +15,6 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body>
-        <MultiplayerIdentityInitializer />
         {children}
       </body>
     </html>

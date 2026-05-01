@@ -1,6 +1,6 @@
 import { createPlayerHistoryEvent } from "@/modules/players/application/player-history.service";
 import { createSeasonStatShells } from "@/modules/savegames/application/bootstrap/player-stat-shells";
-import { recalculateTeamState } from "@/modules/seasons/application/simulation/player-development";
+import { recalculateTeamState } from "@/modules/seasons/infrastructure/simulation/player-development";
 import { buildPlayerValue } from "@/components/player/player-value-model";
 import {
   ContractStatus,

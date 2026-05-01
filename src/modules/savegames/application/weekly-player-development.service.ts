@@ -5,7 +5,7 @@ import {
   applyAdvanceWeekPlayerDevelopment,
   recalculateTeamState,
   type AdvanceWeekDevelopmentPlayer,
-} from "@/modules/seasons/application/simulation/player-development";
+} from "@/modules/seasons/infrastructure/simulation/player-development";
 import { PlayerHistoryEventType, RosterStatus } from "@/modules/shared/domain/enums";
 
 type ApplyWeeklyDevelopmentForSaveGameInput = {

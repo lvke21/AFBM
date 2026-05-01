@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { ONLINE_MVP_TEAM_POOL, type OnlineLeague } from "@/lib/online/online-league-service";
+import { ONLINE_MVP_TEAM_POOL } from "@/lib/online/online-league-constants";
+import type { OnlineLeague } from "@/lib/online/online-league-types";
 
-import { buildOnlineContinueState } from "./online-continue-model";
+import { buildOnlineContinueState, isSafeOnlineLeagueId } from "./online-continue-model";
 
 const league: OnlineLeague = {
   id: "global-test-league",
@@ -15,6 +16,14 @@ const league: OnlineLeague = {
 };
 
 describe("buildOnlineContinueState", () => {
+  it("accepts route-safe online league ids only", () => {
+    expect(isSafeOnlineLeagueId("global-test-league")).toBe(true);
+    expect(isSafeOnlineLeagueId("abc_123")).toBe(true);
+    expect(isSafeOnlineLeagueId("")).toBe(false);
+    expect(isSafeOnlineLeagueId("../admin")).toBe(false);
+    expect(isSafeOnlineLeagueId("league/other")).toBe(false);
+  });
+
   it("explains when no last league id is stored", () => {
     expect(buildOnlineContinueState(null, null)).toEqual({
       status: "missing-last-league",
@@ -23,8 +32,24 @@ describe("buildOnlineContinueState", () => {
     });
   });
 
+  it("rejects a corrupt stored last league id before navigation", () => {
+    expect(buildOnlineContinueState("../admin", null)).toEqual({
+      status: "invalid-last-league",
+      message: "Die gespeicherte Online-Liga ist ungültig.",
+      helper: "Suche erneut nach einer Liga.",
+    });
+  });
+
   it("explains when the stored last league id is invalid", () => {
     expect(buildOnlineContinueState("missing-league", null)).toEqual({
+      status: "missing-league",
+      message: "Die zuletzt gespielte Online-Liga konnte nicht gefunden werden.",
+      helper: "Suche erneut nach einer Liga.",
+    });
+  });
+
+  it("does not navigate when the loaded league does not match the stored id", () => {
+    expect(buildOnlineContinueState("other-league", league)).toEqual({
       status: "missing-league",
       message: "Die zuletzt gespielte Online-Liga konnte nicht gefunden werden.",
       helper: "Suche erneut nach einer Liga.",

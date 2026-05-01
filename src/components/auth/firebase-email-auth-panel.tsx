@@ -1,0 +1,417 @@
+"use client";
+
+import React, { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import {
+  getOnlineAuthDebugSnapshot,
+  getOnlineAuthErrorDetails,
+  getOnlineAuthErrorMessage,
+  logOnlineAuthError,
+  registerOnlineUserWithEmailPassword,
+  signInOnlineUserWithEmailPassword,
+  signOutOnlineUser,
+  subscribeToOnlineAuthState,
+  type OnlineAuthDebugSnapshot,
+  type OnlineAuthErrorDetails,
+  type OnlineAuthMethod,
+} from "@/lib/online/auth/online-auth";
+import { getOnlineBackendMode } from "@/lib/online/online-league-repository-provider";
+import type { OnlineAuthenticatedUser } from "@/lib/online/types";
+
+type FirebaseEmailAuthPanelProps = {
+  redirectAfterAuth?: string;
+  compact?: boolean;
+};
+
+export function FirebaseEmailAuthPanel({
+  redirectAfterAuth,
+  compact = false,
+}: FirebaseEmailAuthPanelProps) {
+  const router = useRouter();
+  const onlineMode = getOnlineBackendMode();
+  const [authState, setAuthState] = useState<"loading" | "anonymous" | "authenticated">(
+    onlineMode === "local" ? "anonymous" : "loading",
+  );
+  const [user, setUser] = useState<OnlineAuthenticatedUser | null>(null);
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [debugSnapshot, setDebugSnapshot] = useState<OnlineAuthDebugSnapshot | null>(null);
+  const [debugError, setDebugError] = useState<OnlineAuthErrorDetails | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const captureDebugSnapshot = useCallback((method: OnlineAuthMethod) => {
+    try {
+      const snapshot = getOnlineAuthDebugSnapshot(method);
+
+      setDebugSnapshot(snapshot);
+      return snapshot;
+    } catch (error) {
+      const details = getOnlineAuthErrorDetails(error);
+
+      setDebugError(details);
+      console.error("AUTH_ERROR", details.code, details.message, {
+        method,
+        error,
+      });
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (onlineMode === "local") {
+      setAuthState("anonymous");
+      setUser(null);
+      return undefined;
+    }
+
+    return subscribeToOnlineAuthState(
+      (nextUser) => {
+        setUser(nextUser);
+        setAuthState(nextUser ? "authenticated" : "anonymous");
+        captureDebugSnapshot("state");
+      },
+      (error) => {
+        const details = logOnlineAuthError("state", error);
+
+        setUser(null);
+        setAuthState("anonymous");
+        setDebugError(details);
+        captureDebugSnapshot("state");
+        setFeedback(getOnlineAuthErrorMessage(error));
+      },
+    );
+  }, [captureDebugSnapshot, onlineMode]);
+
+  useEffect(() => {
+    if (authState === "authenticated" && redirectAfterAuth) {
+      router.replace(redirectAfterAuth);
+    }
+  }, [authState, redirectAfterAuth, router]);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (pending) {
+      return;
+    }
+
+    setPending(true);
+    setFeedback(null);
+    setDebugError(null);
+
+    const authMethod = mode === "register" ? "register" : "login";
+
+    captureDebugSnapshot(authMethod);
+
+    try {
+      const nextUser =
+        mode === "register"
+          ? await registerOnlineUserWithEmailPassword({
+              email,
+              password,
+              displayName,
+            })
+          : await signInOnlineUserWithEmailPassword({ email, password });
+
+      setUser(nextUser);
+      setAuthState("authenticated");
+      setPassword("");
+      setDebugError(null);
+      captureDebugSnapshot(authMethod);
+      setFeedback(mode === "register" ? "Account erstellt." : "Login erfolgreich.");
+    } catch (error) {
+      const details = logOnlineAuthError(authMethod, error);
+
+      setDebugError(details);
+      captureDebugSnapshot(authMethod);
+      setFeedback(getOnlineAuthErrorMessage(error));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleLogout() {
+    if (pending) {
+      return;
+    }
+
+    setPending(true);
+    setFeedback(null);
+    setDebugError(null);
+    captureDebugSnapshot("logout");
+
+    try {
+      await signOutOnlineUser();
+      setUser(null);
+      setAuthState("anonymous");
+      captureDebugSnapshot("logout");
+      setFeedback("Du wurdest ausgeloggt.");
+    } catch (error) {
+      const details = logOnlineAuthError("logout", error);
+
+      setDebugError(details);
+      captureDebugSnapshot("logout");
+      setFeedback(getOnlineAuthErrorMessage(error));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  if (authState === "loading") {
+    return (
+      <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-200">
+        Firebase Login wird geprüft...
+      </div>
+    );
+  }
+
+  if (onlineMode === "local") {
+    return (
+      <div
+        className={`rounded-lg border border-amber-200/25 bg-amber-300/10 text-sm text-amber-50 ${
+          compact ? "p-4" : "p-5 sm:p-6"
+        }`}
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-100">
+          Lokaler Testmodus
+        </p>
+        <p className="mt-2 font-semibold text-white">Firebase Login ist lokal deaktiviert.</p>
+        <p className="mt-2 text-xs leading-5 text-amber-50/85">
+          Staging und Produktion verwenden Email/Passwort-Login. Der lokale
+          Online-Speicher bleibt nur fuer Tests ohne Firebase aktiv.
+        </p>
+      </div>
+    );
+  }
+
+  if (authState === "authenticated" && user) {
+    return (
+      <div className="rounded-lg border border-emerald-200/25 bg-emerald-300/10 p-4 text-sm text-emerald-50">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
+          Eingeloggt
+        </p>
+        <p className="mt-2 font-semibold text-white">
+          {user.displayName || user.username || user.userId}
+        </p>
+        <p className="mt-1 text-xs text-emerald-100/85">{user.email ?? "Firebase User"}</p>
+        <p className="mt-2 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold">
+          Rolle: GM
+        </p>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={handleLogout}
+          className="mt-3 rounded-lg border border-white/15 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10 disabled:cursor-wait disabled:opacity-60"
+        >
+          {pending ? "Logout..." : "Logout"}
+        </button>
+        {feedback ? <p className="mt-2 text-xs font-semibold">{feedback}</p> : null}
+        <FirebaseAuthDebugPanel snapshot={debugSnapshot} error={debugError} />
+      </div>
+    );
+  }
+
+  return (
+    <section
+      className={`rounded-lg border border-white/10 bg-white/[0.045] ${
+        compact ? "p-4" : "p-5 sm:p-6"
+      }`}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
+            Firebase Login
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">
+            {mode === "login" ? "Anmelden" : "Registrieren"}
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-slate-300">
+            Online-Multiplayer nutzt ab jetzt echte Firebase Email/Passwort-Accounts.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setMode(mode === "login" ? "register" : "login");
+            setFeedback(null);
+          }}
+          className="w-fit rounded-lg border border-white/15 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+        >
+          {mode === "login" ? "Registrieren" : "Zum Login"}
+        </button>
+      </div>
+
+      <form className="mt-5 grid gap-3" onSubmit={handleSubmit}>
+        {mode === "register" ? (
+          <label className="grid gap-1 text-sm font-semibold text-slate-200">
+            Anzeigename
+            <input
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              autoComplete="name"
+              className="rounded-lg border border-white/10 bg-[#07111d] px-3 py-3 text-white outline-none focus:border-emerald-200/60"
+            />
+          </label>
+        ) : null}
+        <label className="grid gap-1 text-sm font-semibold text-slate-200">
+          Email
+          <input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
+            className="rounded-lg border border-white/10 bg-[#07111d] px-3 py-3 text-white outline-none focus:border-emerald-200/60"
+          />
+        </label>
+        <label className="grid gap-1 text-sm font-semibold text-slate-200">
+          Passwort
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete={mode === "register" ? "new-password" : "current-password"}
+            className="rounded-lg border border-white/10 bg-[#07111d] px-3 py-3 text-white outline-none focus:border-emerald-200/60"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={pending || email.trim().length === 0 || password.length === 0}
+          className="w-fit rounded-lg border border-emerald-200/25 bg-emerald-300/10 px-4 py-3 text-sm font-semibold text-emerald-50 transition hover:bg-emerald-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+        >
+          {pending
+            ? "Bitte warten..."
+            : mode === "register"
+              ? "Account erstellen"
+              : "Einloggen"}
+        </button>
+      </form>
+
+      {feedback ? (
+        <p
+          aria-live="polite"
+          className="mt-3 rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100"
+        >
+          {feedback}
+        </p>
+      ) : null}
+      <FirebaseAuthDebugPanel snapshot={debugSnapshot} error={debugError} />
+    </section>
+  );
+}
+
+function FirebaseAuthDebugPanel({
+  snapshot,
+  error,
+}: {
+  snapshot: OnlineAuthDebugSnapshot | null;
+  error: OnlineAuthErrorDetails | null;
+}) {
+  if (!snapshot && !error) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 rounded-lg border border-sky-200/25 bg-sky-300/10 p-3 text-xs text-sky-50">
+      <p className="font-semibold text-white">Firebase Auth Debug</p>
+      {error ? (
+        <dl className="mt-2 grid gap-1">
+          <DebugRow label="error.code" value={error.code} />
+          <DebugRow label="error.message" value={error.message} />
+        </dl>
+      ) : null}
+      {snapshot ? (
+        <dl className="mt-2 grid gap-1">
+          <DebugRow label="Methode" value={snapshot.method} />
+          <DebugRow label="projectId" value={snapshot.firebaseConfig.projectId ?? "null"} />
+          <DebugRow label="authDomain" value={snapshot.firebaseConfig.authDomain ?? "null"} />
+          <DebugRow
+            label="apiKey vorhanden"
+            value={snapshot.firebaseConfig.apiKeyPresent ? "ja" : "nein"}
+          />
+          <DebugRow label="appId" value={snapshot.firebaseConfig.appId ?? "null"} />
+          <DebugRow
+            label="storageBucket"
+            value={snapshot.firebaseConfig.storageBucket ?? "null"}
+          />
+          <DebugRow
+            label="messagingSenderId"
+            value={snapshot.firebaseConfig.messagingSenderId ?? "null"}
+          />
+          <DebugRow label="currentUser.uid" value={snapshot.currentUser.uid ?? "null"} />
+          <DebugRow
+            label="currentUser.isAnonymous"
+            value={
+              snapshot.currentUser.isAnonymous === null
+                ? "null"
+                : String(snapshot.currentUser.isAnonymous)
+            }
+          />
+          <DebugRow
+            label="providerData"
+            value={
+              snapshot.currentUser.providerData.length > 0
+                ? snapshot.currentUser.providerData
+                    .map((provider) => `${provider.providerId}:${provider.uid ?? "null"}`)
+                    .join(", ")
+                : "[]"
+            }
+          />
+        </dl>
+      ) : null}
+    </div>
+  );
+}
+
+function DebugRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid gap-1 sm:grid-cols-[9rem_1fr]">
+      <dt className="font-semibold text-sky-100/80">{label}</dt>
+      <dd className="break-words font-mono text-sky-50">{value}</dd>
+    </div>
+  );
+}
+
+export function OnlinePlayLink({ href = "/online" }: { href?: string }) {
+  const onlineMode = getOnlineBackendMode();
+  const [authState, setAuthState] = useState<"loading" | "anonymous" | "authenticated">(
+    onlineMode === "local" ? "authenticated" : "loading",
+  );
+
+  useEffect(() => {
+    if (onlineMode === "local") {
+      setAuthState("authenticated");
+      return undefined;
+    }
+
+    return subscribeToOnlineAuthState(
+      (nextUser) => setAuthState(nextUser ? "authenticated" : "anonymous"),
+      () => setAuthState("anonymous"),
+    );
+  }, [onlineMode]);
+
+  if (authState === "authenticated") {
+    return (
+      <Link
+        href={href}
+        className="mt-5 flex min-h-14 w-full items-center justify-center rounded-lg border border-emerald-300/35 bg-emerald-300/10 px-5 py-3 text-center text-sm font-semibold text-emerald-50 transition hover:bg-emerald-300/16"
+      >
+        Online spielen
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      disabled
+      className="mt-5 flex min-h-14 w-full cursor-not-allowed items-center justify-center rounded-lg border border-white/10 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-slate-300 opacity-70"
+    >
+      {authState === "loading" ? "Login wird geprüft..." : "Bitte erst einloggen"}
+    </button>
+  );
+}

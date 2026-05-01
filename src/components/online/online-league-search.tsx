@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import type { OnlineLeague } from "@/lib/online/online-league-service";
+import type { OnlineLeague } from "@/lib/online/online-league-types";
+import { getOnlineRecoveryCopy } from "@/lib/online/error-recovery";
 import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
 import {
-  getTeamIdentityPreview,
   resolveTeamIdentitySelection,
   getTeamNamesByCategory,
   TEAM_IDENTITY_CITIES,
@@ -43,6 +43,7 @@ export function OnlineLeagueSearch() {
     useState<TeamNameCategory>("identity_city");
   const [selectedTeamNameId, setSelectedTeamNameId] = useState("");
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const joiningLeagueIdRef = useRef<string | null>(null);
   const repository = useMemo(() => getOnlineLeagueRepository(), []);
   const modeStatus = getOnlineModeStatusCopy(repository.mode);
   const leagueCards = leagues
@@ -54,9 +55,8 @@ export function OnlineLeagueSearch() {
     category: selectedCategory,
     teamNameId: selectedTeamNameId,
   };
-  const teamIdentityPreview = getTeamIdentityPreview(selectedTeamIdentity);
   const resolvedTeamIdentity = resolveTeamIdentitySelection(selectedTeamIdentity);
-  const canJoinWithTeamIdentity = Boolean(teamIdentityPreview);
+  const canJoinWithTeamIdentity = Boolean(resolvedTeamIdentity);
   const categoryDescriptions: Record<TeamNameCategory, string> = {
     classic_sports: "Traditionelle Sportnamen, schnell verständlich und zeitlos.",
     modern_sports: "Kurze, moderne Namen mit Arena- und E-Sports-Gefühl.",
@@ -79,7 +79,18 @@ export function OnlineLeagueSearch() {
 
     return repository.subscribeToAvailableLeagues(
       setLeagues,
-      () => setLeagues([]),
+      (error) => {
+        const recovery = getOnlineRecoveryCopy(error, {
+          title: "Ligen konnten nicht geladen werden.",
+          message:
+            error.message || "Ligen konnten nicht geladen werden. Bitte versuche es erneut.",
+          helper: "Prüfe deine Verbindung.",
+        });
+
+        setLeagues([]);
+        setSearchError(`${recovery.message} ${recovery.helper}`);
+        setSearchState("error");
+      },
     );
   }, [repository, searchState]);
 
@@ -97,16 +108,22 @@ export function OnlineLeagueSearch() {
       try {
         setLeagues(await repository.getAvailableLeagues());
         setSearchState("ready");
-      } catch {
+      } catch (error) {
+        const recovery = getOnlineRecoveryCopy(error, {
+          title: "Ligen konnten nicht geladen werden.",
+          message: "Ligen konnten nicht geladen werden. Bitte versuche es erneut.",
+          helper: "Prüfe deine Verbindung.",
+        });
+
         setLeagues([]);
-        setSearchError("Ligen konnten nicht geladen werden. Bitte versuche es erneut.");
+        setSearchError(`${recovery.message} ${recovery.helper}`);
         setSearchState("error");
       }
     }, 1000);
   }
 
   async function handleJoinLeague(leagueId: string) {
-    if (joiningLeagueId) {
+    if (joiningLeagueIdRef.current) {
       return;
     }
 
@@ -116,6 +133,16 @@ export function OnlineLeagueSearch() {
       return;
     }
 
+    if (!resolvedTeamIdentity) {
+      setJoinFeedback({
+        leagueId: selectedLeague.id,
+        tone: "warning",
+        message: "Bitte wähle zuerst Stadt, Kategorie und Teamnamen.",
+      });
+      return;
+    }
+
+    joiningLeagueIdRef.current = leagueId;
     setJoiningLeagueId(leagueId);
 
     try {
@@ -151,13 +178,23 @@ export function OnlineLeagueSearch() {
             ? "Du bist bereits Mitglied dieser Liga."
             : "Du bist der Liga beigetreten.",
       });
-    } catch {
+    } catch (error) {
+      const recovery = getOnlineRecoveryCopy(error, {
+        title: "Beitritt konnte nicht gespeichert werden.",
+        message:
+          error instanceof Error && error.message
+            ? error.message
+            : "Beitritt konnte nicht gespeichert werden.",
+        helper: "Bitte versuche den Beitritt erneut.",
+      });
+
       setJoinFeedback({
         leagueId: selectedLeague.id,
         tone: "warning",
-        message: "Beitritt konnte nicht gespeichert werden.",
+        message: `${recovery.message} ${recovery.helper}`,
       });
     } finally {
+      joiningLeagueIdRef.current = null;
       setJoiningLeagueId(null);
     }
   }

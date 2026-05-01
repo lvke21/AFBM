@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { SimulationApiError } from "@/modules/seasons/application/simulation/simulation-api.service";
+import { SimulationApiError } from "@/modules/seasons/infrastructure/simulation/simulation-api.service";
 
 export function simulationApiErrorResponse(error: unknown) {
   if (error instanceof SimulationApiError) {
