@@ -144,6 +144,7 @@ import {
   setStoredLastOnlineLeagueId,
   type OnlineLeagueStorage,
 } from "./online-league-storage";
+import { validatePreparedMultiplayerDraftPick } from "./multiplayer-draft-logic";
 
 export type * from "./online-league-types";
 export {
@@ -4173,14 +4174,7 @@ export function makeOnlineFantasyDraftPick(
   }
 
   const state = getFantasyDraftState(league);
-
-  if (state.status !== "active") {
-    return {
-      status: "draft-not-active",
-      league,
-      message: "Fantasy Draft ist nicht aktiv.",
-    };
-  }
+  const playerPool = getFantasyDraftPlayerPool(league);
 
   const user = league.users.find(
     (candidate) => candidate.userId === pickedByUserId && candidate.teamId === teamId,
@@ -4194,33 +4188,30 @@ export function makeOnlineFantasyDraftPick(
     };
   }
 
-  if (state.currentTeamId !== teamId) {
+  const validation = validatePreparedMultiplayerDraftPick({
+    state,
+    teamIds: league.users.map((candidate) => candidate.teamId),
+    teamId,
+    playerId,
+    availablePlayers: playerPool,
+    existingPicks: state.picks,
+    rosterSize: user.contractRoster?.length ?? state.picks.filter((pick) => pick.teamId === teamId).length,
+  });
+
+  if (!validation.ok) {
     return {
-      status: "wrong-team",
+      status:
+        validation.status === "wrong-team"
+          ? "wrong-team"
+          : validation.status === "draft-not-active" || validation.status === "missing-draft"
+            ? "draft-not-active"
+            : "player-unavailable",
       league,
-      message: "Dieses Team ist aktuell nicht am Zug.",
+      message: validation.message,
     };
   }
 
-  if (!state.availablePlayerIds.includes(playerId) || state.picks.some((pick) => pick.playerId === playerId)) {
-    return {
-      status: "player-unavailable",
-      league,
-      message: "Spieler ist nicht mehr verfuegbar.",
-    };
-  }
-
-  const playerPool = getFantasyDraftPlayerPool(league);
-  const selectedPlayer = playerPool.find((player) => player.playerId === playerId);
-
-  if (!selectedPlayer) {
-    return {
-      status: "player-unavailable",
-      league,
-      message: "Spieler ist nicht im Draft-Pool.",
-    };
-  }
-
+  const selectedPlayer = validation.player;
   const now = new Date().toISOString();
   const pick: OnlineFantasyDraftPick = {
     pickNumber: state.pickNumber,

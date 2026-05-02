@@ -8,6 +8,7 @@ import {
   ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
   ONLINE_FANTASY_DRAFT_ROSTER_TARGET_SIZE,
   ONLINE_MVP_TEAM_POOL,
+  saveOnlineLeague,
   type OnlineLeague,
 } from "./online-league-service";
 import {
@@ -223,6 +224,47 @@ describe("fantasy-draft-service", () => {
       makeDraftPick(league.id, state.currentTeamId, initialized.users[0].userId, "missing-player", storage)
         .status,
     ).toBe("player-unavailable");
+  });
+
+  it("blocks picks when the current team has already reached the roster target", () => {
+    const storage = new MemoryStorage();
+    const league = createFilledDraftLeague(storage, 2);
+    const initialized = initializeFantasyDraft(league.id, storage);
+    const state = initialized?.fantasyDraft;
+    const currentUser = initialized?.users.find((user) => user.teamId === state?.currentTeamId);
+    const player = getAvailablePlayers(league.id, { position: "QB" }, storage)[0];
+
+    if (!initialized || !state || !currentUser || !player) {
+      throw new Error("Expected draft setup.");
+    }
+
+    const rosterLimitLeague = {
+      ...initialized,
+      users: initialized.users.map((user) =>
+        user.userId === currentUser.userId
+          ? {
+              ...user,
+              contractRoster: initialized.fantasyDraftPlayerPool?.slice(
+                0,
+                ONLINE_FANTASY_DRAFT_ROSTER_TARGET_SIZE,
+              ),
+            }
+          : user,
+      ),
+    };
+
+    saveOnlineLeague(rosterLimitLeague, storage);
+
+    const result = makeDraftPick(
+      league.id,
+      state.currentTeamId,
+      currentUser.userId,
+      player.playerId,
+      storage,
+    );
+
+    expect(result.status).toBe("player-unavailable");
+    expect(result.message).toBe("Roster-Limit ist erreicht.");
   });
 
   it("exposes available player filters and roster build helpers", () => {
