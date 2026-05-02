@@ -11,10 +11,14 @@ Initialer Staging-Commit:
 - `eb812d3` - `Prepare refactored multiplayer staging release`
 - Revision: `afbm-staging-backend-build-2026-05-02-001`
 
-Follow-up fuer den Auth/Admin-Smoke:
+Follow-up fuer den Auth/Admin-Smoke auf Staging:
 - `7fab1ea` - `Fix staging admin smoke standings reload`
 - Revision: `afbm-staging-backend-build-2026-05-02-002`
 - Traffic: 100%
+
+Follow-up fuer reproduzierbare lokale Smoke-Ausfuehrung:
+- `scripts/staging-admin-week-smoke.ts` kann bei fehlendem Testlogin/Token selbst ein kurzlebiges Firebase ID Token ueber `gcloud iam service-accounts sign-jwt` fuer `afbm-staging` erzeugen.
+- Dieser Tooling-Stand ist lokal validiert und dokumentiert; die aktive Staging-App-Revision bleibt `afbm-staging-backend-build-2026-05-02-002`.
 
 Deployment Commands:
 
@@ -55,9 +59,7 @@ Behebung:
 Ausgefuehrter Live-Flow:
 
 ```bash
-CONFIRM_STAGING_SMOKE=true \
-E2E_FIREBASE_ADMIN_ID_TOKEN=<kurzlebiges-firebase-id-token> \
-npm run staging:smoke:admin-week -- --league-id afbm-multiplayer-test-league
+CONFIRM_STAGING_SMOKE=true GOOGLE_CLOUD_PROJECT=afbm-staging npm run staging:smoke:admin-week -- --league-id afbm-multiplayer-test-league
 ```
 
 Token-Erzeugung:
@@ -68,12 +70,13 @@ Token-Erzeugung:
 Ergebnis:
 
 ```text
-[staging-smoke] login/admin token ok; before currentWeek=2 users=2 teams=8 schedule=28
-[staging-smoke] team assignments=undefined:bern-wolves,undefined:basel-rhinos
-[staging-smoke] ready-state ok; ready=2/2
+[staging-smoke] tokenSource=IAM sign-jwt custom token
 [staging-smoke] admin auth ok; leagues=2
-[staging-smoke] simulated league=afbm-multiplayer-test-league week=2 nextWeek=3 games=4
-[staging-smoke] reload ok; currentWeek=3 standings=8 results=8
+[staging-smoke] league before simulation; currentWeek=3 users=2 teams=8 schedule=28
+[staging-smoke] team assignments=unknown:bern-wolves,unknown:basel-rhinos
+[staging-smoke] ready-state ok; ready=2/2
+[staging-smoke] simulated league=afbm-multiplayer-test-league week=3 nextWeek=4 games=4
+[staging-smoke] reload ok; currentWeek=4 standings=8 results=12
 ```
 
 Direkte Firestore-Verifikation:
@@ -110,6 +113,7 @@ Ergebnis:
 | `npm run lint` | Gruen |
 | `npm run build` | Gruen |
 | `npm run test:firebase:parity` | Gruen; erster Sandbox-Versuch scheiterte an Emulator-Port `EPERM`, Wiederholung ausserhalb der Sandbox bestanden |
+| `CONFIRM_STAGING_SMOKE=true GOOGLE_CLOUD_PROJECT=afbm-staging npm run staging:smoke:admin-week -- --league-id afbm-multiplayer-test-league` | Gruen; ohne manuelle Token-Kopie |
 
 ## Secret Check
 
@@ -122,9 +126,9 @@ Verwendete Secret-/Credential-Werte:
 
 ## Risiken
 
-1. Der erfolgreiche Smoke nutzt einen IAM-basierten kurzlebigen Token-Weg. Fuer CI sollte langfristig ein dedizierter Staging-Test-Admin-User mit Secret-Manager-/CI-Secrets bevorzugt werden.
+1. Der erfolgreiche Smoke nutzt einen IAM-basierten kurzlebigen Token-Weg. Fuer CI kann dieser Weg genutzt werden, wenn die CI-Identitaet gezielt `roles/iam.serviceAccountTokenCreator` auf dem Staging-Service-Account besitzt. Alternativ bleibt ein dedizierter Staging-Test-Admin-User mit Secret-Manager-/CI-Secrets sinnvoll.
 2. Die 8-Team-Testliga brauchte einen manuellen Staging-Schedule, weil der produktive Schedule-Generator aktuell auf 16 Teams ausgelegt ist.
-3. Der Smoke hat Woche 2 simuliert und die Liga steht danach auf Woche 3. Weitere Smokes muessen entweder Woche 3 vorbereiten oder eine frische Testliga verwenden.
+3. Der Smoke hat Woche 3 simuliert und die Liga steht danach auf Woche 4. Weitere Smokes muessen entweder Woche 4 vorbereiten oder eine frische Testliga verwenden.
 
 ## Go / No-Go
 

@@ -56,6 +56,7 @@ Eigenschaften:
 - Verweigert nicht-Staging App-Hosting-URLs.
 - Akzeptiert `E2E_FIREBASE_ADMIN_ID_TOKEN`.
 - Alternativ REST Login ueber `STAGING_FIREBASE_TEST_EMAIL` und `STAGING_FIREBASE_TEST_PASSWORD`.
+- Falls weder Token noch Testlogin gesetzt sind, erzeugt das Script fuer `afbm-staging` selbst ein kurzlebiges Firebase ID Token ueber `gcloud iam service-accounts sign-jwt`.
 - Loggt keine Tokens oder Passwoerter.
 
 ### Code Fix
@@ -76,19 +77,18 @@ Fix:
 Authentifizierter Smoke:
 
 ```bash
-CONFIRM_STAGING_SMOKE=true \
-E2E_FIREBASE_ADMIN_ID_TOKEN=<kurzlebiges-firebase-id-token> \
-npm run staging:smoke:admin-week -- --league-id afbm-multiplayer-test-league
+CONFIRM_STAGING_SMOKE=true GOOGLE_CLOUD_PROJECT=afbm-staging npm run staging:smoke:admin-week -- --league-id afbm-multiplayer-test-league
 ```
 
 Ergebnis:
 
 ```text
-[staging-smoke] login/admin token ok; before currentWeek=2 users=2 teams=8 schedule=28
+[staging-smoke] tokenSource=IAM sign-jwt custom token
+[staging-smoke] league before simulation; currentWeek=3 users=2 teams=8 schedule=28
 [staging-smoke] ready-state ok; ready=2/2
 [staging-smoke] admin auth ok; leagues=2
-[staging-smoke] simulated league=afbm-multiplayer-test-league week=2 nextWeek=3 games=4
-[staging-smoke] reload ok; currentWeek=3 standings=8 results=8
+[staging-smoke] simulated league=afbm-multiplayer-test-league week=3 nextWeek=4 games=4
+[staging-smoke] reload ok; currentWeek=4 standings=8 results=12
 ```
 
 Membership-/Team-Verifikation:
@@ -109,12 +109,13 @@ Logs:
 | `npm run lint` | Gruen |
 | `npm run build` | Gruen |
 | `npm run test:firebase:parity` | Gruen nach Wiederholung ausserhalb der Sandbox |
+| `CONFIRM_STAGING_SMOKE=true GOOGLE_CLOUD_PROJECT=afbm-staging npm run staging:smoke:admin-week -- --league-id afbm-multiplayer-test-league` | Gruen; ohne manuelle Token-Kopie |
 
 ## Verbleibende Risiken
 
 1. Die Testliga ist eine 8-Team-Staging-Liga, waehrend der regulare Schedule-Generator fuer neue Online-Ligen aktuell 16 Teams erwartet.
-2. Der Smoke hat echte Staging-Daten mutiert: Woche 2 ist simuliert, aktuelle Woche ist danach 3.
-3. Fuer dauerhafte CI sollte ein dedizierter Staging-Test-Admin-User mit Secret-Management bevorzugt werden, damit kein lokales `signJwt` noetig ist.
+2. Der Smoke hat echte Staging-Daten mutiert: Woche 3 ist simuliert, aktuelle Woche ist danach 4.
+3. Fuer dauerhafte CI muss entweder die CI-Identitaet gezielt `roles/iam.serviceAccountTokenCreator` auf dem Staging-Service-Account bekommen oder ein dedizierter Staging-Test-Admin-User mit Secret-Management genutzt werden.
 
 ## Finale Entscheidung
 
