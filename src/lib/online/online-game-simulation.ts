@@ -172,7 +172,7 @@ export function simulateOnlineGame(
       season,
       simulatedAt,
       simulatedByUserId: options.simulatedByUserId ?? "admin",
-      simulationWarnings: warnings.length > 0 ? warnings : undefined,
+      simulationWarnings: warnings,
       status: "completed",
       tiebreakerApplied: simulated.tiebreakerApplied,
       week: game.week,

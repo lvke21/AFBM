@@ -116,6 +116,8 @@ describe("online game simulation", () => {
     });
     expect(simulated.result.homeScore).toBeGreaterThanOrEqual(0);
     expect(simulated.result.awayScore).toBeGreaterThanOrEqual(0);
+    expect(simulated.result.simulationWarnings).toEqual([]);
+    expect(JSON.stringify(simulated.result)).not.toContain("undefined");
     expect([simulated.result.homeTeamId, simulated.result.awayTeamId]).toContain(
       simulated.result.winnerTeamId,
     );
@@ -169,5 +171,35 @@ describe("online game simulation", () => {
       "Team zurich nutzt Rating-Fallback 70, weil kein aktives Online-Roster vorhanden ist.",
       "Team basel nutzt Rating-Fallback 70, weil kein aktives Online-Roster vorhanden ist.",
     ]);
+  });
+
+  it("keeps warning arrays serializable for Firestore writes", () => {
+    const normalGame = simulateOnlineGame(
+      {
+        awayTeamId: "basel",
+        homeTeamId: "zurich",
+        id: "serializable-game",
+        week: 1,
+      },
+      league(),
+    );
+    const fallbackGame = simulateOnlineGame(
+      {
+        awayTeamId: "basel",
+        homeTeamId: "zurich",
+        id: "serializable-fallback-game",
+        week: 1,
+      },
+      league({ users: [] }),
+    );
+
+    if (!normalGame.ok || !fallbackGame.ok) {
+      throw new Error("Expected serializable simulation fixtures to succeed.");
+    }
+
+    expect(normalGame.result.simulationWarnings).toEqual([]);
+    expect(fallbackGame.result.simulationWarnings).toHaveLength(2);
+    expect(Object.values(normalGame.result)).not.toContain(undefined);
+    expect(Object.values(fallbackGame.result)).not.toContain(undefined);
   });
 });
