@@ -875,6 +875,19 @@ export type OnlineLeagueScheduleMatch = {
   awayTeamName: string;
 };
 
+export type OnlineLeagueStandingRecord = {
+  gamesPlayed: number;
+  losses: number;
+  pointDifferential: number;
+  pointsAgainst: number;
+  pointsFor: number;
+  streak?: string;
+  teamId: string;
+  ties: number;
+  updatedAt?: string;
+  wins: number;
+};
+
 export type OnlineLeagueLogEntry = {
   id: string;
   message: string;
@@ -891,6 +904,7 @@ export type OnlineLeague = {
   schedule?: OnlineLeagueScheduleMatch[];
   matchResults?: OnlineMatchResult[];
   completedWeeks?: OnlineCompletedWeek[];
+  standings?: OnlineLeagueStandingRecord[];
   freeAgents?: OnlineContractPlayer[];
   tradeProposals?: TradeProposal[];
   tradeHistory?: TradeHistoryEntry[];

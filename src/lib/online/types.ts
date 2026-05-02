@@ -425,6 +425,7 @@ export function mapFirestoreSnapshotToOnlineLeague(
     }),
     matchResults: snapshot.league.matchResults ?? [],
     completedWeeks: snapshot.league.completedWeeks ?? [],
+    standings: snapshot.league.standings ?? [],
     lastSimulatedWeekKey: snapshot.league.lastSimulatedWeekKey,
     fantasyDraft: subcollectionDraft ?? mapFirestoreFantasyDraftState(snapshot.league.settings.fantasyDraft),
     fantasyDraftPlayerPool: subcollectionPlayerPool ?? mapFirestoreFantasyDraftPlayerPool(

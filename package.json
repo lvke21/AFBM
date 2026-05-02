@@ -43,6 +43,7 @@
     "firebase:staging:deploy:rules": "XDG_CONFIG_HOME=.local/firebase-config npx firebase-tools deploy --only firestore:rules -P staging",
     "firebase:staging:deploy:indexes": "XDG_CONFIG_HOME=.local/firebase-config npx firebase-tools deploy --only firestore:indexes -P staging",
     "firebase:set-admin": "node scripts/set-admin.js",
+    "staging:smoke:admin-week": "tsx scripts/staging-admin-week-smoke.ts",
     "firebase:staging:backfill": "FIRESTORE_PREVIEW_DRY_RUN=true FIRESTORE_PREVIEW_CONFIRM_WRITE=true tsx scripts/firestore-backfill.ts --append",
     "firebase:staging:compare": "FIRESTORE_PREVIEW_DRY_RUN=true tsx scripts/firestore-compare.ts",
     "firebase:seed-online-league": "CONFIRM_STAGING_SEED=true USE_FIRESTORE_EMULATOR=false tsx scripts/seed-online-league.ts",
