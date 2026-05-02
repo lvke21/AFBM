@@ -24,9 +24,7 @@ import {
 } from "@/lib/admin/online-week-simulation";
 import {
   applyOnlineRevenueSharing,
-  canCreateOnlineLeagueSchedule,
   authorizeOnlineGmRemoval,
-  createOnlineLeagueSchedule,
   createFantasyDraftPlayerPool,
   createInitialFantasyDraftState,
   createOnlineLeague,
@@ -34,13 +32,9 @@ import {
   fillOnlineLeagueWithFakeUsers,
   completeOnlineFantasyDraftIfReady,
   getOnlineLeagueById,
-  getOnlineLeagueWeekReadyState,
   getOnlineLeagues,
   makeOnlineFantasyDraftPick,
   markOnlineTeamVacant,
-  ONLINE_FANTASY_DRAFT_POSITIONS,
-  ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
-  ONLINE_MVP_TEAM_POOL,
   recordOnlineGmMissedWeek,
   removeOnlineGmByAdmin,
   removeOnlineLeagueUser,
@@ -55,12 +49,24 @@ import {
   startOnlineLeague,
   warnOnlineGm,
   addFakeUserToOnlineLeague,
-  type OnlineContractPlayer,
-  type OnlineFantasyDraftPick,
-  type OnlineFantasyDraftState,
-  type OnlineLeague,
-  type OnlineLeagueTeam,
 } from "@/lib/online/online-league-service";
+import { ONLINE_MVP_TEAM_POOL } from "@/lib/online/online-league-constants";
+import {
+  ONLINE_FANTASY_DRAFT_POSITIONS,
+  ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
+} from "@/lib/online/online-league-draft-service";
+import {
+  canCreateOnlineLeagueSchedule,
+  createOnlineLeagueSchedule,
+} from "@/lib/online/online-league-schedule";
+import type {
+  OnlineContractPlayer,
+  OnlineFantasyDraftPick,
+  OnlineFantasyDraftState,
+  OnlineLeague,
+  OnlineLeagueTeam,
+} from "@/lib/online/online-league-types";
+import { getOnlineLeagueWeekReadyState } from "@/lib/online/online-league-week-service";
 import {
   mapFirestoreSnapshotToOnlineLeague,
   mapLocalTeamToFirestoreTeam,

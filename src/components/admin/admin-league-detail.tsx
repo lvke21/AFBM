@@ -4,14 +4,18 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  getOnlineLeagueById,
+} from "@/lib/online/online-league-service";
+import type {
+  OnlineLeague,
+  OnlineMatchResult,
+} from "@/lib/online/online-league-types";
+import { getOnlineLeagueWeekReadyState } from "@/lib/online/online-league-week-service";
+import {
   buildOnlineLeagueTeamRecords,
   getCurrentWeekGames,
-  getOnlineLeagueById,
-  getOnlineLeagueWeekReadyState,
-  type OnlineLeague,
   type OnlineLeagueTeamRecord,
-  type OnlineMatchResult,
-} from "@/lib/online/online-league-service";
+} from "@/lib/online/online-league-week-simulation";
 import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
 import {
   applyLocalAdminBrowserState,
@@ -19,7 +23,17 @@ import {
   type LocalAdminBrowserStatePatch,
 } from "@/lib/admin/local-admin-browser-state";
 import { getFirebaseAdminActionHeaders } from "@/lib/admin/admin-api-client";
+import {
+  ADMIN_LEAGUE_ACTIONS,
+  type AdminSimpleLeagueActionConfig,
+} from "./admin-league-action-config";
 import { AdminFeedbackBanner } from "./admin-feedback-banner";
+import {
+  AdminLeagueDebugSnapshot,
+  AdminLeagueSummaryCards,
+  AdminLeagueWeekDataCards,
+  type AdminStandingDisplayRow,
+} from "./admin-league-detail-display";
 import { useAdminPendingAction } from "./use-admin-pending-action";
 
 function readyLabel(readyForWeek: boolean) {
@@ -179,17 +193,6 @@ function formatDateTime(value: string | null | undefined) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
-}
-
-function AdminDebugItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-      <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
-        {label}
-      </dt>
-      <dd className="mt-2 break-words font-mono text-sm text-slate-100">{value}</dd>
-    </div>
-  );
 }
 
 function averageAttendanceRate(user: OnlineLeague["users"][number]) {
@@ -416,59 +419,44 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
     actionId: string,
     action: () => Promise<AdminActionResponse>,
     successMessage: string,
-  ) {
+  ): Promise<AdminActionResponse | null> {
     if (!beginAdminAction(actionId)) {
-      return;
+      return null;
     }
 
     try {
       const result = await action();
       updateLeague(result.league ?? null, result.message || successMessage);
+      return result;
     } catch (error) {
       setFeedback(
         getAdminActionErrorMessage(error),
       );
       setFeedbackTone("warning");
+      return null;
     } finally {
       endAdminAction();
     }
   }
 
-  async function handleSetAllReady() {
-    await runAdminAction(
-      "set-all-ready",
-      () => requestAdminAction("setAllReady"),
-      "Alle Spieler wurden auf Ready gesetzt.",
+  async function handleConfiguredLeagueAction(config: AdminSimpleLeagueActionConfig) {
+    const result = await runAdminAction(
+      config.id,
+      () =>
+        config.id === "refresh-league" && !isFirebaseMode
+          ? Promise.resolve({
+              ok: true,
+              message: config.successMessage,
+              league: getOnlineLeagueById(leagueId),
+            })
+          : requestAdminAction(config.apiAction),
+      config.successMessage,
     );
-  }
 
-  async function handleRefreshLeague() {
-    if (!beginAdminAction("refresh-league")) {
-      return;
-    }
-
-    try {
-      const nextLeague = isFirebaseMode
-        ? (await requestAdminAction("getLeague")).league ?? null
-        : getOnlineLeagueById(leagueId);
-
-      updateLeague(nextLeague, "Liga wurde aktualisiert.");
-      setLoadError(nextLeague ? null : "Liga konnte nicht gefunden werden.");
+    if (config.id === "refresh-league" && result) {
+      setLoadError(result.league ? null : "Liga konnte nicht gefunden werden.");
       setLastLoadedAt(new Date().toISOString());
-    } catch (error) {
-      setFeedback(getAdminActionErrorMessage(error));
-      setFeedbackTone("warning");
-    } finally {
-      endAdminAction();
     }
-  }
-
-  async function handleStartLeague() {
-    await runAdminAction(
-      "start-league",
-      () => requestAdminAction("startLeague"),
-      "Liga wurde gestartet.",
-    );
   }
 
   function handleInitializeFantasyDraft() {
@@ -848,6 +836,10 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
           status: "scheduled",
         }));
   const standings = buildOnlineLeagueTeamRecords(league);
+  const standingRows: AdminStandingDisplayRow[] = standings.map((record) => ({
+    ...record,
+    teamName: getTeamNameByScheduleValue(league, record.teamId),
+  }));
   const recentSimulatedGames = (league.matchResults ?? [])
     .slice()
     .sort((left, right) => {
@@ -874,6 +866,35 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
     : null;
   const recentDraftPicks = (fantasyDraft?.picks ?? []).slice().reverse().slice(0, 12);
   const draftCanReset = process.env.NODE_ENV !== "production";
+  const debugItems = [
+    { label: "Backend-Modus", value: repository.mode },
+    { label: "Route League ID", value: leagueId },
+    { label: "Geladene League ID", value: league.id },
+    { label: "Zuletzt geladen", value: formatDateTime(lastLoadedAt) },
+    { label: "Status", value: league.status },
+    { label: "Week Status", value: league.weekStatus ?? "Unbekannt" },
+    {
+      label: "Season / Week",
+      value: `S${league.currentSeason ?? 1} W${league.currentWeek}`,
+    },
+    {
+      label: "Teilnehmer / Teams",
+      value: `${league.users.length}/${league.maxUsers} Teilnehmer, ${league.teams.length} Teams`,
+    },
+    {
+      label: "Ready-State",
+      value: `${readyState.readyCount}/${readyState.requiredCount}`,
+    },
+    {
+      label: "Draft Status",
+      value: fantasyDraft?.status ?? "nicht initialisiert",
+    },
+    { label: "Pending Action", value: pendingAction ?? "keine" },
+    {
+      label: "Mutating Actions",
+      value: "Admin API mit Bearer Token",
+    },
+  ];
 
   return (
     <section className="rounded-lg border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/30 sm:p-6">
@@ -899,58 +920,32 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
         </Link>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            Status
-          </p>
-          <p className="mt-2 text-lg font-semibold text-white">{statusLabel(league.status)}</p>
-          <p className="mt-2 text-xs font-semibold text-amber-100">{weekPhaseLabel}</p>
-        </div>
-        <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            Woche
-          </p>
-          <p className="mt-2 text-lg font-semibold text-white">Week {league.currentWeek}</p>
-          {lastCompletedWeek ? (
-            <p className="mt-2 text-xs font-semibold text-slate-400">
-              Zuletzt abgeschlossen: S{lastCompletedWeek.season} W{lastCompletedWeek.week}
-            </p>
-          ) : null}
-        </div>
-        <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            Spieler
-          </p>
-          <p className="mt-2 text-lg font-semibold text-white">
-            {league.users.length}/{league.maxUsers}
-          </p>
-        </div>
-        <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            Teams
-          </p>
-          <p className="mt-2 text-lg font-semibold text-white">{league.teams.length}</p>
-        </div>
-      </div>
+      <AdminLeagueSummaryCards
+        currentWeek={league.currentWeek}
+        lastCompletedWeek={lastCompletedWeek}
+        maxUsers={league.maxUsers}
+        statusText={statusLabel(league.status)}
+        teamCount={league.teams.length}
+        userCount={league.users.length}
+        weekPhaseLabel={weekPhaseLabel}
+      />
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <button
-          type="button"
-          disabled={league.users.length === 0 || pendingAction !== null}
-          onClick={handleSetAllReady}
-          className="rounded-lg border border-emerald-200/25 bg-emerald-300/10 px-4 py-3 text-sm font-semibold text-emerald-50 transition hover:bg-emerald-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-        >
-          {pendingAction === "set-all-ready" ? "Setzt Ready..." : "Alle Spieler auf Ready setzen"}
-        </button>
-        <button
-          type="button"
-          disabled={league.status === "active" || pendingAction !== null}
-          onClick={handleStartLeague}
-          className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-4 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-        >
-          {pendingAction === "start-league" ? "Startet..." : "Liga starten"}
-        </button>
+        {ADMIN_LEAGUE_ACTIONS.filter((action) => action.id !== "refresh-league").map(
+          (action) => (
+            <button
+              key={action.id}
+              type="button"
+              disabled={action.isDisabled({ league, pendingAction })}
+              onClick={() => {
+                void handleConfiguredLeagueAction(action);
+              }}
+              className={action.className}
+            >
+              {pendingAction === action.id ? action.pendingLabel : action.label}
+            </button>
+          ),
+        )}
         <button
           type="button"
           disabled={
@@ -963,14 +958,21 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
         >
           {pendingAction === "simulate-week" ? "Simulation läuft..." : "Woche simulieren"}
         </button>
-        <button
-          type="button"
-          disabled={pendingAction !== null}
-          onClick={handleRefreshLeague}
-          className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
-        >
-          {pendingAction === "refresh-league" ? "Lädt..." : "Daten neu laden"}
-        </button>
+        {ADMIN_LEAGUE_ACTIONS.filter((action) => action.id === "refresh-league").map(
+          (action) => (
+            <button
+              key={action.id}
+              type="button"
+              disabled={action.isDisabled({ league, pendingAction })}
+              onClick={() => {
+                void handleConfiguredLeagueAction(action);
+              }}
+              className={action.className}
+            >
+              {pendingAction === action.id ? action.pendingLabel : action.label}
+            </button>
+          ),
+        )}
         <button
           type="button"
           onClick={() => setDebugVisible((current) => !current)}
@@ -1119,139 +1121,17 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
           </div>
         ) : null}
 
-        <div className="mt-5 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-          <div className="rounded-lg border border-white/10 bg-[#07111d]/55 p-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  Games der aktuellen Woche
-                </p>
-                <h3 className="mt-2 text-lg font-semibold text-white">
-                  Week {league.currentWeek}
-                </h3>
-              </div>
-              <span className="w-fit rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200">
-                {displayedCurrentWeekGames.length} Games
-              </span>
-            </div>
-            <div className="mt-4 grid gap-2 lg:grid-cols-2">
-              {displayedCurrentWeekGames.length > 0 ? (
-                displayedCurrentWeekGames.map((game) => (
-                  <div
-                    key={game.id}
-                    className="rounded-lg border border-white/10 bg-white/5 px-3 py-2"
-                  >
-                    <p className="text-sm font-semibold text-white">
-                      {game.awayTeamName} @ {game.homeTeamName}
-                    </p>
-                    <p className="mt-1 font-mono text-xs text-slate-500">{game.id}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="rounded-lg border border-dashed border-amber-200/25 bg-amber-300/10 p-3 text-sm font-semibold text-amber-50 lg:col-span-2">
-                  Für die aktuelle Woche ist kein Schedule geladen.
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-white/10 bg-[#07111d]/55 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              Standings / Records
-            </p>
-            <div className="mt-4 space-y-2">
-              {standings.length > 0 ? (
-                standings.map((record) => (
-                  <div
-                    key={record.teamId}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2"
-                  >
-                    <span className="min-w-0 truncate text-sm font-semibold text-white">
-                      {getTeamNameByScheduleValue(league, record.teamId)}
-                    </span>
-                    <span className="shrink-0 font-mono text-xs text-slate-300">
-                      {record.wins}-{record.losses}
-                      {record.ties > 0 ? `-${record.ties}` : ""} · GP {record.gamesPlayed} ·
-                      {" "}DIFF {record.pointDifferential >= 0 ? "+" : ""}
-                      {record.pointDifferential}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <p className="rounded-lg border border-dashed border-white/15 p-3 text-sm text-slate-400">
-                  Noch keine Record-Daten vorhanden.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-5 rounded-lg border border-white/10 bg-[#07111d]/55 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            Bereits simulierte Games
-          </p>
-          <div className="mt-4 grid gap-2 lg:grid-cols-2">
-            {recentSimulatedGames.length > 0 ? (
-              recentSimulatedGames.map((result) => (
-                <p
-                  key={`${result.season}-${result.week}-${result.matchId}`}
-                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200"
-                >
-                  <span className="font-semibold text-white">
-                    S{result.season} W{result.week}
-                  </span>{" "}
-                  {result.homeTeamName} {result.homeScore} - {result.awayScore}{" "}
-                  {result.awayTeamName}
-                </p>
-              ))
-            ) : (
-              <p className="rounded-lg border border-dashed border-white/15 p-3 text-sm text-slate-400 lg:col-span-2">
-                Noch keine simulierten Games gespeichert.
-              </p>
-            )}
-          </div>
-        </div>
+        <AdminLeagueWeekDataCards
+          currentWeek={league.currentWeek}
+          games={displayedCurrentWeekGames}
+          recentSimulatedGames={recentSimulatedGames}
+          standings={standingRows}
+        />
       </section>
 
       <AdminFeedbackBanner message={feedback} tone={feedbackTone} />
 
-      {debugVisible ? (
-        <section className="mt-6 rounded-lg border border-violet-200/20 bg-violet-300/10 p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-200">
-            Debug-Informationen
-          </p>
-          <h2 className="mt-2 text-xl font-semibold text-white">Admin League Snapshot</h2>
-          <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <AdminDebugItem label="Backend-Modus" value={repository.mode} />
-            <AdminDebugItem label="Route League ID" value={leagueId} />
-            <AdminDebugItem label="Geladene League ID" value={league.id} />
-            <AdminDebugItem label="Zuletzt geladen" value={formatDateTime(lastLoadedAt)} />
-            <AdminDebugItem label="Status" value={league.status} />
-            <AdminDebugItem label="Week Status" value={league.weekStatus ?? "Unbekannt"} />
-            <AdminDebugItem
-              label="Season / Week"
-              value={`S${league.currentSeason ?? 1} W${league.currentWeek}`}
-            />
-            <AdminDebugItem
-              label="Teilnehmer / Teams"
-              value={`${league.users.length}/${league.maxUsers} Teilnehmer, ${league.teams.length} Teams`}
-            />
-            <AdminDebugItem
-              label="Ready-State"
-              value={`${readyState.readyCount}/${readyState.requiredCount}`}
-            />
-            <AdminDebugItem
-              label="Draft Status"
-              value={fantasyDraft?.status ?? "nicht initialisiert"}
-            />
-            <AdminDebugItem label="Pending Action" value={pendingAction ?? "keine"} />
-            <AdminDebugItem
-              label="Mutating Actions"
-              value="Admin API mit Bearer Token"
-            />
-          </dl>
-        </section>
-      ) : null}
+      {debugVisible ? <AdminLeagueDebugSnapshot items={debugItems} /> : null}
 
       <section className="mt-8 rounded-lg border border-fuchsia-200/20 bg-fuchsia-300/10 p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

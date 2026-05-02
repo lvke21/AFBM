@@ -252,7 +252,7 @@ export function LeagueStatusPanel({
   detailState: FoundOnlineLeagueDetailState;
 }) {
   return (
-    <section className="rounded-lg border border-white/10 bg-[#07111d]/70 p-5">
+    <section id="league" className="rounded-lg border border-white/10 bg-[#07111d]/70 p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">
         Nächste Partie
       </p>

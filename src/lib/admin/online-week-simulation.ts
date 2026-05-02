@@ -1,11 +1,13 @@
+import { simulateOnlineGame } from "@/lib/online/online-game-simulation";
+import type {
+  OnlineCompletedWeek,
+  OnlineLeague,
+  OnlineMatchResult,
+} from "@/lib/online/online-league-types";
 import {
   buildOnlineLeagueTeamRecords,
-  simulateOnlineGame,
-  type OnlineCompletedWeek,
-  type OnlineLeague,
   type OnlineLeagueTeamRecord,
-  type OnlineMatchResult,
-} from "@/lib/online/online-league-service";
+} from "@/lib/online/online-league-week-simulation";
 import {
   mapFirestoreSnapshotToOnlineLeague,
   type FirestoreOnlineDraftStateDoc,

@@ -16,6 +16,7 @@ import {
 import { getOnlineBackendMode } from "@/lib/online/online-league-repository-provider";
 import type { OnlineAuthenticatedUser } from "@/lib/online/types";
 import { SAVEGAMES_LOGIN_EVENT } from "./auth-required-actions";
+import { useFirebaseAdminAccess } from "./use-firebase-admin-access";
 
 type FirebaseEmailAuthPanelProps = {
   redirectAfterAuth?: string;
@@ -41,6 +42,7 @@ export function FirebaseEmailAuthPanel({
   const [feedback, setFeedback] = useState<string | null>(null);
   const [debugError, setDebugError] = useState<OnlineAuthErrorDetails | null>(null);
   const [pending, setPending] = useState(false);
+  const adminAccess = useFirebaseAdminAccess();
 
   useEffect(() => {
     if (onlineMode === "local") {
@@ -135,6 +137,8 @@ export function FirebaseEmailAuthPanel({
       setUser(null);
       setAuthState("anonymous");
       setFeedback("Du wurdest ausgeloggt.");
+      router.replace("/app/savegames");
+      router.refresh();
     } catch (error) {
       const details = logOnlineAuthError("logout", error);
 
@@ -186,7 +190,10 @@ export function FirebaseEmailAuthPanel({
         </p>
         <p className="mt-1 text-xs text-emerald-100/85">{user.email ?? "Firebase User"}</p>
         <p className="mt-2 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold">
-          Rolle: GM
+          Rolle: {adminAccess.isAdmin ? "Admin + GM" : "GM"}
+        </p>
+        <p className="mt-2 text-xs leading-5 text-emerald-100/85">
+          Online: verfügbar. Admin: {adminAccess.isAdmin ? "verfügbar" : "nicht verfügbar"}.
         </p>
         <button
           type="button"

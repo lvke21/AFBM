@@ -39,7 +39,6 @@ import type {
   SubmitWeeklyTrainingPlanInput,
   TrainingAffectedPlayer,
   TrainingOutcome,
-  TeamChemistryTier,
   TeamChemistryProfile,
   TeamChemistryHistoryEntry,
   PlayerContract,
@@ -65,6 +64,7 @@ import type {
   DraftOrder,
   DraftHistoryEntry,
   OnlineFantasyDraftPick,
+  OnlineFantasyDraftPickResult,
   OnlineFantasyDraftState,
   ContractActionResult,
   CreateTradeProposalInput,
@@ -77,7 +77,6 @@ import type {
   OnlineLeagueEvent,
   StadiumProfile,
   StadiumAttendance,
-  FanMoodTier,
   FanbaseProfile,
   FanPressureSnapshot,
   MerchandiseFinancials,
@@ -95,6 +94,9 @@ import type {
   OnlineLeagueStateRepairResult,
   SubmitWeeklyTrainingPlanResult,
 } from "./online-league-types";
+import {
+  calculateTeamChemistryGameplayModifier,
+} from "./online-league-metrics";
 import {
   GLOBAL_TEST_LEAGUE_ID,
   ONLINE_MVP_TEAM_POOL,
@@ -127,6 +129,11 @@ import {
   canCreateOnlineLeagueSchedule,
   createOnlineLeagueSchedule,
 } from "./online-league-schedule";
+import {
+  getCapSpace,
+  getStrategyContractBlockReason,
+  hasStrategyCapSpace,
+} from "./online-league-contract-queries";
 import { simulateOnlineGame } from "./online-game-simulation";
 import {
   clearStoredLastOnlineLeagueId,
@@ -150,6 +157,11 @@ export {
   type OnlineLeagueWeekReadyParticipant,
   type OnlineLeagueWeekReadyState,
 } from "./online-league-week-service";
+export {
+  calculateTeamChemistryGameplayModifier,
+  getFanMoodTier,
+  getTeamChemistryTier,
+} from "./online-league-metrics";
 export {
   buildOnlineLeagueTeamRecords,
   canSimulateWeek,
@@ -1068,32 +1080,6 @@ function createDefaultFanbaseProfile(
     rivalryIntensity: 35 + (seed % 61),
     updatedAt: now,
   };
-}
-
-export function getTeamChemistryTier(score: number): TeamChemistryTier {
-  const chemistry = clampScore(score);
-
-  if (chemistry >= 85) {
-    return "elite";
-  }
-  if (chemistry >= 70) {
-    return "connected";
-  }
-  if (chemistry >= 50) {
-    return "neutral";
-  }
-  if (chemistry >= 30) {
-    return "unstable";
-  }
-
-  return "fractured";
-}
-
-export function calculateTeamChemistryGameplayModifier(score: number) {
-  const normalized = clampScore(score);
-  const rawModifier = (normalized - 50) / 500;
-
-  return Math.round(Math.max(-0.08, Math.min(0.08, rawModifier)) * 1000) / 1000;
 }
 
 function createDefaultTeamChemistryProfile(
@@ -4169,25 +4155,6 @@ export function startOnlineFantasyDraft(
   );
 }
 
-export type OnlineFantasyDraftPickResult =
-  | {
-      status: "success" | "completed";
-      league: OnlineLeague;
-      pick: OnlineFantasyDraftPick;
-      message: string;
-    }
-  | {
-      status:
-        | "missing-league"
-        | "missing-user"
-        | "draft-not-active"
-        | "wrong-team"
-        | "player-unavailable"
-        | "blocked";
-      league: OnlineLeague | null;
-      message: string;
-    };
-
 export function makeOnlineFantasyDraftPick(
   leagueId: string,
   teamId: string,
@@ -4645,31 +4612,6 @@ function calculateJobSecurityInactivityPenalty(
     activity.missedWeeklyActions >= rules.removalEligibleAfterMissedWeeks ? 4 : 0;
 
   return -Math.min(30, missedWeekPenalty + lineupPenalty + statusPenalty + rulesPressure);
-}
-
-export function getFanMoodTier(fanMood: number): FanMoodTier {
-  const mood = clampScore(fanMood);
-
-  if (mood >= 90) {
-    return "ecstatic";
-  }
-  if (mood >= 75) {
-    return "excited";
-  }
-  if (mood >= 60) {
-    return "positive";
-  }
-  if (mood >= 45) {
-    return "neutral";
-  }
-  if (mood >= 30) {
-    return "frustrated";
-  }
-  if (mood >= 15) {
-    return "angry";
-  }
-
-  return "hostile";
 }
 
 function getPlayerSatisfactionDeltaFromChemistry(
@@ -5506,44 +5448,6 @@ export function applyOnlineRevenueSharing(
   );
 
   return saveOnlineLeague(nextLeague, storage);
-}
-
-function getCapSpace(cap: SalaryCap) {
-  return cap.availableCap;
-}
-
-function getStrategyCapLimit(cap: SalaryCap, strategy: FranchiseStrategyProfile) {
-  return strategy.strategyType === "win_now" && strategy.financialRiskTolerance >= 80
-    ? cap.softBufferLimit
-    : cap.capLimit;
-}
-
-function hasStrategyCapSpace(cap: SalaryCap, strategy: FranchiseStrategyProfile) {
-  return cap.currentCapUsage <= getStrategyCapLimit(cap, strategy);
-}
-
-function getStrategyContractBlockReason(
-  strategy: FranchiseStrategyProfile,
-  player: OnlineContractPlayer,
-  contract: PlayerContract,
-) {
-  if (
-    strategy.strategyType === "rebuild" &&
-    (contract.contractType === "star" || player.age >= 30) &&
-    player.potential < 95
-  ) {
-    return "Signing blockiert: Rebuild-Strategie priorisiert junge Assets statt teurer Kurzzeitlösungen.";
-  }
-
-  if (
-    strategy.strategyType === "youth_focus" &&
-    (player.age > 27 || contract.contractType === "star") &&
-    player.potential < 95
-  ) {
-    return "Signing blockiert: Youth Focus erlaubt nur junge Kernspieler oder außergewöhnliches Potenzial.";
-  }
-
-  return null;
 }
 
 function getXFactorTriggerResult(

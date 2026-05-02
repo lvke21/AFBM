@@ -214,13 +214,15 @@ test.describe("Multiplayer E2E Smoke", () => {
       waitUntil: "domcontentloaded",
     });
     await expect(
-      page.getByText("Liga konnte nicht gefunden werden."),
+      page.getByRole("heading", {
+        level: 1,
+        name: "Online-Liga konnte nicht geladen werden.",
+      }),
     ).toBeVisible();
     await expect(
-      page.getByText(
-        "Die angeforderte lokale Testliga existiert auf diesem Gerät nicht oder wurde zurückgesetzt.",
-      ),
+      page.getByText("Die Online-Liga ist fuer diesen Account nicht erreichbar."),
     ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Liga neu suchen" })).toBeVisible();
 
     await page.evaluate(() => {
       localStorage.setItem("afbm.online.leagues", "{broken-json");
@@ -244,12 +246,17 @@ test.describe("Multiplayer E2E Smoke", () => {
     const readyButton = page.getByRole("button", { name: /^Bereit für Week 1$/ });
     await readyButton.dispatchEvent("click");
     await expect(page.getByText("Du bist bereit für Week 1.").first()).toBeVisible();
-    await expect(page.getByRole("button", { name: /Du bist bereit für Week 1/ })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Ready zurücknehmen" })).toBeVisible();
   });
 
   test("Admin Flow simuliert eine ready Week und zeigt Ergebnisse nach Reload", async ({
     page,
   }) => {
+    test.skip(
+      !E2E_FIREBASE_ADMIN_ID_TOKEN,
+      "Admin API E2E requires E2E_FIREBASE_ADMIN_ID_TOKEN for the server-side Firebase Admin guard.",
+    );
+
     const created = await runLocalAdminAction(page, "createLeague", {
       name: "E2E Week Closeout",
       maxUsers: 2,

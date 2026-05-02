@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  getOnlineLeagues,
-  type OnlineLeague,
-} from "@/lib/online/online-league-service";
+import { getOnlineLeagues } from "@/lib/online/online-league-service";
+import type { OnlineLeague } from "@/lib/online/online-league-types";
 import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
 import {
   applyLocalAdminBrowserState,

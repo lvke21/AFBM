@@ -10,8 +10,8 @@ import type {
   OnlineMatchResult,
   OnlineLeagueScheduleMatch,
   OnlineLeagueTeam,
-  OnlineLeagueTeamRecord,
-} from "./online-league-service";
+} from "./online-league-types";
+import type { OnlineLeagueTeamRecord } from "./online-league-week-simulation";
 import type { OnlineUser } from "./online-user-service";
 import type { TeamIdentitySelection } from "./team-identity-options";
 
@@ -398,6 +398,8 @@ export function mapFirestoreSnapshotToOnlineLeague(
       id: team.id,
       name: team.displayName,
       abbreviation: team.displayName.slice(0, 3).toUpperCase(),
+      assignedUserId: team.assignedUserId ?? null,
+      assignmentStatus: team.status,
     })),
     schedule: snapshot.league.schedule ?? [],
     users: snapshot.memberships

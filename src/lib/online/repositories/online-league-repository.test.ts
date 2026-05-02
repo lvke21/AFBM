@@ -4,11 +4,12 @@ import {
   ONLINE_USERNAME_STORAGE_KEY,
   ONLINE_USER_ID_STORAGE_KEY,
 } from "../online-user-service";
-import type { OnlineContractPlayer } from "../online-league-service";
+import type { OnlineContractPlayer } from "../online-league-types";
 import type { TeamIdentitySelection } from "../team-identity-options";
 import { assertActiveMembership, assertLeagueAdmin } from "../security/roles";
 import {
   mapFirestoreSnapshotToOnlineLeague,
+  type FirestoreLeagueMemberMirrorDoc,
   type FirestoreOnlineLeagueSnapshot,
   type FirestoreOnlineMembershipDoc,
   type FirestoreOnlineTeamDoc,
@@ -16,6 +17,7 @@ import {
 import {
   canLoadOnlineLeagueFromMembership,
   chooseFirstAvailableFirestoreTeam,
+  resolveFirestoreMembershipForUser,
 } from "./firebase-online-league-repository";
 import { LocalOnlineLeagueRepository } from "./local-online-league-repository";
 
@@ -111,6 +113,23 @@ function firestoreMembership(
     lastSeenAt: "2026-05-01T09:00:00.000Z",
     ready: false,
     status: "active",
+    ...overrides,
+  };
+}
+
+function firestoreLeagueMemberMirror(
+  overrides: Partial<FirestoreLeagueMemberMirrorDoc> = {},
+): FirestoreLeagueMemberMirrorDoc {
+  return {
+    id: "league-alpha_firebase-user",
+    leagueId: "league-alpha",
+    leagueSlug: "league-alpha",
+    userId: "firebase-user",
+    role: "GM",
+    status: "ACTIVE",
+    teamId: "team-a",
+    createdAt: "2026-05-01T09:00:00.000Z",
+    updatedAt: "2026-05-01T09:00:00.000Z",
     ...overrides,
   };
 }
@@ -254,6 +273,11 @@ describe("online league repository backbone", () => {
       userId: "gm-a",
       teamDisplayName: "Berlin Wolves",
       readyForWeek: true,
+    });
+    expect(league.teams[0]).toMatchObject({
+      id: "berlin-wolves",
+      assignedUserId: "gm-a",
+      assignmentStatus: "assigned",
     });
   });
 
@@ -442,12 +466,72 @@ describe("online league repository backbone", () => {
     ).toBe(false);
     expect(
       canLoadOnlineLeagueFromMembership(
+        firestoreMembership({ teamId: "team-a" }),
+        [firestoreTeam("team-a", { assignedUserId: "firebase-user", status: "ai" })],
+      ),
+    ).toBe(true);
+    expect(
+      canLoadOnlineLeagueFromMembership(
         firestoreMembership({ userId: "outsider", teamId: "team-a" }),
         teams,
       ),
     ).toBe(false);
     expect(canLoadOnlineLeagueFromMembership(firestoreMembership({ role: "admin", teamId: "" }), [])).toBe(true);
     expect(canLoadOnlineLeagueFromMembership(null, teams)).toBe(false);
+  });
+
+  it("reconstructs a readable GM membership from the global mirror and assigned team", () => {
+    const user = {
+      userId: "firebase-user",
+      username: "Solothurn GM",
+      displayName: "Solothurn GM",
+    };
+    const teams = [
+      firestoreTeam("solothurn-guardians", {
+        assignedUserId: "firebase-user",
+        status: "assigned",
+      }),
+    ];
+    const membership = resolveFirestoreMembershipForUser(
+      null,
+      firestoreLeagueMemberMirror({
+        id: "afbm-multiplayer-test-league_firebase-user",
+        leagueId: "afbm-multiplayer-test-league",
+        teamId: "solothurn-guardians",
+      }),
+      teams,
+      user,
+    );
+
+    expect(membership).toMatchObject({
+      userId: "firebase-user",
+      teamId: "solothurn-guardians",
+      role: "gm",
+      status: "active",
+    });
+  });
+
+  it("does not repair a mirror when the assigned team belongs to another user", () => {
+    const user = {
+      userId: "firebase-user",
+      username: "Firebase User",
+      displayName: "Firebase User",
+    };
+    const teams = [
+      firestoreTeam("team-a", {
+        assignedUserId: "other-user",
+        status: "assigned",
+      }),
+    ];
+
+    expect(
+      resolveFirestoreMembershipForUser(
+        null,
+        firestoreLeagueMemberMirror(),
+        teams,
+        user,
+      ),
+    ).toBeNull();
   });
 
   it("chooses the first free Firestore team and skips assigned teams", () => {

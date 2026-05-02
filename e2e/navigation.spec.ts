@@ -51,7 +51,7 @@ const navigationTargets: NavigationTarget[] = [
   {
     label: "Trade Board",
     urlPattern: new RegExp(`/app/savegames/${SAVEGAME_ROUTE}/team/trades(?:\\?.*)?$`),
-    heading: "Trade Board",
+    heading: "Team Trade Board",
     visibleText: "Trade Vorbereitung",
   },
 ];
@@ -77,7 +77,9 @@ async function openNavigationTarget(page: Page, target: NavigationTarget) {
     timeout: E2E_NAVIGATION_TIMEOUT_MS,
     waitUntil: "domcontentloaded",
   });
-  await expect(page.getByRole("heading", { name: target.heading, exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 1, name: target.heading, exact: true }),
+  ).toBeVisible();
   await expect(page.getByText(target.visibleText).first()).toBeVisible();
   await expect(navigation.getByRole("link", { name: target.label, exact: true })).toHaveAttribute(
     "aria-current",

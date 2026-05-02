@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
 import type { AppShellContext } from "@/components/layout/navigation-model";
 import type { OnlineLeague } from "@/lib/online/online-league-types";
-import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
-import type { OnlineUser } from "@/lib/online/online-user-service";
+
+import {
+  OnlineLeagueRouteStateProvider,
+  useOnlineLeagueRouteStateValue,
+} from "./online-league-route-state";
 
 function hasPlayableRoster(user: OnlineLeague["users"][number] | undefined) {
   const activeRosterCount =
@@ -26,9 +29,8 @@ export function OnlineLeagueAppShell({
   leagueId: string;
   children: ReactNode;
 }) {
-  const repository = useMemo(() => getOnlineLeagueRepository(), []);
-  const [league, setLeague] = useState<OnlineLeague | null>(null);
-  const [currentUser, setCurrentUser] = useState<OnlineUser | null>(null);
+  const routeState = useOnlineLeagueRouteStateValue(leagueId);
+  const { league, currentUser } = routeState;
   const baseHref = `/online/league/${leagueId}`;
   const currentLeagueUser = league?.users.find((user) => user.userId === currentUser?.userId);
   const draftStatus = getDraftStatus(league);
@@ -66,52 +68,9 @@ export function OnlineLeagueAppShell({
     },
   };
 
-  useEffect(() => {
-    let active = true;
-    let unsubscribe = () => {
-      // no active subscription yet
-    };
-
-    repository
-      .getCurrentUser()
-      .then(async (user) => {
-        if (!active) {
-          return;
-        }
-
-        setCurrentUser(user);
-        setLeague(await repository.getLeagueById(leagueId));
-
-        if (!active) {
-          return;
-        }
-
-        unsubscribe = repository.subscribeToLeague(
-          leagueId,
-          (nextLeague) => {
-            if (active) {
-              setLeague(nextLeague);
-            }
-          },
-          () => {
-            if (active) {
-              setLeague(null);
-            }
-          },
-        );
-      })
-      .catch(() => {
-        if (active) {
-          setCurrentUser(null);
-          setLeague(null);
-        }
-      });
-
-    return () => {
-      active = false;
-      unsubscribe();
-    };
-  }, [leagueId, repository]);
-
-  return <AppShell context={context}>{children}</AppShell>;
+  return (
+    <OnlineLeagueRouteStateProvider value={routeState}>
+      <AppShell context={context}>{children}</AppShell>
+    </OnlineLeagueRouteStateProvider>
+  );
 }

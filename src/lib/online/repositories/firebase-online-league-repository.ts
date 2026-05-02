@@ -277,11 +277,11 @@ function getMembershipLoadProblem(
     return "missing-membership";
   }
 
-  if (membership.status !== "active") {
+  if (!isActiveMembershipStatus(membership.status)) {
     return `inactive-membership:${membership.status}`;
   }
 
-  if (membership.role === "admin") {
+  if (isAdminMembershipRole(membership.role)) {
     return null;
   }
 
@@ -299,11 +299,76 @@ function getMembershipLoadProblem(
     return `team-user-mismatch:${team.id}`;
   }
 
-  if (team.status !== "assigned") {
+  if (team.status === "available" || team.status === "vacant") {
     return `team-not-assigned:${team.status}`;
   }
 
   return null;
+}
+
+function isActiveMembershipStatus(status: unknown) {
+  return status === "active" || status === "ACTIVE";
+}
+
+function isAdminMembershipRole(role: unknown) {
+  return role === "admin" || role === "ADMIN";
+}
+
+function isActiveMirror(mirror: FirestoreLeagueMemberMirrorDoc | null) {
+  return mirror?.status === "ACTIVE" && Boolean(mirror.teamId);
+}
+
+function createMembershipFromMirror(
+  mirror: FirestoreLeagueMemberMirrorDoc,
+  user: { userId: string; username: string; displayName: string },
+): FirestoreOnlineMembershipDoc {
+  const createdAt = mirror.createdAt || nowIso();
+  const role = mirror.role === "ADMIN" || mirror.role === "OWNER" ? "admin" : "gm";
+
+  return {
+    userId: mirror.userId || mirror.uid || user.userId,
+    username: user.username,
+    role,
+    teamId: mirror.teamId,
+    joinedAt: createdAt,
+    lastSeenAt: mirror.updatedAt || createdAt,
+    ready: false,
+    status: "active",
+    displayName: user.displayName,
+  };
+}
+
+export function resolveFirestoreMembershipForUser(
+  membership: FirestoreOnlineMembershipDoc | null,
+  mirror: FirestoreLeagueMemberMirrorDoc | null,
+  teams: FirestoreOnlineTeamDoc[],
+  user: { userId: string; username: string; displayName: string },
+) {
+  if (membership && getMembershipLoadProblem(membership, teams) === null) {
+    return membership;
+  }
+
+  if (!mirror || !isActiveMirror(mirror)) {
+    return null;
+  }
+
+  const mirrorUserId = mirror.userId || mirror.uid;
+
+  if (mirrorUserId !== user.userId) {
+    return null;
+  }
+
+  const mirrorTeam = teams.find((team) => team.id === mirror.teamId);
+
+  if (!mirrorTeam || mirrorTeam.assignedUserId !== user.userId) {
+    return null;
+  }
+
+  const fallbackMembership = createMembershipFromMirror(mirror, user);
+
+  return getMembershipLoadProblem(fallbackMembership, teams) === null
+    ? fallbackMembership
+    : null;
 }
 
 export function canLoadOnlineLeagueFromMembership(
@@ -407,20 +472,23 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
     };
   }
 
-  private async getMemberScopedSnapshot(leagueId: string, userId: string) {
+  private async getMemberScopedSnapshot(
+    leagueId: string,
+    user: { userId: string; username: string; displayName: string },
+  ) {
     const [leagueSnapshot, membershipSnapshot, mirrorSnapshot] = await Promise.all([
       getDoc(this.leagueRef(leagueId)),
-      getDoc(this.membershipRef(leagueId, userId)),
-      getDoc(this.leagueMemberRef(leagueId, userId)),
+      getDoc(this.membershipRef(leagueId, user.userId)),
+      getDoc(this.leagueMemberRef(leagueId, user.userId)),
     ]);
     const league = readDocData<FirestoreOnlineLeagueDoc>(leagueSnapshot);
     const membership = readDocData<FirestoreOnlineMembershipDoc>(membershipSnapshot);
     const mirror = readDocData<FirestoreLeagueMemberMirrorDoc>(mirrorSnapshot);
 
-    if (!league || !membership) {
+    if (!league) {
       console.warn("[online-league] member-scoped load failed", {
         leagueId,
-        userId,
+        userId: user.userId,
         hasLeague: Boolean(league),
         hasMembership: Boolean(membership),
         hasLeagueMemberMirror: Boolean(mirror),
@@ -432,24 +500,53 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
 
     const teamsSnapshot = await getDocs(this.teamsRef(leagueId));
     const teams = teamsSnapshot.docs.map((team) => team.data() as FirestoreOnlineTeamDoc);
-    const membershipProblem = getMembershipLoadProblem(membership, teams);
+    const resolvedMembership = resolveFirestoreMembershipForUser(membership, mirror, teams, user);
+    const membershipProblem = resolvedMembership
+      ? null
+      : getMembershipLoadProblem(membership, teams);
 
     if (membershipProblem) {
       console.warn("[online-league] membership/team connection invalid", {
         leagueId,
-        userId,
+        userId: user.userId,
         reason: membershipProblem,
-        membershipTeamId: membership.teamId,
-        membershipStatus: membership.status,
-        membershipRole: membership.role,
+        membershipTeamId: membership?.teamId,
+        membershipStatus: membership?.status,
+        membershipRole: membership?.role,
         mirrorTeamId: mirror?.teamId,
         mirrorStatus: mirror?.status,
-        team: teams.find((team) => team.id === membership.teamId) ?? null,
+        team: teams.find((team) => team.id === membership?.teamId) ?? null,
       });
       return null;
     }
 
-    return this.getSnapshot(leagueId);
+    if (resolvedMembership && resolvedMembership !== membership) {
+      return {
+        league,
+        memberships: [resolvedMembership],
+        teams,
+        events: [],
+      };
+    }
+
+    const snapshot = await this.getSnapshot(leagueId);
+
+    if (!snapshot) {
+      return null;
+    }
+
+    const memberships = snapshot.memberships.some(
+      (candidate) => candidate.userId === resolvedMembership?.userId,
+    )
+      ? snapshot.memberships
+      : resolvedMembership
+        ? [...snapshot.memberships, resolvedMembership]
+        : snapshot.memberships;
+
+    return {
+      ...snapshot,
+      memberships,
+    };
   }
 
   private async mapLeague(leagueId: string): Promise<OnlineLeague | null> {
@@ -458,8 +555,11 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
     return snapshot ? mapFirestoreSnapshotToOnlineLeague(snapshot) : null;
   }
 
-  private async mapMemberScopedLeague(leagueId: string, userId: string): Promise<OnlineLeague | null> {
-    const snapshot = await this.getMemberScopedSnapshot(leagueId, userId);
+  private async mapMemberScopedLeague(
+    leagueId: string,
+    user: { userId: string; username: string; displayName: string },
+  ): Promise<OnlineLeague | null> {
+    const snapshot = await this.getMemberScopedSnapshot(leagueId, user);
 
     return snapshot ? mapFirestoreSnapshotToOnlineLeague(snapshot) : null;
   }
@@ -493,6 +593,96 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
     return mapFirestoreSnapshotToOnlineLeague(snapshot);
   }
 
+  private async getJoinedLeagueIdsForUser(userId: string) {
+    const snapshot = await getDocs(
+      query(
+        collection(this.db, "leagueMembers"),
+        where("userId", "==", userId),
+        where("status", "==", "ACTIVE"),
+      ),
+    );
+
+    return snapshot.docs
+      .map((membership) => (membership.data() as FirestoreLeagueMemberMirrorDoc).leagueId)
+      .filter((leagueId): leagueId is string => isSafeOnlineSyncId(leagueId));
+  }
+
+  private async mapSearchLeagues(
+    lobbyDocs: Array<{ id: string; data(): unknown }>,
+    joinedLeagueIds: string[],
+  ) {
+    const leaguesById = new Map<string, OnlineLeague>();
+
+    await Promise.all(
+      lobbyDocs.map(async (leagueDoc) => {
+        const league = await this.mapPublicLobbyLeague(
+          leagueDoc.id,
+          leagueDoc.data() as FirestoreOnlineLeagueDoc,
+        );
+
+        leaguesById.set(league.id, league);
+      }),
+    );
+
+    await Promise.all(
+      joinedLeagueIds.map(async (leagueId) => {
+        if (leaguesById.has(leagueId)) {
+          return;
+        }
+
+        const snapshot = await getDoc(this.leagueRef(leagueId));
+        const league = readDocData<FirestoreOnlineLeagueDoc>(snapshot);
+
+        if (!league || league.settings.onlineBackbone !== true) {
+          return;
+        }
+
+        leaguesById.set(leagueId, await this.mapPublicLobbyLeague(leagueId, league));
+      }),
+    );
+
+    return Array.from(leaguesById.values()).sort((left, right) =>
+      left.name.localeCompare(right.name),
+    );
+  }
+
+  private subscribeToLeagueCoreDocs(
+    leagueId: string,
+    onChange: () => void,
+    onError?: (error: Error) => void,
+  ): OnlineLeagueRepositoryUnsubscribe[] {
+    return [
+      onSnapshot(this.leagueRef(leagueId), onChange, (error) => onError?.(error)),
+      onSnapshot(
+        collection(this.db, "leagues", leagueId, "memberships"),
+        onChange,
+        (error) => onError?.(error),
+      ),
+      onSnapshot(this.teamsRef(leagueId), onChange, (error) => onError?.(error)),
+      onSnapshot(
+        query(this.eventsRef(leagueId), orderBy("createdAt", "desc"), limit(20)),
+        onChange,
+        (error) => onError?.(error),
+      ),
+    ];
+  }
+
+  private subscribeToLeagueDraftDocs(
+    leagueId: string,
+    onChange: () => void,
+    onError?: (error: Error) => void,
+  ): OnlineLeagueRepositoryUnsubscribe[] {
+    return [
+      onSnapshot(this.draftRef(leagueId), onChange, (error) => onError?.(error)),
+      onSnapshot(this.draftPicksRef(leagueId), onChange, (error) => onError?.(error)),
+      onSnapshot(
+        this.draftAvailablePlayersRef(leagueId),
+        onChange,
+        (error) => onError?.(error),
+      ),
+    ];
+  }
+
   async getCurrentUser() {
     return getCurrentAuthenticatedOnlineUser("firebase");
   }
@@ -504,6 +694,7 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
   }
 
   async getAvailableLeagues() {
+    const user = await this.getCurrentUser();
     const snapshot = await getDocs(
       query(
         collection(this.db, "leagues"),
@@ -511,16 +702,9 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
         where("settings.onlineBackbone", "==", true),
       ),
     );
-    const leagues = await Promise.all(
-      snapshot.docs.map((league) =>
-        this.mapPublicLobbyLeague(
-          league.id,
-          league.data() as FirestoreOnlineLeagueDoc,
-        ),
-      ),
-    );
+    const joinedLeagueIds = await this.getJoinedLeagueIdsForUser(user.userId);
 
-    return leagues;
+    return this.mapSearchLeagues(snapshot.docs, joinedLeagueIds);
   }
 
   async getLeagueById(leagueId: string) {
@@ -530,7 +714,7 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
 
     const user = await this.getCurrentUser();
 
-    return this.mapMemberScopedLeague(leagueId, user.userId);
+    return this.mapMemberScopedLeague(leagueId, user);
   }
 
   async joinLeague(
@@ -566,8 +750,32 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
 
       const membershipSnapshot = await transaction.get(this.membershipRef(leagueId, user.userId));
       const existingMembership = readDocData<FirestoreOnlineMembershipDoc>(membershipSnapshot);
+      const mirrorSnapshot = await transaction.get(this.leagueMemberRef(leagueId, user.userId));
+      const existingMirror = readDocData<FirestoreLeagueMemberMirrorDoc>(mirrorSnapshot);
+      const teamRefs = publicTeams.map((team) => this.teamRef(leagueId, team.id));
+      const teamSnapshots = await Promise.all(
+        teamRefs.map((teamRef) => transaction.get(teamRef)),
+      );
+      const createdAt = nowIso();
+      const teams = publicTeams.map((team, index) => {
+        const existingTeam = readDocData<FirestoreOnlineTeamDoc>(
+          teamSnapshots[index] ?? null,
+        );
 
-      if (existingMembership?.status === "active" && existingMembership.teamId) {
+        return existingTeam ?? {
+          ...team,
+          createdAt: team.createdAt ?? createdAt,
+          updatedAt: team.updatedAt ?? createdAt,
+        };
+      });
+      const existingResolvedMembership = resolveFirestoreMembershipForUser(
+        existingMembership,
+        existingMirror,
+        teams,
+        user,
+      );
+
+      if (existingResolvedMembership) {
         return {
           status: "already-member" as const,
           leagueId,
@@ -578,7 +786,8 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
         return {
           status: "missing-league" as const,
           leagueId,
-          message: "Diese Liga ist nicht mehr in der Lobby.",
+          message:
+            "Du bist mit dieser Liga nicht als aktiver GM verbunden. Suche eine Lobby-Liga oder kontaktiere einen Admin.",
         };
       }
 
@@ -601,7 +810,7 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
         };
       }
 
-      const teamPool = publicTeams.slice(0, league.maxTeams);
+      const teamPool = teams.slice(0, league.maxTeams);
 
       if (teamPool.length === 0) {
         return {
@@ -609,23 +818,6 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
           leagueId,
         };
       }
-
-      const teamRefs = teamPool.map((team) => this.teamRef(leagueId, team.id));
-      const teamSnapshots = await Promise.all(
-        teamRefs.map((teamRef) => transaction.get(teamRef)),
-      );
-      const createdAt = nowIso();
-      const teams = teamPool.map((team, index) => {
-        const existingTeam = readDocData<FirestoreOnlineTeamDoc>(
-          teamSnapshots[index] ?? null,
-        );
-
-        return existingTeam ?? {
-          ...team,
-          createdAt: team.createdAt ?? createdAt,
-          updatedAt: team.updatedAt ?? createdAt,
-        };
-      });
 
       const identityTaken =
         teams.some(
@@ -642,7 +834,7 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
         };
       }
 
-      const availableTeam = chooseFirstAvailableFirestoreTeam(teams);
+      const availableTeam = chooseFirstAvailableFirestoreTeam(teamPool);
 
       if (!availableTeam) {
         return {
@@ -672,7 +864,7 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
       const membership: FirestoreOnlineMembershipDoc = {
         userId: user.userId,
         username: user.username,
-        role: existingMembership?.role === "admin" ? "admin" : "gm",
+        role: isAdminMembershipRole(existingMembership?.role) ? "admin" : "gm",
         teamId: nextTeam.id,
         joinedAt: existingMembership?.joinedAt ?? createdAt,
         lastSeenAt: createdAt,
@@ -719,7 +911,7 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
       };
     });
     const league =
-      (await this.mapMemberScopedLeague(leagueId, user.userId)) ??
+      (await this.mapMemberScopedLeague(leagueId, user)) ??
       createUnavailableOnlineLeague(leagueId);
 
     if (joinedLeague.status === "joined" || joinedLeague.status === "already-member") {
@@ -1079,21 +1271,8 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
     );
     const emit = () => emitter.emit(() => this.mapLeague(leagueId));
     const unsubscribers = [
-      onSnapshot(this.leagueRef(leagueId), emit, (error) => onError?.(error)),
-      onSnapshot(
-        collection(this.db, "leagues", leagueId, "memberships"),
-        emit,
-        (error) => onError?.(error),
-      ),
-      onSnapshot(this.teamsRef(leagueId), emit, (error) => onError?.(error)),
-      onSnapshot(this.draftRef(leagueId), emit, (error) => onError?.(error)),
-      onSnapshot(this.draftPicksRef(leagueId), emit, (error) => onError?.(error)),
-      onSnapshot(this.draftAvailablePlayersRef(leagueId), emit, (error) => onError?.(error)),
-      onSnapshot(
-        query(this.eventsRef(leagueId), orderBy("createdAt", "desc"), limit(20)),
-        emit,
-        (error) => onError?.(error),
-      ),
+      ...this.subscribeToLeagueCoreDocs(leagueId, emit, onError),
+      ...this.subscribeToLeagueDraftDocs(leagueId, emit, onError),
     ];
 
     return () => {
@@ -1111,29 +1290,59 @@ export class FirebaseOnlineLeagueRepository implements OnlineLeagueRepository {
       onError,
       "Verfuegbare Online-Ligen konnten nicht synchronisiert werden.",
     );
-    const unsubscribe = onSnapshot(
+    let lobbyDocs: Array<{ id: string; data(): unknown }> = [];
+    let joinedLeagueIds: string[] = [];
+    let active = true;
+    const emit = () => {
+      emitter.emit(() => this.mapSearchLeagues(lobbyDocs, joinedLeagueIds));
+    };
+    const unsubscribers: OnlineLeagueRepositoryUnsubscribe[] = [];
+    const unsubscribeLobby = onSnapshot(
       query(
         collection(this.db, "leagues"),
         where("status", "==", "lobby"),
         where("settings.onlineBackbone", "==", true),
       ),
-      (snapshot) =>
-        emitter.emit(() =>
-          Promise.all(
-            snapshot.docs.map((league) =>
-              this.mapPublicLobbyLeague(
-                league.id,
-                league.data() as FirestoreOnlineLeagueDoc,
-              ),
-            ),
-          ),
-        ),
+      (snapshot) => {
+        lobbyDocs = snapshot.docs;
+        emit();
+      },
       (error) => onError?.(error),
     );
+    unsubscribers.push(unsubscribeLobby);
+
+    this.getCurrentUser()
+      .then((user) => {
+        if (!active) {
+          return;
+        }
+
+        const unsubscribeMemberships = onSnapshot(
+          query(
+            collection(this.db, "leagueMembers"),
+            where("userId", "==", user.userId),
+            where("status", "==", "ACTIVE"),
+          ),
+          (snapshot) => {
+            joinedLeagueIds = snapshot.docs
+              .map((membership) => (membership.data() as FirestoreLeagueMemberMirrorDoc).leagueId)
+              .filter((leagueId): leagueId is string => isSafeOnlineSyncId(leagueId));
+            emit();
+          },
+          (error) => onError?.(error),
+        );
+        unsubscribers.push(unsubscribeMemberships);
+      })
+      .catch((error) => {
+        if (active) {
+          onError?.(error instanceof Error ? error : new Error(String(error)));
+        }
+      });
 
     return () => {
+      active = false;
       emitter.close();
-      unsubscribe();
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
   }
 

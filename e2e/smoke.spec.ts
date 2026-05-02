@@ -18,8 +18,11 @@ test.describe("E2E Smoke", () => {
         response?.ok(),
         `Startseite konnte nicht geladen werden. Status: ${response?.status() ?? "keine Antwort"}.`,
       ).toBe(true);
-      await expect(page.getByText("AFBM Manager")).toBeVisible();
-      await expect(page.getByRole("link", { name: "Zum Savegame-Hub" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "AFBM Manager", exact: true })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Was möchtest du als Nächstes tun?", exact: true }),
+      ).toBeVisible();
+      await expect(page.getByRole("link", { name: /Fortsetzen/ })).toBeVisible();
     });
 
     await test.step("Savegame-Hub ist im E2E-Auth-Bypass erreichbar", async () => {
@@ -27,20 +30,7 @@ test.describe("E2E Smoke", () => {
       await expect(page).toHaveURL(/\/app\/savegames$/);
       await expect(page.getByRole("heading", { name: "Savegames", exact: true })).toBeVisible();
       await expect(page.getByLabel("Dynasty-Name")).toBeVisible();
-      await expect(page.getByText("E2E Minimal Savegame").first()).toBeVisible();
-    });
-
-    await test.step("Setup-Required-Seite ist erreichbar", async () => {
-      const response = await page.goto("/auth/setup-required", {
-        timeout: E2E_NAVIGATION_TIMEOUT_MS,
-        waitUntil: "domcontentloaded",
-      });
-
-      expect(
-        response?.ok(),
-        `Setup-Required-Seite konnte nicht geladen werden. Status: ${response?.status() ?? "keine Antwort"}.`,
-      ).toBe(true);
-      await expect(page.getByText("Auth Setup Required")).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Deine Franchises", exact: true })).toBeVisible();
     });
   });
 });

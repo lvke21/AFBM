@@ -1,15 +1,24 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   ONLINE_FANTASY_DRAFT_POSITIONS,
-  ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
-  type OnlineContractPlayer,
   type OnlineFantasyDraftPosition,
-  type OnlineLeague,
-} from "@/lib/online/online-league-service";
+} from "@/lib/online/online-league-draft-service";
+import type {
+  OnlineContractPlayer,
+  OnlineFantasyDraftPick,
+  OnlineLeague,
+} from "@/lib/online/online-league-types";
 import type { OnlineUser } from "@/lib/online/online-user-service";
+import {
+  createDraftPlayerMap,
+  deriveAvailableDraftPlayers,
+  deriveDraftRosterCounts,
+  derivePickedDraftPlayers,
+  deriveTeamDraftRoster,
+} from "./online-fantasy-draft-room-model";
 
 type DraftRoomFeedback = {
   tone: "success" | "warning";
@@ -28,26 +37,107 @@ const POSITION_FILTERS: Array<OnlineFantasyDraftPosition | "ALL"> = [
   "ALL",
   ...ONLINE_FANTASY_DRAFT_POSITIONS,
 ];
+const EMPTY_DRAFT_PICKS: OnlineFantasyDraftPick[] = [];
+const EMPTY_PLAYER_POOL: OnlineContractPlayer[] = [];
+const EMPTY_PLAYER_IDS: string[] = [];
+const AVAILABLE_PLAYER_ROW_HEIGHT = 56;
+const AVAILABLE_PLAYER_OVERSCAN = 8;
+const AVAILABLE_PLAYER_VIEWPORT_FALLBACK = 560;
 
-function getPlayerByIdMap(players: OnlineContractPlayer[]) {
-  return new Map(players.map((player) => [player.playerId, player]));
+function getTeamNameByIdMap(league: OnlineLeague) {
+  const teamNameById = new Map(league.teams.map((team) => [team.id, team.name]));
+
+  for (const user of [...league.users].reverse()) {
+    if (user.teamId && user.teamName !== undefined) {
+      teamNameById.set(user.teamId, user.teamName);
+    }
+  }
+
+  for (const user of [...league.users].reverse()) {
+    if (user.teamId && user.teamDisplayName !== undefined) {
+      teamNameById.set(user.teamId, user.teamDisplayName);
+    }
+  }
+
+  return teamNameById;
 }
 
-function getTeamName(league: OnlineLeague, teamId: string) {
-  return (
-    league.users.find((user) => user.teamId === teamId)?.teamDisplayName ??
-    league.users.find((user) => user.teamId === teamId)?.teamName ??
-    league.teams.find((team) => team.id === teamId)?.name ??
-    teamId
-  );
+function getTeamName(teamNameById: Map<string, string>, teamId: string) {
+  return teamNameById.get(teamId) ?? teamId;
 }
 
-function getRosterCounts(players: OnlineContractPlayer[]) {
-  return ONLINE_FANTASY_DRAFT_POSITIONS.map((position) => ({
-    position,
-    count: players.filter((player) => player.position === position).length,
-    target: ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS[position],
-  }));
+function useVirtualTableWindow(itemCount: number) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(AVAILABLE_PLAYER_VIEWPORT_FALLBACK);
+
+  const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(event.currentTarget.scrollTop);
+  }, []);
+
+  useEffect(() => {
+    const element = containerRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    const syncViewportHeight = () => {
+      setViewportHeight(element.clientHeight || AVAILABLE_PLAYER_VIEWPORT_FALLBACK);
+    };
+
+    syncViewportHeight();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", syncViewportHeight);
+      return () => window.removeEventListener("resize", syncViewportHeight);
+    }
+
+    const observer = new ResizeObserver(syncViewportHeight);
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const maxScrollTop = Math.max(0, itemCount * AVAILABLE_PLAYER_ROW_HEIGHT - viewportHeight);
+
+    if (scrollTop > maxScrollTop) {
+      setScrollTop(maxScrollTop);
+
+      if (containerRef.current) {
+        containerRef.current.scrollTop = maxScrollTop;
+      }
+    }
+  }, [itemCount, scrollTop, viewportHeight]);
+
+  const windowState = useMemo(() => {
+    const visibleRowCount = Math.max(
+      1,
+      Math.ceil(viewportHeight / AVAILABLE_PLAYER_ROW_HEIGHT),
+    );
+    const rawStartIndex = Math.floor(scrollTop / AVAILABLE_PLAYER_ROW_HEIGHT);
+    const maxStartIndex = Math.max(0, itemCount - visibleRowCount);
+    const clampedStartIndex = Math.min(rawStartIndex, maxStartIndex);
+    const startIndex = Math.max(0, clampedStartIndex - AVAILABLE_PLAYER_OVERSCAN);
+    const endIndex = Math.min(
+      itemCount,
+      clampedStartIndex + visibleRowCount + AVAILABLE_PLAYER_OVERSCAN,
+    );
+
+    return {
+      endIndex,
+      paddingBottom: Math.max(0, itemCount - endIndex) * AVAILABLE_PLAYER_ROW_HEIGHT,
+      paddingTop: startIndex * AVAILABLE_PLAYER_ROW_HEIGHT,
+      startIndex,
+    };
+  }, [itemCount, scrollTop, viewportHeight]);
+
+  return {
+    containerRef,
+    handleScroll,
+    ...windowState,
+  };
 }
 
 export function OnlineFantasyDraftRoom({
@@ -62,45 +152,46 @@ export function OnlineFantasyDraftRoom({
     useState<OnlineFantasyDraftPosition | "ALL">("ALL");
   const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
   const draft = league.fantasyDraft;
-  const playerPool = useMemo(
-    () => league.fantasyDraftPlayerPool ?? [],
-    [league.fantasyDraftPlayerPool],
-  );
-  const playersById = useMemo(() => getPlayerByIdMap(playerPool), [playerPool]);
+  const draftPicks = draft?.picks ?? EMPTY_DRAFT_PICKS;
+  const availablePlayerIdList = draft?.availablePlayerIds ?? EMPTY_PLAYER_IDS;
+  const playerPool = league.fantasyDraftPlayerPool ?? EMPTY_PLAYER_POOL;
+  const playersById = useMemo(() => createDraftPlayerMap(playerPool), [playerPool]);
+  const teamNameById = useMemo(() => getTeamNameByIdMap(league), [league]);
   const currentLeagueUser = league.users.find((user) => user.userId === currentUser.userId);
   const ownTeamId = currentLeagueUser?.teamId ?? "";
   const isOwnTurn = Boolean(draft?.status === "active" && ownTeamId && draft.currentTeamId === ownTeamId);
   const pickedPlayerIds = useMemo(
-    () => new Set(draft?.picks.map((pick) => pick.playerId) ?? []),
-    [draft?.picks],
+    () => new Set(draftPicks.map((pick) => pick.playerId)),
+    [draftPicks],
   );
   const availablePlayerIds = useMemo(
-    () => new Set(draft?.availablePlayerIds ?? []),
-    [draft?.availablePlayerIds],
+    () => new Set(availablePlayerIdList),
+    [availablePlayerIdList],
   );
-  const availablePlayers = playerPool
-    .filter((player) => availablePlayerIds.has(player.playerId))
-    .filter((player) => positionFilter === "ALL" || player.position === positionFilter)
-    .sort((left, right) =>
-      sortDirection === "desc"
-        ? right.overall - left.overall || left.playerName.localeCompare(right.playerName)
-        : left.overall - right.overall || left.playerName.localeCompare(right.playerName),
-    );
+  const availablePlayers = useMemo(
+    () => deriveAvailableDraftPlayers({
+      availablePlayerIds: availablePlayerIdList,
+      playerPool,
+      positionFilter,
+      sortDirection,
+    }),
+    [availablePlayerIdList, playerPool, positionFilter, sortDirection],
+  );
+  const availablePlayerWindow = useVirtualTableWindow(availablePlayers.length);
+  const virtualAvailablePlayers = availablePlayers.slice(
+    availablePlayerWindow.startIndex,
+    availablePlayerWindow.endIndex,
+  );
   const selectedPlayer = selectedPlayerId ? playersById.get(selectedPlayerId) : null;
-  const pickedPlayers = (draft?.picks ?? [])
-    .map((pick) => ({
-      pick,
-      player: playersById.get(pick.playerId),
-    }))
-    .filter((entry) => entry.player)
-    .slice()
-    .reverse()
-    .slice(0, 20);
-  const ownRoster = (draft?.picks ?? [])
-    .filter((pick) => pick.teamId === ownTeamId)
-    .map((pick) => playersById.get(pick.playerId))
-    .filter((player): player is OnlineContractPlayer => Boolean(player));
-  const rosterCounts = getRosterCounts(ownRoster);
+  const pickedPlayers = useMemo(
+    () => derivePickedDraftPlayers(draftPicks, playersById),
+    [draftPicks, playersById],
+  );
+  const ownRoster = useMemo(
+    () => deriveTeamDraftRoster(draftPicks, ownTeamId, playersById),
+    [draftPicks, ownTeamId, playersById],
+  );
+  const rosterCounts = useMemo(() => deriveDraftRosterCounts(ownRoster), [ownRoster]);
 
   useEffect(() => {
     if (selectedPlayerId && !availablePlayerIds.has(selectedPlayerId)) {
@@ -131,13 +222,13 @@ export function OnlineFantasyDraftRoom({
               Pick: {draft.pickNumber}
             </span>
             <span className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-              Am Zug: {draft.currentTeamId ? getTeamName(league, draft.currentTeamId) : "Noch offen"}
+              Am Zug: {draft.currentTeamId ? getTeamName(teamNameById, draft.currentTeamId) : "Noch offen"}
             </span>
           </div>
         </div>
         <div className="rounded-lg border border-cyan-200/25 bg-cyan-300/10 px-4 py-3 text-sm text-cyan-50">
           <p className="font-semibold">Eigenes Team</p>
-          <p className="mt-1">{ownTeamId ? getTeamName(league, ownTeamId) : "Kein Team"}</p>
+          <p className="mt-1">{ownTeamId ? getTeamName(teamNameById, ownTeamId) : "Kein Team"}</p>
           <p className="mt-3 rounded-lg border border-white/10 bg-white/10 px-3 py-2 font-semibold">
             {isOwnTurn ? "Du bist am Zug" : "Warte auf anderes Team"}
           </p>
@@ -196,7 +287,11 @@ export function OnlineFantasyDraftRoom({
             </div>
           </div>
 
-          <div className="mt-4 max-h-[560px] overflow-auto rounded-lg border border-white/10">
+          <div
+            ref={availablePlayerWindow.containerRef}
+            onScroll={availablePlayerWindow.handleScroll}
+            className="mt-4 max-h-[560px] overflow-auto rounded-lg border border-white/10"
+          >
             <table className="w-full min-w-[620px] border-collapse text-left text-sm">
               <thead className="sticky top-0 bg-[#07111d] text-xs uppercase tracking-[0.14em] text-slate-400">
                 <tr>
@@ -208,12 +303,22 @@ export function OnlineFantasyDraftRoom({
                 </tr>
               </thead>
               <tbody>
-                {availablePlayers.slice(0, 120).map((player) => {
+                {availablePlayerWindow.paddingTop > 0 ? (
+                  <tr aria-hidden="true">
+                    <td
+                      colSpan={5}
+                      style={{ height: availablePlayerWindow.paddingTop }}
+                      className="p-0"
+                    />
+                  </tr>
+                ) : null}
+                {virtualAvailablePlayers.map((player) => {
                   const selected = selectedPlayerId === player.playerId;
 
                   return (
                     <tr
                       key={player.playerId}
+                      style={{ height: AVAILABLE_PLAYER_ROW_HEIGHT }}
                       className={`cursor-pointer border-t border-white/10 transition ${
                         selected ? "bg-cyan-300/15" : "hover:bg-white/5"
                       }`}
@@ -229,6 +334,15 @@ export function OnlineFantasyDraftRoom({
                     </tr>
                   );
                 })}
+                {availablePlayerWindow.paddingBottom > 0 ? (
+                  <tr aria-hidden="true">
+                    <td
+                      colSpan={5}
+                      style={{ height: availablePlayerWindow.paddingBottom }}
+                      className="p-0"
+                    />
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </div>
@@ -259,7 +373,7 @@ export function OnlineFantasyDraftRoom({
           <section className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
             <h2 className="text-lg font-semibold text-white">Eigener Kaderstand</h2>
             <p className="mt-1 text-sm text-slate-400">
-              {ownRoster.length} Picks fuer {ownTeamId ? getTeamName(league, ownTeamId) : "dein Team"}.
+              {ownRoster.length} Picks fuer {ownTeamId ? getTeamName(teamNameById, ownTeamId) : "dein Team"}.
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
               {rosterCounts.map((item) => (
@@ -287,7 +401,7 @@ export function OnlineFantasyDraftRoom({
                       #{pick.pickNumber} {player?.playerName}
                     </p>
                     <p className="text-xs text-slate-400">
-                      Runde {pick.round} · {getTeamName(league, pick.teamId)} · {player?.position}
+                      Runde {pick.round} · {getTeamName(teamNameById, pick.teamId)} · {player?.position}
                     </p>
                   </div>
                 ))

@@ -11,6 +11,7 @@ const ONLINE_LINK_CLASS =
 export function SavegamesOnlineLink() {
   const authState = useFirebaseAuthState();
   const isAuthenticated = authState.isAuthenticated;
+  const isLoading = authState.isLoading;
 
   const content = (
     <>
@@ -22,13 +23,13 @@ export function SavegamesOnlineLink() {
           <span className="mt-1 block text-xl font-semibold text-white">Online Spielen</span>
         </span>
         <span className="w-fit rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-slate-300">
-          {isAuthenticated ? "Bereit" : "Login erforderlich"}
+          {isLoading ? "Pruefe Login" : isAuthenticated ? "Bereit" : "Login erforderlich"}
         </span>
       </span>
       <span id="online-playing-hint" className="mt-3 block text-sm text-slate-300">
         {isAuthenticated
           ? "Öffne den Multiplayer-Einstieg fuer kommende Online-Ligen."
-          : "Melde dich an, um zu spielen."}
+          : authState.errorMessage ?? "Melde dich an, um zu spielen."}
       </span>
     </>
   );
@@ -41,12 +42,25 @@ export function SavegamesOnlineLink() {
     );
   }
 
+  if (isLoading) {
+    return (
+      <button
+        type="button"
+        disabled
+        className={`${ONLINE_LINK_CLASS} cursor-wait opacity-65`}
+        aria-describedby="online-playing-hint"
+      >
+        {content}
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
-      aria-disabled="true"
-      className={`${ONLINE_LINK_CLASS} cursor-not-allowed opacity-65`}
+      className={ONLINE_LINK_CLASS}
       onClick={openSavegamesLogin}
+      aria-describedby="online-playing-hint"
     >
       {content}
     </button>

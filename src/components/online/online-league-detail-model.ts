@@ -1,13 +1,17 @@
 import {
   getAvailableOnlineCoaches,
-  getFanMoodTier,
-  getOnlineLeagueWeekReadyState,
   getOnlineLeagueDraftOrderForDisplay,
   getOnlineLeagueProspectsForDisplay,
-  getTeamChemistryTier,
-  type CoachRole,
-  type OnlineLeague,
 } from "@/lib/online/online-league-service";
+import {
+  getFanMoodTier,
+  getTeamChemistryTier,
+} from "@/lib/online/online-league-metrics";
+import { getOnlineLeagueWeekReadyState } from "@/lib/online/online-league-week-service";
+import type {
+  CoachRole,
+  OnlineLeague,
+} from "@/lib/online/online-league-types";
 import type { OnlineUser } from "@/lib/online/online-user-service";
 
 export type OnlineLeagueDetailPlayer = {

@@ -7,17 +7,32 @@ import {
   subscribeToOnlineAuthState,
   getOnlineAuthErrorMessage,
 } from "@/lib/online/auth/online-auth";
+import { getOnlineBackendMode } from "@/lib/online/online-league-repository-provider";
+import { ensureCurrentOnlineUser } from "@/lib/online/online-user-service";
 import type { OnlineAuthenticatedUser } from "@/lib/online/types";
 
 import { FirebaseEmailAuthPanel } from "./firebase-email-auth-panel";
 
 export function OnlineAuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const onlineMode = getOnlineBackendMode();
   const [state, setState] = useState<"loading" | "signed-out" | "signed-in">("loading");
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<OnlineAuthenticatedUser | null>(null);
 
   useEffect(() => {
+    if (onlineMode === "local") {
+      const localUser = ensureCurrentOnlineUser();
+
+      setUser({
+        ...localUser,
+        displayName: localUser.username,
+      });
+      setState("signed-in");
+      setError(null);
+      return undefined;
+    }
+
     try {
       return subscribeToOnlineAuthState(
         (nextUser) => {
@@ -37,7 +52,7 @@ export function OnlineAuthGate({ children }: { children: React.ReactNode }) {
       setError(getOnlineAuthErrorMessage(authError));
       return undefined;
     }
-  }, []);
+  }, [onlineMode]);
 
   if (state === "loading") {
     return (

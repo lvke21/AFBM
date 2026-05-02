@@ -1,17 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 
-import type { OnlineLeague } from "@/lib/online/online-league-types";
 import { getOnlineRecoveryCopy } from "@/lib/online/error-recovery";
-import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
-import type { OnlineUser } from "@/lib/online/online-user-service";
 
 import {
   DraftStatusPanel,
   ErrorState,
   LoadingState,
 } from "./online-league-dashboard-panels";
+import { useOnlineLeagueRouteState } from "./online-league-route-state";
 
 type ActionFeedback = {
   tone: "success" | "warning";
@@ -19,80 +17,17 @@ type ActionFeedback = {
 } | null;
 
 export function OnlineLeagueDraftPage({ leagueId }: { leagueId: string }) {
-  const [league, setLeague] = useState<OnlineLeague | null>(null);
-  const [currentUser, setCurrentUser] = useState<OnlineUser | null>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const {
+    repository,
+    league,
+    setLeague,
+    currentUser,
+    loaded,
+    loadError,
+    retryLoad,
+  } = useOnlineLeagueRouteState();
   const [feedback, setFeedback] = useState<ActionFeedback>(null);
   const [pendingPickPlayerId, setPendingPickPlayerId] = useState<string | null>(null);
-  const [reloadToken, setReloadToken] = useState(0);
-  const repository = useMemo(() => getOnlineLeagueRepository(), []);
-
-  function handleRetryLoad() {
-    setLoaded(false);
-    setLoadError(null);
-    setReloadToken((currentToken) => currentToken + 1);
-  }
-
-  useEffect(() => {
-    let active = true;
-    let unsubscribe = () => {
-      // no active subscription yet
-    };
-
-    setLoaded(false);
-    setLoadError(null);
-
-    repository
-      .getCurrentUser()
-      .then(async (user) => {
-        if (!active) {
-          return;
-        }
-
-        setCurrentUser(user);
-        const initialLeague = await repository.getLeagueById(leagueId);
-
-        if (!active) {
-          return;
-        }
-
-        setLeague(initialLeague);
-        setLoaded(true);
-        unsubscribe = repository.subscribeToLeague(
-          leagueId,
-          (nextLeague) => {
-            if (active) {
-              setLeague(nextLeague);
-            }
-          },
-          (error) => {
-            if (active) {
-              setLoadError(error.message || "Draftdaten konnten nicht geladen werden.");
-            }
-          },
-        );
-      })
-      .catch((error) => {
-        if (!active) {
-          return;
-        }
-
-        const recovery = getOnlineRecoveryCopy(error, {
-          title: "Draftdaten konnten nicht geladen werden.",
-          message: "Draftdaten konnten nicht geladen werden.",
-          helper: "Bitte lade die Seite neu.",
-        });
-
-        setLoadError(`${recovery.message} ${recovery.helper}`);
-        setLoaded(true);
-      });
-
-    return () => {
-      active = false;
-      unsubscribe();
-    };
-  }, [leagueId, repository, reloadToken]);
 
   async function handlePickPlayer(playerId: string) {
     const currentLeagueUser =
@@ -145,7 +80,7 @@ export function OnlineLeagueDraftPage({ leagueId }: { leagueId: string }) {
           message: loadError,
           helper: "Zurück zum Dashboard und erneut öffnen.",
         })}
-        onRetry={handleRetryLoad}
+        onRetry={retryLoad}
         retryLabel="Draft erneut laden"
       />
     );

@@ -453,7 +453,10 @@ async function loadReferences() {
 async function resetE2eUser() {
   const existingSaveGames = await prisma.saveGame.findMany({
     where: {
-      userId: E2E_USER_ID,
+      OR: [
+        { id: SAVEGAME_ID },
+        { userId: E2E_USER_ID },
+      ],
     },
     select: {
       id: true,
@@ -469,6 +472,14 @@ async function resetE2eUser() {
       },
       data: {
         currentSeasonId: null,
+      },
+    });
+
+    await prisma.saveGame.deleteMany({
+      where: {
+        id: {
+          in: existingSaveGames.map((saveGame) => saveGame.id),
+        },
       },
     });
   }

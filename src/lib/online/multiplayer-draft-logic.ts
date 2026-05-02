@@ -1,9 +1,9 @@
-import {
-  ONLINE_FANTASY_DRAFT_ROSTER_TARGET_SIZE,
-  type OnlineContractPlayer,
-  type OnlineFantasyDraftPick,
-  type OnlineFantasyDraftState,
-} from "./online-league-service";
+import { ONLINE_FANTASY_DRAFT_ROSTER_TARGET_SIZE } from "./online-league-draft-service";
+import type {
+  OnlineContractPlayer,
+  OnlineFantasyDraftPick,
+  OnlineFantasyDraftState,
+} from "./online-league-types";
 
 export type MultiplayerDraftPickValidationInput = {
   state: OnlineFantasyDraftState | null;

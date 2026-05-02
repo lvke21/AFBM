@@ -302,7 +302,7 @@ export function OnlineLeagueWeekFlowSection({
   detailState: FoundOnlineLeagueDetailState;
 }) {
   return (
-    <section className="mt-8 rounded-lg border border-sky-200/20 bg-[#07111d]/80 p-5">
+    <section id="week-loop" className="mt-8 rounded-lg border border-sky-200/20 bg-[#07111d]/80 p-5">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">

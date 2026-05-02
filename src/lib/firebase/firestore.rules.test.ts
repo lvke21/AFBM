@@ -377,6 +377,15 @@ describe("firestore security rules", () => {
     const outsiderDb = testEnv.authenticatedContext("online-outsider").firestore();
     const joinedAt = new Date();
     const batch = writeBatch(rookieDb);
+    const rookieMirrorsQuery = query(
+      collection(rookieDb, "leagueMembers"),
+      where("userId", "==", "online-rookie"),
+      where("status", "==", "ACTIVE"),
+    );
+
+    await assertSucceeds(getDoc(doc(rookieDb, "leagueMembers/online-alpha_online-rookie")));
+    await assertFails(getDoc(doc(rookieDb, "leagueMembers/online-alpha_online-outsider")));
+    expect((await assertSucceeds(getDocs(rookieMirrorsQuery))).docs).toHaveLength(0);
 
     batch.update(doc(rookieDb, "leagues/online-alpha"), {
       memberCount: 3,
@@ -423,6 +432,7 @@ describe("firestore security rules", () => {
 
     await assertSucceeds(batch.commit());
     await assertSucceeds(getDoc(doc(rookieDb, "leagueMembers/online-alpha_online-rookie")));
+    expect((await assertSucceeds(getDocs(rookieMirrorsQuery))).docs).toHaveLength(1);
     await assertFails(updateDoc(doc(outsiderDb, "leagues/online-alpha"), {
       memberCount: 99,
       updatedAt: new Date(),
@@ -449,6 +459,79 @@ describe("firestore security rules", () => {
       updatedAt: new Date(),
       userId: "online-outsider",
     }));
+  });
+
+  it("allows a newly joined user to read only their valid league member mirror", async () => {
+    const rookieDb = testEnv.authenticatedContext("online-rookie").firestore();
+    const outsiderDb = testEnv.authenticatedContext("online-outsider").firestore();
+    const joinedAt = new Date();
+    const batch = writeBatch(rookieDb);
+
+    await assertSucceeds(getDoc(doc(rookieDb, "leagueMembers/online-alpha_online-rookie")));
+    await assertFails(getDoc(doc(rookieDb, "leagueMembers/online-alpha_online-outsider")));
+
+    batch.update(doc(rookieDb, "leagues/online-alpha"), {
+      memberCount: 3,
+      updatedAt: joinedAt,
+      version: 2,
+    });
+    batch.set(doc(rookieDb, "leagues/online-alpha/memberships/online-rookie"), {
+      displayName: "Online Rookie",
+      joinedAt,
+      lastSeenAt: joinedAt,
+      ready: false,
+      role: "gm",
+      status: "active",
+      teamId: "online-team-b",
+      userId: "online-rookie",
+      username: "Online Rookie",
+    });
+    batch.set(doc(rookieDb, "leagueMembers/online-alpha_online-rookie"), {
+      createdAt: joinedAt,
+      id: "online-alpha_online-rookie",
+      leagueId: "online-alpha",
+      leagueSlug: "online-alpha",
+      role: "GM",
+      status: "ACTIVE",
+      teamId: "online-team-b",
+      updatedAt: joinedAt,
+      userId: "online-rookie",
+    });
+    batch.update(doc(rookieDb, "leagues/online-alpha/teams/online-team-b"), {
+      assignedUserId: "online-rookie",
+      displayName: "Rookie Testers",
+      status: "assigned",
+      teamName: "Testers",
+      updatedAt: joinedAt,
+    });
+    batch.set(doc(collection(rookieDb, "leagues/online-alpha/events")), {
+      createdAt: joinedAt,
+      createdByUserId: "online-rookie",
+      payload: {
+        teamId: "online-team-b",
+      },
+      type: "user_joined_league",
+    });
+
+    await assertSucceeds(batch.commit());
+    await assertSucceeds(getDoc(doc(rookieDb, "leagueMembers/online-alpha_online-rookie")));
+    await assertFails(getDoc(doc(outsiderDb, "leagueMembers/online-alpha_online-rookie")));
+
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+
+      await setDoc(doc(db, "leagueMembers/online-alpha_malformed"), {
+        createdAt: joinedAt,
+        id: "online-alpha_malformed",
+        role: "GM",
+        status: "ACTIVE",
+        teamId: "online-team-b",
+        updatedAt: joinedAt,
+      });
+    });
+
+    await assertFails(getDoc(doc(rookieDb, "leagueMembers/online-alpha_malformed")));
+    await assertFails(getDoc(doc(outsiderDb, "leagueMembers/online-alpha_malformed")));
   });
 
   it("denies production control documents to normal and unauthenticated clients", async () => {

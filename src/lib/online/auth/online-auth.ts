@@ -14,9 +14,14 @@ import { getFirebaseClientApp, getFirebaseClientConfig } from "@/lib/firebase/cl
 
 import { getOptionalBrowserStorage } from "../browser-storage";
 import {
+  ONLINE_LAST_LEAGUE_ID_STORAGE_KEY,
+  ONLINE_LEAGUES_STORAGE_KEY,
+} from "../online-league-constants";
+import {
   createDefaultOnlineUsername,
   ensureCurrentOnlineUser,
   normalizeOnlineUsername,
+  ONLINE_USER_ID_STORAGE_KEY,
   ONLINE_USERNAME_STORAGE_KEY,
   setCurrentOnlineUsername,
 } from "../online-user-service";
@@ -66,6 +71,19 @@ function getStoredDisplayName() {
 
 function setStoredDisplayName(displayName: string) {
   getOptionalBrowserStorage()?.setItem(ONLINE_USERNAME_STORAGE_KEY, displayName);
+}
+
+export function clearOnlineAuthBrowserContext(storage = getOptionalBrowserStorage()) {
+  if (!storage) {
+    return;
+  }
+
+  [
+    ONLINE_LAST_LEAGUE_ID_STORAGE_KEY,
+    ONLINE_LEAGUES_STORAGE_KEY,
+    ONLINE_USER_ID_STORAGE_KEY,
+    ONLINE_USERNAME_STORAGE_KEY,
+  ].forEach((key) => storage.removeItem(key));
 }
 
 function mapFirebaseUser(user: User): OnlineAuthenticatedUser {
@@ -320,6 +338,7 @@ export async function signInOnlineUserWithEmailPassword(input: {
 
 export async function signOutOnlineUser() {
   await signOut(getOnlineFirebaseAuth());
+  clearOnlineAuthBrowserContext();
 }
 
 export async function updateCurrentAuthenticatedOnlineUsername(

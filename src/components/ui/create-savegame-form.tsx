@@ -1,5 +1,8 @@
 "use client";
 
+import type { FormEvent } from "react";
+import { useMemo, useState } from "react";
+
 import { createSaveGameAction } from "@/app/app/savegames/actions";
 import { openSavegamesLogin } from "@/components/auth/auth-required-actions";
 import { useFirebaseAuthState } from "@/components/auth/firebase-auth-provider";
@@ -19,15 +22,50 @@ export function CreateSaveGameForm({
   requiresFirebaseAuth = false,
 }: CreateSaveGameFormProps) {
   const authState = useFirebaseAuthState();
+  const [clientError, setClientError] = useState<string | null>(null);
+  const validTeamAbbreviations = useMemo(
+    () => new Set(FRANCHISE_TEMPLATES.map((team) => team.abbreviation)),
+    [],
+  );
   const authLocked = requiresFirebaseAuth && !authState.isAuthenticated;
   const isDisabled = disabled || authLocked;
   const reason =
     authLocked
       ? "Melde dich an, um zu spielen."
       : disabledReason;
+  const visibleMessage = clientError ?? reason;
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    setClientError(null);
+
+    if (isDisabled) {
+      event.preventDefault();
+      setClientError(reason ?? "Offline-Spielstaende koennen in dieser Umgebung nicht erstellt werden.");
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const name = String(formData.get("name") ?? "").trim();
+    const managerTeamAbbreviation = String(formData.get("managerTeamAbbreviation") ?? "").trim();
+
+    if (name.length < 3 || name.length > 60) {
+      event.preventDefault();
+      setClientError("Der Dynasty-Name muss zwischen 3 und 60 Zeichen lang sein.");
+      return;
+    }
+
+    if (!validTeamAbbreviations.has(managerTeamAbbreviation)) {
+      event.preventDefault();
+      setClientError("Bitte waehle ein gueltiges User-Team aus.");
+    }
+  }
 
   return (
-    <form action={createSaveGameAction} className="grid gap-4 lg:grid-cols-[1.5fr_1fr_auto]">
+    <form
+      action={createSaveGameAction}
+      className="grid gap-4 lg:grid-cols-[1.5fr_1fr_auto]"
+      onSubmit={handleSubmit}
+    >
       <label className="grid gap-2">
         <span className="text-sm font-medium text-slate-200">Dynasty-Name</span>
         <input
@@ -75,8 +113,8 @@ export function CreateSaveGameForm({
         )}
       </div>
 
-      {reason ? (
-        <p className="text-sm leading-6 text-amber-100 lg:col-span-3">{reason}</p>
+      {visibleMessage ? (
+        <p className="text-sm leading-6 text-amber-100 lg:col-span-3">{visibleMessage}</p>
       ) : null}
     </form>
   );

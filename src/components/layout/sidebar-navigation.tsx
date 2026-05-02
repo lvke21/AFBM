@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import {
   buildNavigationItems,
@@ -14,19 +15,97 @@ type SidebarNavigationProps = {
 };
 
 const sectionLabels = ["Core Actions", "Team Management", "Analysis/Secondary"] as const;
+const noContextLabels = new Set(["Dashboard"]);
+
+function getVisibleItems(context: AppShellContext) {
+  const items = buildNavigationItems(context);
+
+  if (!context.saveGame && !context.online) {
+    return items.filter((item) => noContextLabels.has(item.label));
+  }
+
+  return items;
+}
+
+function getContextNotice(context: AppShellContext) {
+  if (!context.saveGame && !context.online) {
+    return {
+      message: "Kein aktiver Spielstand oder Online-Liga geladen.",
+      primaryHref: "/app/savegames",
+      primaryLabel: "Savegames",
+      secondaryHref: "/online",
+      secondaryLabel: "Online Hub",
+    };
+  }
+
+  if (context.online && !context.online.teamNavigationReady) {
+    return {
+      message:
+        context.online.draftStatus === "active"
+          ? "Der Online-Draft ist aktiv. Teamseiten werden nach dem Roster-Aufbau freigegeben."
+          : "Die Online-Liga ist geladen, aber das Team/Roster ist noch nicht vollstaendig bereit.",
+      primaryHref: "/online",
+      primaryLabel: "Online Hub",
+      secondaryHref: "/app/savegames",
+      secondaryLabel: "Savegames",
+    };
+  }
+
+  if (context.saveGame && !context.managerTeam) {
+    return {
+      message: "Kein Manager-Team fuer diesen Spielstand geladen.",
+      primaryHref: "/app/savegames",
+      primaryLabel: "Savegames",
+      secondaryHref: "/online",
+      secondaryLabel: "Online Hub",
+    };
+  }
+
+  return null;
+}
 
 export function SidebarNavigation({ context }: SidebarNavigationProps) {
   const pathname = usePathname();
-  const items = buildNavigationItems(context);
+  const [hash, setHash] = useState("");
+  const items = getVisibleItems(context);
+  const contextNotice = getContextNotice(context);
   const targetKeyByLabel: Record<string, string> = {
-    "Game Flow": "game-start",
+    Spielablauf: "game-start",
     Inbox: "inbox",
     Roster: "roster",
     "Depth Chart": "depth-chart",
   };
 
+  useEffect(() => {
+    const syncHash = () => setHash(window.location.hash);
+
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, []);
+
   return (
     <nav aria-label="GM Navigation" className="space-y-6">
+      {contextNotice ? (
+        <div className="rounded-lg border border-amber-300/25 bg-amber-300/10 p-3 text-xs text-amber-50">
+          <p className="leading-5">{contextNotice.message}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href={contextNotice.primaryHref}
+              className="rounded-md border border-amber-200/30 bg-amber-200/15 px-2.5 py-1.5 font-semibold text-amber-50 transition hover:bg-amber-200/25"
+            >
+              {contextNotice.primaryLabel}
+            </Link>
+            <Link
+              href={contextNotice.secondaryHref}
+              className="rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5 font-semibold text-slate-100 transition hover:bg-white/10"
+            >
+              {contextNotice.secondaryLabel}
+            </Link>
+          </div>
+        </div>
+      ) : null}
       {sectionLabels.map((section) => {
         const sectionItems = items.filter((item) => item.section === section);
 
@@ -41,10 +120,10 @@ export function SidebarNavigation({ context }: SidebarNavigationProps) {
             </p>
             <div className={section === "Core Actions" ? "mt-2 space-y-2" : "mt-2 space-y-1"}>
               {sectionItems.map((item) => {
-                const active = isNavigationItemActive(item, pathname);
+                const active = isNavigationItemActive(item, pathname, hash);
                 const primary = section === "Core Actions";
                 const className = [
-                  "flex items-center justify-between rounded-lg px-3 py-2 font-semibold transition",
+                  "flex items-center justify-between gap-3 rounded-lg px-3 py-2 font-semibold transition",
                   primary ? "min-h-12 text-sm" : "min-h-10 text-sm",
                   active
                     ? "border border-emerald-400/35 bg-emerald-400/12 text-emerald-100"
@@ -56,8 +135,18 @@ export function SidebarNavigation({ context }: SidebarNavigationProps) {
 
                 if (!item.href) {
                   return (
-                    <span key={item.label} className={className} title={item.disabledReason}>
-                      {item.label}
+                    <span
+                      key={item.label}
+                      className={className}
+                      title={item.disabledReason}
+                      aria-disabled="true"
+                    >
+                      <span>{item.label}</span>
+                      {item.disabledReason ? (
+                        <span className="max-w-28 text-right text-[0.68rem] font-medium leading-4 text-slate-400">
+                          {item.disabledReason}
+                        </span>
+                      ) : null}
                     </span>
                   );
                 }

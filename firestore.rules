@@ -7,7 +7,9 @@ service cloud.firestore {
     }
 
     function isGlobalAdmin() {
-      return isSignedIn() && request.auth.token.admin == true;
+      return isSignedIn()
+        && ("admin" in request.auth.token)
+        && request.auth.token.admin == true;
     }
 
     function isSelf(userId) {
@@ -16,6 +18,14 @@ service cloud.firestore {
 
     function membershipPath(leagueId) {
       return /databases/$(database)/documents/leagueMembers/$(leagueId + "_" + request.auth.uid);
+    }
+
+    function leagueMemberMirrorPath(leagueMemberId) {
+      return /databases/$(database)/documents/leagueMembers/$(leagueMemberId);
+    }
+
+    function isOwnLeagueMemberMirrorId(leagueMemberId) {
+      return leagueMemberId.matches(".*_" + request.auth.uid);
     }
 
     function isActiveLeagueMember(leagueId) {
@@ -442,11 +452,18 @@ service cloud.firestore {
     }
 
     match /leagueMembers/{leagueMemberId} {
-      allow read: if isSignedIn()
+      allow get: if isSignedIn()
         && (
-          resource.data.userId == request.auth.uid
-          || hasLeagueRole(resource.data.leagueId, ["OWNER", "ADMIN"])
+          (!exists(leagueMemberMirrorPath(leagueMemberId)) && isOwnLeagueMemberMirrorId(leagueMemberId))
+          || resource.data.userId == request.auth.uid
+          || (
+            resource.data.leagueId is string
+            && hasLeagueRole(resource.data.leagueId, ["OWNER", "ADMIN"])
+          )
         );
+      allow list: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && resource.data.status == "ACTIVE";
       allow create: if isOnlineLeagueMemberMirrorCreate(leagueMemberId);
       allow update, delete: if false;
     }

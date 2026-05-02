@@ -183,6 +183,12 @@ export const saveGameRepositoryFirestore = {
       }),
     };
   },
+
+  async archiveForUser() {
+    throw new Error(
+      "Firestore-Spielstaende werden in dieser Umgebung nicht ueber den Savegames-Screen geloescht.",
+    );
+  },
 };
 
 async function getLeague(leagueId: string) {

@@ -183,7 +183,7 @@ describe("GM navigation model", () => {
       managerTeam: null,
     });
 
-    expect(items.find((item) => item.label === "Dashboard")?.href).toBe("/app");
+    expect(items.find((item) => item.label === "Dashboard")?.href).toBe("/app/savegames");
     expect(items.find((item) => item.label === "Team Overview")?.href).toBeNull();
     expect(items.find((item) => item.label === "Roster")?.href).toBeNull();
   });
@@ -216,19 +216,44 @@ describe("GM navigation model", () => {
     };
     const items = buildNavigationItems(onlineContext);
     const dashboard = items.find((item) => item.label === "Dashboard");
+    const gameFlow = items.find((item) => item.label === "Spielablauf");
     const roster = items.find((item) => item.label === "Roster");
     const depthChart = items.find((item) => item.label === "Depth Chart");
     const team = items.find((item) => item.label === "Team Overview");
     const draft = items.find((item) => item.label === "Draft");
+    const inbox = items.find((item) => item.label === "Inbox");
 
     expect(dashboard?.href).toBe("/online/league/afbm-multiplayer-test-league");
+    expect(gameFlow?.href).toBe("/online/league/afbm-multiplayer-test-league#week-loop");
     expect(team?.href).toBe("/online/league/afbm-multiplayer-test-league#team");
     expect(roster?.href).toBe("/online/league/afbm-multiplayer-test-league#roster");
     expect(depthChart?.href).toBe("/online/league/afbm-multiplayer-test-league#depth-chart");
     expect(draft?.href).toBe("/online/league/afbm-multiplayer-test-league/draft");
+    expect(inbox?.href).toBeNull();
+    expect(inbox?.disabledReason).toBe("Online-Inbox noch nicht implementiert");
     expect(
       dashboard && isNavigationItemActive(dashboard, "/online/league/afbm-multiplayer-test-league"),
     ).toBe(true);
+    expect(
+      dashboard &&
+        isNavigationItemActive(
+          dashboard,
+          "/online/league/afbm-multiplayer-test-league",
+          "#roster",
+        ),
+    ).toBe(false);
+    expect(
+      roster &&
+        isNavigationItemActive(
+          roster,
+          "/online/league/afbm-multiplayer-test-league",
+          "#roster",
+        ),
+    ).toBe(true);
+    expect(
+      roster &&
+        isNavigationItemActive(roster, "/online/league/afbm-multiplayer-test-league"),
+    ).toBe(false);
     expect(
       draft &&
         isNavigationItemActive(
@@ -258,6 +283,10 @@ describe("GM navigation model", () => {
 
     expect(activeDraftItems.find((item) => item.label === "Draft")?.href).toBe(
       "/online/league/afbm-multiplayer-test-league/draft",
+    );
+    expect(activeDraftItems.find((item) => item.label === "Spielablauf")?.href).toBeNull();
+    expect(activeDraftItems.find((item) => item.label === "Spielablauf")?.disabledReason).toBe(
+      "Draft läuft",
     );
     expect(activeDraftItems.find((item) => item.label === "Roster")?.href).toBeNull();
     expect(activeDraftItems.find((item) => item.label === "Roster")?.disabledReason).toBe(

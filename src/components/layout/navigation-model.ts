@@ -67,8 +67,12 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
   const seasonHref = isOnlineLeague
     ? base ? `${base}#league` : null
     : base && context.currentSeason ? `${base}/league` : null;
-  const developmentHref = base ? `${base}/development` : null;
+  const developmentHref = isOnlineLeague ? null : base ? `${base}/development` : null;
   const draftHref = base ? `${base}/draft` : null;
+  const gameFlowHref = isOnlineLeague
+    ? base && !onlineDraftActive ? `${base}#week-loop` : null
+    : context.nextGameHref ?? (base ? `${base}/game/setup` : null);
+  const inboxHref = isOnlineLeague ? null : base ? `${base}/inbox` : null;
   const teamDisabledReason = isOnlineLeague
     ? onlineDraftActive
       ? "Draft läuft"
@@ -80,16 +84,20 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
   return [
     {
       label: "Dashboard",
-      href: base ?? "/app",
+      href: base ?? "/app/savegames",
       activePatterns: [],
       section: "Core Actions",
     },
     {
       label: "Spielablauf",
-      href: context.nextGameHref ?? (base ? `${base}/game/setup` : null),
+      href: gameFlowHref,
       activePatterns: ["/game/", "/matches/"],
       section: "Core Actions",
-      disabledReason: base ? undefined : "Kein Savegame",
+      disabledReason: gameFlowHref
+        ? undefined
+        : isOnlineLeague && onlineDraftActive
+          ? "Draft läuft"
+          : "Kein Savegame",
     },
     {
       label: "Roster",
@@ -117,7 +125,11 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
       href: developmentHref,
       activePatterns: ["/development"],
       section: "Core Actions",
-      disabledReason: developmentHref ? undefined : "Kein Savegame",
+      disabledReason: developmentHref
+        ? undefined
+        : isOnlineLeague
+          ? "Online-Development noch nicht implementiert"
+          : "Kein Savegame",
     },
     {
       label: "Team Overview",
@@ -136,10 +148,14 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
     },
     {
       label: "Inbox",
-      href: base ? `${base}/inbox` : null,
+      href: inboxHref,
       activePatterns: ["/inbox"],
       section: "Team Management",
-      disabledReason: base ? undefined : "Kein Savegame",
+      disabledReason: inboxHref
+        ? undefined
+        : isOnlineLeague
+          ? "Online-Inbox noch nicht implementiert"
+          : "Kein Savegame",
     },
     {
       label: "Finance",
@@ -172,9 +188,17 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
   ];
 }
 
-export function isNavigationItemActive(item: NavigationItem, pathname: string) {
-  if (item.href && pathname === item.href) {
-    return true;
+export function isNavigationItemActive(item: NavigationItem, pathname: string, hash = "") {
+  if (item.href) {
+    const [hrefPath, hrefHash] = item.href.split("#");
+
+    if (hrefHash) {
+      return pathname === hrefPath && hash === `#${hrefHash}`;
+    }
+
+    if (pathname === item.href) {
+      return hash.length === 0;
+    }
   }
 
   if (item.excludePatterns?.some((pattern) => pathname.includes(pattern))) {

@@ -3,7 +3,10 @@ import { prisma } from "@/lib/db/prisma";
 export const saveGameRepository = {
   listByUser(userId: string) {
     return prisma.saveGame.findMany({
-      where: { userId },
+      where: {
+        userId,
+        status: "ACTIVE",
+      },
       orderBy: { updatedAt: "desc" },
       include: {
         leagueDefinition: {
@@ -95,5 +98,20 @@ export const saveGameRepository = {
         },
       },
     });
+  },
+
+  async archiveForUser(userId: string, saveGameId: string) {
+    const result = await prisma.saveGame.updateMany({
+      where: {
+        id: saveGameId,
+        userId,
+        status: "ACTIVE",
+      },
+      data: {
+        status: "ARCHIVED",
+      },
+    });
+
+    return result.count > 0;
   },
 };

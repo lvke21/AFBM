@@ -2,7 +2,11 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { getOnlineAuthErrorDetails, getOnlineAuthErrorMessage } from "./online-auth";
+import {
+  clearOnlineAuthBrowserContext,
+  getOnlineAuthErrorDetails,
+  getOnlineAuthErrorMessage,
+} from "./online-auth";
 
 describe("online-auth", () => {
   it.each([
@@ -43,5 +47,32 @@ describe("online-auth", () => {
       message: "Email/password sign-in is disabled.",
       name: "UnknownError",
     });
+  });
+
+  it("clears local online context on logout without touching other browser storage", () => {
+    const values = new Map<string, string>([
+      ["afbm.online.lastLeagueId", "league-1"],
+      ["afbm.online.leagues", "[]"],
+      ["afbm.online.userId", "user-1"],
+      ["afbm.online.username", "Coach One"],
+      ["afbm.savegames.activeSaveGameId", "save-1"],
+    ]);
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        values.set(key, value);
+      },
+      removeItem: (key: string) => {
+        values.delete(key);
+      },
+    };
+
+    clearOnlineAuthBrowserContext(storage);
+
+    expect(storage.getItem("afbm.online.lastLeagueId")).toBeNull();
+    expect(storage.getItem("afbm.online.leagues")).toBeNull();
+    expect(storage.getItem("afbm.online.userId")).toBeNull();
+    expect(storage.getItem("afbm.online.username")).toBeNull();
+    expect(storage.getItem("afbm.savegames.activeSaveGameId")).toBe("save-1");
   });
 });

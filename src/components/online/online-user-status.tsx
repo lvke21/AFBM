@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   getOnlineAuthErrorMessage,
@@ -14,6 +15,7 @@ import type { OnlineAuthenticatedUser } from "@/lib/online/types";
 import { getOnlineModeStatusCopy } from "./online-mode-status-model";
 
 export function OnlineUserStatus() {
+  const router = useRouter();
   const [user, setUser] = useState<OnlineAuthenticatedUser | null>(null);
   const [userLoadState, setUserLoadState] = useState<"loading" | "ready" | "error">("loading");
   const [userLoadError, setUserLoadError] = useState<string | null>(null);
@@ -100,6 +102,8 @@ export function OnlineUserStatus() {
       setUser(null);
       setUserLoadState("error");
       setUserLoadError("Bitte melde dich mit Email und Passwort an.");
+      router.replace("/app/savegames");
+      router.refresh();
     } catch (error) {
       setFeedback(getOnlineAuthErrorMessage(error));
     } finally {

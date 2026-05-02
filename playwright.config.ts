@@ -3,17 +3,25 @@ import { loadEnvConfig } from "@next/env";
 
 loadEnvConfig(process.cwd());
 
+function getNonEmptyEnv(name: string, fallback: string) {
+  const value = process.env[name];
+
+  return value && value.trim().length > 0 ? value : fallback;
+}
+
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const BASE_URL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${PORT}`;
-const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID ?? "demo-afbm";
+const FIREBASE_PROJECT_ID = getNonEmptyEnv("FIREBASE_PROJECT_ID", "demo-afbm");
 const FIRESTORE_EMULATOR_HOST =
-  process.env.FIRESTORE_EMULATOR_HOST ??
-  process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST ??
-  "127.0.0.1:8080";
+  getNonEmptyEnv(
+    "FIRESTORE_EMULATOR_HOST",
+    getNonEmptyEnv("NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST", "127.0.0.1:8080"),
+  );
 const FIREBASE_AUTH_EMULATOR_HOST =
-  process.env.FIREBASE_AUTH_EMULATOR_HOST ??
-  process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST ??
-  "127.0.0.1:9099";
+  getNonEmptyEnv(
+    "FIREBASE_AUTH_EMULATOR_HOST",
+    getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST", "127.0.0.1:9099"),
+  );
 const GLOBAL_TIMEOUT_MS = Number(process.env.E2E_GLOBAL_TIMEOUT_MS ?? 180_000);
 const TEST_TIMEOUT_MS = Number(process.env.E2E_TEST_TIMEOUT_MS ?? 30_000);
 const EXPECT_TIMEOUT_MS = Number(process.env.E2E_EXPECT_TIMEOUT_MS ?? 5_000);
@@ -22,6 +30,8 @@ const WEB_SERVER_TIMEOUT_MS = Number(process.env.E2E_WEB_SERVER_TIMEOUT_MS ?? 45
 const OUTPUT_DIR = process.env.E2E_OUTPUT_DIR ?? "/tmp/afbm-playwright-test-results";
 const HTML_REPORT_DIR = process.env.E2E_HTML_REPORT_DIR ?? "/tmp/afbm-playwright-report";
 const JSON_REPORT_FILE = process.env.E2E_JSON_REPORT_FILE ?? "/tmp/afbm-playwright-results.json";
+const E2E_USER_EMAIL = getNonEmptyEnv("E2E_USER_EMAIL", "e2e-gm@example.test");
+const E2E_USER_ID = getNonEmptyEnv("E2E_USER_ID", `dev-user:${E2E_USER_EMAIL}`);
 
 export default defineConfig({
   testDir: "./e2e",
@@ -65,24 +75,28 @@ export default defineConfig({
     stderr: "pipe",
     env: {
       ...process.env,
-      AFBM_APP_USER_ID: process.env.AFBM_APP_USER_ID ?? process.env.E2E_USER_ID ?? "e2e-gm",
+      AFBM_APP_USER_ID: E2E_USER_ID,
+      E2E_USER_ID,
       FIREBASE_PROJECT_ID,
       NEXT_PUBLIC_FIREBASE_PROJECT_ID:
-        process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? FIREBASE_PROJECT_ID,
+        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_PROJECT_ID", FIREBASE_PROJECT_ID),
       NEXT_PUBLIC_FIREBASE_API_KEY:
-        process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "demo-api-key",
+        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_API_KEY", "demo-api-key"),
       NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:
-        process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? `${FIREBASE_PROJECT_ID}.firebaseapp.com`,
+        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN", `${FIREBASE_PROJECT_ID}.firebaseapp.com`),
       NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:
-        process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? `${FIREBASE_PROJECT_ID}.appspot.com`,
+        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET", `${FIREBASE_PROJECT_ID}.appspot.com`),
       NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:
-        process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "000000000000",
+        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID", "000000000000"),
       NEXT_PUBLIC_FIREBASE_APP_ID:
-        process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "1:000000000000:web:e2e",
+        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_APP_ID", "1:000000000000:web:e2e"),
       NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: FIRESTORE_EMULATOR_HOST,
       NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: FIREBASE_AUTH_EMULATOR_HOST,
       NEXT_PUBLIC_AFBM_ONLINE_BACKEND:
-        process.env.NEXT_PUBLIC_AFBM_ONLINE_BACKEND ?? process.env.AFBM_ONLINE_BACKEND ?? "local",
+        getNonEmptyEnv(
+          "NEXT_PUBLIC_AFBM_ONLINE_BACKEND",
+          getNonEmptyEnv("AFBM_ONLINE_BACKEND", "local"),
+        ),
     },
   },
   projects: [

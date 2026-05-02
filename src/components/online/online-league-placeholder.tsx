@@ -1,42 +1,35 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
-  acceptOnlineTradeProposal,
-  claimVacantOnlineTeam,
   createOnlineTradeProposal,
-  declineOnlineTradeProposal,
   extendOnlinePlayerContract,
   fireOnlineCoach,
-  getOnlineLeagueById,
   hireOnlineCoach,
-  makeOnlineDraftPick,
   releaseOnlinePlayer,
-  scoutOnlineProspect,
   setOnlineFranchiseStrategy,
   setOnlineLeagueUserReadyState,
   setOnlineMediaExpectation,
   setOnlineStadiumPricing,
   signOnlineFreeAgent,
   submitWeeklyTrainingPlan,
-  type CoachRole,
-  type FranchiseStrategyType,
-  type OnlineLeague,
-  type OnlineMediaExpectationGoal,
-  type TrainingIntensity,
-  type TrainingPrimaryFocus,
-  type TrainingRiskTolerance,
-  type TrainingSecondaryFocus,
 } from "@/lib/online/online-league-service";
+import type {
+  CoachRole,
+  FranchiseStrategyType,
+  OnlineMediaExpectationGoal,
+  TrainingIntensity,
+  TrainingPrimaryFocus,
+  TrainingRiskTolerance,
+  TrainingSecondaryFocus,
+} from "@/lib/online/online-league-types";
 import {
   getMissingPlayerRecoveryCopy,
   getMissingTeamRecoveryCopy,
   getOnlineRecoveryCopy,
 } from "@/lib/online/error-recovery";
-import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
-import { ensureCurrentOnlineUser, type OnlineUser } from "@/lib/online/online-user-service";
 import { GlossaryTerm } from "./online-glossary";
 import { getOnlineModeStatusCopy } from "./online-mode-status-model";
 import {
@@ -74,13 +67,24 @@ import {
   getTrainingPreview,
   getTrainingRiskLabel,
 } from "./online-league-dashboard-utils";
+import {
+  FIREBASE_MVP_LOCAL_ACTION_MESSAGE,
+  guardFirebaseMvpLocalAction,
+} from "./online-firebase-mvp-action-guard";
+import { useOnlineLeagueRouteState } from "./online-league-route-state";
+import { useOnlineLeaguePlaceholderActions } from "./use-online-league-placeholder-actions";
 
 export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
-  const [league, setLeague] = useState<OnlineLeague | null>(null);
-  const [currentUser, setCurrentUser] = useState<OnlineUser | null>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [loadErrorRequiresSearch, setLoadErrorRequiresSearch] = useState(false);
+  const {
+    repository,
+    league,
+    setLeague,
+    currentUser,
+    loaded,
+    loadError,
+    loadErrorRequiresSearch,
+    retryLoad,
+  } = useOnlineLeagueRouteState();
   const [trainingIntensity, setTrainingIntensity] = useState<TrainingIntensity>("normal");
   const [trainingPrimaryFocus, setTrainingPrimaryFocus] =
     useState<TrainingPrimaryFocus>("balanced");
@@ -109,22 +113,26 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
   const [merchPriceLevel, setMerchPriceLevel] = useState(55);
   const [pricingFeedback, setPricingFeedback] = useState<string | null>(null);
   const [expertMode, setExpertMode] = useState(false);
-  const [reloadToken, setReloadToken] = useState(0);
-  const repository = useMemo(() => getOnlineLeagueRepository(), []);
   const router = useRouter();
   const detailState = toOnlineLeagueDetailState(league, currentUser);
   const modeStatus = getOnlineModeStatusCopy(repository.mode);
   const isFirebaseMvpMode = repository.mode === "firebase";
   const showAdvancedLocalActions = !isFirebaseMvpMode && expertMode;
-  const firebaseLocalActionMessage =
-    "Diese Aktion ist im Firebase-Multiplayer noch nicht synchronisiert. Es wurden keine lokalen Ersatzdaten geschrieben.";
-
-  function handleRetryLoad() {
-    setLoaded(false);
-    setLoadError(null);
-    setLoadErrorRequiresSearch(false);
-    setReloadToken((currentToken) => currentToken + 1);
-  }
+  const {
+    handleAcceptTrade,
+    handleClaimVacantTeam,
+    handleDeclineTrade,
+    handleDraftProspect,
+    handleScoutProspect,
+  } = useOnlineLeaguePlaceholderActions({
+    currentUser,
+    leagueId,
+    mode: repository.mode,
+    setActionFeedback,
+    setDraftFeedback,
+    setLeague,
+    setTradeFeedback,
+  });
 
   function handleSearchLeagueAgain() {
     repository.clearLastLeagueId(leagueId);
@@ -136,170 +144,18 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
   }, []);
 
   useEffect(() => {
-    let active = true;
+    const leagueUser = league?.users.find((candidate) => candidate.userId === currentUser?.userId);
 
-    repository
-      .getCurrentUser()
-      .then((user) => {
-        if (!active) {
-          return;
-        }
-
-        setCurrentUser(user);
-        setLoadError(null);
-      })
-      .catch((error) => {
-        if (!active) {
-          return;
-        }
-
-        if (repository.mode === "local") {
-          setCurrentUser(ensureCurrentOnlineUser());
-          setLoadError(null);
-          return;
-        }
-
-        setCurrentUser(null);
-        const recovery = getOnlineRecoveryCopy(error, {
-          title: "Online-Identitaet nicht verfuegbar",
-          message: "Firebase Auth konnte nicht initialisiert werden.",
-          helper: "Lade die Seite neu.",
-        });
-        setLoadError(recovery.message);
-        setLoadErrorRequiresSearch(false);
-        setLoaded(true);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [repository, reloadToken]);
-
-  useEffect(() => {
-    if (!currentUser) {
-      return;
+    if (leagueUser?.stadiumProfile) {
+      setTicketPriceLevel(leagueUser.stadiumProfile.ticketPriceLevel);
+      setMerchPriceLevel(leagueUser.stadiumProfile.merchPriceLevel);
     }
-
-    let active = true;
-
-    setLoaded(false);
-    setLoadError(null);
-    setLoadErrorRequiresSearch(false);
-
-    let unsubscribe = () => {
-      // no active subscription yet
-    };
-
-    repository.getLeagueById(leagueId)
-      .then((initialLeague) => {
-        if (!active) {
-          return;
-        }
-
-        if (!initialLeague) {
-          repository.clearLastLeagueId(leagueId);
-          setLeague(null);
-          setLoadError("Die Online-Liga ist fuer diesen Account nicht erreichbar.");
-          setLoadErrorRequiresSearch(true);
-          setLoaded(true);
-          return;
-        }
-
-        setLeague(initialLeague);
-        const leagueUser = initialLeague.users.find(
-          (candidate) => candidate.userId === currentUser.userId,
-        );
-        if (leagueUser?.stadiumProfile) {
-          setTicketPriceLevel(leagueUser.stadiumProfile.ticketPriceLevel);
-          setMerchPriceLevel(leagueUser.stadiumProfile.merchPriceLevel);
-        }
-        if (leagueUser?.franchiseStrategy) {
-          setFranchiseStrategy(
-            leagueUser.franchiseStrategy.strategyType ?? leagueUser.franchiseStrategy.strategy,
-          );
-        }
-        unsubscribe = repository.subscribeToLeague(
-          leagueId,
-          (loadedLeague) => {
-            if (!active) {
-              return;
-            }
-
-            setLeague(loadedLeague);
-            const nextLeagueUser = loadedLeague?.users.find(
-              (candidate) => candidate.userId === currentUser.userId,
-            );
-            if (nextLeagueUser?.stadiumProfile) {
-              setTicketPriceLevel(nextLeagueUser.stadiumProfile.ticketPriceLevel);
-              setMerchPriceLevel(nextLeagueUser.stadiumProfile.merchPriceLevel);
-            }
-            if (nextLeagueUser?.franchiseStrategy) {
-              setFranchiseStrategy(
-                nextLeagueUser.franchiseStrategy.strategyType ?? nextLeagueUser.franchiseStrategy.strategy,
-              );
-            }
-            setLoaded(true);
-          },
-          (error) => {
-            if (!active) {
-              return;
-            }
-
-            if (repository.mode === "local") {
-              setLeague(getOnlineLeagueById(leagueId));
-              setLoaded(true);
-              return;
-            }
-
-            const recovery = getOnlineRecoveryCopy(error, {
-              title: "Online-Liga konnte nicht geladen werden.",
-              message: error.message || "Online-Liga konnte nicht aus Firebase geladen werden.",
-              helper: "Bitte versuche es erneut.",
-            });
-
-            if (recovery.kind === "permission" || recovery.kind === "not-found") {
-              repository.clearLastLeagueId(leagueId);
-              setLoadErrorRequiresSearch(true);
-            }
-
-            setLeague(null);
-            setLoadError(recovery.message);
-            setLoaded(true);
-          },
-        );
-      })
-      .catch((error) => {
-        if (!active) {
-          return;
-        }
-
-        if (repository.mode === "local") {
-          setLeague(getOnlineLeagueById(leagueId));
-          setLoaded(true);
-          return;
-        }
-
-        const recovery = getOnlineRecoveryCopy(error, {
-          title: "Online-Liga konnte nicht geladen werden.",
-          message: error.message || "Online-Liga konnte nicht aus Firebase geladen werden.",
-          helper: "Bitte versuche es erneut.",
-        });
-
-        if (recovery.kind === "permission" || recovery.kind === "not-found") {
-          repository.clearLastLeagueId(leagueId);
-          setLoadErrorRequiresSearch(true);
-        }
-
-        setLeague(null);
-        setLoadError(recovery.message);
-        setLoaded(true);
-      });
-
-    return () => {
-      active = false;
-      unsubscribe();
-    };
-  }, [currentUser, leagueId, repository, reloadToken]);
+    if (leagueUser?.franchiseStrategy) {
+      setFranchiseStrategy(
+        leagueUser.franchiseStrategy.strategyType ?? leagueUser.franchiseStrategy.strategy,
+      );
+    }
+  }, [currentUser?.userId, league]);
 
   async function handleReadyForWeek(ready: boolean) {
     if (!currentUser || pendingAction) {
@@ -345,30 +201,17 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     window.localStorage.setItem(EXPERT_MODE_STORAGE_KEY, String(nextExpertMode));
   }
 
-  function handleClaimVacantTeam(teamId: string) {
-    if (!currentUser) {
-      return;
-    }
-
-    if (repository.mode === "firebase") {
-      setActionFeedback({
-        tone: "warning",
-        message: firebaseLocalActionMessage,
-      });
-      return;
-    }
-
-    const result = claimVacantOnlineTeam(leagueId, teamId, currentUser);
-    setLeague(result.league);
-  }
-
   function handleSaveFranchiseStrategy() {
     if (!currentUser) {
       return;
     }
 
-    if (repository.mode === "firebase") {
-      setStrategyFeedback(firebaseLocalActionMessage);
+    if (
+      guardFirebaseMvpLocalAction({
+        mode: repository.mode,
+        setFeedback: setStrategyFeedback,
+      })
+    ) {
       return;
     }
 
@@ -399,8 +242,12 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
       return;
     }
 
-    if (repository.mode === "firebase") {
-      setTrainingFeedback(firebaseLocalActionMessage);
+    if (
+      guardFirebaseMvpLocalAction({
+        mode: repository.mode,
+        setFeedback: setTrainingFeedback,
+      })
+    ) {
       return;
     }
 
@@ -441,7 +288,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     }
 
     if (repository.mode === "firebase") {
-      setContractFeedback(firebaseLocalActionMessage);
+      setContractFeedback(FIREBASE_MVP_LOCAL_ACTION_MESSAGE);
       return;
     }
 
@@ -485,7 +332,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     }
 
     if (repository.mode === "firebase") {
-      setContractFeedback(firebaseLocalActionMessage);
+      setContractFeedback(FIREBASE_MVP_LOCAL_ACTION_MESSAGE);
       return;
     }
 
@@ -515,7 +362,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     }
 
     if (repository.mode === "firebase") {
-      setContractFeedback(firebaseLocalActionMessage);
+      setContractFeedback(FIREBASE_MVP_LOCAL_ACTION_MESSAGE);
       return;
     }
 
@@ -551,7 +398,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     }
 
     if (repository.mode === "firebase") {
-      setTradeFeedback(firebaseLocalActionMessage);
+      setTradeFeedback(FIREBASE_MVP_LOCAL_ACTION_MESSAGE);
       return;
     }
 
@@ -567,81 +414,13 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     setTradeFeedback(result.message);
   }
 
-  function handleAcceptTrade(tradeId: string) {
-    if (!currentUser) {
-      return;
-    }
-
-    if (repository.mode === "firebase") {
-      setTradeFeedback(firebaseLocalActionMessage);
-      return;
-    }
-
-    const result = acceptOnlineTradeProposal(leagueId, tradeId, currentUser.userId);
-
-    setLeague(result.league);
-    setTradeFeedback(result.message);
-  }
-
-  function handleDeclineTrade(tradeId: string) {
-    if (!currentUser) {
-      return;
-    }
-
-    if (repository.mode === "firebase") {
-      setTradeFeedback(firebaseLocalActionMessage);
-      return;
-    }
-
-    const result = declineOnlineTradeProposal(leagueId, tradeId, currentUser.userId);
-
-    setLeague(result.league);
-    setTradeFeedback(result.message);
-  }
-
-  function handleScoutProspect(prospectId: string) {
-    if (!currentUser) {
-      return;
-    }
-
-    if (repository.mode === "firebase") {
-      setDraftFeedback(firebaseLocalActionMessage);
-      return;
-    }
-
-    const result = scoutOnlineProspect(leagueId, currentUser.userId, prospectId);
-
-    if (result.league) {
-      setLeague(result.league);
-    }
-    setDraftFeedback(result.message);
-  }
-
-  function handleDraftProspect(prospectId: string) {
-    if (!currentUser) {
-      return;
-    }
-
-    if (repository.mode === "firebase") {
-      setDraftFeedback(firebaseLocalActionMessage);
-      return;
-    }
-
-    const result = makeOnlineDraftPick(leagueId, currentUser.userId, prospectId);
-
-    if (result.league) {
-      setLeague(result.league);
-    }
-    setDraftFeedback(result.message);
-  }
-
   function handleHireCoach(coachId: string) {
     if (!currentUser) {
       return;
     }
 
     if (repository.mode === "firebase") {
-      setCoachFeedback(firebaseLocalActionMessage);
+      setCoachFeedback(FIREBASE_MVP_LOCAL_ACTION_MESSAGE);
       return;
     }
 
@@ -659,7 +438,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     }
 
     if (repository.mode === "firebase") {
-      setCoachFeedback(firebaseLocalActionMessage);
+      setCoachFeedback(FIREBASE_MVP_LOCAL_ACTION_MESSAGE);
       return;
     }
 
@@ -677,7 +456,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     }
 
     if (repository.mode === "firebase") {
-      setMediaFeedback(firebaseLocalActionMessage);
+      setMediaFeedback(FIREBASE_MVP_LOCAL_ACTION_MESSAGE);
       return;
     }
 
@@ -698,8 +477,12 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
       return;
     }
 
-    if (repository.mode === "firebase") {
-      setPricingFeedback(firebaseLocalActionMessage);
+    if (
+      guardFirebaseMvpLocalAction({
+        mode: repository.mode,
+        setFeedback: setPricingFeedback,
+      })
+    ) {
       return;
     }
 
@@ -726,7 +509,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
           message: loadError,
           helper: "Bitte versuche es erneut. Lokale Daten werden dabei nicht ueberschrieben.",
         })}
-        onRetry={loadErrorRequiresSearch ? handleSearchLeagueAgain : handleRetryLoad}
+        onRetry={loadErrorRequiresSearch ? handleSearchLeagueAgain : retryLoad}
         retryLabel={loadErrorRequiresSearch ? "Liga neu suchen" : "Liga erneut laden"}
       />
     );
@@ -754,7 +537,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     return (
       <ErrorState
         copy={getMissingPlayerRecoveryCopy()}
-        onRetry={handleRetryLoad}
+        onRetry={retryLoad}
         retryLabel="Liga erneut laden"
       />
     );
@@ -767,7 +550,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     return (
       <ErrorState
         copy={getMissingTeamRecoveryCopy()}
-        onRetry={handleRetryLoad}
+        onRetry={retryLoad}
         retryLabel="Team erneut laden"
       />
     );

@@ -6,6 +6,7 @@ import {
 } from "@/lib/auth/session";
 import {
   createSaveGame,
+  getOfflineSaveGameDeleteAvailability,
   isSaveGameCreationUnavailableError,
   saveGameCreationErrorMessage,
 } from "@/modules/savegames/application/savegame-command.service";
@@ -16,7 +17,12 @@ export async function GET() {
     const userId = await requireApiUserId();
     const saveGames = await listSaveGames(userId);
 
-    return NextResponse.json({ items: saveGames });
+    return NextResponse.json({
+      items: saveGames,
+      capabilities: {
+        deleteSaveGame: getOfflineSaveGameDeleteAvailability(),
+      },
+    });
   } catch (error) {
     if (error instanceof AuthenticationError) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });

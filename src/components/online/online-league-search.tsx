@@ -43,6 +43,7 @@ export function OnlineLeagueSearch() {
   const [selectedCategory, setSelectedCategory] =
     useState<TeamNameCategory>("identity_city");
   const [selectedTeamNameId, setSelectedTeamNameId] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const joiningLeagueIdRef = useRef<string | null>(null);
   const repository = useMemo(() => getOnlineLeagueRepository(), []);
@@ -73,6 +74,27 @@ export function OnlineLeagueSearch() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    repository
+      .getCurrentUser()
+      .then((user) => {
+        if (active) {
+          setCurrentUserId(user.userId);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setCurrentUserId(null);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [repository]);
 
   useEffect(() => {
     if (searchState !== "ready") {
@@ -130,12 +152,16 @@ export function OnlineLeagueSearch() {
     }
 
     const selectedLeague = leagueCards.find((leagueCard) => leagueCard.id === leagueId);
+    const sourceLeague = leagues.find((league) => league.id === leagueId);
+    const isCurrentUserMember = Boolean(
+      currentUserId && sourceLeague?.users.some((user) => user.userId === currentUserId),
+    );
 
     if (!selectedLeague) {
       return;
     }
 
-    if (!resolvedTeamIdentity) {
+    if (!isCurrentUserMember && !resolvedTeamIdentity) {
       setJoinFeedback({
         leagueId: selectedLeague.id,
         tone: "warning",
@@ -148,7 +174,10 @@ export function OnlineLeagueSearch() {
     setJoiningLeagueId(leagueId);
 
     try {
-      const result = await repository.joinLeague(selectedLeague.id, selectedTeamIdentity);
+      const result = await repository.joinLeague(
+        selectedLeague.id,
+        isCurrentUserMember ? undefined : selectedTeamIdentity,
+      );
 
       if (result.league) {
         setLeagues((currentLeagues) =>
@@ -416,6 +445,13 @@ export function OnlineLeagueSearch() {
           {leagueCards.map((leagueCard) => {
             const cardFeedback =
               joinFeedback?.leagueId === leagueCard.id ? joinFeedback : null;
+            const sourceLeague = leagues.find((league) => league.id === leagueCard.id);
+            const isCurrentUserMember = Boolean(
+              currentUserId && sourceLeague?.users.some((user) => user.userId === currentUserId),
+            );
+            const canActOnLeague =
+              joiningLeagueId === null &&
+              (isCurrentUserMember || (leagueCard.canJoin && canJoinWithTeamIdentity));
 
             return (
               <div
@@ -440,18 +476,18 @@ export function OnlineLeagueSearch() {
                   <button
                     type="button"
                     aria-label={`Beitreten ${leagueCard.name}`}
-                    disabled={
-                      joiningLeagueId !== null ||
-                      !leagueCard.canJoin ||
-                      !canJoinWithTeamIdentity
-                    }
+                    disabled={!canActOnLeague}
                     onClick={() => handleJoinLeague(leagueCard.id)}
                     className="min-h-12 rounded-lg border border-emerald-300/35 bg-emerald-300/10 px-5 py-3 text-sm font-semibold text-emerald-50 transition hover:bg-emerald-300/16 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {joiningLeagueId === leagueCard.id ? "Beitritt läuft..." : "Beitreten"}
+                    {joiningLeagueId === leagueCard.id
+                      ? "Beitritt läuft..."
+                      : isCurrentUserMember
+                        ? "Wieder beitreten"
+                        : "Beitreten"}
                   </button>
                 </div>
-                {!canJoinWithTeamIdentity ? (
+                {!isCurrentUserMember && !canJoinWithTeamIdentity ? (
                   <p className="mt-3 text-xs font-semibold text-amber-100/85">
                     Wähle zuerst Stadt und Teamnamen, bevor du beitrittst.
                   </p>

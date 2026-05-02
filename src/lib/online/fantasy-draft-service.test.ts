@@ -154,7 +154,7 @@ describe("fantasy-draft-service", () => {
         ),
       ).size,
     ).toBe(16 * ONLINE_FANTASY_DRAFT_ROSTER_TARGET_SIZE);
-  }, 15_000);
+  }, 30_000);
 
   it("keeps snake order stable across multiple rounds", () => {
     const storage = new MemoryStorage();

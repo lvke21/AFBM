@@ -539,6 +539,25 @@ export type OnlineFantasyDraftState = {
   completedAt: string | null;
 };
 
+export type OnlineFantasyDraftPickResult =
+  | {
+      status: "success" | "completed";
+      league: OnlineLeague;
+      pick: OnlineFantasyDraftPick;
+      message: string;
+    }
+  | {
+      status:
+        | "missing-league"
+        | "missing-user"
+        | "draft-not-active"
+        | "wrong-team"
+        | "player-unavailable"
+        | "blocked";
+      league: OnlineLeague | null;
+      message: string;
+    };
+
 export type ContractActionResult =
   | {
       status: "success";
@@ -845,6 +864,8 @@ export type OnlineLeagueTeam = {
   id: string;
   name: string;
   abbreviation: string;
+  assignedUserId?: string | null;
+  assignmentStatus?: "available" | "assigned" | "vacant" | "ai";
 };
 
 export type OnlineLeagueScheduleMatch = {

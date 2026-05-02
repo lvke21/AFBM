@@ -1,4 +1,4 @@
-import type { OnlineDepthChartEntry } from "./online-league-service";
+import type { OnlineDepthChartEntry } from "./online-league-types";
 
 export function isSafeOnlineSyncId(id: string | null | undefined): id is string {
   return typeof id === "string" && /^[A-Za-z0-9_-]{3,80}$/.test(id);
