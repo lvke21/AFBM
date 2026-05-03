@@ -13,6 +13,8 @@ Bewertungsbasis:
 
 **Gesamtstatus: Gelb mit roten Kernrisiken**
 
+Governance-Hinweis: Dieser Bericht bewertet UX-/Product-Reife fuer echte Spieler. Fuer Release-Entscheidungen gilt die zentrale Gate-Definition in `docs/reports/qa-release-gates.md`. Ein rotes UX-/Product-Gate blockiert einen Spieler-Release auch dann, wenn technische QA- oder E2E-Gates gruen sind; internes Staging kann trotzdem erlaubt sein, wenn es explizit als QA-System deklariert ist.
+
 Das System wirkt deutlich strukturierter als zuvor, ist aber noch nicht wirklich intuitiv oder als fertiges Spiel erlebbar. Es hat einen erkennbaren UX-Rahmen, klare Hubs und bessere Fallbacks. Trotzdem ist der Sollzustand aus den Zielberichten nicht voll erreicht.
 
 Der kritischste Befund: Die UX beschreibt an mehreren Stellen einen fertigen, eindeutigen Spielfluss, waehrend die tatsaechliche Bedienung noch nach Testumgebung, Admin-Tooling und technischen Zwischenzustaenden riecht. Besonders Online-Rejoin, Fortsetzen und Admin-Woche sind nicht robust genug, um einem neuen oder normalen Spieler ohne Erklaerung zu vertrauen.

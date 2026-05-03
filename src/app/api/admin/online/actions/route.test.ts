@@ -74,7 +74,7 @@ function allowAdmin(uid = "firebase-admin-user") {
   });
 }
 
-function allowUidListedAdmin() {
+function mockUidAllowlistedWithoutClaim() {
   verifyIdTokenMock.mockResolvedValue({
     uid: "KFy5PrqAzzP7vRbfP4wIDamzbh43",
     email: "allowlisted-admin@example.test",
@@ -136,6 +136,7 @@ describe("admin online action route", () => {
       postRequest({
         action: "createLeague",
         backendMode: "local",
+        confirmed: true,
         name: "Server Guard League",
         maxUsers: 4,
         startWeek: 2,
@@ -171,8 +172,38 @@ describe("admin online action route", () => {
     });
   });
 
-  it("allows the temporary admin UID allowlist without a custom claim", async () => {
-    allowUidListedAdmin();
+  it("rejects local mutations without explicit mutation confirmation", async () => {
+    allowAdmin("firebase-admin-user");
+
+    const response = await POST(
+      postRequest({
+        action: "createLeague",
+        backendMode: "local",
+        name: "Unconfirmed League",
+        maxUsers: 4,
+        localState: {
+          leaguesJson: "[]",
+        },
+      }, "admin-token"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.code).toBe("ADMIN_ACTION_POLICY_VIOLATION");
+    expect(readConsoleJson("warn")).toMatchObject({
+      type: "security_audit",
+      event: "admin_action",
+      action: "createLeague",
+      outcome: "failed",
+      code: "ADMIN_ACTION_POLICY_VIOLATION",
+      actor: {
+        userId: "firebase-admin-user",
+      },
+    });
+  });
+
+  it("rejects the bootstrap UID allowlist without a custom claim", async () => {
+    mockUidAllowlistedWithoutClaim();
 
     const response = await POST(
       postRequest({
@@ -188,15 +219,17 @@ describe("admin online action route", () => {
     );
     const body = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(body.ok).toBe(true);
-    expect(readConsoleJson("info")).toMatchObject({
+    expect(response.status).toBe(403);
+    expect(body.code).toBe("ADMIN_FORBIDDEN");
+    expect(body.ok).toBe(false);
+    expect(readConsoleJson("warn")).toMatchObject({
       type: "security_audit",
       event: "admin_action",
       action: "createLeague",
-      outcome: "success",
+      outcome: "denied",
+      code: "ADMIN_FORBIDDEN",
       actor: {
-        userId: "KFy5PrqAzzP7vRbfP4wIDamzbh43",
+        userId: "anonymous",
       },
     });
   });
@@ -208,6 +241,7 @@ describe("admin online action route", () => {
       postRequest({
         action: "createLeague",
         backendMode: "local",
+        confirmed: true,
         name: "Route Listed League",
         maxUsers: 4,
         localState: {
@@ -241,6 +275,7 @@ describe("admin online action route", () => {
       postRequest({
         action: "createLeague",
         backendMode: "local",
+        confirmed: true,
         name: "Route Detail League",
         maxUsers: 4,
         localState: {
@@ -274,6 +309,7 @@ describe("admin online action route", () => {
       postRequest({
         action: "setAllReady",
         backendMode: "local",
+        confirmed: true,
         localState: {
           [ONLINE_LEAGUES_STORAGE_KEY]: "[]",
         },
@@ -315,6 +351,7 @@ describe("admin online action route", () => {
         leagueId: "league-1",
         season: 1,
         week: 1,
+        confirmed: true,
       }, "admin-token"),
     );
     const body = await response.json();
@@ -339,6 +376,25 @@ describe("admin online action route", () => {
         expectedWeek: 1,
       },
     );
+  });
+
+  it("rejects simulateWeek without explicit mutation confirmation", async () => {
+    allowAdmin("firebase-admin-user");
+
+    const response = await POST(
+      postRequest({
+        action: "simulateWeek",
+        backendMode: "firebase",
+        leagueId: "league-1",
+        season: 1,
+        week: 1,
+      }, "admin-token"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.code).toBe("ADMIN_ACTION_POLICY_VIOLATION");
+    expect(simulateOnlineLeagueWeekMock).not.toHaveBeenCalled();
   });
 
   it("rejects simulateWeek without a bearer token", async () => {
@@ -383,6 +439,7 @@ describe("admin online action route", () => {
       postRequest({
         action: "simulateWeek",
         backendMode: "firebase",
+        confirmed: true,
         season: 1,
         week: 1,
       }, "admin-token"),
@@ -408,6 +465,7 @@ describe("admin online action route", () => {
         action: "simulateWeek",
         backendMode: "firebase",
         leagueId: "league-1",
+        confirmed: true,
       }, "admin-token"),
     );
     const body = await response.json();

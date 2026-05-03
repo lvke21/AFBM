@@ -14,7 +14,7 @@ type OnlineModeStatusProps = {
 export function OnlineModeStatus({
   context = "hub",
   compact = false,
-  role = "GM",
+  role = "Manager",
 }: OnlineModeStatusProps) {
   const repository = useMemo(() => getOnlineLeagueRepository(), []);
   const statusCopy = getOnlineModeStatusCopy(repository.mode, role);

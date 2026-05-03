@@ -21,26 +21,26 @@ export function SavegamesAuthStateStatus() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
-            Auth Status
+            Loginstatus
           </p>
           <p className="mt-1 font-semibold text-white">
             {authState.isLoading
               ? FIREBASE_AUTH_LOADING_COPY
               : isAuthenticated
-                ? user.displayName || user.email || user.uid
+                ? user.displayName || user.email || "Angemeldet"
                 : "Nicht eingeloggt"}
           </p>
           <p className="mt-1 text-xs text-slate-300">
             {authState.isLoading
               ? "Accountdaten werden geladen."
               : isAuthenticated
-                ? user.email ?? user.uid
-                : authState.errorMessage ?? "Melde dich an, um Savegames, Online und Admin zu nutzen."}
+                ? user.email ?? "Angemeldet"
+                : "Nicht eingeloggt"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <span className="w-fit rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200">
-            {isAuthenticated ? "Firebase Login aktiv" : "Login erforderlich"}
+            {isAuthenticated ? "Angemeldet" : "Login erforderlich"}
           </span>
           <span className="w-fit rounded-full border border-sky-200/25 bg-sky-300/10 px-3 py-1 text-xs font-semibold text-sky-100">
             Rolle: {roleLabel}

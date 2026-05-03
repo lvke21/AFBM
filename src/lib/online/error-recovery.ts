@@ -72,12 +72,13 @@ export function getOnlineRecoveryCopy(
   fallback: Pick<OnlineRecoveryCopy, "title" | "message" | "helper">,
 ): OnlineRecoveryCopy {
   const kind = classifyOnlineRecoveryError(error);
+  const code = getErrorCode(error).toLowerCase();
 
   if (kind === "auth") {
     return {
       kind,
       title: "Online-Identitaet nicht verfuegbar",
-      message: "Firebase Login ist erforderlich.",
+      message: "Login ist erforderlich.",
       helper: "Melde dich mit Email und Passwort an. Deine Liga-Daten werden nicht lokal ueberschrieben.",
     };
   }
@@ -87,7 +88,7 @@ export function getOnlineRecoveryCopy(
       kind,
       title: "Zugriff nicht erlaubt",
       message: "Du hast fuer diese Online-Liga oder Aktion keine Berechtigung.",
-      helper: "Gehe zurueck zum Online Hub und lade die Liga erneut.",
+      helper: "Gehe zurueck zum Onlinebereich und lade die Liga erneut.",
     };
   }
 
@@ -109,6 +110,19 @@ export function getOnlineRecoveryCopy(
     };
   }
 
+  if (
+    code.includes("membership-projektion") ||
+    code.includes("membership projection conflict") ||
+    code.includes("membership-mirror")
+  ) {
+    return {
+      kind: "sync",
+      title: "Online-Liga muss neu synchronisiert werden",
+      message: "Die Liga-Zuordnung ist widerspruechlich und wird nicht angezeigt.",
+      helper: "Lade die Liga neu oder tritt ueber den Onlinebereich erneut bei. Es wurde keine stille Reparatur ausgefuehrt.",
+    };
+  }
+
   return {
     kind,
     ...fallback,
@@ -119,8 +133,8 @@ export function getMissingPlayerRecoveryCopy(): OnlineRecoveryCopy {
   return {
     kind: "missing-player",
     title: "Spieler in dieser Liga nicht gefunden",
-    message: "Dein aktueller Online-Account ist in dieser Liga nicht als GM eingetragen.",
-    helper: "Gehe zum Online Hub, lade deine letzte Liga erneut oder tritt einer passenden Liga bei.",
+    message: "Dein aktueller Online-Account ist in dieser Liga nicht als Manager eingetragen.",
+    helper: "Gehe zum Onlinebereich, lade deine letzte Liga erneut oder tritt einer passenden Liga bei.",
   };
 }
 
@@ -129,6 +143,6 @@ export function getMissingTeamRecoveryCopy(): OnlineRecoveryCopy {
     kind: "missing-team",
     title: "Team-Zuordnung fehlt",
     message: "Dein Spieler ist vorhanden, aber kein aktives Team ist zugeordnet.",
-    helper: "Bitte lade die Liga neu. Falls das Team freigegeben wurde, tritt ueber den Online Hub erneut bei.",
+    helper: "Bitte lade die Liga neu. Falls das Team freigegeben wurde, tritt ueber den Onlinebereich erneut bei.",
   };
 }

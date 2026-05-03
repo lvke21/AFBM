@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { useFirebaseAuthState } from "@/components/auth/firebase-auth-provider";
-import { isAdminUid } from "@/lib/admin/admin-uid-allowlist";
+import { getAdminAuthDecision } from "@/lib/admin/admin-auth-model";
 import { getOnlineFirebaseAuth } from "@/lib/online/auth/online-auth";
 
 type AdminClaimState =
@@ -47,14 +47,21 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
           return;
         }
 
-        if (token.claims.admin === true || isAdminUid(firebaseUser.uid)) {
+        const adminDecision = getAdminAuthDecision({
+          claims: token.claims,
+          uid: firebaseUser.uid,
+        });
+
+        if (adminDecision.allowed) {
           setClaimState({ status: "allowed", uid: firebaseUser.uid });
           return;
         }
 
         setClaimState({
           status: "denied",
-          reason: "Dein Firebase-Account hat keine Adminrechte.",
+          reason: adminDecision.bootstrapEligible
+            ? "Deine UID ist fuer Admin-Bootstrap vorgemerkt. Echte Adminrechte brauchen den Firebase Custom Claim admin=true."
+            : "Dein Firebase-Account hat keine Adminrechte.",
         });
       } catch {
         if (!cancelled) {

@@ -19,7 +19,10 @@ type AdminActionResponse = {
     users?: Array<{
       id?: string;
       uid?: string;
+      userId?: string;
+      username?: string;
       teamId?: string;
+      teamName?: string;
       readyForWeek?: boolean;
     }>;
   } | null;
@@ -51,15 +54,20 @@ Usage:
   STAGING_FIREBASE_TEST_PASSWORD=<password> \\
   npm run staging:smoke:admin-week -- --league-id afbm-multiplayer-test-league
 
+  CONFIRM_STAGING_SMOKE=true npm run staging:smoke:auth -- --league-id afbm-multiplayer-test-league
+  # Read-only smoke: login, Admin API auth, league load, user-team assignment.
+
   CONFIRM_STAGING_SMOKE=true npm run staging:smoke:admin-week
   # Falls kein Token/Login gesetzt ist, nutzt das Script gcloud sign-jwt fuer afbm-staging.
 
 Options:
   --base-url <url>      Staging App Hosting URL. Default: ${DEFAULT_BASE_URL}
   --league-id <id>      League to simulate. Default: ${DEFAULT_LEAGUE_ID}
+  --expected-commit <sha> Commit that must be deployed on Staging. Default: local git HEAD.
   --season <number>     Expected season sent to Admin API.
   --week <number>       Expected week sent to Admin API.
-  --auth-only           Verify Admin API auth with listLeagues, but do not simulate.
+  --auth-only           Read-only smoke: verify login, Admin API auth, league load and user-team assignment.
+  --read-only           Alias for --auth-only.
   --help                Show this help.
 
 Safety:
@@ -81,6 +89,110 @@ function readArg(name: string) {
 
 function hasArg(name: string) {
   return process.argv.includes(name);
+}
+
+function getLocalGitCommit() {
+  try {
+    return execFileSync("git", ["rev-parse", "--short=12", "HEAD"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
+function normalizeCommit(value: string | null | undefined) {
+  const commit = value?.trim().toLowerCase() ?? "";
+
+  return commit.length > 0 ? commit : null;
+}
+
+function commitMatches(remoteCommit: string, expectedCommit: string) {
+  const remote = normalizeCommit(remoteCommit);
+  const expected = normalizeCommit(expectedCommit);
+
+  if (!remote || !expected) {
+    return false;
+  }
+
+  return remote.startsWith(expected) || expected.startsWith(remote);
+}
+
+function resolveExpectedCommit() {
+  return (
+    normalizeCommit(readArg("--expected-commit")) ??
+    normalizeCommit(process.env.STAGING_EXPECTED_COMMIT) ??
+    normalizeCommit(getLocalGitCommit())
+  );
+}
+
+async function verifyStagingCommit(baseUrl: string, expectedCommit: string) {
+  const response = await fetch(`${baseUrl}/api/build-info`, {
+    headers: { accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Staging commit check failed: /api/build-info returned HTTP ${response.status}. Deploy the target commit before running the smoke.`,
+    );
+  }
+
+  const payload = (await response.json()) as {
+    commit?: string | null;
+    deployEnv?: string | null;
+    firebaseProjectId?: string | null;
+    revision?: string | null;
+  };
+  const remoteCommit = normalizeCommit(payload.commit);
+
+  if (!remoteCommit) {
+    throw new Error(
+      "Staging commit check failed: /api/build-info did not expose a commit. Set AFBM_GIT_COMMIT/GIT_COMMIT/SOURCE_VERSION during App Hosting build.",
+    );
+  }
+
+  if (!commitMatches(remoteCommit, expectedCommit)) {
+    throw new Error(
+      `Staging commit check failed: expected ${expectedCommit}, got ${remoteCommit}. Revision=${payload.revision ?? "unknown"}.`,
+    );
+  }
+
+  console.log(
+    `[staging-smoke] commit ok; expected=${expectedCommit} deployed=${remoteCommit} revision=${payload.revision ?? "unknown"} env=${payload.deployEnv ?? "unknown"} project=${payload.firebaseProjectId ?? "unknown"}`,
+  );
+}
+
+function decodeFirebaseIdTokenPayload(token: string) {
+  const parts = token.split(".");
+
+  if (parts.length < 2 || !parts[1]) {
+    throw new Error("Firebase ID token is not a JWT.");
+  }
+
+  const decoded = Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+
+  return JSON.parse(decoded) as {
+    admin?: boolean;
+    email?: string;
+    sub?: string;
+    user_id?: string;
+  };
+}
+
+function getTokenUid(token: string) {
+  const payload = decodeFirebaseIdTokenPayload(token);
+  const uid = payload.user_id ?? payload.sub;
+
+  if (!uid) {
+    throw new Error("Firebase ID token does not contain user_id/sub.");
+  }
+
+  return {
+    adminClaim: payload.admin === true,
+    emailPresent: Boolean(payload.email),
+    uid,
+  };
 }
 
 function requireStagingConfirmation() {
@@ -263,6 +375,76 @@ async function postAdminAction(
   return { status: response.status, payload };
 }
 
+async function verifyReadOnlyAuthenticatedStagingState(input: {
+  baseUrl: string;
+  leagueId: string;
+  token: string;
+}) {
+  const tokenIdentity = getTokenUid(input.token);
+
+  console.log(
+    `[staging-smoke] token identity ok; uid=${tokenIdentity.uid} adminClaim=${tokenIdentity.adminClaim ? "true" : "false"} email=${tokenIdentity.emailPresent ? "present" : "missing"}`,
+  );
+
+  const leagueResult = await postAdminAction(input.baseUrl, input.token, {
+    action: "getLeague",
+    backendMode: "firebase",
+    leagueId: input.leagueId,
+  });
+
+  if (!leagueResult.payload.ok || !leagueResult.payload.league) {
+    throw new Error(
+      `Read-only league load failed (${leagueResult.status}): ${leagueResult.payload.code ?? "UNKNOWN"} ${leagueResult.payload.message ?? ""}`.trim(),
+    );
+  }
+
+  const league = leagueResult.payload.league;
+  const users = league.users ?? [];
+  const teams = (league.teams ?? []) as Array<{
+    assignedUserId?: string | null;
+    id?: string;
+    name?: string;
+  }>;
+  const membership = users.find((user) => {
+    const userId = user.userId ?? user.uid ?? user.id;
+
+    return userId === tokenIdentity.uid;
+  });
+
+  if (!membership) {
+    throw new Error(
+      `Authenticated user is not connected to league ${input.leagueId}. Membership for uid=${tokenIdentity.uid} was not found.`,
+    );
+  }
+
+  if (!membership.teamId) {
+    throw new Error(
+      `Authenticated user membership in league ${input.leagueId} has no teamId.`,
+    );
+  }
+
+  const assignedTeam = teams.find((team) => team.id === membership.teamId);
+
+  if (!assignedTeam) {
+    throw new Error(
+      `Authenticated user membership points to missing teamId=${membership.teamId}.`,
+    );
+  }
+
+  if (assignedTeam.assignedUserId && assignedTeam.assignedUserId !== tokenIdentity.uid) {
+    throw new Error(
+      `Team assignment mismatch for teamId=${membership.teamId}; team.assignedUserId does not match authenticated uid.`,
+    );
+  }
+
+  console.log(
+    `[staging-smoke] league load ok; currentWeek=${league.currentWeek ?? "unknown"} teams=${teams.length} users=${users.length} schedule=${league.schedule?.length ?? 0}`,
+  );
+  console.log(
+    `[staging-smoke] user-team assignment ok; teamId=${membership.teamId} readyForWeek=${membership.readyForWeek ? "true" : "false"} assignedUserId=${assignedTeam.assignedUserId ? "matches" : "not-set"}`,
+  );
+}
+
 async function run() {
   if (hasArg("--help") || hasArg("-h")) {
     printHelp();
@@ -273,15 +455,27 @@ async function run() {
 
   const baseUrl = normalizeBaseUrl();
   const leagueId = readArg("--league-id") ?? process.env.STAGING_SMOKE_LEAGUE_ID ?? DEFAULT_LEAGUE_ID;
+  const expectedCommit = resolveExpectedCommit();
   const season = normalizePositiveInt(readArg("--season"), "season");
   const week = normalizePositiveInt(readArg("--week"), "week");
-  const authOnly = hasArg("--auth-only");
-  const { token, source } = await getFirebaseIdToken();
+  const authOnly = hasArg("--auth-only") || hasArg("--read-only");
+
+  if (!expectedCommit) {
+    throw new Error(
+      "Staging smoke requires an expected commit. Pass --expected-commit <sha> or set STAGING_EXPECTED_COMMIT.",
+    );
+  }
 
   console.log(`[staging-smoke] baseUrl=${baseUrl}`);
   console.log(`[staging-smoke] leagueId=${leagueId}`);
+  console.log(`[staging-smoke] expectedCommit=${expectedCommit}`);
+  console.log(`[staging-smoke] mode=${authOnly ? "read-only-auth" : "simulate-week"}`);
+
+  await verifyStagingCommit(baseUrl, expectedCommit);
+
+  const { token, source } = await getFirebaseIdToken();
+
   console.log(`[staging-smoke] tokenSource=${source}`);
-  console.log(`[staging-smoke] mode=${authOnly ? "auth-only" : "simulate-week"}`);
 
   const listResult = await postAdminAction(baseUrl, token, {
     action: "listLeagues",
@@ -299,6 +493,8 @@ async function run() {
   );
 
   if (authOnly) {
+    await verifyReadOnlyAuthenticatedStagingState({ baseUrl, leagueId, token });
+    console.log("[staging-smoke] status=GREEN");
     return;
   }
 
@@ -393,9 +589,11 @@ async function run() {
   console.log(
     `[staging-smoke] reload ok; currentWeek=${reloadResult.payload.league.currentWeek ?? "unknown"} standings=${reloadResult.payload.league.standings?.length ?? 0} results=${reloadResult.payload.league.matchResults?.length ?? 0}`,
   );
+  console.log("[staging-smoke] status=GREEN");
 }
 
 run().catch((error) => {
   console.error(`[staging-smoke] failed: ${error instanceof Error ? error.message : String(error)}`);
+  console.error("[staging-smoke] status=RED");
   process.exitCode = 1;
 });

@@ -34,18 +34,15 @@ function getContextNotice(context: AppShellContext) {
       primaryHref: "/app/savegames",
       primaryLabel: "Savegames",
       secondaryHref: "/online",
-      secondaryLabel: "Online Hub",
+      secondaryLabel: "Onlinebereich",
     };
   }
 
   if (context.online && !context.online.teamNavigationReady) {
     return {
-      message:
-        context.online.draftStatus === "active"
-          ? "Der Online-Draft ist aktiv. Teamseiten werden nach dem Roster-Aufbau freigegeben."
-          : "Die Online-Liga ist geladen, aber das Team/Roster ist noch nicht vollstaendig bereit.",
+      message: "Die Online-Liga ist geladen, aber fuer diesen User ist noch kein Team verbunden.",
       primaryHref: "/online",
-      primaryLabel: "Online Hub",
+      primaryLabel: "Onlinebereich",
       secondaryHref: "/app/savegames",
       secondaryLabel: "Savegames",
     };
@@ -57,7 +54,7 @@ function getContextNotice(context: AppShellContext) {
       primaryHref: "/app/savegames",
       primaryLabel: "Savegames",
       secondaryHref: "/online",
-      secondaryLabel: "Online Hub",
+      secondaryLabel: "Onlinebereich",
     };
   }
 
@@ -83,10 +80,10 @@ export function SidebarNavigation({ context }: SidebarNavigationProps) {
     window.addEventListener("hashchange", syncHash);
 
     return () => window.removeEventListener("hashchange", syncHash);
-  }, []);
+  }, [pathname]);
 
   return (
-    <nav aria-label="GM Navigation" className="space-y-6">
+    <nav aria-label="Manager-Navigation" className="space-y-6">
       {contextNotice ? (
         <div className="rounded-lg border border-amber-300/25 bg-amber-300/10 p-3 text-xs text-amber-50">
           <p className="leading-5">{contextNotice.message}</p>

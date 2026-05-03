@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { getOnlineRecoveryCopy } from "@/lib/online/error-recovery";
+import { normalizeOnlineCoreLifecycle } from "@/lib/online/online-league-lifecycle";
 
 import {
   DraftStatusPanel,
@@ -86,7 +87,16 @@ export function OnlineLeagueDraftPage({ leagueId }: { leagueId: string }) {
     );
   }
 
-  if (!league?.fantasyDraft || league.fantasyDraft.status === "completed") {
+  const lifecycle =
+    league && currentUser
+      ? normalizeOnlineCoreLifecycle({
+          currentUser,
+          league,
+          requiresDraft: Boolean(league.fantasyDraft),
+        })
+      : null;
+
+  if (!lifecycle || lifecycle.draftStatus === "missing" || lifecycle.draftStatus === "completed") {
     const completedPickCount = league?.fantasyDraft?.picks.length ?? 0;
 
     return (

@@ -6,7 +6,7 @@ type AdminCompletedWeekSummary = {
   week: number;
 };
 
-export type AdminDisplayedWeekGame = {
+type AdminDisplayedWeekGame = {
   awayTeamName: string;
   homeTeamName: string;
   id: string;
@@ -52,7 +52,7 @@ export function AdminLeagueSummaryCards({
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
           Woche
         </p>
-        <p className="mt-2 text-lg font-semibold text-white">Week {currentWeek}</p>
+        <p className="mt-2 text-lg font-semibold text-white">Woche {currentWeek}</p>
         {lastCompletedWeek ? (
           <p className="mt-2 text-xs font-semibold text-slate-400">
             Zuletzt abgeschlossen: S{lastCompletedWeek.season} W{lastCompletedWeek.week}
@@ -98,7 +98,7 @@ export function AdminLeagueWeekDataCards({
                 Games der aktuellen Woche
               </p>
               <h3 className="mt-2 text-lg font-semibold text-white">
-                Week {currentWeek}
+                Woche {currentWeek}
               </h3>
             </div>
             <span className="w-fit rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200">

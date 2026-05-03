@@ -20,7 +20,7 @@ export function OnlineRecoveryPanel({
   retryLabel = "Erneut versuchen",
   onRetry,
   backHref = "/online",
-  backLabel = "Zurueck zum Online Hub",
+  backLabel = "Zurueck zum Onlinebereich",
 }: OnlineRecoveryPanelProps) {
   const toneClass =
     tone === "error"

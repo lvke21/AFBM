@@ -43,6 +43,7 @@ export function FirebaseEmailAuthPanel({
   const [debugError, setDebugError] = useState<OnlineAuthErrorDetails | null>(null);
   const [pending, setPending] = useState(false);
   const adminAccess = useFirebaseAdminAccess();
+  const showAuthDebug = process.env.NODE_ENV !== "production" || adminAccess.isAdmin;
 
   useEffect(() => {
     if (onlineMode === "local") {
@@ -152,7 +153,7 @@ export function FirebaseEmailAuthPanel({
   if (authState === "loading") {
     return (
       <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-200">
-        Firebase Login wird geprüft...
+        Login wird geprüft...
       </div>
     );
   }
@@ -170,10 +171,10 @@ export function FirebaseEmailAuthPanel({
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-100">
           Lokaler Testmodus
         </p>
-        <p className="mt-2 font-semibold text-white">Firebase Login ist lokal deaktiviert.</p>
+        <p className="mt-2 font-semibold text-white">Login ist lokal deaktiviert.</p>
         <p className="mt-2 text-xs leading-5 text-amber-50/85">
           Staging und Produktion verwenden Email/Passwort-Login. Der lokale
-          Online-Speicher bleibt nur fuer Tests ohne Firebase aktiv.
+          Online-Speicher bleibt nur fuer Tests aktiv.
         </p>
       </div>
     );
@@ -186,11 +187,11 @@ export function FirebaseEmailAuthPanel({
           Eingeloggt
         </p>
         <p className="mt-2 font-semibold text-white">
-          {user.displayName || user.username || user.userId}
+          {user.displayName || user.username || "Angemeldet"}
         </p>
-        <p className="mt-1 text-xs text-emerald-100/85">{user.email ?? "Firebase User"}</p>
+        <p className="mt-1 text-xs text-emerald-100/85">{user.email ?? "Angemeldet"}</p>
         <p className="mt-2 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold">
-          Rolle: {adminAccess.isAdmin ? "Admin + GM" : "GM"}
+          Rolle: {adminAccess.isAdmin ? "Admin + Manager" : "Manager"}
         </p>
         <p className="mt-2 text-xs leading-5 text-emerald-100/85">
           Online: verfügbar. Admin: {adminAccess.isAdmin ? "verfügbar" : "nicht verfügbar"}.
@@ -204,7 +205,7 @@ export function FirebaseEmailAuthPanel({
           {pending ? "Logout..." : "Logout"}
         </button>
         {feedback ? <p className="mt-2 text-xs font-semibold">{feedback}</p> : null}
-        <FirebaseAuthDebugPanel error={debugError} />
+        {showAuthDebug ? <FirebaseAuthDebugPanel error={debugError} /> : null}
       </div>
     );
   }
@@ -219,13 +220,13 @@ export function FirebaseEmailAuthPanel({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
-            Firebase Login
+            Login
           </p>
           <h2 className="mt-2 text-2xl font-semibold text-white">
             {mode === "login" ? "Anmelden" : "Registrieren"}
           </h2>
           <p className="mt-2 text-sm leading-6 text-slate-300">
-            Online-Multiplayer nutzt ab jetzt echte Firebase Email/Passwort-Accounts.
+            Online-Multiplayer nutzt Email/Passwort-Accounts.
           </p>
         </div>
         <button
@@ -294,7 +295,7 @@ export function FirebaseEmailAuthPanel({
           {feedback}
         </p>
       ) : null}
-      <FirebaseAuthDebugPanel error={debugError} />
+      {showAuthDebug ? <FirebaseAuthDebugPanel error={debugError} /> : null}
     </section>
   );
 }

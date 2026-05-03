@@ -71,16 +71,49 @@ erst nach einem ID-Token-Refresh. Der neue Admin-Gate ruft beim Öffnen der Admi
 
 ## Schutzmodell
 
-- UI: `/admin` und `/admin/league/[leagueId]` rendern Admin-Inhalte nur, wenn der
-  aktuelle Firebase-User `admin: true` im ID Token hat oder kurzfristig in der
-  serverseitig gepflegten Admin-UID-Allowlist steht.
+- Kanonische Admin-Wahrheit: Firebase Auth Custom Claim `admin: true`.
+- UI: `/admin` und `/admin/league/[leagueId]` rendern Admin-Inhalte nur, wenn
+  `getAdminAuthDecision(...)` den aktuellen Firebase-User über den Custom Claim als
+  Admin bewertet. Eine UID-Allowlist erzeugt nur einen Bootstrap-Hinweis und keinen
+  Adminzugang.
 - API: Admin-Aktionen akzeptieren nur `Authorization: Bearer <Firebase ID Token>` und
-  verifizieren den Token serverseitig mit Firebase Admin SDK. Zugriff gilt bei
-  `admin: true` oder UID-Allowlist.
+  verifizieren den Token serverseitig mit Firebase Admin SDK. Ohne `admin: true` wird
+  der Request mit `ADMIN_FORBIDDEN` blockiert, auch wenn die UID in der Bootstrap-
+  Allowlist steht.
 - Firestore Rules: `request.auth.token.admin == true` gilt als globaler Admin und darf
-  Admin-Pfade sowie Online-Admin-Rechte nutzen. Die UID-Allowlist ist eine kurzfristige
-  App/API-Ueberbrueckung und ersetzt keinen Rules-Deploy fuer direkte Firestore-Zugriffe.
+  Admin-Pfade sowie Online-Admin-Rechte nutzen. UID-Allowlists werden in Rules nicht
+  akzeptiert.
 - Entfernt: altes Formular, alte Login-Route und altes Cookie-Modell.
+
+## Behobene Abweichung
+
+Vor dieser Haertung waren UI/API und Rules nicht gleich: UI/API akzeptierten Custom
+Claim oder UID-Allowlist, globale Firestore-Admin-Dokumente aber nur den Custom Claim.
+Das konnte einem allowlisted User Adminzugang suggerieren, obwohl direkte Rules-Pfade
+blockieren. Jetzt blockieren UI, API und Rules konsistent ohne `admin: true`; die
+UID-Allowlist bleibt nur ein Signal, dass fuer diesen User ein Claim gesetzt werden
+sollte.
+
+## Aktuelle Wahrheit
+
+- Kanonischer Admin-Nachweis: Firebase Auth Custom Claim `admin: true`.
+- Bootstrap-Hinweis: `src/lib/admin/admin-uid-allowlist.ts` markiert UIDs nur als
+  Kandidaten zum Setzen eines Claims und gewährt selbst keinen Zugriff.
+- Einheitlicher UI/API-Entscheider: `src/lib/admin/admin-auth-model.ts`.
+- Server-Audit: jede Admin API Action schreibt ein Security-Audit-Event mit Outcome
+  `success`, `denied` oder `failed`.
+- Firestore Client Writes: Online-Admin-Mutationen bleiben serverseitig. `adminLogs`,
+  `adminActionLocks`, League-Create/Reset/Simulation und globale `admin/*` Pfade sind
+  für normale Client-User gesperrt; `admin/*` ist nur mit Custom Claim direkt erlaubt.
+
+## Admin-Parity-Matrix
+
+| Rolle | UI-Gate | Server/Admin Guard | Firestore `admin/*` | Cross-user Ready Write | Hinweis |
+|---|---|---|---|---|---|
+| Custom Claim `admin=true` | Erlaubt | Erlaubt | Erlaubt | Blockiert | Admin-User duerfen Admin-Dokumente lesen/schreiben; direkte fremde Ready-Writes bleiben clientseitig verboten. |
+| UID-Allowlist ohne Claim | Blockiert | Blockiert | Blockiert | Blockiert | Gewollte Bootstrap-Ausnahme: UI darf einen Hinweis zeigen, aber keinen Adminzugang gewaehrleisten. |
+| Normaler User | Blockiert | Blockiert | Blockiert | Blockiert | Kein Adminsignal. |
+| Unauthenticated | Blockiert | `ADMIN_UNAUTHORIZED` / missing token | Blockiert | Blockiert | Login erforderlich. |
 
 ## QA-Checkliste
 
@@ -92,9 +125,11 @@ erst nach einem ID-Token-Refresh. Der neue Admin-Gate ruft beim Öffnen der Admi
 5. Prüfen, dass Admin Hub und Liga-Adminseiten sichtbar sind.
 6. Eine harmlose Admin-Aktion ausführen und prüfen, dass sie nicht mit
    `ADMIN_UNAUTHORIZED` blockiert.
-7. Mit einem Nicht-Admin einloggen und `/admin` öffnen.
-8. Prüfen, dass der Zugriff verweigert wird.
-9. Per DevTools einen Admin-API-Request ohne Bearer Token senden und `401` erwarten.
+7. Mit derselben UID ohne Custom Claim einloggen und `/admin` öffnen.
+8. Prüfen, dass ein Bootstrap-Hinweis erscheint, aber kein Admininhalt gerendert wird.
+9. Mit einem Nicht-Admin einloggen und `/admin` öffnen.
+10. Prüfen, dass der Zugriff verweigert wird.
+11. Per DevTools einen Admin-API-Request ohne Bearer Token senden und `401` erwarten.
 
 ## Risiken / Offene Punkte
 
@@ -102,3 +137,5 @@ erst nach einem ID-Token-Refresh. Der neue Admin-Gate ruft beim Öffnen der Admi
   Admin-Claim auch in direkten Firestore-Zugriffen greift.
 - Bereits eingeloggte Sessions brauchen Token-Refresh oder erneuten Login.
 - Das Set-Admin-Script benötigt lokal gültige Application Default Credentials.
+- Die UID-Allowlist ist nur noch ein Bootstrap-Hinweis. Sie sollte entfernt werden,
+  sobald alle Admin-Accounts zuverlässig Custom Claims erhalten.

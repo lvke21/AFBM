@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  createCoalescedAsyncEmitter,
   createOrderedAsyncEmitter,
   hasSameDepthChartPayload,
   isSafeOnlineSyncId,
@@ -38,6 +39,25 @@ describe("online sync guards", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(onNext).not.toHaveBeenCalled();
+  });
+
+  it("coalesces bursty sync emissions into one latest load", async () => {
+    vi.useFakeTimers();
+    const onNext = vi.fn();
+    const firstLoad = vi.fn(() => Promise.resolve("first"));
+    const latestLoad = vi.fn(() => Promise.resolve("latest"));
+    const emitter = createCoalescedAsyncEmitter<string>(onNext, undefined, undefined, 10);
+
+    emitter.emit(firstLoad);
+    emitter.emit(latestLoad);
+    await vi.advanceTimersByTimeAsync(10);
+
+    expect(firstLoad).not.toHaveBeenCalled();
+    expect(latestLoad).toHaveBeenCalledTimes(1);
+    expect(onNext).toHaveBeenCalledWith("latest");
+
+    emitter.close();
+    vi.useRealTimers();
   });
 
   it("normalizes sync errors", () => {

@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from "react";
 
-import { isAdminUid } from "@/lib/admin/admin-uid-allowlist";
+import { getAdminAuthDecision } from "@/lib/admin/admin-auth-model";
 import { getOnlineFirebaseAuth } from "@/lib/online/auth/online-auth";
 import { useFirebaseAuthState } from "./firebase-auth-provider";
 
-export type FirebaseAdminAccessState =
+type FirebaseAdminAccessState =
   | { status: "loading"; isAdmin: false; roleLabel: "Pruefe Rolle" }
-  | { status: "allowed"; isAdmin: true; roleLabel: "Admin + GM"; uid: string }
-  | { status: "denied"; isAdmin: false; roleLabel: "GM"; reason: string }
-  | { status: "error"; isAdmin: false; roleLabel: "GM"; reason: string };
+  | { status: "allowed"; isAdmin: true; roleLabel: "Admin + Manager"; uid: string }
+  | { status: "bootstrap"; isAdmin: false; roleLabel: "Manager"; reason: string; uid: string }
+  | { status: "denied"; isAdmin: false; roleLabel: "Manager"; reason: string }
+  | { status: "error"; isAdmin: false; roleLabel: "Manager"; reason: string };
 
 export function useFirebaseAdminAccess(): FirebaseAdminAccessState {
   const authState = useFirebaseAuthState();
@@ -33,18 +34,8 @@ export function useFirebaseAdminAccess(): FirebaseAdminAccessState {
         setState({
           status: "denied",
           isAdmin: false,
-          roleLabel: "GM",
-          reason: authState.errorMessage ?? "Bitte melde dich zuerst mit Firebase an.",
-        });
-        return;
-      }
-
-      if (isAdminUid(authState.user.uid)) {
-        setState({
-          status: "allowed",
-          isAdmin: true,
-          roleLabel: "Admin + GM",
-          uid: authState.user.uid,
+          roleLabel: "Manager",
+          reason: authState.errorMessage ?? "Bitte melde dich zuerst an.",
         });
         return;
       }
@@ -57,17 +48,33 @@ export function useFirebaseAdminAccess(): FirebaseAdminAccessState {
       }
 
       try {
-        const token = await firebaseUser.getIdTokenResult();
+        const token = await firebaseUser.getIdTokenResult(true);
+        const adminDecision = getAdminAuthDecision({
+          claims: token.claims,
+          uid: firebaseUser.uid,
+        });
 
         if (cancelled) {
           return;
         }
 
-        if (token.claims.admin === true) {
+        if (adminDecision.allowed) {
           setState({
             status: "allowed",
             isAdmin: true,
-            roleLabel: "Admin + GM",
+            roleLabel: "Admin + Manager",
+            uid: firebaseUser.uid,
+          });
+          return;
+        }
+
+        if (adminDecision.bootstrapEligible) {
+          setState({
+            status: "bootstrap",
+            isAdmin: false,
+            roleLabel: "Manager",
+            reason:
+              "UID ist als Admin-Bootstrap vorgemerkt. Echte Adminrechte brauchen den Firebase Custom Claim admin=true.",
             uid: firebaseUser.uid,
           });
           return;
@@ -76,15 +83,15 @@ export function useFirebaseAdminAccess(): FirebaseAdminAccessState {
         setState({
           status: "denied",
           isAdmin: false,
-          roleLabel: "GM",
-          reason: "Dein Firebase-Account ist als GM angemeldet, aber nicht als Admin markiert.",
+          roleLabel: "Manager",
+          reason: "Dein Account ist als Manager angemeldet, aber nicht als Admin markiert.",
         });
       } catch {
         if (!cancelled) {
           setState({
             status: "error",
             isAdmin: false,
-            roleLabel: "GM",
+            roleLabel: "Manager",
             reason: "Adminrolle konnte nicht geprueft werden.",
           });
         }

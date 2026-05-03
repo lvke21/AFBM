@@ -30,6 +30,25 @@ describe("online error recovery", () => {
     });
   });
 
+  it("returns a clear fallback for membership projection conflicts", () => {
+    expect(
+      getOnlineRecoveryCopy(
+        new Error("Membership-Projektion inkonsistent in league-1 fuer user-1"),
+        {
+          title: "Online-Liga konnte nicht geladen werden.",
+          message: "Online-Liga konnte nicht geladen werden.",
+          helper: "Pruefe deine Verbindung.",
+        },
+      ),
+    ).toEqual({
+      kind: "sync",
+      title: "Online-Liga muss neu synchronisiert werden",
+      message: "Die Liga-Zuordnung ist widerspruechlich und wird nicht angezeigt.",
+      helper:
+        "Lade die Liga neu oder tritt ueber den Onlinebereich erneut bei. Es wurde keine stille Reparatur ausgefuehrt.",
+    });
+  });
+
   it("has explicit recovery copy for missing player and team states", () => {
     expect(getMissingPlayerRecoveryCopy()).toMatchObject({
       kind: "missing-player",

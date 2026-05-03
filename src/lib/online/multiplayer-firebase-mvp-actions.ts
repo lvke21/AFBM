@@ -60,7 +60,7 @@ export const FIREBASE_MVP_ACTION_AUDIT: FirebaseMvpActionAuditItem[] = [
     synchronized: true,
     tested: true,
     decision: "behalten",
-    reason: "Ready-State wird pro Liga/Woche in Firestore persistiert und für die Admin-Simulation ausgewertet.",
+    reason: "Bereit-Status wird pro Liga/Woche in Firestore persistiert und für die Admin-Simulation ausgewertet.",
   },
   {
     id: "online-dashboard-fantasy-draft-pick",

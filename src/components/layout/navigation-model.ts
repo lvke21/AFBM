@@ -39,6 +39,15 @@ export type BreadcrumbItem = {
   href: string;
 };
 
+const ONLINE_HIDDEN_NON_MVP_LABELS = new Set([
+  "Contracts/Cap",
+  "Development",
+  "Training",
+  "Trade Board",
+  "Inbox",
+  "Finance",
+]);
+
 function saveGameBase(context: AppShellContext) {
   if (context.baseHref) {
     return context.baseHref;
@@ -50,38 +59,44 @@ function saveGameBase(context: AppShellContext) {
 export function buildNavigationItems(context: AppShellContext): NavigationItem[] {
   const base = saveGameBase(context);
   const onlineTeamReady = context.online?.teamNavigationReady === true;
-  const onlineDraftActive = context.online?.draftStatus === "active";
   const isOnlineLeague = Boolean(context.online && base);
   const teamHref = isOnlineLeague
     ? onlineTeamReady ? `${base}#team` : null
     : base && context.managerTeam ? `${base}/team` : null;
+  const onlineComingSoonBase = isOnlineLeague && base ? `${base}/coming-soon` : null;
   const rosterHref = isOnlineLeague
     ? onlineTeamReady ? `${base}#roster` : null
     : teamHref ? `${teamHref}/roster` : null;
   const depthChartHref = isOnlineLeague
     ? onlineTeamReady ? `${base}#depth-chart` : null
     : teamHref ? `${teamHref}/depth-chart` : null;
-  const contractsHref = isOnlineLeague ? null : teamHref ? `${teamHref}/contracts` : null;
-  const tradeBoardHref = isOnlineLeague ? null : teamHref ? `${teamHref}/trades` : null;
-  const financeHref = isOnlineLeague ? null : base && context.managerTeam ? `${base}/finance` : null;
+  const contractsHref = isOnlineLeague
+    ? onlineComingSoonBase ? `${onlineComingSoonBase}/contracts-cap` : null
+    : teamHref ? `${teamHref}/contracts` : null;
+  const tradeBoardHref = isOnlineLeague
+    ? onlineComingSoonBase ? `${onlineComingSoonBase}/trade-board` : null
+    : teamHref ? `${teamHref}/trades` : null;
+  const financeHref = isOnlineLeague
+    ? onlineComingSoonBase ? `${onlineComingSoonBase}/finance` : null
+    : base && context.managerTeam ? `${base}/finance` : null;
   const seasonHref = isOnlineLeague
     ? base ? `${base}#league` : null
     : base && context.currentSeason ? `${base}/league` : null;
-  const developmentHref = isOnlineLeague ? null : base ? `${base}/development` : null;
+  const developmentHref = isOnlineLeague
+    ? onlineComingSoonBase ? `${onlineComingSoonBase}/development` : null
+    : base ? `${base}/development` : null;
   const draftHref = base ? `${base}/draft` : null;
   const gameFlowHref = isOnlineLeague
-    ? base && !onlineDraftActive ? `${base}#week-loop` : null
+    ? base ? `${base}#week-loop` : null
     : context.nextGameHref ?? (base ? `${base}/game/setup` : null);
-  const inboxHref = isOnlineLeague ? null : base ? `${base}/inbox` : null;
+  const inboxHref = isOnlineLeague
+    ? onlineComingSoonBase ? `${onlineComingSoonBase}/inbox` : null
+    : base ? `${base}/inbox` : null;
   const teamDisabledReason = isOnlineLeague
-    ? onlineDraftActive
-      ? "Draft läuft"
-      : context.online?.rosterReady === false
-        ? "Roster nicht vollständig"
-        : "Kein Manager-Team"
+    ? "Kein Manager-Team"
     : "Kein Manager-Team";
 
-  return [
+  const items: NavigationItem[] = [
     {
       label: "Dashboard",
       href: base ?? "/app/savegames",
@@ -95,9 +110,9 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
       section: "Core Actions",
       disabledReason: gameFlowHref
         ? undefined
-        : isOnlineLeague && onlineDraftActive
-          ? "Draft läuft"
-          : "Kein Savegame",
+        : isOnlineLeague
+            ? teamDisabledReason
+            : "Kein Savegame",
     },
     {
       label: "Roster",
@@ -118,18 +133,14 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
       href: contractsHref,
       activePatterns: ["/team/contracts"],
       section: "Core Actions",
-      disabledReason: teamHref ? undefined : "Kein Manager-Team",
+      disabledReason: contractsHref ? undefined : "Kein Manager-Team",
     },
     {
       label: "Development",
       href: developmentHref,
       activePatterns: ["/development"],
       section: "Core Actions",
-      disabledReason: developmentHref
-        ? undefined
-        : isOnlineLeague
-          ? "Online-Development noch nicht implementiert"
-          : "Kein Savegame",
+      disabledReason: developmentHref ? undefined : "Kein Savegame",
     },
     {
       label: "Team Overview",
@@ -144,18 +155,14 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
       href: tradeBoardHref,
       activePatterns: ["/team/trades", "/finance/trades"],
       section: "Team Management",
-      disabledReason: teamHref ? undefined : "Kein Manager-Team",
+      disabledReason: tradeBoardHref ? undefined : "Kein Manager-Team",
     },
     {
       label: "Inbox",
       href: inboxHref,
       activePatterns: ["/inbox"],
       section: "Team Management",
-      disabledReason: inboxHref
-        ? undefined
-        : isOnlineLeague
-          ? "Online-Inbox noch nicht implementiert"
-          : "Kein Savegame",
+      disabledReason: inboxHref ? undefined : "Kein Savegame",
     },
     {
       label: "Finance",
@@ -186,6 +193,10 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
       section: "Analysis/Secondary",
     },
   ];
+
+  return isOnlineLeague
+    ? items.filter((item) => !ONLINE_HIDDEN_NON_MVP_LABELS.has(item.label))
+    : items;
 }
 
 export function isNavigationItemActive(item: NavigationItem, pathname: string, hash = "") {
@@ -197,7 +208,7 @@ export function isNavigationItemActive(item: NavigationItem, pathname: string, h
     }
 
     if (pathname === item.href) {
-      return hash.length === 0;
+      return item.activePatterns.length > 0 || hash.length === 0;
     }
   }
 
@@ -235,7 +246,9 @@ export function buildBreadcrumbs(pathname: string, context: AppShellContext): Br
     breadcrumbs.push({ label: context.saveGame.name, href: base });
   }
 
-  if (
+  if (pathname.includes("/coming-soon/")) {
+    breadcrumbs.push({ label: getOnlineComingSoonPageTitle(pathname), href: pathname });
+  } else if (
     (pathname.endsWith("/team") || pathname.includes("/team/")) &&
     context.managerTeam &&
     base
@@ -350,6 +363,10 @@ function getTeamSectionLabel(pathname: string) {
 }
 
 export function pageTitleForPath(pathname: string, context: AppShellContext) {
+  if (pathname.includes("/coming-soon/")) {
+    return getOnlineComingSoonPageTitle(pathname);
+  }
+
   if (pathname.includes("/finance/free-agency") || pathname.includes("/free-agents")) {
     return "Free Agency";
   }
@@ -436,5 +453,33 @@ export function pageTitleForPath(pathname: string, context: AppShellContext) {
     return "Savegames";
   }
 
-  return context.saveGame ? "GM Office" : "Dashboard";
+  return context.saveGame ? "Managerbüro" : "Dashboard";
+}
+
+function getOnlineComingSoonPageTitle(pathname: string) {
+  if (pathname.endsWith("/contracts-cap")) {
+    return "Contracts/Cap";
+  }
+
+  if (pathname.endsWith("/development")) {
+    return "Development";
+  }
+
+  if (pathname.endsWith("/training")) {
+    return "Training";
+  }
+
+  if (pathname.endsWith("/trade-board")) {
+    return "Trade Board";
+  }
+
+  if (pathname.endsWith("/inbox")) {
+    return "Inbox";
+  }
+
+  if (pathname.endsWith("/finance")) {
+    return "Finance";
+  }
+
+  return "Coming Soon";
 }

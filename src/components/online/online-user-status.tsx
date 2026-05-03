@@ -132,7 +132,7 @@ export function OnlineUserStatus() {
           aria-live="polite"
           className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-300 sm:w-72"
         >
-          Firebase Login wird geprüft...
+          Login wird geprüft...
         </div>
       ) : null}
       {userLoadState === "error" ? (

@@ -105,6 +105,7 @@ export function AdminLeagueManager({
         body: JSON.stringify({
           action,
           backendMode: repository.mode,
+          confirmed: action === "getLeague" || action === "listLeagues" ? undefined : true,
           localState: !isFirebaseMode ? getLocalAdminBrowserState() : undefined,
           ...payload,
         }),
@@ -229,7 +230,7 @@ export function AdminLeagueManager({
     }
 
     const confirmed = window.confirm(
-      `Liga "${league.name}" zurücksetzen? Mitglieder, Ready-State und Week-Fortschritt werden entfernt.`,
+      `Liga "${league.name}" zurücksetzen? Mitglieder, Bereit-Status und Wochenfortschritt werden entfernt.`,
     );
 
     if (!confirmed) {
@@ -276,7 +277,7 @@ export function AdminLeagueManager({
   }
 
   async function handleSetAllReady() {
-    await runDebugAction("debugSetAllReady", "Erfolgreich ausgeführt: Alle Spieler ready gesetzt.");
+    await runDebugAction("debugSetAllReady", "Erfolgreich ausgeführt: Alle Spieler bereit gesetzt.");
   }
 
   async function handleResetOnlineState() {
@@ -374,7 +375,12 @@ export function AdminLeagueManager({
             disabled={pendingAction !== null}
             className="min-h-12 rounded-lg border border-amber-200/35 bg-amber-300/10 px-5 py-3 text-sm font-semibold text-amber-50 transition hover:border-amber-100/55 hover:bg-amber-300/16 disabled:cursor-wait disabled:opacity-60"
           >
-            {pendingAction === "create" ? "Liga wird erstellt..." : "Liga erstellen"}
+            <span className="block">
+              {pendingAction === "create" ? "Liga wird erstellt..." : "Liga erstellen"}
+            </span>
+            <span className="mt-1 block text-xs font-medium leading-4 opacity-75">
+              Schreibt eine neue Online-Liga mit leerem Teilnehmer-State.
+            </span>
           </button>
         </form>
 
@@ -446,14 +452,14 @@ export function AdminLeagueManager({
                     {league.teams.length} Teams
                   </span>
                   <span className="rounded-full border border-white/10 px-3 py-1">
-                    Week {league.currentWeek}
+                    Woche {league.currentWeek}
                   </span>
                   <span className="rounded-full border border-white/10 px-3 py-1">
                     Erstellt {formatDateTime(league.createdAt)}
                   </span>
                 </div>
 
-                <div className={`mt-4 grid gap-2 ${isFirebaseMode ? "sm:grid-cols-3" : "sm:grid-cols-4"}`}>
+                <div className={`mt-4 grid gap-2 ${isFirebaseMode ? "sm:grid-cols-2" : "sm:grid-cols-4"}`}>
                   <button
                     type="button"
                     aria-label={`${league.name} für Simulation und Woche auswählen`}
@@ -465,20 +471,11 @@ export function AdminLeagueManager({
                   </button>
                   <Link
                     href={`/admin/league/${league.id}`}
-                    aria-label={`Öffnen ${league.name}`}
+                    aria-label={`Details verwalten ${league.name}`}
                     className="rounded-lg border border-emerald-200/25 bg-emerald-300/10 px-3 py-2 text-center text-sm font-semibold text-emerald-50 transition hover:bg-emerald-300/16"
                   >
-                    Öffnen
+                    Details verwalten
                   </Link>
-                  {isFirebaseMode ? (
-                    <Link
-                      href={`/admin/league/${league.id}`}
-                      aria-label={`Details verwalten ${league.name}`}
-                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-center text-sm font-semibold text-slate-100 transition hover:bg-white/8"
-                    >
-                      Details verwalten
-                    </Link>
-                  ) : null}
                   {!isFirebaseMode ? (
                     <>
                       <button
@@ -486,18 +483,28 @@ export function AdminLeagueManager({
                         aria-label={`Löschen ${league.name}`}
                         disabled={pendingAction !== null}
                         onClick={() => handleDeleteLeague(league)}
-                        className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-sm font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-left text-sm font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {pendingAction === `delete:${league.id}` ? "Löscht..." : "Löschen"}
+                        <span className="block">
+                          {pendingAction === `delete:${league.id}` ? "Löscht..." : "Liga löschen"}
+                        </span>
+                        <span className="mt-1 block text-xs font-medium leading-4 text-rose-50/75">
+                          Gefährlich: entfernt diese lokale Liga komplett.
+                        </span>
                       </button>
                       <button
                         type="button"
                         aria-label={`Zurücksetzen ${league.name}`}
                         disabled={pendingAction !== null}
                         onClick={() => handleResetLeague(league)}
-                        className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-2 text-left text-sm font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {pendingAction === `reset:${league.id}` ? "Setzt zurück..." : "Zurücksetzen"}
+                        <span className="block">
+                          {pendingAction === `reset:${league.id}` ? "Setzt zurück..." : "Liga zurücksetzen"}
+                        </span>
+                        <span className="mt-1 block text-xs font-medium leading-4 text-amber-50/75">
+                          Gefährlich: entfernt Mitglieder, Bereit-Status und Wochenfortschritt.
+                        </span>
                       </button>
                     </>
                   ) : null}
@@ -529,53 +536,74 @@ export function AdminLeagueManager({
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-200">
             Nur für Entwicklung
           </p>
-          <h2 className="mt-2 text-2xl font-semibold text-white">Debug Tools</h2>
+          <h2 className="mt-2 text-2xl font-semibold text-white">
+            Debug und gefährliche lokale Mutationen
+          </h2>
           <p className="mt-2 text-sm leading-6 text-slate-300">
-            Diese Aktionen verändern nur den lokalen Online-State im Browser und haben keinen
-            Einfluss auf Singleplayer-Daten.
+            Debug-Aktionen erzeugen lokalen Testzustand. Gefährliche Mutationen löschen oder
+            ersetzen lokalen Online-State und sind deshalb getrennt beschriftet.
           </p>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <button
-              type="button"
-              disabled={pendingAction !== null}
-              onClick={handleDeleteAllLeagues}
-              className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-3 text-sm font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Alle Ligen löschen
-            </button>
-            <button
-              type="button"
-              disabled={pendingAction !== null}
-              onClick={handleAddFakeUser}
-              className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Fake User hinzufügen
-            </button>
-            <button
-              type="button"
-              disabled={pendingAction !== null}
-              onClick={handleFillLeague}
-              className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Liga mit 16 Spielern füllen
-            </button>
-            <button
-              type="button"
-              disabled={pendingAction !== null}
-              onClick={handleSetAllReady}
-              className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Alle Spieler ready setzen
-            </button>
-            <button
-              type="button"
-              disabled={pendingAction !== null}
-              onClick={handleResetOnlineState}
-              className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              LocalStorage reset (Online State)
-            </button>
+          <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_0.85fr]">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <button
+                type="button"
+                disabled={pendingAction !== null}
+                onClick={handleAddFakeUser}
+                className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <span className="block">Fake User hinzufügen</span>
+                <span className="mt-1 block text-xs font-medium leading-4 text-slate-400">
+                  Debug: ergänzt einen lokalen Test-Teilnehmer.
+                </span>
+              </button>
+              <button
+                type="button"
+                disabled={pendingAction !== null}
+                onClick={handleFillLeague}
+                className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <span className="block">Liga mit 16 Spielern füllen</span>
+                <span className="mt-1 block text-xs font-medium leading-4 text-slate-400">
+                  Debug: füllt lokale Testdaten auf.
+                </span>
+              </button>
+              <button
+                type="button"
+                disabled={pendingAction !== null}
+                onClick={handleSetAllReady}
+                className="rounded-lg border border-emerald-200/25 bg-emerald-300/10 px-3 py-3 text-left text-sm font-semibold text-emerald-50 transition hover:bg-emerald-300/16 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <span className="block">Alle Spieler bereit setzen</span>
+                <span className="mt-1 block text-xs font-medium leading-4 text-emerald-50/75">
+                  Repair: überschreibt lokalen Bereit-Status.
+                </span>
+              </button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                disabled={pendingAction !== null}
+                onClick={handleDeleteAllLeagues}
+                className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-3 text-left text-sm font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <span className="block">Alle Ligen löschen</span>
+                <span className="mt-1 block text-xs font-medium leading-4 text-rose-50/75">
+                  Gefährlich: entfernt alle lokalen Online-Ligen.
+                </span>
+              </button>
+              <button
+                type="button"
+                disabled={pendingAction !== null}
+                onClick={handleResetOnlineState}
+                className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-3 text-left text-sm font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <span className="block">LocalStorage reset</span>
+                <span className="mt-1 block text-xs font-medium leading-4 text-amber-50/75">
+                  Gefährlich: setzt Liga-Auswahl und lokale User-ID zurück.
+                </span>
+              </button>
+            </div>
           </div>
         </section>
       ) : null}

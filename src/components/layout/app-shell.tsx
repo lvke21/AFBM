@@ -28,7 +28,7 @@ export function AppShell({ children, context = EMPTY_CONTEXT }: AppShellProps) {
           <div className="px-4 py-5 lg:px-5">
             <div className="mb-6 rounded-lg border border-white/10 bg-white/5 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
-                GM Console
+                Manager-Konsole
               </p>
               <p className="mt-2 text-lg font-semibold text-white">
                 {context.managerTeam?.name ?? "Franchise Hub"}

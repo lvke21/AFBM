@@ -31,9 +31,10 @@ function createDetailState(
     status: "found",
     name: "Test Liga",
     statusLabel: "Saison läuft",
-    currentWeekLabel: "Week 1",
+    currentWeekLabel: "Woche 1",
+    draftStatusLabel: "Draft abgeschlossen",
     playerCountLabel: "2/16",
-    readyProgressLabel: "1/2 aktive Teams bereit",
+    readyProgressLabel: "1/2 aktive Manager bereit",
     allPlayersReady: false,
     allPlayersReadyLabel: null,
     ownTeamName: "Berlin Blitz",
@@ -46,22 +47,25 @@ function createDetailState(
     jobSecurityExplanation: "Job-Sicherheit ist stabil.",
     inactivityWarningLabel: null,
     currentUserReady: false,
+    lifecyclePhase: "readyOpen",
+    lifecycleReasons: [],
+    readyActionDisabledReason: null,
     nextMatchLabel: "Berlin Blitz vs. Hamburg Harbor",
     waitingLabel: "Warte auf andere Spieler",
     weekFlow: {
       title: "Ligawoche",
-      weekLabel: "Week 1",
+      weekLabel: "Woche 1",
       phaseLabel: "Woche offen",
-      statusLabel: "Wartet auf Ready-States",
-      simulationStatusLabel: "Simulation bleibt gesperrt, bis alle aktiven Teams ready sind.",
-      playerReadyStatusLabel: "Du bist noch nicht bereit für Week 1.",
+      statusLabel: "Wartet auf Bereitmeldungen",
+      simulationStatusLabel: "Simulation bleibt gesperrt, bis alle aktiven Teams bereit sind.",
+      playerReadyStatusLabel: "Du bist noch nicht bereit für Woche 1.",
       waitingStatusLabel: "Prüfe Team und Training.",
       adminProgressLabel: "Der Admin kann simulieren, sobald alle bereit sind.",
       nextMatchLabel: "Berlin Blitz vs. Hamburg Harbor",
       nextActionCtaLabel: "Depth Chart prüfen, bevor du die Woche freigibst.",
       completedResultsLabel: null,
       showStartWeekButton: false,
-      startWeekButtonLabel: "Admin simuliert die Woche",
+      startWeekButtonLabel: "Admin-Simulation bereit",
       startWeekHint: "Der Admin schaltet die Liga weiter.",
       lastCompletedWeekLabel: null,
     },
@@ -184,7 +188,9 @@ describe("online league dashboard panels", () => {
   it("renders header, team overview and player action states", () => {
     const detailState = createDetailState();
 
-    expect(render(<LeagueHeader detailState={detailState} />)).toContain("Test Liga");
+    const header = render(<LeagueHeader detailState={detailState} />);
+    expect(header).toContain("Test Liga");
+    expect(header).toContain("Draft abgeschlossen");
     expect(render(<TeamOverviewCard
       detailState={detailState}
       isFirebaseMvpMode
@@ -200,7 +206,7 @@ describe("online league dashboard panels", () => {
     expect(render(<PlayerActionsPanel detailState={detailState} />)).toContain("Command Center");
   });
 
-  it("renders ready and simulated-week result states", () => {
+  it("renders bereit and simulated-week result states", () => {
     const detailState = createDetailState({
       allPlayersReady: true,
       allPlayersReadyLabel: "Alle aktiven Teams sind bereit.",
@@ -215,22 +221,61 @@ describe("online league dashboard panels", () => {
         ...createDetailState().weekFlow,
         phaseLabel: "Woche abgeschlossen",
         completedResultsLabel: "1 Ergebnis gespeichert",
-        lastCompletedWeekLabel: "Zuletzt abgeschlossen: Season 1, Week 1.",
+        lastCompletedWeekLabel: "Zuletzt abgeschlossen: Saison 1, Woche 1.",
       },
     });
 
     expect(render(<ReadyStatePanel
       detailState={detailState}
-      actionFeedback={{ tone: "success", message: "Ready gespeichert." }}
+      actionFeedback={{ tone: "success", message: "Bereit gespeichert." }}
       readyGuidanceItems={[
         { label: "Team geprüft", completed: true, statusLabel: "Erledigt" },
       ]}
       pendingAction={null}
       onReadyForWeek={() => undefined}
-    />)).toContain("Ready gespeichert");
+    />)).toContain("Bereit gespeichert");
     expect(render(<WeekResultPanel detailState={detailState} />)).toContain(
       "Berlin Blitz 24 - 17 Hamburg Harbor",
     );
+  });
+
+  it("renders standings and reload-safe result summaries together", () => {
+    const detailState = createDetailState({
+      currentWeekLabel: "Woche 2",
+      nextMatchLabel: "Berlin Blitz vs. Munich Riders",
+      standings: [
+        {
+          teamName: "Berlin Blitz",
+          recordLabel: "1-0",
+          gamesPlayedLabel: "1 Spiele",
+          pointsLabel: "24:17 · +7",
+        },
+        {
+          teamName: "Hamburg Harbor",
+          recordLabel: "0-1",
+          gamesPlayedLabel: "1 Spiele",
+          pointsLabel: "17:24 · -7",
+        },
+      ],
+      recentResults: [
+        {
+          matchId: "match-1",
+          label: "Berlin Blitz 24 - 17 Hamburg Harbor",
+        },
+      ],
+      weekFlow: {
+        ...createDetailState().weekFlow,
+        weekLabel: "Woche 2",
+        nextMatchLabel: "Berlin Blitz vs. Munich Riders",
+        lastCompletedWeekLabel: "Zuletzt abgeschlossen: Saison 1, Woche 1.",
+      },
+    });
+    const leaguePanel = render(<LeagueStatusPanel detailState={detailState} />);
+    const resultPanel = render(<WeekResultPanel detailState={detailState} />);
+
+    expect(leaguePanel).toContain("Berlin Blitz vs. Munich Riders");
+    expect(leaguePanel).toContain("24:17 · +7");
+    expect(resultPanel).toContain("Berlin Blitz 24 - 17 Hamburg Harbor");
   });
 
   it("renders active draft state and hides completed draft gate", () => {

@@ -1,6 +1,7 @@
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 import type { TeamDetailRecord } from "@/modules/teams/infrastructure/team.repository";
 
+import { canReadFirestoreLeague } from "./firestoreAccess";
 import { assertFirestoreEmulatorOnly } from "./firestoreGuard";
 import {
   mapFirestorePlayerDocument,
@@ -70,7 +71,7 @@ export const teamRepositoryFirestore = {
   ): Promise<TeamDetailRecord | null> {
     assertFirestoreEmulatorOnly();
 
-    if (!(await canReadLeague(userId, saveGameId))) {
+    if (!(await canReadFirestoreLeague(userId, saveGameId))) {
       return null;
     }
 
@@ -163,28 +164,3 @@ export const teamRepositoryFirestore = {
     );
   },
 };
-
-async function canReadLeague(userId: string, leagueId: string) {
-  const firestore = getFirebaseAdminFirestore();
-  const [leagueSnapshot, membershipSnapshot] = await Promise.all([
-    firestore.collection("leagues").doc(leagueId).get(),
-    firestore.collection("leagueMembers").doc(`${leagueId}_${userId}`).get(),
-  ]);
-  recordFirestoreUsage({
-    collection: "leagues",
-    count: leagueSnapshot.exists ? 1 : 0,
-    operation: "read",
-    query: "doc",
-  });
-  recordFirestoreUsage({
-    collection: "leagueMembers",
-    count: membershipSnapshot.exists ? 1 : 0,
-    operation: "read",
-    query: "doc",
-  });
-
-  const league = leagueSnapshot.data();
-  const membership = membershipSnapshot.data();
-
-  return league?.ownerId === userId || membership?.status === "ACTIVE";
-}

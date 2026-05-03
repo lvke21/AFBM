@@ -4,12 +4,18 @@ import {
   ONLINE_USERNAME_STORAGE_KEY,
   ONLINE_USER_ID_STORAGE_KEY,
 } from "../online-user-service";
-import type { OnlineContractPlayer } from "../online-league-types";
+import { saveOnlineLeague } from "../online-league-service";
+import type { OnlineContractPlayer, OnlineLeague } from "../online-league-types";
 import type { TeamIdentitySelection } from "../team-identity-options";
-import { assertActiveMembership, assertLeagueAdmin } from "../security/roles";
+import {
+  validateMultiplayerDraftSourceConsistency,
+  validateMultiplayerDraftStateIntegrity,
+} from "../multiplayer-draft-logic";
+import { assertActiveMembership, assertLeagueAdmin, assertTeamOwner } from "../security/roles";
 import {
   mapFirestoreSnapshotToOnlineLeague,
   type FirestoreLeagueMemberMirrorDoc,
+  type FirestoreOnlineLeagueDoc,
   type FirestoreOnlineLeagueSnapshot,
   type FirestoreOnlineMembershipDoc,
   type FirestoreOnlineTeamDoc,
@@ -17,8 +23,18 @@ import {
 import {
   canLoadOnlineLeagueFromMembership,
   chooseFirstAvailableFirestoreTeam,
+  createLeagueMemberMirrorFromMembership,
+  getMembershipProjectionProblem,
+  isFirestoreWeekSimulationLockActive,
+  isLeagueMemberMirrorAligned,
+  resolveLeagueDiscoveryCandidateIds,
   resolveFirestoreMembershipForUser,
 } from "./firebase-online-league-repository";
+import {
+  isMembershipMirrorProjectionProblem,
+  isMembershipTeamProjectionProblem,
+  readFirestoreFantasyDraftState,
+} from "./firebase-online-league-mappers";
 import { LocalOnlineLeagueRepository } from "./local-online-league-repository";
 
 class MemoryStorage implements Storage {
@@ -84,6 +100,13 @@ const DRAFT_PLAYER: OnlineContractPlayer = {
   status: "active",
 };
 
+function draftPlayer(overrides: Partial<OnlineContractPlayer> = {}): OnlineContractPlayer {
+  return {
+    ...DRAFT_PLAYER,
+    ...overrides,
+  };
+}
+
 function firestoreTeam(
   id: string,
   overrides: Partial<FirestoreOnlineTeamDoc> = {},
@@ -134,9 +157,56 @@ function firestoreLeagueMemberMirror(
   };
 }
 
+function firestoreLeagueDoc(
+  overrides: Partial<FirestoreOnlineLeagueDoc> = {},
+): FirestoreOnlineLeagueDoc {
+  return {
+    id: "league-alpha",
+    name: "League Alpha",
+    status: "lobby",
+    createdByUserId: "admin-user",
+    createdAt: "2026-05-01T09:00:00.000Z",
+    updatedAt: "2026-05-01T09:00:00.000Z",
+    maxTeams: 8,
+    memberCount: 1,
+    currentWeek: 1,
+    currentSeason: 1,
+    settings: { leagueSlug: "league-alpha" },
+    version: 1,
+    ...overrides,
+  };
+}
+
 function setUser(storage: Storage, userId: string, username: string) {
   storage.setItem(ONLINE_USER_ID_STORAGE_KEY, userId);
   storage.setItem(ONLINE_USERNAME_STORAGE_KEY, username);
+}
+
+async function markLocalLeagueWeekReady(
+  storage: Storage,
+  league: OnlineLeague,
+  patch: Record<string, unknown> = {},
+) {
+  saveOnlineLeague(
+    {
+      ...league,
+      fantasyDraft: {
+        availablePlayerIds: [],
+        completedAt: "2026-05-01T10:00:00.000Z",
+        currentTeamId: "",
+        draftOrder: [],
+        leagueId: league.id,
+        pickNumber: 1,
+        picks: [],
+        round: 1,
+        startedAt: "2026-05-01T09:00:00.000Z",
+        status: "completed",
+      },
+      status: "active",
+      ...patch,
+    },
+    storage,
+  );
 }
 
 describe("online league repository backbone", () => {
@@ -205,6 +275,91 @@ describe("online league repository backbone", () => {
 
     expect(updated?.users[0]?.depthChart?.[0]?.starterPlayerId).toBe(entry?.starterPlayerId);
     expect(updated?.users[0]?.depthChart?.[0]?.updatedAt).not.toBe("old");
+  });
+
+  it("blocks stale ready writes when the local league has advanced", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalOnlineLeagueRepository(storage);
+
+    setUser(storage, "user-a", "Coach_A");
+    const league = await repository.createLeague({ name: "Ready Guard League" });
+    await repository.joinLeague(league.id, BERLIN_WOLVES);
+
+    await expect(repository.setUserReady(league.id, true, { season: 1, week: 2 })).rejects.toThrow(
+      /weitergeschaltet/,
+    );
+  });
+
+  it("sets and unsets ready through the local repository", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalOnlineLeagueRepository(storage);
+
+    setUser(storage, "user-a", "Coach_A");
+    const league = await repository.createLeague({ name: "Ready Toggle League" });
+    const joined = await repository.joinLeague(league.id, BERLIN_WOLVES);
+    await markLocalLeagueWeekReady(storage, joined.league);
+
+    const readyLeague = await repository.setUserReady(league.id, true, { season: 1, week: 1 });
+
+    expect(readyLeague?.users[0]).toMatchObject({
+      readyForWeek: true,
+      readyAt: expect.any(String),
+    });
+
+    const unreadyLeague = await repository.setUserReady(league.id, false, { season: 1, week: 1 });
+
+    expect(unreadyLeague?.users[0]?.readyForWeek).toBe(false);
+    expect(unreadyLeague?.users[0]).not.toHaveProperty("readyAt");
+  });
+
+  it("blocks ready writes during local simulation", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalOnlineLeagueRepository(storage);
+
+    setUser(storage, "user-a", "Coach_A");
+    const league = await repository.createLeague({ name: "Ready Simulation Lock League" });
+    const joined = await repository.joinLeague(league.id, BERLIN_WOLVES);
+    await markLocalLeagueWeekReady(storage, joined.league, { weekStatus: "simulating" });
+
+    await expect(repository.setUserReady(league.id, true, { season: 1, week: 1 })).rejects.toThrow(
+      /während der Simulation/,
+    );
+  });
+
+  it("blocks ready writes for a completed current week", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalOnlineLeagueRepository(storage);
+
+    setUser(storage, "user-a", "Coach_A");
+    const league = await repository.createLeague({ name: "Ready Completed League" });
+    const joined = await repository.joinLeague(league.id, BERLIN_WOLVES);
+    await markLocalLeagueWeekReady(storage, joined.league, {
+      completedWeeks: [
+        {
+          completedAt: "2026-05-01T10:00:00.000Z",
+          nextSeason: 1,
+          nextWeek: 2,
+          resultMatchIds: [],
+          season: 1,
+          simulatedByUserId: "admin",
+          status: "completed",
+          week: 1,
+          weekKey: "s1-w1",
+        },
+      ],
+      weekStatus: "completed",
+    });
+
+    await expect(repository.setUserReady(league.id, true, { season: 1, week: 1 })).rejects.toThrow(
+      /bereits abgeschlossen/,
+    );
+  });
+
+  it("recognizes active Firestore week simulation locks for ready guards", () => {
+    expect(isFirestoreWeekSimulationLockActive({ status: "simulating" })).toBe(true);
+    expect(isFirestoreWeekSimulationLockActive({ status: "simulated" })).toBe(false);
+    expect(isFirestoreWeekSimulationLockActive({ status: "failed" })).toBe(false);
+    expect(isFirestoreWeekSimulationLockActive(null)).toBe(false);
   });
 
   it("maps Firestore backbone documents to the existing OnlineLeague UI model", () => {
@@ -375,7 +530,293 @@ describe("online league repository backbone", () => {
     ]);
   });
 
-  it("keeps legacy draft blobs readable while old leagues are migrated", () => {
+  it("hard-fails when pick docs contradict the draft doc cursor", () => {
+    const snapshot: FirestoreOnlineLeagueSnapshot = {
+      league: firestoreLeagueDoc({ id: "league-draft-cursor" }),
+      memberships: [],
+      teams: [],
+      draftState: {
+        leagueId: "league-draft-cursor",
+        status: "active",
+        round: 1,
+        pickNumber: 1,
+        currentTeamId: "team-a",
+        draftOrder: ["team-a", "team-b"],
+        startedAt: "2026-01-01T00:05:00.000Z",
+        completedAt: null,
+        draftRunId: "run-1",
+      },
+      draftPicks: [
+        {
+          pickNumber: 1,
+          round: 1,
+          teamId: "team-a",
+          playerId: DRAFT_PLAYER.playerId,
+          pickedByUserId: "gm-a",
+          timestamp: "2026-01-01T00:06:00.000Z",
+          draftRunId: "run-1",
+          playerSnapshot: DRAFT_PLAYER,
+        },
+      ],
+      draftAvailablePlayers: [
+        {
+          ...draftPlayer({ playerId: "player-wr-1", playerName: "Available Receiver" }),
+          displayName: "Available Receiver",
+          draftRunId: "run-1",
+        },
+      ],
+    };
+    const league = mapFirestoreSnapshotToOnlineLeague(snapshot);
+    const integrity = validateMultiplayerDraftStateIntegrity(league.fantasyDraft!);
+
+    expect(integrity.ok).toBe(false);
+    expect(integrity.issues.map((issue) => issue.code)).toEqual(
+      expect.arrayContaining([
+        "active-pick-cursor-mismatch",
+        "active-current-team-mismatch",
+      ]),
+    );
+  });
+
+  it("hard-fails when an available-player doc still contains an already picked player", () => {
+    const snapshot: FirestoreOnlineLeagueSnapshot = {
+      league: firestoreLeagueDoc({ id: "league-draft-duplicate-availability" }),
+      memberships: [],
+      teams: [],
+      draftState: {
+        leagueId: "league-draft-duplicate-availability",
+        status: "active",
+        round: 1,
+        pickNumber: 2,
+        currentTeamId: "team-b",
+        draftOrder: ["team-a", "team-b"],
+        startedAt: "2026-01-01T00:05:00.000Z",
+        completedAt: null,
+        draftRunId: "run-1",
+      },
+      draftPicks: [
+        {
+          pickNumber: 1,
+          round: 1,
+          teamId: "team-a",
+          playerId: DRAFT_PLAYER.playerId,
+          pickedByUserId: "gm-a",
+          timestamp: "2026-01-01T00:06:00.000Z",
+          draftRunId: "run-1",
+          playerSnapshot: DRAFT_PLAYER,
+        },
+      ],
+      draftAvailablePlayers: [
+        {
+          ...DRAFT_PLAYER,
+          displayName: DRAFT_PLAYER.playerName,
+          draftRunId: "run-1",
+        },
+      ],
+    };
+    const league = mapFirestoreSnapshotToOnlineLeague(snapshot);
+    const integrity = validateMultiplayerDraftStateIntegrity(league.fantasyDraft!);
+
+    expect(integrity.ok).toBe(false);
+    expect(integrity.issues.map((issue) => issue.code)).toContain(
+      "picked-player-still-available",
+    );
+  });
+
+  it("hard-fails when a player is missing from availability without a pick doc", () => {
+    const snapshot: FirestoreOnlineLeagueSnapshot = {
+      league: firestoreLeagueDoc({ id: "league-draft-missing-available" }),
+      memberships: [],
+      teams: [],
+      draftState: {
+        leagueId: "league-draft-missing-available",
+        status: "active",
+        round: 1,
+        pickNumber: 1,
+        currentTeamId: "team-a",
+        draftOrder: ["team-a", "team-b"],
+        startedAt: "2026-01-01T00:05:00.000Z",
+        completedAt: null,
+        draftRunId: "run-1",
+      },
+      draftPicks: [],
+      draftAvailablePlayers: [
+        {
+          ...DRAFT_PLAYER,
+          displayName: DRAFT_PLAYER.playerName,
+          draftRunId: "run-1",
+        },
+      ],
+    };
+    const league = mapFirestoreSnapshotToOnlineLeague(snapshot);
+    const fullSeedPool = [
+      DRAFT_PLAYER,
+      draftPlayer({ playerId: "player-wr-1", playerName: "Missing Receiver" }),
+    ];
+    const sourceConsistency = validateMultiplayerDraftSourceConsistency({
+      state: league.fantasyDraft!,
+      playerPool: fullSeedPool,
+    });
+
+    expect(sourceConsistency.ok).toBe(false);
+    expect(sourceConsistency.issues.map((issue) => issue.code)).toContain(
+      "pool-player-missing-from-availability",
+    );
+  });
+
+  it("hard-fails completed draft docs when canonical pick docs are missing", () => {
+    const snapshot: FirestoreOnlineLeagueSnapshot = {
+      league: firestoreLeagueDoc({ id: "league-draft-completed-missing-picks" }),
+      memberships: [],
+      teams: [],
+      draftState: {
+        leagueId: "league-draft-completed-missing-picks",
+        status: "completed",
+        round: 1,
+        pickNumber: 2,
+        currentTeamId: "",
+        draftOrder: ["team-a", "team-b"],
+        startedAt: "2026-01-01T00:05:00.000Z",
+        completedAt: "2026-01-01T00:30:00.000Z",
+        draftRunId: "run-1",
+      },
+      draftPicks: [],
+      draftAvailablePlayers: [],
+    };
+    const league = mapFirestoreSnapshotToOnlineLeague(snapshot);
+    const integrity = validateMultiplayerDraftStateIntegrity(league.fantasyDraft!, {
+      expectedPickCount: 2,
+    });
+
+    expect(integrity.ok).toBe(false);
+    expect(integrity.issues.map((issue) => issue.code)).toEqual(
+      expect.arrayContaining(["completed-picks-missing", "completed-pick-cursor-mismatch"]),
+    );
+  });
+
+  it("hard-fails finalized draft docs that still expose an open current pick", () => {
+    const snapshot: FirestoreOnlineLeagueSnapshot = {
+      league: firestoreLeagueDoc({ id: "league-draft-finalized-open-cursor" }),
+      memberships: [],
+      teams: [],
+      draftState: {
+        leagueId: "league-draft-finalized-open-cursor",
+        status: "completed",
+        round: 2,
+        pickNumber: 3,
+        currentTeamId: "",
+        draftOrder: ["team-a", "team-b"],
+        startedAt: "2026-01-01T00:05:00.000Z",
+        completedAt: "2026-01-01T00:30:00.000Z",
+        draftRunId: "run-1",
+      },
+      draftPicks: [
+        {
+          pickNumber: 1,
+          round: 1,
+          teamId: "team-a",
+          playerId: DRAFT_PLAYER.playerId,
+          pickedByUserId: "gm-a",
+          timestamp: "2026-01-01T00:06:00.000Z",
+          draftRunId: "run-1",
+          playerSnapshot: DRAFT_PLAYER,
+        },
+        {
+          pickNumber: 2,
+          round: 1,
+          teamId: "team-b",
+          playerId: "player-wr-1",
+          pickedByUserId: "gm-b",
+          timestamp: "2026-01-01T00:07:00.000Z",
+          draftRunId: "run-1",
+          playerSnapshot: draftPlayer({
+            playerId: "player-wr-1",
+            playerName: "Picked Receiver",
+          }),
+        },
+      ],
+      draftAvailablePlayers: [],
+    };
+    const league = mapFirestoreSnapshotToOnlineLeague(snapshot);
+    const integrity = validateMultiplayerDraftStateIntegrity(league.fantasyDraft!, {
+      expectedPickCount: 2,
+    });
+
+    expect(integrity.ok).toBe(false);
+    expect(integrity.issues.map((issue) => issue.code)).toEqual(
+      expect.arrayContaining([
+        "completed-pick-cursor-mismatch",
+        "completed-round-mismatch",
+      ]),
+    );
+  });
+
+  it("hard-fails when the legacy draft blob contradicts canonical pick docs", () => {
+    const snapshot: FirestoreOnlineLeagueSnapshot = {
+      league: firestoreLeagueDoc({
+        id: "league-draft-legacy-conflict",
+        settings: {
+          fantasyDraft: {
+            leagueId: "league-draft-legacy-conflict",
+            status: "active",
+            round: 1,
+            pickNumber: 1,
+            currentTeamId: "team-a",
+            draftOrder: ["team-a", "team-b"],
+            picks: [],
+            availablePlayerIds: [DRAFT_PLAYER.playerId, "player-wr-1"],
+            startedAt: "2026-01-01T00:05:00.000Z",
+            completedAt: null,
+          },
+        },
+      }),
+      memberships: [],
+      teams: [],
+      draftState: {
+        leagueId: "league-draft-legacy-conflict",
+        status: "active",
+        round: 1,
+        pickNumber: 2,
+        currentTeamId: "team-b",
+        draftOrder: ["team-a", "team-b"],
+        startedAt: "2026-01-01T00:05:00.000Z",
+        completedAt: null,
+        draftRunId: "run-1",
+      },
+      draftPicks: [
+        {
+          pickNumber: 1,
+          round: 1,
+          teamId: "team-a",
+          playerId: DRAFT_PLAYER.playerId,
+          pickedByUserId: "gm-a",
+          timestamp: "2026-01-01T00:06:00.000Z",
+          draftRunId: "run-1",
+          playerSnapshot: DRAFT_PLAYER,
+        },
+      ],
+      draftAvailablePlayers: [
+        {
+          ...draftPlayer({ playerId: "player-wr-1", playerName: "Available Receiver" }),
+          displayName: "Available Receiver",
+          draftRunId: "run-1",
+        },
+      ],
+    };
+    const league = mapFirestoreSnapshotToOnlineLeague(snapshot);
+    const sourceConsistency = validateMultiplayerDraftSourceConsistency({
+      state: league.fantasyDraft!,
+      playerPool: league.fantasyDraftPlayerPool,
+      legacyState: readFirestoreFantasyDraftState(snapshot.league),
+    });
+
+    expect(sourceConsistency.ok).toBe(false);
+    expect(sourceConsistency.issues.map((issue) => issue.code)).toContain(
+      "legacy-draft-state-conflict",
+    );
+  });
+
+  it("does not read legacy draft blobs by default", () => {
     const snapshot: FirestoreOnlineLeagueSnapshot = {
       league: {
         id: "league-legacy-draft",
@@ -411,6 +852,49 @@ describe("online league repository backbone", () => {
     };
 
     const league = mapFirestoreSnapshotToOnlineLeague(snapshot);
+
+    expect(league.fantasyDraft).toBeUndefined();
+    expect(league.fantasyDraftPlayerPool).toBeUndefined();
+  });
+
+  it("keeps legacy draft blobs readable only in explicit migration compatibility mode", () => {
+    const snapshot: FirestoreOnlineLeagueSnapshot = {
+      league: {
+        id: "league-legacy-draft",
+        name: "Legacy Draft",
+        status: "lobby",
+        createdByUserId: "admin",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        maxTeams: 16,
+        memberCount: 1,
+        currentWeek: 1,
+        currentSeason: 1,
+        settings: {
+          onlineBackbone: true,
+          fantasyDraft: {
+            leagueId: "league-legacy-draft",
+            status: "not_started",
+            round: 1,
+            pickNumber: 1,
+            currentTeamId: "",
+            draftOrder: [],
+            picks: [],
+            availablePlayerIds: [DRAFT_PLAYER.playerId],
+            startedAt: null,
+            completedAt: null,
+          },
+          fantasyDraftPlayerPool: [DRAFT_PLAYER],
+        },
+        version: 1,
+      },
+      memberships: [],
+      teams: [],
+    };
+
+    const league = mapFirestoreSnapshotToOnlineLeague(snapshot, {
+      allowLegacyDraftFallback: true,
+    });
 
     expect(league.fantasyDraft?.availablePlayerIds).toEqual([DRAFT_PLAYER.playerId]);
     expect(league.fantasyDraftPlayerPool).toEqual([DRAFT_PLAYER]);
@@ -449,7 +933,7 @@ describe("online league repository backbone", () => {
     );
   });
 
-  it("allows Firebase league loading only for active members with valid teams or admins", () => {
+  it("allows Firebase league loading from active membership while reporting projection conflicts", () => {
     const teams = [
       firestoreTeam("team-a", {
         assignedUserId: "firebase-user",
@@ -458,12 +942,19 @@ describe("online league repository backbone", () => {
     ];
 
     expect(canLoadOnlineLeagueFromMembership(firestoreMembership(), teams)).toBe(true);
+    expect(canLoadOnlineLeagueFromMembership(firestoreMembership({ status: "inactive" }), teams)).toBe(false);
     expect(
       canLoadOnlineLeagueFromMembership(
         firestoreMembership({ teamId: "team-a" }),
         [firestoreTeam("team-a", { assignedUserId: "firebase-user", status: "available" })],
       ),
-    ).toBe(false);
+    ).toBe(true);
+    expect(
+      getMembershipProjectionProblem(
+        firestoreMembership({ teamId: "team-a" }),
+        [firestoreTeam("team-a", { assignedUserId: "firebase-user", status: "available" })],
+      ),
+    ).toBe("team-not-assigned:available");
     expect(
       canLoadOnlineLeagueFromMembership(
         firestoreMembership({ teamId: "team-a" }),
@@ -475,12 +966,18 @@ describe("online league repository backbone", () => {
         firestoreMembership({ userId: "outsider", teamId: "team-a" }),
         teams,
       ),
-    ).toBe(false);
+    ).toBe(true);
+    expect(
+      getMembershipProjectionProblem(
+        firestoreMembership({ userId: "outsider", teamId: "team-a" }),
+        teams,
+      ),
+    ).toBe("team-user-mismatch:team-a");
     expect(canLoadOnlineLeagueFromMembership(firestoreMembership({ role: "admin", teamId: "" }), [])).toBe(true);
     expect(canLoadOnlineLeagueFromMembership(null, teams)).toBe(false);
   });
 
-  it("reconstructs a readable GM membership from the global mirror and assigned team", () => {
+  it("treats membership as canonical and refuses to reconstruct it from the mirror", () => {
     const user = {
       userId: "firebase-user",
       username: "Solothurn GM",
@@ -501,17 +998,66 @@ describe("online league repository backbone", () => {
       }),
       teams,
       user,
+      "afbm-multiplayer-test-league",
     );
 
-    expect(membership).toMatchObject({
-      userId: "firebase-user",
-      teamId: "solothurn-guardians",
-      role: "gm",
-      status: "active",
-    });
+    expect(membership).toBeNull();
   });
 
-  it("does not repair a mirror when the assigned team belongs to another user", () => {
+  it("uses canonical memberships as discovery candidates when the global mirror is missing", () => {
+    expect(
+      resolveLeagueDiscoveryCandidateIds({
+        canonicalMembershipLeagueIds: ["league-alpha"],
+        mirroredLeagueIds: [],
+      }),
+    ).toEqual(["league-alpha"]);
+  });
+
+  it("keeps mirror-only discovery candidates provisional until membership validation removes them", () => {
+    expect(
+      resolveLeagueDiscoveryCandidateIds({
+        canonicalMembershipLeagueIds: [],
+        mirroredLeagueIds: ["league-alpha"],
+      }),
+    ).toEqual(["league-alpha"]);
+    expect(resolveFirestoreMembershipForUser(null, firestoreLeagueMemberMirror(), [], {
+      userId: "firebase-user",
+      username: "Firebase User",
+      displayName: "Firebase User",
+    }, "league-alpha")).toBeNull();
+  });
+
+  it("dedupes contradictory membership and mirror discovery candidates without trusting the mirror team", () => {
+    const user = {
+      userId: "firebase-user",
+      username: "Firebase User",
+      displayName: "Firebase User",
+    };
+    const membership = firestoreMembership({ teamId: "team-a" });
+    const staleMirror = firestoreLeagueMemberMirror({ teamId: "team-b" });
+
+    expect(
+      resolveLeagueDiscoveryCandidateIds({
+        canonicalMembershipLeagueIds: ["league-alpha"],
+        mirroredLeagueIds: ["league-alpha", "league-beta"],
+      }),
+    ).toEqual(["league-alpha", "league-beta"]);
+    expect(resolveFirestoreMembershipForUser(membership, staleMirror, [], user, "league-alpha")).toBe(
+      membership,
+    );
+    expect(
+      getMembershipProjectionProblem(
+        membership,
+        [firestoreTeam("team-a", { assignedUserId: "firebase-user", status: "assigned" })],
+        staleMirror,
+        "league-alpha",
+      ),
+    ).toBe(
+      "membership-mirror-team-mismatch:team-b",
+    );
+  });
+
+  it("keeps active membership canonical when the assigned team projection belongs to another user", () => {
     const user = {
       userId: "firebase-user",
       username: "Firebase User",
@@ -524,14 +1070,267 @@ describe("online league repository backbone", () => {
       }),
     ];
 
+    const membership = firestoreMembership({ teamId: "team-a" });
+
     expect(
-      resolveFirestoreMembershipForUser(
-        null,
-        firestoreLeagueMemberMirror(),
+      resolveFirestoreMembershipForUser(membership, null, teams, user, "league-alpha"),
+    ).toBe(membership);
+    expect(getMembershipProjectionProblem(membership, teams, null, "league-alpha")).toBe(
+      "team-user-mismatch:team-a",
+    );
+  });
+
+  it("hard-fails membership reads when mirror or team projections conflict", () => {
+    const teams = [
+      firestoreTeam("team-a", {
+        assignedUserId: "firebase-user",
+        status: "assigned",
+      }),
+      firestoreTeam("team-b", {
+        assignedUserId: "other-user",
+        status: "assigned",
+      }),
+    ];
+    const membership = firestoreMembership({ teamId: "team-a" });
+
+    expect(getMembershipProjectionProblem(membership, teams, null, "league-alpha")).toBeNull();
+    expect(
+      getMembershipProjectionProblem(
+        membership,
         teams,
-        user,
+        firestoreLeagueMemberMirror({ teamId: "team-b" }),
+        "league-alpha",
       ),
-    ).toBeNull();
+    ).toBe("membership-mirror-team-mismatch:team-b");
+    expect(
+      getMembershipProjectionProblem(
+        firestoreMembership({ teamId: "team-b" }),
+        teams,
+        null,
+        "league-alpha",
+      ),
+    ).toBe("team-user-mismatch:team-b");
+  });
+
+  it("keeps active memberships in the online league read model even when team projection is stale", () => {
+    const league = mapFirestoreSnapshotToOnlineLeague({
+      league: firestoreLeagueDoc(),
+      memberships: [
+        firestoreMembership({ userId: "canonical-user", teamId: "team-a" }),
+        firestoreMembership({ userId: "stale-user", teamId: "team-b" }),
+      ],
+      teams: [
+        firestoreTeam("team-a", {
+          assignedUserId: "canonical-user",
+          status: "assigned",
+        }),
+        firestoreTeam("team-b", {
+          assignedUserId: "other-user",
+          status: "assigned",
+        }),
+      ],
+    });
+
+    expect(league.users.map((user) => user.userId)).toEqual(["canonical-user", "stale-user"]);
+    expect(league.users.find((user) => user.userId === "stale-user")).toMatchObject({
+      teamId: "team-b",
+      teamName: "team-b",
+    });
+    expect(
+      getMembershipProjectionProblem(
+        firestoreMembership({ userId: "stale-user", teamId: "team-b" }),
+        [
+          firestoreTeam("team-b", {
+            assignedUserId: "other-user",
+            status: "assigned",
+          }),
+        ],
+      ),
+    ).toBe("team-user-mismatch:team-b");
+  });
+
+  it("uses active membership for team-control and fails clearly on projection conflicts", () => {
+    const membership = firestoreMembership({ teamId: "team-a" });
+
+    expect(
+      assertTeamOwner(
+        "firebase-user",
+        "league-alpha",
+        "team-a",
+        [firestoreTeam("team-a", { assignedUserId: "firebase-user", status: "assigned" })],
+        [membership],
+      ).id,
+    ).toBe("team-a");
+    expect(() =>
+      assertTeamOwner(
+        "firebase-user",
+        "league-alpha",
+        "team-b",
+        [firestoreTeam("team-b", { assignedUserId: "firebase-user", status: "assigned" })],
+        [membership],
+      ),
+    ).toThrow("not assigned to team team-b by active membership");
+    expect(() =>
+      assertTeamOwner(
+        "firebase-user",
+        "league-alpha",
+        "team-a",
+        [firestoreTeam("team-a", { assignedUserId: "other-user", status: "assigned" })],
+        [membership],
+      ),
+    ).toThrow("Membership projection conflict");
+  });
+
+  it("builds a canonical global member mirror from an active membership", () => {
+    const membership = firestoreMembership({
+      joinedAt: "2026-05-01T09:00:00.000Z",
+      lastSeenAt: "2026-05-01T09:10:00.000Z",
+    });
+    const mirror = createLeagueMemberMirrorFromMembership(
+      "league-alpha",
+      firestoreLeagueDoc(),
+      membership,
+      "2026-05-01T09:11:00.000Z",
+    );
+
+    expect(mirror).toMatchObject({
+      id: "league-alpha_firebase-user",
+      leagueId: "league-alpha",
+      leagueSlug: "league-alpha",
+      userId: "firebase-user",
+      role: "GM",
+      status: "ACTIVE",
+      teamId: "team-a",
+      createdAt: "2026-05-01T09:00:00.000Z",
+      updatedAt: "2026-05-01T09:11:00.000Z",
+    });
+    expect(isLeagueMemberMirrorAligned(mirror, "league-alpha", membership)).toBe(true);
+  });
+
+  it("detects stale global member mirrors before a safe repair", () => {
+    const membership = firestoreMembership({ teamId: "team-a" });
+
+    expect(
+      isLeagueMemberMirrorAligned(
+        firestoreLeagueMemberMirror({ teamId: "team-b" }),
+        "league-alpha",
+        membership,
+      ),
+    ).toBe(false);
+    expect(
+      isLeagueMemberMirrorAligned(
+        firestoreLeagueMemberMirror({ userId: "other-user" }),
+        "league-alpha",
+        membership,
+      ),
+    ).toBe(false);
+  });
+
+  it("documents canonical membership consistency outcomes for team and mirror projections", () => {
+    const membership = firestoreMembership({ teamId: "team-a" });
+    const canonicalTeam = firestoreTeam("team-a", {
+      assignedUserId: "firebase-user",
+      status: "assigned",
+    });
+    const staleOwnerTeam = firestoreTeam("team-a", {
+      assignedUserId: "old-user",
+      status: "assigned",
+    });
+    const missingOwnerTeam = firestoreTeam("team-a", {
+      assignedUserId: null,
+      status: "assigned",
+    });
+    const staleMirror = firestoreLeagueMemberMirror({ teamId: "team-b" });
+    const canonicalMirror = createLeagueMemberMirrorFromMembership(
+      "league-alpha",
+      firestoreLeagueDoc(),
+      membership,
+      "2026-05-01T09:15:00.000Z",
+    );
+
+    const cases = [
+      {
+        name: "Membership Team A, Team.assignedUserId old-user",
+        mirror: null,
+        problem: "team-user-mismatch:team-a",
+        repair: "hard-fail",
+        team: staleOwnerTeam,
+      },
+      {
+        name: "Membership Team A, Mirror Team B",
+        mirror: staleMirror,
+        problem: "membership-mirror-team-mismatch:team-b",
+        repair: "safe-repair-on-rejoin",
+        team: canonicalTeam,
+      },
+      {
+        name: "Mirror fehlt, Membership korrekt",
+        mirror: null,
+        problem: null,
+        repair: "read-ok-mirror-created-on-rejoin",
+        team: canonicalTeam,
+      },
+      {
+        name: "Team.assignedUserId fehlt, Membership korrekt",
+        mirror: null,
+        problem: "team-user-mismatch:team-a",
+        repair: "hard-fail",
+        team: missingOwnerTeam,
+      },
+    ] as const;
+
+    expect(
+      cases.map((entry) => ({
+        name: entry.name,
+        problem: getMembershipProjectionProblem(
+          membership,
+          [entry.team],
+          entry.mirror,
+          "league-alpha",
+        ),
+        repair: entry.repair,
+      })),
+    ).toEqual([
+      {
+        name: "Membership Team A, Team.assignedUserId old-user",
+        problem: "team-user-mismatch:team-a",
+        repair: "hard-fail",
+      },
+      {
+        name: "Membership Team A, Mirror Team B",
+        problem: "membership-mirror-team-mismatch:team-b",
+        repair: "safe-repair-on-rejoin",
+      },
+      {
+        name: "Mirror fehlt, Membership korrekt",
+        problem: null,
+        repair: "read-ok-mirror-created-on-rejoin",
+      },
+      {
+        name: "Team.assignedUserId fehlt, Membership korrekt",
+        problem: "team-user-mismatch:team-a",
+        repair: "hard-fail",
+      },
+    ]);
+    expect(isMembershipTeamProjectionProblem("team-user-mismatch:team-a")).toBe(true);
+    expect(isMembershipMirrorProjectionProblem("membership-mirror-team-mismatch:team-b")).toBe(true);
+    expect(isLeagueMemberMirrorAligned(null, "league-alpha", membership)).toBe(false);
+    expect(isLeagueMemberMirrorAligned(staleMirror, "league-alpha", membership)).toBe(false);
+    expect(isLeagueMemberMirrorAligned(canonicalMirror, "league-alpha", membership)).toBe(true);
+  });
+
+  it("hard-fails stale team-control when assignedUserId still points to a previous manager", () => {
+    const membership = firestoreMembership({ teamId: "team-a" });
+
+    expect(() =>
+      assertTeamOwner(
+        "firebase-user",
+        "league-alpha",
+        "team-a",
+        [firestoreTeam("team-a", { assignedUserId: "previous-manager", status: "assigned" })],
+        [membership],
+      ),
+    ).toThrow("Membership projection conflict");
   });
 
   it("chooses the first free Firestore team and skips assigned teams", () => {

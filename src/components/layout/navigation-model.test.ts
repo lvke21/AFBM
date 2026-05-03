@@ -159,6 +159,46 @@ describe("GM navigation model", () => {
     ]);
     expect(pageTitleForPath("/app/savegames/save-1/draft", context)).toBe("Draft");
     expect(pageTitleForPath("/app/savegames/save-1/inbox", context)).toBe("Inbox");
+
+    const onlineContext: AppShellContext = {
+      ...context,
+      saveGame: {
+        id: "afbm-multiplayer-test-league",
+        name: "Online Multiplayer",
+        leagueName: "AFBM Online",
+      },
+      baseHref: "/online/league/afbm-multiplayer-test-league",
+      online: {
+        draftStatus: "completed",
+        rosterReady: true,
+        teamNavigationReady: true,
+      },
+    };
+    expect(
+      buildBreadcrumbs(
+        "/online/league/afbm-multiplayer-test-league/coming-soon/contracts-cap",
+        onlineContext,
+      ),
+    ).toEqual([
+      { label: "App", href: "/app" },
+      { label: "Online Multiplayer", href: "/online/league/afbm-multiplayer-test-league" },
+      {
+        label: "Contracts/Cap",
+        href: "/online/league/afbm-multiplayer-test-league/coming-soon/contracts-cap",
+      },
+    ]);
+    expect(
+      pageTitleForPath(
+        "/online/league/afbm-multiplayer-test-league/coming-soon/trade-board",
+        onlineContext,
+      ),
+    ).toBe("Trade Board");
+    expect(
+      pageTitleForPath(
+        "/online/league/afbm-multiplayer-test-league/coming-soon/training",
+        onlineContext,
+      ),
+    ).toBe("Training");
   });
 
   it("distinguishes Game Center from the match report route", () => {
@@ -221,7 +261,6 @@ describe("GM navigation model", () => {
     const depthChart = items.find((item) => item.label === "Depth Chart");
     const team = items.find((item) => item.label === "Team Overview");
     const draft = items.find((item) => item.label === "Draft");
-    const inbox = items.find((item) => item.label === "Inbox");
 
     expect(dashboard?.href).toBe("/online/league/afbm-multiplayer-test-league");
     expect(gameFlow?.href).toBe("/online/league/afbm-multiplayer-test-league#week-loop");
@@ -229,8 +268,22 @@ describe("GM navigation model", () => {
     expect(roster?.href).toBe("/online/league/afbm-multiplayer-test-league#roster");
     expect(depthChart?.href).toBe("/online/league/afbm-multiplayer-test-league#depth-chart");
     expect(draft?.href).toBe("/online/league/afbm-multiplayer-test-league/draft");
-    expect(inbox?.href).toBeNull();
-    expect(inbox?.disabledReason).toBe("Online-Inbox noch nicht implementiert");
+    expect(items.map((item) => item.label)).toEqual([
+      "Dashboard",
+      "Spielablauf",
+      "Roster",
+      "Depth Chart",
+      "Team Overview",
+      "League",
+      "Draft",
+      "Savegames",
+    ]);
+    expect(items.find((item) => item.label === "Contracts/Cap")).toBeUndefined();
+    expect(items.find((item) => item.label === "Development")).toBeUndefined();
+    expect(items.find((item) => item.label === "Training")).toBeUndefined();
+    expect(items.find((item) => item.label === "Trade Board")).toBeUndefined();
+    expect(items.find((item) => item.label === "Inbox")).toBeUndefined();
+    expect(items.find((item) => item.label === "Finance")).toBeUndefined();
     expect(
       dashboard && isNavigationItemActive(dashboard, "/online/league/afbm-multiplayer-test-league"),
     ).toBe(true);
@@ -263,7 +316,73 @@ describe("GM navigation model", () => {
     ).toBe(true);
   });
 
-  it("keeps online team menus locked while draft is active or roster is missing", () => {
+  it("keeps online hash routes distinct from page routes for back/forward navigation", () => {
+    const onlineContext: AppShellContext = {
+      saveGame: {
+        id: "afbm-multiplayer-test-league",
+        name: "Online Multiplayer",
+        leagueName: "AFBM Online",
+      },
+      baseHref: "/online/league/afbm-multiplayer-test-league",
+      currentSeason: {
+        id: "online-season-1",
+        year: 1,
+        phase: "pre_week",
+        week: 2,
+      },
+      managerTeam: {
+        id: "basel-rhinos",
+        name: "Basel Rhinos",
+        abbreviation: "BAS",
+        currentRecord: "1-0",
+      },
+      online: {
+        draftStatus: "completed",
+        rosterReady: true,
+        teamNavigationReady: true,
+      },
+    };
+    const items = buildNavigationItems(onlineContext);
+    const dashboard = items.find((item) => item.label === "Dashboard");
+    const roster = items.find((item) => item.label === "Roster");
+    const depthChart = items.find((item) => item.label === "Depth Chart");
+    const draft = items.find((item) => item.label === "Draft");
+
+    expect(
+      dashboard &&
+        isNavigationItemActive(
+          dashboard,
+          "/online/league/afbm-multiplayer-test-league",
+          "#roster",
+        ),
+    ).toBe(false);
+    expect(
+      roster &&
+        isNavigationItemActive(
+          roster,
+          "/online/league/afbm-multiplayer-test-league",
+          "#roster",
+        ),
+    ).toBe(true);
+    expect(
+      depthChart &&
+        isNavigationItemActive(
+          depthChart,
+          "/online/league/afbm-multiplayer-test-league",
+          "#depth-chart",
+        ),
+    ).toBe(true);
+    expect(
+      draft &&
+        isNavigationItemActive(
+          draft,
+          "/online/league/afbm-multiplayer-test-league/draft",
+          "#roster",
+        ),
+    ).toBe(true);
+  });
+
+  it("keeps online navigation available during an active draft and only locks team menus without a team", () => {
     const baseOnlineContext: AppShellContext = {
       saveGame: {
         id: "afbm-multiplayer-test-league",
@@ -272,11 +391,16 @@ describe("GM navigation model", () => {
       },
       baseHref: "/online/league/afbm-multiplayer-test-league",
       currentSeason: null,
-      managerTeam: null,
+      managerTeam: {
+        id: "team-1",
+        name: "Zurich Guardians",
+        abbreviation: "ZUR",
+        currentRecord: "0-0",
+      },
       online: {
         draftStatus: "active",
         rosterReady: false,
-        teamNavigationReady: false,
+        teamNavigationReady: true,
       },
     };
     const activeDraftItems = buildNavigationItems(baseOnlineContext);
@@ -284,13 +408,14 @@ describe("GM navigation model", () => {
     expect(activeDraftItems.find((item) => item.label === "Draft")?.href).toBe(
       "/online/league/afbm-multiplayer-test-league/draft",
     );
-    expect(activeDraftItems.find((item) => item.label === "Spielablauf")?.href).toBeNull();
-    expect(activeDraftItems.find((item) => item.label === "Spielablauf")?.disabledReason).toBe(
-      "Draft läuft",
+    expect(activeDraftItems.find((item) => item.label === "Spielablauf")?.href).toBe(
+      "/online/league/afbm-multiplayer-test-league#week-loop",
     );
-    expect(activeDraftItems.find((item) => item.label === "Roster")?.href).toBeNull();
-    expect(activeDraftItems.find((item) => item.label === "Roster")?.disabledReason).toBe(
-      "Draft läuft",
+    expect(activeDraftItems.find((item) => item.label === "Roster")?.href).toBe(
+      "/online/league/afbm-multiplayer-test-league#roster",
+    );
+    expect(activeDraftItems.find((item) => item.label === "Depth Chart")?.href).toBe(
+      "/online/league/afbm-multiplayer-test-league#depth-chart",
     );
 
     const missingRosterItems = buildNavigationItems({
@@ -298,13 +423,30 @@ describe("GM navigation model", () => {
       online: {
         draftStatus: "completed",
         rosterReady: false,
+        teamNavigationReady: true,
+      },
+    });
+
+    expect(missingRosterItems.find((item) => item.label === "Team Overview")?.href).toBe(
+      "/online/league/afbm-multiplayer-test-league#team",
+    );
+    expect(missingRosterItems.find((item) => item.label === "Spielablauf")?.href).toBe(
+      "/online/league/afbm-multiplayer-test-league#week-loop",
+    );
+
+    const missingTeamItems = buildNavigationItems({
+      ...baseOnlineContext,
+      managerTeam: null,
+      online: {
+        draftStatus: "active",
+        rosterReady: false,
         teamNavigationReady: false,
       },
     });
 
-    expect(missingRosterItems.find((item) => item.label === "Team Overview")?.href).toBeNull();
-    expect(missingRosterItems.find((item) => item.label === "Team Overview")?.disabledReason).toBe(
-      "Roster nicht vollständig",
+    expect(missingTeamItems.find((item) => item.label === "Team Overview")?.href).toBeNull();
+    expect(missingTeamItems.find((item) => item.label === "Team Overview")?.disabledReason).toBe(
+      "Kein Manager-Team",
     );
   });
 });

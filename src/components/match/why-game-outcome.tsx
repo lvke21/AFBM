@@ -24,7 +24,7 @@ export function WhyGameOutcome({ match }: WhyGameOutcomeProps) {
   return (
     <SectionCard
       title={state.title}
-      description="Die wichtigsten Gruende fuer den Spielausgang in klarer GM-Sprache."
+      description="Die wichtigsten Gruende fuer den Spielausgang in klarer Managersprache."
     >
       {state.insights.length > 0 ? (
         <div className="space-y-4">

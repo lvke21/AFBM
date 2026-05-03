@@ -464,7 +464,7 @@ export function buildGamePreviewState({
     opponentTeam,
     matchupSummary:
       preparation?.expectation.summary ??
-      "Dieses Match enthaelt kein eindeutig vom GM gesteuertes Team.",
+      "Dieses Match enthaelt kein eindeutig vom Manager gesteuertes Team.",
     primaryActionLabel: canStartMatch ? "Match starten" : "Depth Chart waehlen",
     ratingComparisons: buildRatingComparisons(match),
     readinessItems: buildReadinessItems({

@@ -5,6 +5,7 @@ import type {
   OnlineLeague,
   OnlineMediaExpectationGoal,
 } from "@/lib/online/online-league-types";
+import { normalizeOnlineCoreLifecycle } from "@/lib/online/online-league-lifecycle";
 import type { OnlineUser } from "@/lib/online/online-user-service";
 import type { OnlineRecoveryCopy } from "@/lib/online/error-recovery";
 
@@ -74,6 +75,9 @@ export function LeagueHeader({
             {detailState.currentWeekLabel}
           </span>
           <span className="rounded-full border border-white/10 px-3 py-1">
+            {detailState.draftStatusLabel}
+          </span>
+          <span className="rounded-full border border-white/10 px-3 py-1">
             {detailState.playerCountLabel} Spieler
           </span>
         </div>
@@ -85,7 +89,7 @@ export function LeagueHeader({
           href="/online"
           className="w-fit rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/8"
         >
-          Zurück zum Online Hub
+          Zurück zum Onlinebereich
         </Link>
         <span className="w-fit rounded-lg border border-emerald-300/25 bg-emerald-300/10 px-4 py-3 text-sm font-semibold text-emerald-50">
           {detailState.currentUserReady
@@ -254,18 +258,47 @@ export function LeagueStatusPanel({
   return (
     <section id="league" className="rounded-lg border border-white/10 bg-[#07111d]/70 p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">
-        Nächste Partie
+        Ligaübersicht
       </p>
-      <h2 className="mt-2 text-xl font-semibold text-white">{detailState.nextMatchLabel}</h2>
+      <h2 className="mt-2 text-xl font-semibold text-white">
+        Nächste Partie: {detailState.nextMatchLabel}
+      </h2>
       <p className="mt-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200">
         {detailState.waitingLabel}
       </p>
       <p className="mt-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200">
         {detailState.readyProgressLabel}
       </p>
-      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-        Demnächst
-      </p>
+      <div className="mt-4 grid gap-3">
+        <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+            Standings
+          </p>
+          {detailState.standings.length > 0 ? (
+            <div className="mt-3 grid gap-2">
+              {detailState.standings.slice(0, 4).map((standing) => (
+                <div
+                  key={standing.teamName}
+                  className="grid gap-1 rounded-lg border border-white/10 bg-[#07111d]/70 px-3 py-2 text-sm sm:grid-cols-[1fr_auto]"
+                >
+                  <span className="font-semibold text-white">{standing.teamName}</span>
+                  <span className="font-mono text-slate-300">{standing.recordLabel}</span>
+                  {standing.pointsLabel ? (
+                    <span className="text-xs font-semibold text-slate-400 sm:col-span-2">
+                      {standing.pointsLabel}
+                    </span>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-sm font-semibold text-slate-300">
+              Standings werden nach den ersten gespeicherten Ergebnissen aufgebaut.
+            </p>
+          )}
+        </div>
+        <WeekResultPanel detailState={detailState} />
+      </div>
     </section>
   );
 }
@@ -335,17 +368,28 @@ export function PlayerActionsPanel({
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
             Standings
           </p>
-          <div className="mt-3 grid gap-2">
-            {detailState.standings.slice(0, 4).map((standing) => (
-              <div
-                key={standing.teamName}
-                className="flex items-center justify-between gap-3 text-sm"
-              >
-                <span className="font-semibold text-white">{standing.teamName}</span>
-                <span className="font-mono text-slate-300">{standing.recordLabel}</span>
-              </div>
-            ))}
-          </div>
+          {detailState.standings.length > 0 ? (
+            <div className="mt-3 grid gap-2">
+              {detailState.standings.slice(0, 4).map((standing) => (
+                <div
+                  key={standing.teamName}
+                  className="grid gap-1 text-sm sm:grid-cols-[1fr_auto]"
+                >
+                  <span className="font-semibold text-white">{standing.teamName}</span>
+                  <span className="font-mono text-slate-300">{standing.recordLabel}</span>
+                  {standing.pointsLabel ? (
+                    <span className="text-xs font-semibold text-slate-500 sm:col-span-2">
+                      {standing.pointsLabel}
+                    </span>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-sm font-semibold text-slate-300">
+              Noch keine Tabellenstände.
+            </p>
+          )}
         </div>
 
         <WeekResultPanel detailState={detailState} />
@@ -393,7 +437,22 @@ export function DraftStatusPanel({
   feedback: ActionFeedback | null;
   onPickPlayer: (playerId: string) => void;
 }) {
-  if (!league || !currentUser || !league.fantasyDraft || league.fantasyDraft.status === "completed") {
+  const lifecycle =
+    league && currentUser
+      ? normalizeOnlineCoreLifecycle({
+          currentUser,
+          league,
+          requiresDraft: Boolean(league.fantasyDraft),
+        })
+      : null;
+
+  if (
+    !league ||
+    !currentUser ||
+    !lifecycle ||
+    lifecycle.draftStatus === "missing" ||
+    lifecycle.draftStatus === "completed"
+  ) {
     return null;
   }
 

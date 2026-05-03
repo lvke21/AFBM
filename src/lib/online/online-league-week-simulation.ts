@@ -2,7 +2,13 @@ import {
   getOnlineLeagueWeekReadyState,
   isOnlineLeagueUserActiveWeekParticipant,
 } from "./online-league-week-service";
+import {
+  normalizeOnlineLeagueWeekProgressLifecycle,
+  normalizeOnlineLeagueWeekSimulationLifecycle,
+} from "./online-league-week-simulation-lifecycle";
 import type {
+  OnlineCompletedWeek,
+  OnlineContractPlayer,
   OnlineLeague,
   OnlineLeagueScheduleMatch,
   OnlineMatchResult,
@@ -43,6 +49,7 @@ export type OnlineLeagueTeamRecord = {
 
 export type OnlineLeagueWeekSimulationState = {
   canSimulate: boolean;
+  completion: OnlineLeagueWeekProgressState;
   currentSeason: number;
   currentWeek: number;
   games: OnlineLeagueWeekSimulationGame[];
@@ -55,6 +62,57 @@ export type OnlineLeagueWeekSimulationState = {
   weekStatus: NonNullable<OnlineLeague["weekStatus"]>;
 };
 
+export type OnlineLeagueWeekProgressPhase =
+  | "advanced"
+  | "completed"
+  | "pending"
+  | "ready"
+  | "simulating";
+
+export type OnlineLeagueWeekProgressTransition =
+  | "pending -> ready"
+  | "ready -> simulating"
+  | "simulating -> completed"
+  | "completed -> advanced"
+  | "advanced -> pending";
+
+export const ONLINE_LEAGUE_WEEK_PROGRESS_TRANSITIONS: OnlineLeagueWeekProgressTransition[] = [
+  "pending -> ready",
+  "ready -> simulating",
+  "simulating -> completed",
+  "completed -> advanced",
+  "advanced -> pending",
+];
+
+export type OnlineLeagueWeekProgressState = {
+  canonicalCompletedWeekKeys: string[];
+  conflictCodes: OnlineLeagueWeekStateConflictCode[];
+  conflictReasons: string[];
+  conflicts: OnlineLeagueWeekStateConflict[];
+  currentSeason: number;
+  currentWeek: number;
+  currentWeekKey: string;
+  hasConflicts: boolean;
+  latestCompletedWeek?: OnlineCompletedWeek;
+  latestCompletedWeekKey?: string;
+  legacyCompletionWeekKeys: string[];
+  phase: OnlineLeagueWeekProgressPhase;
+};
+
+export type OnlineLeagueWeekStateConflictCode =
+  | "completed-week-result-missing"
+  | "duplicate-completed-week"
+  | "duplicate-match-result"
+  | "last-simulated-week-mismatch"
+  | "legacy-completion-without-completed-week"
+  | "week-doc-completed-without-completed-week"
+  | "week-status-completed-without-completed-week";
+
+export type OnlineLeagueWeekStateConflict = {
+  code: OnlineLeagueWeekStateConflictCode;
+  message: string;
+};
+
 type ScheduleLike = OnlineLeagueScheduleMatch & {
   awayTeamId?: string;
   homeTeamId?: string;
@@ -62,14 +120,74 @@ type ScheduleLike = OnlineLeagueScheduleMatch & {
   status?: OnlineLeagueWeekGameStatus;
 };
 
+export type OnlineLeagueWeekProjection = {
+  season: number;
+  status?: string;
+  week: number;
+};
+
+const MAX_REGULAR_SEASON_WEEK = 18;
+
+function getDuplicateValues(values: string[]) {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const value of values) {
+    if (seen.has(value)) {
+      duplicates.add(value);
+    }
+
+    seen.add(value);
+  }
+
+  return [...duplicates];
+}
+
+function addWeekConflict(
+  conflicts: OnlineLeagueWeekStateConflict[],
+  code: OnlineLeagueWeekStateConflictCode,
+  message: string,
+) {
+  conflicts.push({ code, message });
+}
+
+function dedupeWeekConflicts(conflicts: OnlineLeagueWeekStateConflict[]) {
+  const seen = new Set<string>();
+
+  return conflicts.filter((conflict) => {
+    const key = `${conflict.code}:${conflict.message}`;
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+}
+
 function normalizePositiveInteger(value: unknown, fallback: number) {
   return typeof value === "number" && Number.isFinite(value) && value >= 1
     ? Math.floor(value)
     : fallback;
 }
 
+function isDefinedInvalidWeek(value: unknown) {
+  return (
+    value !== undefined &&
+    (typeof value !== "number" ||
+      !Number.isInteger(value) ||
+      value < 1 ||
+      value > MAX_REGULAR_SEASON_WEEK)
+  );
+}
+
 function normalizeWeekStatus(value: OnlineLeague["weekStatus"]) {
   return value ?? "pre_week";
+}
+
+export function getOnlineLeagueWeekKey(season: number, week: number) {
+  return `s${normalizePositiveInteger(season, 1)}-w${normalizePositiveInteger(week, 1)}`;
 }
 
 function getTeamNameById(league: OnlineLeague, teamId: string) {
@@ -102,6 +220,16 @@ function resolveScheduledTeamId(
   return activeUser?.teamId ?? null;
 }
 
+function hasPlayableRoster(contractRoster: OnlineContractPlayer[] | undefined) {
+  return (contractRoster ?? []).some(
+    (player) =>
+      player.status === "active" &&
+      typeof player.overall === "number" &&
+      Number.isFinite(player.overall) &&
+      player.overall > 0,
+  );
+}
+
 function getResultForGame(
   results: OnlineMatchResult[],
   gameId: string,
@@ -113,6 +241,220 @@ function getResultForGame(
       result.matchId === gameId ||
       (result.season === season && result.week === week && result.matchId === gameId),
   );
+}
+
+function getMatchResultWeekKey(result: OnlineMatchResult) {
+  return getOnlineLeagueWeekKey(result.season, result.week);
+}
+
+function isValidCompletedWeek(value: OnlineCompletedWeek) {
+  return (
+    value.status === "completed" &&
+    Number.isInteger(value.season) &&
+    value.season >= 1 &&
+    Number.isInteger(value.week) &&
+    value.week >= 1 &&
+    value.week <= MAX_REGULAR_SEASON_WEEK &&
+    value.weekKey === getOnlineLeagueWeekKey(value.season, value.week)
+  );
+}
+
+function getCanonicalCompletedWeeks(league: OnlineLeague) {
+  return (league.completedWeeks ?? [])
+    .filter(isValidCompletedWeek)
+    .slice()
+    .sort((left, right) => {
+      if (right.season !== left.season) {
+        return right.season - left.season;
+      }
+
+      if (right.week !== left.week) {
+        return right.week - left.week;
+      }
+
+      return right.completedAt.localeCompare(left.completedAt);
+    });
+}
+
+function getLegacyCompletionWeekKeys(
+  league: OnlineLeague,
+  projectedWeeks: OnlineLeagueWeekProjection[] = [],
+) {
+  const legacyKeys = new Set<string>();
+
+  if (league.lastSimulatedWeekKey) {
+    legacyKeys.add(league.lastSimulatedWeekKey);
+  }
+
+  for (const result of league.matchResults ?? []) {
+    legacyKeys.add(getMatchResultWeekKey(result));
+  }
+
+  for (const week of projectedWeeks) {
+    if (week.status === "completed") {
+      legacyKeys.add(getOnlineLeagueWeekKey(week.season, week.week));
+    }
+  }
+
+  return [...legacyKeys];
+}
+
+export function isOnlineLeagueWeekCanonicallyCompleted(
+  league: OnlineLeague,
+  season: number,
+  week: number,
+) {
+  const weekKey = getOnlineLeagueWeekKey(season, week);
+
+  return getCanonicalCompletedWeeks(league).some(
+    (completedWeek) => completedWeek.weekKey === weekKey,
+  );
+}
+
+// Legacy migration guard only: canonical completion is completedWeeks. This helper also
+// detects old projection fields so simulation can stop and surface a conflict instead of
+// silently producing a second result.
+export function hasOnlineLeagueWeekCompletionSignal(
+  league: OnlineLeague,
+  season: number,
+  week: number,
+) {
+  const weekKey = getOnlineLeagueWeekKey(season, week);
+
+  return (
+    isOnlineLeagueWeekCanonicallyCompleted(league, season, week) ||
+    league.lastSimulatedWeekKey === weekKey ||
+    (league.matchResults ?? []).some((result) => getMatchResultWeekKey(result) === weekKey)
+  );
+}
+
+function isLegacyCompletedWeekStatus(status: NonNullable<OnlineLeague["weekStatus"]>) {
+  return status === "completed" || status === "post_game";
+}
+
+export function getOnlineLeagueWeekProgressState(
+  league: OnlineLeague,
+  options: { projectedWeeks?: OnlineLeagueWeekProjection[] } = {},
+): OnlineLeagueWeekProgressState {
+  const currentSeason = normalizePositiveInteger(league.currentSeason, 1);
+  const currentWeek = normalizePositiveInteger(
+    (league as { currentWeek?: unknown }).currentWeek,
+    1,
+  );
+  const currentWeekKey = getOnlineLeagueWeekKey(currentSeason, currentWeek);
+  const canonicalCompletedWeeks = getCanonicalCompletedWeeks(league);
+  const canonicalCompletedWeekKeys = canonicalCompletedWeeks.map((week) => week.weekKey);
+  const canonicalCompletedWeekKeySet = new Set(canonicalCompletedWeekKeys);
+  const projectedWeeks = options.projectedWeeks ?? [];
+  const legacyCompletionWeekKeys = getLegacyCompletionWeekKeys(league, projectedWeeks).filter(
+    (weekKey) => !canonicalCompletedWeekKeySet.has(weekKey),
+  );
+  const matchResults = league.matchResults ?? [];
+  const resultIds = new Set(matchResults.map((result) => result.matchId));
+  const conflicts: OnlineLeagueWeekStateConflict[] = [];
+
+  for (const legacyWeekKey of legacyCompletionWeekKeys) {
+    addWeekConflict(
+      conflicts,
+      "legacy-completion-without-completed-week",
+      `${legacyWeekKey} hat Completion-Signale ohne kanonischen completedWeeks-Eintrag.`,
+    );
+  }
+
+  for (const week of projectedWeeks) {
+    const weekKey = getOnlineLeagueWeekKey(week.season, week.week);
+
+    if (week.status === "completed" && !canonicalCompletedWeekKeySet.has(weekKey)) {
+      addWeekConflict(
+        conflicts,
+        "week-doc-completed-without-completed-week",
+        `weeks/${weekKey} markiert die Woche als abgeschlossen, aber completedWeeks enthält keinen kanonischen Eintrag.`,
+      );
+    }
+  }
+
+  for (const duplicateWeekKey of getDuplicateValues(canonicalCompletedWeekKeys)) {
+    addWeekConflict(
+      conflicts,
+      "duplicate-completed-week",
+      `${duplicateWeekKey} ist mehrfach in completedWeeks gespeichert.`,
+    );
+  }
+
+  for (const duplicateResultId of getDuplicateValues(matchResults.map((result) => result.matchId))) {
+    addWeekConflict(
+      conflicts,
+      "duplicate-match-result",
+      `MatchResult ${duplicateResultId} ist mehrfach gespeichert.`,
+    );
+  }
+
+  for (const completedWeek of canonicalCompletedWeeks) {
+    const missingResultIds = completedWeek.resultMatchIds.filter(
+      (resultId) => !resultIds.has(resultId),
+    );
+
+    if (missingResultIds.length > 0) {
+      addWeekConflict(
+        conflicts,
+        "completed-week-result-missing",
+        `${completedWeek.weekKey} verweist auf fehlende Results: ${missingResultIds.join(", ")}.`,
+      );
+    }
+  }
+
+  const latestCompletedWeek = canonicalCompletedWeeks[0];
+  const latestCompletedWeekKey = latestCompletedWeek?.weekKey;
+
+  if (
+    league.lastSimulatedWeekKey &&
+    latestCompletedWeekKey &&
+    league.lastSimulatedWeekKey !== latestCompletedWeekKey
+  ) {
+    addWeekConflict(
+      conflicts,
+      "last-simulated-week-mismatch",
+      `lastSimulatedWeekKey=${league.lastSimulatedWeekKey} widerspricht latest completedWeek=${latestCompletedWeekKey}.`,
+    );
+  }
+
+  const currentWeekCompleted = canonicalCompletedWeekKeySet.has(currentWeekKey);
+  const latestCompletionAdvancedCursor =
+    latestCompletedWeek?.nextSeason === currentSeason &&
+    latestCompletedWeek?.nextWeek === currentWeek;
+  const readyState = getOnlineLeagueWeekReadyState(league);
+  const normalizedWeekStatus = normalizeWeekStatus(league.weekStatus);
+  const lifecycle = normalizeOnlineLeagueWeekProgressLifecycle({
+    currentWeekCompleted,
+    latestCompletionAdvancedCursor,
+    normalizedWeekStatus,
+    readyState,
+  });
+
+  if (isLegacyCompletedWeekStatus(normalizedWeekStatus) && !currentWeekCompleted) {
+    addWeekConflict(
+      conflicts,
+      "week-status-completed-without-completed-week",
+      `weekStatus=${normalizedWeekStatus} markiert ${currentWeekKey} als abgeschlossen, aber completedWeeks enthält keinen kanonischen Eintrag.`,
+    );
+  }
+
+  const uniqueConflicts = dedupeWeekConflicts(conflicts);
+
+  return {
+    canonicalCompletedWeekKeys,
+    conflictCodes: [...new Set(uniqueConflicts.map((conflict) => conflict.code))],
+    conflictReasons: uniqueConflicts.map((conflict) => conflict.message),
+    conflicts: uniqueConflicts,
+    currentSeason,
+    currentWeek,
+    currentWeekKey,
+    hasConflicts: uniqueConflicts.length > 0,
+    latestCompletedWeek,
+    latestCompletedWeekKey,
+    legacyCompletionWeekKeys,
+    phase: lifecycle.phase,
+  };
 }
 
 function toWeekSimulationGame(
@@ -161,48 +503,115 @@ function toWeekSimulationGame(
   return game;
 }
 
+function getCurrentWeekScheduleMatches(league: OnlineLeague, currentWeek: number) {
+  return (league.schedule ?? []).filter((match) => match.week === currentWeek);
+}
+
+function getScheduleValidationReasons(
+  league: OnlineLeague,
+  scheduleMatches: OnlineLeagueScheduleMatch[],
+) {
+  if (scheduleMatches.length === 0) {
+    return ["Für die aktuelle Woche ist kein gültiger Schedule vorhanden."];
+  }
+
+  const reasons: string[] = [];
+  const scheduledTeamIds = new Set<string>();
+  const activeTeamIds = new Set(
+    league.users
+      .filter(isOnlineLeagueUserActiveWeekParticipant)
+      .map((user) => user.teamId)
+      .filter(Boolean),
+  );
+
+  for (const scheduleMatch of scheduleMatches) {
+    const match = scheduleMatch as ScheduleLike;
+    const homeTeamId = resolveScheduledTeamId(
+      league,
+      match.homeTeamName,
+      match.homeTeamId,
+    );
+    const awayTeamId = resolveScheduledTeamId(
+      league,
+      match.awayTeamName,
+      match.awayTeamId,
+    );
+
+    if (!match.id || !homeTeamId || !awayTeamId || homeTeamId === awayTeamId) {
+      reasons.push("Mindestens ein Matchup der aktuellen Woche ist ungültig.");
+      continue;
+    }
+
+    if (scheduledTeamIds.has(homeTeamId) || scheduledTeamIds.has(awayTeamId)) {
+      reasons.push("Ein Team ist mehrfach in der aktuellen Woche eingeplant.");
+    }
+
+    scheduledTeamIds.add(homeTeamId);
+    scheduledTeamIds.add(awayTeamId);
+  }
+
+  const missingScheduledTeams = [...activeTeamIds].filter(
+    (teamId) => !scheduledTeamIds.has(teamId),
+  );
+
+  if (missingScheduledTeams.length > 0) {
+    reasons.push("Mindestens ein aktives Team hat kein Matchup in der aktuellen Woche.");
+  }
+
+  return [...new Set(reasons)];
+}
+
 export function normalizeOnlineLeagueWeekSimulationState(
   league: OnlineLeague,
 ): OnlineLeagueWeekSimulationState {
+  const rawCurrentWeek = (league as { currentWeek?: unknown }).currentWeek;
   const currentWeek = normalizePositiveInteger(
-    (league as { currentWeek?: unknown }).currentWeek,
+    rawCurrentWeek,
     1,
   );
   const currentSeason = normalizePositiveInteger(league.currentSeason, 1);
+  const scheduleMatches = getCurrentWeekScheduleMatches(league, currentWeek);
   const games = getCurrentWeekGames(league);
+  const weekProgress = getOnlineLeagueWeekProgressState(league);
   const readyState = getOnlineLeagueWeekReadyState({
     ...league,
     currentWeek,
     currentSeason,
   });
+  const lifecycle = normalizeOnlineLeagueWeekSimulationLifecycle({
+    draftStatus: league.fantasyDraft?.status,
+    leagueStatus: league.status,
+    readyState,
+    weekProgress,
+  });
   const reasons: string[] = [];
 
-  if (league.status !== "active") {
-    reasons.push("Liga ist nicht aktiv.");
+  if (isDefinedInvalidWeek(rawCurrentWeek)) {
+    reasons.push("Aktuelle Woche ist ungültig.");
   }
 
-  if (league.fantasyDraft && league.fantasyDraft.status !== "completed") {
-    reasons.push("Fantasy Draft ist noch nicht abgeschlossen.");
+  reasons.push(...lifecycle.reasons);
+
+  const missingRosterTeams = league.users
+    .filter(isOnlineLeagueUserActiveWeekParticipant)
+    .filter((user) => !hasPlayableRoster(user.contractRoster))
+    .map((user) => user.teamDisplayName ?? user.teamName ?? user.teamId);
+
+  for (const teamName of missingRosterTeams) {
+    reasons.push(`${teamName} hat kein spielbares Roster.`);
   }
 
-  if (!readyState.allReady) {
-    reasons.push("Nicht alle aktiven Teams sind ready.");
-  }
-
-  if (games.length === 0) {
-    reasons.push("Für die aktuelle Woche ist kein gültiger Schedule vorhanden.");
-  }
-
-  if (normalizeWeekStatus(league.weekStatus) === "simulating") {
-    reasons.push("Die Woche wird bereits simuliert.");
-  }
+  reasons.push(...getScheduleValidationReasons(league, scheduleMatches));
 
   return {
-    canSimulate: reasons.length === 0,
+    canSimulate: lifecycle.canSimulate && reasons.length === 0,
+    completion: weekProgress,
     currentSeason,
     currentWeek,
     games,
-    hasValidSchedule: games.length > 0,
+    hasValidSchedule:
+      scheduleMatches.length > 0 &&
+      getScheduleValidationReasons(league, scheduleMatches).length === 0,
     lastSimulatedWeekKey: league.lastSimulatedWeekKey,
     records: buildOnlineLeagueTeamRecords(league),
     reasons,
@@ -227,13 +636,17 @@ export function getCurrentWeekGames(league: OnlineLeague) {
 }
 
 export function hasValidScheduleForWeek(league: OnlineLeague, week: number) {
-  const normalizedWeek = normalizePositiveInteger(week, 1);
-  const currentSeason = normalizePositiveInteger(league.currentSeason, 1);
-  const results = league.matchResults ?? [];
+  if (isDefinedInvalidWeek(week)) {
+    return false;
+  }
 
-  return (league.schedule ?? [])
-    .filter((match) => match.week === normalizedWeek)
-    .some((match) => toWeekSimulationGame(league, match, currentSeason, results) !== null);
+  const normalizedWeek = normalizePositiveInteger(week, 1);
+  const scheduleMatches = getCurrentWeekScheduleMatches(league, normalizedWeek);
+
+  return (
+    scheduleMatches.length > 0 &&
+    getScheduleValidationReasons(league, scheduleMatches).length === 0
+  );
 }
 
 export function canSimulateWeek(league: OnlineLeague) {
@@ -259,6 +672,22 @@ export function buildOnlineLeagueTeamRecords(
       },
     ]),
   );
+
+  for (const user of league.users.filter(isOnlineLeagueUserActiveWeekParticipant)) {
+    if (user.teamId && !records.has(user.teamId)) {
+      records.set(user.teamId, {
+        gamesPlayed: 0,
+        losses: 0,
+        pointDifferential: 0,
+        pointsAgainst: 0,
+        pointsFor: 0,
+        teamId: user.teamId,
+        ties: 0,
+        wins: 0,
+      });
+    }
+  }
+
   const streaks = new Map<string, { count: number; type: "L" | "T" | "W" }>();
 
   for (const result of league.matchResults ?? []) {

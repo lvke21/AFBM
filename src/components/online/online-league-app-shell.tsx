@@ -1,9 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
 import type { AppShellContext } from "@/components/layout/navigation-model";
+import {
+  normalizeOnlineCoreLifecycle,
+  type OnlineCoreLifecycleState,
+} from "@/lib/online/online-league-lifecycle";
 import type { OnlineLeague } from "@/lib/online/online-league-types";
 
 import {
@@ -11,15 +16,54 @@ import {
   useOnlineLeagueRouteStateValue,
 } from "./online-league-route-state";
 
-function hasPlayableRoster(user: OnlineLeague["users"][number] | undefined) {
-  const activeRosterCount =
-    user?.contractRoster?.filter((player) => player.status === "active").length ?? 0;
+function getDraftStatusFromLifecycle(lifecycle: OnlineCoreLifecycleState | null) {
+  if (!lifecycle) {
+    return "completed";
+  }
 
-  return activeRosterCount >= 53 && Boolean(user?.depthChart?.length);
+  if (lifecycle.draftStatus === "active") {
+    return "active";
+  }
+
+  return lifecycle.draftStatus === "not_started" || lifecycle.draftStatus === "missing"
+    ? "not_started"
+    : "completed";
 }
 
-function getDraftStatus(league: OnlineLeague | null) {
-  return league?.fantasyDraft?.status ?? "completed";
+function getTeamRecordLabel(league: OnlineLeague | null, teamId: string) {
+  const storedRecord = league?.standings?.find((record) => record.teamId === teamId);
+
+  if (storedRecord) {
+    return storedRecord.ties > 0
+      ? `${storedRecord.wins}-${storedRecord.losses}-${storedRecord.ties}`
+      : `${storedRecord.wins}-${storedRecord.losses}`;
+  }
+
+  const record = { wins: 0, losses: 0, ties: 0 };
+
+  for (const result of league?.matchResults ?? []) {
+    const isHome = result.homeTeamId === teamId;
+    const isAway = result.awayTeamId === teamId;
+
+    if (!isHome && !isAway) {
+      continue;
+    }
+
+    if (result.homeScore === result.awayScore) {
+      record.ties += 1;
+    } else if (
+      (isHome && result.homeScore > result.awayScore) ||
+      (isAway && result.awayScore > result.homeScore)
+    ) {
+      record.wins += 1;
+    } else {
+      record.losses += 1;
+    }
+  }
+
+  return record.ties > 0
+    ? `${record.wins}-${record.losses}-${record.ties}`
+    : `${record.wins}-${record.losses}`;
 }
 
 export function OnlineLeagueAppShell({
@@ -29,19 +73,31 @@ export function OnlineLeagueAppShell({
   leagueId: string;
   children: ReactNode;
 }) {
-  const routeState = useOnlineLeagueRouteStateValue(leagueId);
-  const { league, currentUser } = routeState;
+  const pathname = usePathname();
   const baseHref = `/online/league/${leagueId}`;
-  const currentLeagueUser = league?.users.find((user) => user.userId === currentUser?.userId);
-  const draftStatus = getDraftStatus(league);
-  const rosterReady = hasPlayableRoster(currentLeagueUser);
-  const teamNavigationReady = Boolean(currentLeagueUser && rosterReady && draftStatus === "completed");
-  const managerTeam = teamNavigationReady && currentLeagueUser
+  const isDraftRoute = pathname === `${baseHref}/draft`;
+  const routeState = useOnlineLeagueRouteStateValue(leagueId, {
+    draftPlayerLimit: isDraftRoute ? 120 : undefined,
+    includeDraftPlayerPool: isDraftRoute,
+  });
+  const { league, currentUser } = routeState;
+  const lifecycle = normalizeOnlineCoreLifecycle({ currentUser, league, requiresDraft: true });
+  const currentLeagueUser = lifecycle?.currentLeagueUser ?? undefined;
+  const draftStatus = getDraftStatusFromLifecycle(lifecycle);
+  const rosterReady = Boolean(
+    currentLeagueUser &&
+      lifecycle.readyState?.activeParticipants.some(
+        (participant) =>
+          participant.userId === currentLeagueUser.userId && !participant.readyBlockedReason,
+      ),
+  );
+  const teamNavigationReady = Boolean(currentLeagueUser);
+  const managerTeam = currentLeagueUser
     ? {
         id: currentLeagueUser.teamId,
         name: currentLeagueUser.teamDisplayName ?? currentLeagueUser.teamName,
         abbreviation: currentLeagueUser.teamName.slice(0, 3).toUpperCase(),
-        currentRecord: "0-0",
+        currentRecord: getTeamRecordLabel(league, currentLeagueUser.teamId),
       }
     : null;
   const context: AppShellContext = {
@@ -55,12 +111,12 @@ export function OnlineLeagueAppShell({
       ? {
           id: `online-season-${league.currentSeason}`,
           year: league.currentSeason ?? 1,
-          phase: league.weekStatus ?? "pre_week",
-          week: league.currentWeek,
+          phase: lifecycle.phase,
+          week: lifecycle.currentWeek ?? league.currentWeek,
         }
       : null,
     managerTeam,
-    nextGameHref: teamNavigationReady ? `${baseHref}#week-loop` : null,
+    nextGameHref: league ? `${baseHref}#week-loop` : null,
     online: {
       draftStatus,
       rosterReady,

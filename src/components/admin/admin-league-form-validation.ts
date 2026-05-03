@@ -3,7 +3,7 @@ export const ADMIN_LEAGUE_NAME_MAX_LENGTH = 60;
 export const ADMIN_LEAGUE_MAX_USERS_MIN = 2;
 export const ADMIN_LEAGUE_MAX_USERS_MAX = 32;
 
-export type AdminLeagueFormValidationResult =
+type AdminLeagueFormValidationResult =
   | {
       ok: true;
       value: {

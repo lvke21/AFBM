@@ -7,6 +7,7 @@ import { chromium } from "@playwright/test";
 const HOST = "127.0.0.1";
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const REUSE_SERVER = process.env.E2E_REUSE_SERVER === "true";
+const DB_ONLY = process.argv.includes("--db-only");
 const DEFAULT_POSTGRES_PORT = 5432;
 const SOCKET_TIMEOUT_MS = 1_500;
 const REUSE_SERVER_AUTH_TIMEOUT_MS = 10_000;
@@ -170,9 +171,11 @@ function databaseUnavailableMessage(databaseEndpoint) {
     "Reset der lokalen Container-DB:",
     "  npm run db:reset",
     "",
-    "Danach ausfuehren:",
-    "  npm run prisma:migrate -- --name init",
+    "Reproduzierbarer lokaler E2E-Setup:",
+    "  npm run db:up",
+    "  npm run prisma:migrate",
     "  npm run test:e2e:seed",
+    "  npm run test:e2e",
   ].join("\n");
 }
 
@@ -203,6 +206,16 @@ async function main() {
 
   const migrationsDir = resolve(process.cwd(), "prisma", "migrations");
   const migrationsAvailable = existsSync(migrationsDir);
+
+  if (DB_ONLY) {
+    console.log(
+      [
+        `[E2E preflight] DB erreichbar - ${databaseEndpoint.safeUrl}`,
+        `[E2E preflight] Migrationen: ${migrationsAvailable ? "prisma/migrations vorhanden" : "kein prisma/migrations-Verzeichnis gefunden"}.`,
+      ].join("\n"),
+    );
+    return;
+  }
 
   const executablePath = chromium.executablePath();
 

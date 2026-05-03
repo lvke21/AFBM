@@ -7,7 +7,7 @@ describe("getOnlineModeStatusCopy", () => {
     expect(getOnlineModeStatusCopy("local")).toMatchObject({
       primaryBadge: "Lokaler Testmodus",
       syncBadge: "Offline/Testdaten",
-      roleBadge: "Rolle: GM",
+      roleBadge: "Rolle: Manager",
       description:
         "Du spielst im lokalen Testmodus. Daten bleiben auf diesem Gerät und werden nicht online synchronisiert.",
     });
@@ -16,10 +16,10 @@ describe("getOnlineModeStatusCopy", () => {
   it("marks firebase mode as live multiplayer", () => {
     expect(getOnlineModeStatusCopy("firebase")).toMatchObject({
       primaryBadge: "Live Multiplayer",
-      syncBadge: "Firebase verbunden",
-      roleBadge: "Rolle: GM",
+      syncBadge: "Online verbunden",
+      roleBadge: "Rolle: Manager",
       description:
-        "Du spielst im Live-Multiplayer. Ligaänderungen werden über Firebase mit anderen Spielern synchronisiert.",
+        "Du spielst im Live-Multiplayer. Ligaänderungen werden mit anderen Spielern synchronisiert.",
     });
   });
 });

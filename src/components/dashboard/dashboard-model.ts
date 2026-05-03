@@ -1119,18 +1119,18 @@ export function buildDashboardQuickActions({
 }: DashboardQuickActionsInput): DashboardQuickAction[] {
   const gameDisabledReason =
     weekState === "PRE_WEEK"
-      ? "Zuerst im Week Loop die Woche vorbereiten."
+      ? "Zuerst im Wochenablauf die Woche vorbereiten."
       : !nextMatch
         ? "Kein offenes Match im aktuellen Saisonkontext."
         : null;
 
   return [
     {
-      title: "Week Flow",
+      title: "Wochenablauf",
       description:
         weekState === "PRE_WEEK"
           ? "Plan, Gegnerfokus und Development Focus fuer die Woche setzen."
-          : "Aktuellen Status im Week Loop kontrollieren.",
+          : "Aktuellen Status im Wochenablauf kontrollieren.",
       href: "#week-loop",
       label: weekState === "PRE_WEEK" ? "Plan setzen" : "Status pruefen",
       tone: "primary",
@@ -1415,7 +1415,7 @@ export function buildDashboardAction({
     return {
       title: "Saison fehlt",
       message:
-        "Fuer dieses Savegame ist keine aktuelle Saison geladen. Oeffne das Savegame, bevor GM-Aktionen geplant werden.",
+        "Fuer dieses Savegame ist keine aktuelle Saison geladen. Oeffne das Savegame, bevor Manager-Aktionen geplant werden.",
       href: `/app/savegames/${saveGameId}`,
       label: "Savegame pruefen",
       tone: "warning",
@@ -1426,7 +1426,7 @@ export function buildDashboardAction({
     return {
       title: "Woche vorbereiten",
       message:
-        "Du bist GM - bereite das naechste Spiel vor. Ein Klick setzt einen ausgewogenen Wochenplan und schaltet die Game Preview frei.",
+        "Du bist Manager - bereite das naechste Spiel vor. Ein Klick setzt einen ausgewogenen Wochenplan und schaltet die Game Preview frei.",
       href: null,
       label: "Woche vorbereiten",
       tone: "positive",

@@ -14,28 +14,28 @@ export function SavegamesAdminLink() {
   const adminAccess = useFirebaseAdminAccess();
 
   const badgeLabel = authState.isLoading
-    ? "Pruefe Login"
+    ? "Login wird geprüft"
     : adminAccess.isAdmin
       ? "Admin verfuegbar"
       : authState.isAuthenticated
         ? "Kein Admin"
         : "Login erforderlich";
   const hint = authState.isLoading
-    ? "Firebase Auth wird geprüft."
+    ? "Login wird geprüft."
     : adminAccess.isAdmin
-      ? "Öffne zentrale Werkzeuge fuer Liga-Verwaltung, Simulation und Debug."
+      ? "Öffne zentrale Werkzeuge fuer Liga-Verwaltung, Simulation und Admin-Debug."
       : authState.isAuthenticated
-        ? adminAccess.status === "error"
+        ? adminAccess.status === "error" || adminAccess.status === "bootstrap"
           ? adminAccess.reason
-          : "Dein Account ist als GM angemeldet, aber nicht fuer den Adminmodus freigeschaltet."
-        : "Melde dich an. Adminzugriff wird danach über UID-Allowlist oder Custom Claim geprüft.";
+          : "Dein Account ist als Manager angemeldet, aber nicht fuer den Adminbereich freigeschaltet."
+        : "Melde dich an. Danach prüfen wir, ob dein Account Adminrechte hat.";
 
   const content = (
     <>
       <span className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-200">
-            Admin Hub
+            Adminbereich
           </span>
           <span className="mt-1 block text-xl font-semibold text-white">Adminmodus</span>
         </span>

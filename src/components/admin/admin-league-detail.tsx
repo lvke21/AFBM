@@ -10,10 +10,12 @@ import type {
   OnlineLeague,
   OnlineMatchResult,
 } from "@/lib/online/online-league-types";
+import { normalizeOnlineLeagueCoreLifecycle } from "@/lib/online/online-league-lifecycle";
 import { getOnlineLeagueWeekReadyState } from "@/lib/online/online-league-week-service";
 import {
   buildOnlineLeagueTeamRecords,
   getCurrentWeekGames,
+  normalizeOnlineLeagueWeekSimulationState,
   type OnlineLeagueTeamRecord,
 } from "@/lib/online/online-league-week-simulation";
 import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
@@ -24,8 +26,8 @@ import {
 } from "@/lib/admin/local-admin-browser-state";
 import { getFirebaseAdminActionHeaders } from "@/lib/admin/admin-api-client";
 import {
-  ADMIN_LEAGUE_ACTIONS,
-  type AdminSimpleLeagueActionConfig,
+  getAdminLeagueActionsByGroup,
+  type AdminLeagueActionConfig,
 } from "./admin-league-action-config";
 import { AdminFeedbackBanner } from "./admin-feedback-banner";
 import {
@@ -34,56 +36,24 @@ import {
   AdminLeagueWeekDataCards,
   type AdminStandingDisplayRow,
 } from "./admin-league-detail-display";
+import {
+  FINANCE_SORTS,
+  GM_FILTERS,
+  adminSimulationHint,
+  adminWeekPhaseLabel,
+  filterAdminLeagueUsers,
+  sortAdminFinanceUsers,
+  type AdminFinanceSort,
+  type AdminGmFilter,
+} from "./admin-league-detail-model";
 import { useAdminPendingAction } from "./use-admin-pending-action";
 
 function readyLabel(readyForWeek: boolean) {
-  return readyForWeek ? "Ready" : "Nicht bereit";
+  return readyForWeek ? "Bereit" : "Nicht bereit";
 }
 
 function statusLabel(status: OnlineLeague["status"]) {
   return status === "waiting" ? "Wartet auf Spieler" : "Saison läuft";
-}
-
-function adminWeekPhaseLabel(input: {
-  allPlayersReady: boolean;
-  hasCompletedWeek: boolean;
-  league: OnlineLeague;
-  simulationInProgress: boolean;
-}) {
-  if (input.simulationInProgress || input.league.weekStatus === "simulating") {
-    return "Simulation läuft";
-  }
-
-  if (input.league.status !== "active") {
-    return "Woche noch nicht aktiv";
-  }
-
-  if (input.hasCompletedWeek && !input.allPlayersReady) {
-    return "Nächste Woche offen";
-  }
-
-  return input.allPlayersReady ? "Simulation möglich" : "Woche offen";
-}
-
-function adminSimulationHint(input: {
-  allPlayersReady: boolean;
-  league: OnlineLeague;
-  missingReadyCount: number;
-  simulationInProgress: boolean;
-}) {
-  if (input.simulationInProgress || input.league.weekStatus === "simulating") {
-    return "Simulation läuft. Mehrfachklicks sind gesperrt, bis die Aktion abgeschlossen ist.";
-  }
-
-  if (input.league.status !== "active") {
-    return "Liga muss aktiv sein, bevor Wochen simuliert werden können.";
-  }
-
-  if (!input.allPlayersReady) {
-    return `${input.missingReadyCount} aktive Team${input.missingReadyCount === 1 ? "" : "s"} fehlen noch.`;
-  }
-
-  return "Alle aktiven Teams sind ready. Der Admin kann diese Woche einmal simulieren.";
 }
 
 function teamDisplayName(user: OnlineLeague["users"][number]) {
@@ -133,38 +103,9 @@ function getAdminLeagueRulesSummary(league: OnlineLeague) {
     sourceLabel: "Gespeicherte Ligaregeln",
     activityLabel:
       `Warnung ab ${activityRules.warningAfterMissedWeeks}, inaktiv ab ${activityRules.inactiveAfterMissedWeeks}, ` +
-      `Admin-Prüfung ab ${activityRules.removalEligibleAfterMissedWeeks} verpassten Week Actions.`,
+      `Admin-Prüfung ab ${activityRules.removalEligibleAfterMissedWeeks} verpassten Wochenaktionen.`,
   };
 }
-
-type AdminGmFilter =
-  | "all"
-  | "active"
-  | "warning"
-  | "inactive"
-  | "removal_eligible"
-  | "hot_seat"
-  | "vacant";
-
-const GM_FILTERS: Array<{ id: AdminGmFilter; label: string }> = [
-  { id: "all", label: "Alle" },
-  { id: "active", label: "Active" },
-  { id: "warning", label: "Warning" },
-  { id: "inactive", label: "Inactive" },
-  { id: "removal_eligible", label: "Removal eligible" },
-  { id: "hot_seat", label: "Hot seat" },
-  { id: "vacant", label: "Vacant" },
-];
-
-type AdminFinanceSort = "revenue" | "attendance" | "fanMood" | "fanPressure" | "cash";
-
-const FINANCE_SORTS: Array<{ id: AdminFinanceSort; label: string }> = [
-  { id: "revenue", label: "Revenue" },
-  { id: "attendance", label: "Attendance" },
-  { id: "fanMood", label: "FanMood" },
-  { id: "fanPressure", label: "FanPressure" },
-  { id: "cash", label: "Cash" },
-];
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("de-CH").format(Math.round(value));
@@ -225,7 +166,7 @@ function getFinanceWarnings(user: OnlineLeague["users"][number]) {
   }
 
   if (fanPressure >= 70 || jobSecurityStatus(user) === "hot_seat") {
-    warnings.push("GM unter Druck");
+    warnings.push("Manager unter Druck");
   }
 
   return warnings.length > 0 ? warnings.join(" · ") : "Keine Warnung";
@@ -240,7 +181,7 @@ function getTrainingPlanStatus(user: OnlineLeague["users"][number], league: Onli
   if (!currentPlan) {
     return {
       label: "Kein Plan",
-      detail: "Auto-Default im Week Flow",
+      detail: "Auto-Default im Wochenablauf",
     };
   }
 
@@ -355,6 +296,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
         body: JSON.stringify({
           action,
           backendMode: repository.mode,
+          confirmed: action === "getLeague" || action === "listLeagues" ? undefined : true,
           leagueId,
           localState: showLocalOnlyAdminActions ? getLocalAdminBrowserState() : undefined,
           ...payload,
@@ -439,7 +381,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
     }
   }
 
-  async function handleConfiguredLeagueAction(config: AdminSimpleLeagueActionConfig) {
+  async function handleConfiguredLeagueAction(config: AdminLeagueActionConfig) {
     const result = await runAdminAction(
       config.id,
       () =>
@@ -519,27 +461,9 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
     );
   }
 
-  async function handleRemovePlayer(userId: string, username: string) {
-    const confirmed = window.confirm(`${username} wirklich aus der Liga entfernen?`);
-
-    if (!confirmed) {
-      return;
-    }
-
-    await runAdminAction(
-      `remove-player:${userId}`,
-      () =>
-        requestAdminAction("removePlayer", {
-          targetUserId: userId,
-          reason: "Removed from Admin Control Center",
-        }),
-      `${username} wurde aus der Liga entfernt.`,
-    );
-  }
-
   async function handleSimulateWeek() {
     const confirmed = window.confirm(
-      `Week ${league?.currentWeek ?? ""} simulieren? Danach beginnt die nächste Week und die Ready-States werden zurückgesetzt.`,
+      `Woche ${league?.currentWeek ?? ""} simulieren? Danach beginnt die nächste Woche und der Bereit-Status wird zurückgesetzt.`,
     );
 
     if (!confirmed) {
@@ -564,7 +488,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
       updateLeague(
         nextLeague,
         simulation
-          ? `Week ${simulation.simulatedWeek} wurde simuliert. ${simulation.gamesSimulated} Spiele gespeichert, nächste Week: ${simulation.nextWeek}.`
+          ? `Woche ${simulation.simulatedWeek} wurde simuliert. ${simulation.gamesSimulated} Spiele gespeichert, nächste Woche: ${simulation.nextWeek}.`
           : result.message || "Die Woche wurde simuliert.",
       );
       setLastLoadedAt(new Date().toISOString());
@@ -608,7 +532,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
   }
 
   function handleWarnGm(userId: string, username: string) {
-    const message = window.prompt(`Warnung an ${username}`, "Bitte Week Action nachholen.");
+    const message = window.prompt(`Warnung an ${username}`, "Bitte Wochenaktion nachholen.");
 
     if (!message) {
       return;
@@ -728,6 +652,12 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
   }
 
   const readyState = getOnlineLeagueWeekReadyState(league);
+  const simulationState = normalizeOnlineLeagueWeekSimulationState(league);
+  const lifecycle = normalizeOnlineLeagueCoreLifecycle({
+    league,
+    requiresDraft: true,
+    simulationInProgress: pendingAction === "simulate-week",
+  });
 
   if (loadError) {
     return (
@@ -758,56 +688,27 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
     );
   }
 
-  const filteredUsers = league.users.filter((user) => {
-    if (filter === "all") {
-      return true;
-    }
-
-    if (filter === "hot_seat") {
-      return (
-        jobSecurityStatus(user) === "hot_seat" ||
-        jobSecurityStatus(user) === "termination_risk"
-      );
-    }
-
-    if (filter === "vacant") {
-      return user.teamStatus === "vacant";
-    }
-
-    return activityStatus(user) === filter;
-  });
-  const financeUsers = [...league.users].sort((firstUser, secondUser) => {
-    switch (financeSort) {
-      case "attendance":
-        return averageAttendanceRate(secondUser) - averageAttendanceRate(firstUser);
-      case "fanMood":
-        return (secondUser.fanbaseProfile?.fanMood ?? 0) - (firstUser.fanbaseProfile?.fanMood ?? 0);
-      case "fanPressure":
-        return (
-          (secondUser.fanPressure?.fanPressureScore ?? 0) -
-          (firstUser.fanPressure?.fanPressureScore ?? 0)
-        );
-      case "cash":
-        return (secondUser.financeProfile?.cashBalance ?? 0) - (firstUser.financeProfile?.cashBalance ?? 0);
-      case "revenue":
-      default:
-      return (secondUser.financeProfile?.totalRevenue ?? 0) - (firstUser.financeProfile?.totalRevenue ?? 0);
-    }
-  });
+  const filteredUsers = filterAdminLeagueUsers(league.users, filter);
+  const financeUsers = sortAdminFinanceUsers(league.users, financeSort);
   const readyUsers = readyState.readyParticipants;
   const missingReadyUsers = readyState.missingParticipants;
   const allPlayersReady = readyState.allReady;
-  const lastCompletedWeek = league.completedWeeks?.[0];
-  const simulationInProgress = pendingAction === "simulate-week" || league.weekStatus === "simulating";
+  const lastCompletedWeek = lifecycle.weekProgress?.latestCompletedWeek;
+  const simulationInProgress = pendingAction === "simulate-week" || lifecycle.phase === "simulating";
   const weekPhaseLabel = adminWeekPhaseLabel({
     allPlayersReady,
+    canSimulate: simulationState.canSimulate,
     hasCompletedWeek: Boolean(lastCompletedWeek),
     league,
+    lifecycle,
     simulationInProgress,
   });
   const simulationHint = adminSimulationHint({
     allPlayersReady,
+    blockReasons: simulationState.reasons,
+    canSimulate: simulationState.canSimulate,
     league,
+    lifecycle,
     missingReadyCount: missingReadyUsers.length,
     simulationInProgress,
   });
@@ -856,8 +757,8 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
     ? "Teilweise implementiert"
     : "Lokal implementiert";
   const simulationStatusDetail = isFirebaseMode
-    ? "Firebase simuliert über die vorhandene minimale Match-Engine, speichert Match-Ergebnisse, Completed-Week-Daten und setzt Ready-State zurück. Training, Attendance, Finanzen und vollständige Season-Engine-Parität sind noch nicht vollständig angebunden."
-    : "Lokale Ligen nutzen die bestehende Online-Week-Simulation im Browser-State.";
+    ? "Online simuliert über die vorhandene minimale Match-Engine, speichert Match-Ergebnisse, abgeschlossene Wochen und setzt den Bereit-Status zurück. Training, Attendance, Finanzen und vollständige Season-Engine-Parität sind noch nicht vollständig angebunden."
+    : "Lokale Ligen nutzen die bestehende Online-Wochensimulation im Browser-State.";
   const draftPlayersById = new Map(
     (league.fantasyDraftPlayerPool ?? []).map((player) => [player.playerId, player]),
   );
@@ -867,14 +768,14 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
   const recentDraftPicks = (fantasyDraft?.picks ?? []).slice().reverse().slice(0, 12);
   const draftCanReset = process.env.NODE_ENV !== "production";
   const debugItems = [
-    { label: "Backend-Modus", value: repository.mode },
-    { label: "Route League ID", value: leagueId },
-    { label: "Geladene League ID", value: league.id },
+    { label: "Datenquelle", value: repository.mode },
+    { label: "Route-Liga-ID", value: leagueId },
+    { label: "Geladene Liga-ID", value: league.id },
     { label: "Zuletzt geladen", value: formatDateTime(lastLoadedAt) },
     { label: "Status", value: league.status },
-    { label: "Week Status", value: league.weekStatus ?? "Unbekannt" },
+    { label: "Wochenstatus", value: league.weekStatus ?? "Unbekannt" },
     {
-      label: "Season / Week",
+      label: "Saison / Woche",
       value: `S${league.currentSeason ?? 1} W${league.currentWeek}`,
     },
     {
@@ -882,19 +783,22 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
       value: `${league.users.length}/${league.maxUsers} Teilnehmer, ${league.teams.length} Teams`,
     },
     {
-      label: "Ready-State",
+      label: "Bereit-Status",
       value: `${readyState.readyCount}/${readyState.requiredCount}`,
     },
     {
-      label: "Draft Status",
+      label: "Draft-Status",
       value: fantasyDraft?.status ?? "nicht initialisiert",
     },
-    { label: "Pending Action", value: pendingAction ?? "keine" },
+    { label: "Laufende Aktion", value: pendingAction ?? "keine" },
     {
-      label: "Mutating Actions",
+      label: "Schreibaktionen",
       value: "Admin API mit Bearer Token",
     },
   ];
+  const overviewActions = getAdminLeagueActionsByGroup("overview");
+  const simulationActions = getAdminLeagueActionsByGroup("simulation");
+  const repairActions = getAdminLeagueActionsByGroup("repair");
 
   return (
     <section className="rounded-lg border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/30 sm:p-6">
@@ -930,9 +834,17 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
         weekPhaseLabel={weekPhaseLabel}
       />
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {ADMIN_LEAGUE_ACTIONS.filter((action) => action.id !== "refresh-league").map(
-          (action) => (
+      <section className="mt-6 rounded-lg border border-white/10 bg-white/5 p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+          Übersicht
+        </p>
+        <h2 className="mt-2 text-xl font-semibold text-white">Snapshot und Navigation</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-300">
+          Keine Mutation in diesem Block: Daten neu laden und Spieleransicht öffnen. Simulation,
+          Repair, Debug und gefährliche Mutationen sind darunter getrennt.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {overviewActions.map((action) => (
             <button
               key={action.id}
               type="button"
@@ -942,24 +854,34 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
               }}
               className={action.className}
             >
-              {pendingAction === action.id ? action.pendingLabel : action.label}
+              <span className="block">
+                {pendingAction === action.id ? action.pendingLabel : action.label}
+              </span>
+              <span className="mt-1 block text-xs font-medium leading-5 opacity-75">
+                {action.description}
+              </span>
             </button>
-          ),
-        )}
-        <button
-          type="button"
-          disabled={
-            pendingAction !== null ||
-            league.status !== "active" ||
-            !readyState.canSimulate
-          }
-          onClick={handleSimulateWeek}
-          className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-4 py-3 text-sm font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-        >
-          {pendingAction === "simulate-week" ? "Simulation läuft..." : "Woche simulieren"}
-        </button>
-        {ADMIN_LEAGUE_ACTIONS.filter((action) => action.id === "refresh-league").map(
-          (action) => (
+          ))}
+          <Link
+            href={`/online/league/${league.id}`}
+            className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-slate-100 transition hover:bg-white/8"
+          >
+            Spieleransicht öffnen
+          </Link>
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-lg border border-emerald-200/20 bg-emerald-300/5 p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
+          Repair
+        </p>
+        <h2 className="mt-2 text-xl font-semibold text-white">Gezielte State-Korrekturen</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-300">
+          Diese Aktionen schreiben Daten, sind aber als operative Reparaturen gedacht. Jede Aktion
+          beschreibt den konkreten State, den sie verändert.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {repairActions.map((action) => (
             <button
               key={action.id}
               type="button"
@@ -969,34 +891,51 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
               }}
               className={action.className}
             >
-              {pendingAction === action.id ? action.pendingLabel : action.label}
+              <span className="block">
+                {pendingAction === action.id ? action.pendingLabel : action.label}
+              </span>
+              <span className="mt-1 block text-xs font-medium leading-5 opacity-75">
+                {action.description}
+              </span>
             </button>
-          ),
-        )}
-        <button
-          type="button"
-          onClick={() => setDebugVisible((current) => !current)}
-          className="rounded-lg border border-violet-200/25 bg-violet-300/10 px-4 py-3 text-sm font-semibold text-violet-50 transition hover:bg-violet-300/16"
-        >
-          {debugVisible ? "Debug-Informationen ausblenden" : "Debug-Informationen anzeigen"}
-        </button>
-        <Link
-          href={`/online/league/${league.id}`}
-          className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-slate-100 transition hover:bg-white/8"
-        >
-          Spieleransicht öffnen
-        </Link>
-        {showLocalOnlyAdminActions ? (
+          ))}
+          {showLocalOnlyAdminActions ? (
+            <button
+              type="button"
+              disabled={league.users.length === 0 || pendingAction !== null}
+              onClick={handleApplyRevenueSharing}
+              className="rounded-lg border border-cyan-200/25 bg-cyan-300/10 px-4 py-3 text-left text-sm font-semibold text-cyan-50 transition hover:bg-cyan-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+            >
+              <span className="block">Revenue Sharing anwenden</span>
+              <span className="mt-1 block text-xs font-medium leading-5 opacity-75">
+                Lokale Repair-Aktion: schreibt Franchise-Finanzprojektionen für die aktuelle Liga.
+              </span>
+            </button>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-lg border border-violet-200/20 bg-violet-300/5 p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-200">
+              Debug
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-white">Datenverbindungen prüfen</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              Zeigt Memberships, Team-Zuordnungen und Admin-Kontext. Diese Ansicht führt keine
+              Mutation aus.
+            </p>
+          </div>
           <button
             type="button"
-            disabled={league.users.length === 0 || pendingAction !== null}
-            onClick={handleApplyRevenueSharing}
-            className="rounded-lg border border-cyan-200/25 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-50 transition hover:bg-cyan-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+            onClick={() => setDebugVisible((current) => !current)}
+            className="w-fit rounded-lg border border-violet-200/25 bg-violet-300/10 px-4 py-3 text-sm font-semibold text-violet-50 transition hover:bg-violet-300/16"
           >
-            Revenue Sharing anwenden
+            {debugVisible ? "Debug ausblenden" : "Debug anzeigen"}
           </button>
-        ) : null}
-      </div>
+        </div>
+      </section>
 
       <section className="mt-6 rounded-lg border border-sky-200/20 bg-sky-300/10 p-5">
         <div className="grid gap-4 lg:grid-cols-[1fr_1fr_auto] lg:items-start">
@@ -1005,10 +944,14 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
               Simulationssteuerung
             </p>
             <h2 className="mt-2 text-xl font-semibold text-white">
-              Week {league.currentWeek} bereit machen
+              Woche {league.currentWeek} simulieren und abschließen
             </h2>
             <p className="mt-2 text-sm leading-6 text-sky-50/85">
               {simulationHint}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-sky-50/75">
+              Voraussetzungen: Liga aktiv, Draft abgeschlossen, alle aktiven Manager bereit, gültiger
+              Schedule, vollständige Teams/Roster und keine bereits simulierte Woche.
             </p>
             <div className="mt-4 rounded-lg border border-white/10 bg-[#07111d]/50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -1017,6 +960,26 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
               <p className="mt-2 text-sm leading-6 text-slate-200">
                 {simulationStatusDetail}
               </p>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {simulationActions.map((action) => (
+                <button
+                  key={action.id}
+                  type="button"
+                  disabled={action.isDisabled({ league, pendingAction })}
+                  onClick={() => {
+                    void handleConfiguredLeagueAction(action);
+                  }}
+                  className={action.className}
+                >
+                  <span className="block">
+                    {pendingAction === action.id ? action.pendingLabel : action.label}
+                  </span>
+                  <span className="mt-1 block text-xs font-medium leading-5 opacity-75">
+                    {action.description}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -1045,15 +1008,34 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
           </div>
           <p
             className={`rounded-lg border px-4 py-3 text-sm font-semibold ${
-              allPlayersReady
+              lifecycle.canSimulate
                 ? "border-emerald-200/30 bg-emerald-300/10 text-emerald-50"
                 : "border-white/10 bg-white/5 text-slate-200"
             }`}
           >
-            {allPlayersReady
-              ? "Alle Spieler sind bereit. Simulation starten ist möglich."
-              : "Noch nicht alle aktiven Teams sind bereit. Simulation bleibt gesperrt."}
+            {lifecycle.canSimulate
+              ? "Alle Voraussetzungen sind grün. Die Simulation kann einmal ausgeführt werden."
+              : (lifecycle.reasons[0] ?? simulationState.reasons[0] ?? "Simulation bleibt gesperrt.")}
           </p>
+          <button
+            type="button"
+            disabled={
+              pendingAction !== null ||
+              league.status !== "active" ||
+              !lifecycle.canSimulate
+            }
+            onClick={handleSimulateWeek}
+            className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-4 py-3 text-sm font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+          >
+            <span className="block">
+              {pendingAction === "simulate-week"
+                ? "Simulation läuft..."
+                : "Woche simulieren und abschließen"}
+            </span>
+            <span className="mt-1 block text-xs font-medium leading-5 opacity-80">
+              Schreibt Ergebnisse, Standings und bereitet die nächste Woche vor.
+            </span>
+          </button>
         </div>
 
         {lastCompletedWeek ? (
@@ -1064,7 +1046,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
                   Woche abgeschlossen
                 </p>
                 <h3 className="mt-2 text-lg font-semibold text-white">
-                  Season {lastCompletedWeek.season}, Week {lastCompletedWeek.week}
+                  Saison {lastCompletedWeek.season}, Woche {lastCompletedWeek.week}
                 </h3>
               </div>
               <p className="w-fit rounded-full border border-emerald-100/25 bg-emerald-50/10 px-3 py-1 text-xs font-semibold text-emerald-50">
@@ -1100,11 +1082,11 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
                   Letzte Simulation
                 </p>
                 <h3 className="mt-2 text-lg font-semibold text-white">
-                  Week {lastSimulation.simulatedWeek} abgeschlossen
+                  Woche {lastSimulation.simulatedWeek} abgeschlossen
                 </h3>
               </div>
               <p className="w-fit rounded-full border border-sky-100/25 bg-sky-50/10 px-3 py-1 text-xs font-semibold text-sky-50">
-                Nächste Week: {lastSimulation.nextWeek}
+                Nächste Woche: {lastSimulation.nextWeek}
               </p>
             </div>
             <div className="mt-4 grid gap-2 lg:grid-cols-2">
@@ -1152,50 +1134,68 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
               type="button"
               disabled={pendingAction !== null}
               onClick={handleInitializeFantasyDraft}
-              className="rounded-lg border border-fuchsia-200/25 bg-fuchsia-300/10 px-3 py-2 text-xs font-semibold text-fuchsia-50 transition hover:bg-fuchsia-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+              className="rounded-lg border border-fuchsia-200/25 bg-fuchsia-300/10 px-3 py-2 text-left text-xs font-semibold text-fuchsia-50 transition hover:bg-fuchsia-300/16 disabled:cursor-not-allowed disabled:opacity-55"
             >
-              Initialisieren
+              <span className="block">Initialisieren</span>
+              <span className="mt-1 block font-medium leading-4 text-fuchsia-50/75">
+                Erstellt Draft-State und verfügbare Spieler.
+              </span>
             </button>
             <button
               type="button"
-              disabled={pendingAction !== null || fantasyDraft?.status === "active"}
+              disabled={pendingAction !== null || lifecycle.draftStatus === "active"}
               onClick={handleStartFantasyDraft}
-              className="rounded-lg border border-emerald-200/25 bg-emerald-300/10 px-3 py-2 text-xs font-semibold text-emerald-50 transition hover:bg-emerald-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+              className="rounded-lg border border-emerald-200/25 bg-emerald-300/10 px-3 py-2 text-left text-xs font-semibold text-emerald-50 transition hover:bg-emerald-300/16 disabled:cursor-not-allowed disabled:opacity-55"
             >
-              Starten
+              <span className="block">Starten</span>
+              <span className="mt-1 block font-medium leading-4 text-emerald-50/75">
+                Schaltet den Draft auf active.
+              </span>
             </button>
             <button
               type="button"
-              disabled={pendingAction !== null || fantasyDraft?.status !== "active"}
+              disabled={pendingAction !== null || lifecycle.draftStatus !== "active"}
               onClick={handleAutoDraftNext}
-              className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-3 py-2 text-xs font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+              className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-3 py-2 text-left text-xs font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
             >
-              Auto-Pick nächstes Team
+              <span className="block">Auto-Pick nächstes Team</span>
+              <span className="mt-1 block font-medium leading-4 text-sky-50/75">
+                Schreibt genau einen Pick.
+              </span>
             </button>
             <button
               type="button"
-              disabled={pendingAction !== null || fantasyDraft?.status !== "active"}
+              disabled={pendingAction !== null || lifecycle.draftStatus !== "active"}
               onClick={handleAutoDraftToEnd}
-              className="rounded-lg border border-cyan-200/25 bg-cyan-300/10 px-3 py-2 text-xs font-semibold text-cyan-50 transition hover:bg-cyan-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+              className="rounded-lg border border-cyan-200/25 bg-cyan-300/10 px-3 py-2 text-left text-xs font-semibold text-cyan-50 transition hover:bg-cyan-300/16 disabled:cursor-not-allowed disabled:opacity-55"
             >
-              Auto-Draft bis Ende
+              <span className="block">Auto-Draft bis Ende</span>
+              <span className="mt-1 block font-medium leading-4 text-cyan-50/75">
+                Schreibt alle verbleibenden Picks.
+              </span>
             </button>
             <button
               type="button"
-              disabled={pendingAction !== null || fantasyDraft?.status !== "completed"}
+              disabled={pendingAction !== null || lifecycle.draftStatus !== "completed"}
               onClick={handleCompleteFantasyDraft}
-              className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-2 text-xs font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+              className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-2 text-left text-xs font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-55"
             >
-              Abschluss prüfen
+              <span className="block">Abschluss prüfen</span>
+              <span className="mt-1 block font-medium leading-4 text-amber-50/75">
+                Finalisiert nur, wenn alle Picks konsistent sind.
+              </span>
             </button>
             {showLocalOnlyAdminActions && draftCanReset ? (
               <button
                 type="button"
                 disabled={pendingAction !== null}
                 onClick={handleResetFantasyDraft}
-                className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-xs font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+                className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-left text-xs font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-55"
               >
-                Reset Dev/Test
+                <span className="block">Reset Dev/Test</span>
+                <span className="mt-1 block font-medium leading-4 text-rose-50/75">
+                  Gefährlich: löscht lokalen Draft-Fortschritt.
+                </span>
               </button>
             ) : null}
           </div>
@@ -1427,7 +1427,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
                         <p className="mt-1 text-xs text-slate-500">
                           {lastOutcome
                             ? `Chem ${lastOutcome.chemistryDelta}, Injury ${lastOutcome.injuryRiskDelta}`
-                            : "Wird im Week Flow erzeugt"}
+                            : "Wird im Wochenablauf erzeugt"}
                         </p>
                       </td>
                       <td className="px-4 py-4">
@@ -1436,9 +1436,12 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
                             type="button"
                             disabled={pendingAction !== null}
                             onClick={() => handleResetTrainingPlan(user)}
-                            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
+                            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-xs font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
                           >
-                            Plan zurücksetzen
+                            <span className="block">Plan zurücksetzen</span>
+                            <span className="mt-1 block font-medium leading-4 text-slate-400">
+                              Entfernt den lokalen Plan für diese Woche.
+                            </span>
                           </button>
                         ) : (
                           <span className="text-xs font-semibold text-slate-400">
@@ -1463,7 +1466,12 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
 
       <section className="mt-8 rounded-lg border border-white/10 bg-white/[0.035] p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-200">
-          GM Kontrolle
+          Repair und gefährliche Mutationen
+        </p>
+        <h2 className="mt-2 text-xl font-semibold text-white">Manager-Eingriffe getrennt ausführen</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-300">
+          Warnungen und Inaktivitätsmarkierungen sind Governance-Reparaturen. Entfernen und Team
+          vakant setzen sind gefährliche Mutationen und stehen sichtbar getrennt.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {GM_FILTERS.map((gmFilter) => (
@@ -1492,7 +1500,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
               <th className="px-4 py-3">Team</th>
               <th className="px-4 py-3">Job Security</th>
               <th className="px-4 py-3">Aktivität</th>
-              <th className="px-4 py-3">Ready-State</th>
+              <th className="px-4 py-3">Bereit-Status</th>
               <th className="px-4 py-3">Join Zeitpunkt</th>
               <th className="px-4 py-3">Aktion</th>
             </tr>
@@ -1540,59 +1548,73 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
                   </td>
                   <td className="px-4 py-4">
                     {showLocalOnlyAdminActions ? (
-                      <>
-                        <div className="grid min-w-44 gap-2">
+                      <div className="grid min-w-56 gap-3">
+                        <div className="grid gap-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                            Repair/Governance
+                          </p>
                           <button
                             type="button"
                             disabled={pendingAction !== null}
                             onClick={() => handleMissedWeek(user.userId, user.username)}
-                            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
+                            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-xs font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
                           >
-                            Verpasste Woche +1
+                            <span className="block">Verpasste Woche +1</span>
+                            <span className="mt-1 block font-medium leading-4 text-slate-400">
+                              Erhöht den Aktivitätszähler dieses Managers.
+                            </span>
                           </button>
                           <button
                             type="button"
                             disabled={pendingAction !== null}
                             onClick={() => handleWarnGm(user.userId, user.username)}
-                            className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-2 text-xs font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+                            className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-3 py-2 text-left text-xs font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-55"
                           >
-                            Verwarnen
+                            <span className="block">Verwarnen</span>
+                            <span className="mt-1 block font-medium leading-4 text-amber-50/75">
+                              Speichert Warntext und Frist für diesen Manager.
+                            </span>
                           </button>
                           <button
                             type="button"
                             disabled={pendingAction !== null}
                             onClick={() => handleAuthorizeRemoval(user.userId, user.username)}
-                            className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-3 py-2 text-xs font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+                            className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-3 py-2 text-left text-xs font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
                           >
-                            Entlassung ermächtigen
+                            <span className="block">Entlassung ermächtigen</span>
+                            <span className="mt-1 block font-medium leading-4 text-sky-50/75">
+                              Dokumentiert den Pflichtgrund für eine spätere Entfernung.
+                            </span>
                           </button>
+                        </div>
+                        <div className="grid gap-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-rose-200">
+                            Gefährliche Mutationen
+                          </p>
                           <button
                             type="button"
                             disabled={pendingAction !== null}
                             onClick={() => handleAdminRemoveGm(user.userId, user.username)}
-                            className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-xs font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-55"
+                            className="rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-left text-xs font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-55"
                           >
-                            GM entfernen
+                            <span className="block">Manager entfernen und Team freigeben</span>
+                            <span className="mt-1 block font-medium leading-4 text-rose-50/75">
+                              Entfernt Membership und setzt das Team vakant.
+                            </span>
                           </button>
                           <button
                             type="button"
                             disabled={pendingAction !== null}
                             onClick={() => handleMarkVacant(user.userId, user.username)}
-                            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-55"
+                            className="rounded-lg border border-rose-200/20 bg-rose-300/5 px-3 py-2 text-left text-xs font-semibold text-rose-50 transition hover:bg-rose-300/12 disabled:cursor-not-allowed disabled:opacity-55"
                           >
-                            Team vakant setzen
+                            <span className="block">Nur Team vakant setzen</span>
+                            <span className="mt-1 block font-medium leading-4 text-rose-50/75">
+                              Löst den Manager vom Team, ohne die User-Zeile zu löschen.
+                            </span>
                           </button>
                         </div>
-                        <button
-                          type="button"
-                          aria-label={`Spieler entfernen ${user.username}`}
-                          disabled={pendingAction !== null}
-                          onClick={() => handleRemovePlayer(user.userId, user.username)}
-                          className="mt-2 rounded-lg border border-rose-200/25 bg-rose-300/10 px-3 py-2 text-xs font-semibold text-rose-50 transition hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-                        >
-                          Legacy entfernen
-                        </button>
-                      </>
+                      </div>
                     ) : (
                       <span className="text-xs font-semibold text-slate-400">
                         Admin-Eingriffe im Firebase-MVP ausgeblendet.
@@ -1604,7 +1626,7 @@ export function AdminLeagueDetail({ leagueId }: { leagueId: string }) {
             ) : (
               <tr>
                 <td className="px-4 py-6 text-center font-semibold text-slate-300" colSpan={7}>
-                  Keine GMs für diesen Filter.
+                  Keine Manager für diesen Filter.
                 </td>
               </tr>
             )}

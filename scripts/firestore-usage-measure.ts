@@ -16,14 +16,18 @@ import { getPlayerDetailForUser } from "../src/modules/players/application/playe
 import { getTeamDetailForUser } from "../src/modules/teams/application/team-query.service";
 import {
   type FirestoreUsageSummary,
+  recordFirestoreUsage,
   withFirestoreUsageFlow,
 } from "../src/server/repositories/firestoreUsageLogger";
+import { getFirebaseAdminFirestore } from "../src/lib/firebase/admin";
 import { readModelRepositoryFirestore } from "../src/server/repositories/readModelRepository.firestore";
 import { gameOutputRepositoryFirestore } from "../src/server/repositories/gameOutputRepository.firestore";
 import { statsRepositoryFirestore } from "../src/server/repositories/statsRepository.firestore";
 import { resetFirestoreEmulator } from "./seeds/firestore-reset";
 import { seedFirestoreEmulator } from "./seeds/firestore-seed";
 import { prepareFirestoreBrowserE2eFixture } from "./seeds/firestore-browser-e2e-fixture";
+import { resetAndSeedMultiplayerTestLeague } from "./seeds/multiplayer-test-league-reset-and-seed";
+import { MULTIPLAYER_TEST_LEAGUE_ID } from "./seeds/multiplayer-test-league-firestore-seed";
 import {
   FIRESTORE_PARITY_IDS,
   makeFirestoreMatchId,
@@ -35,6 +39,7 @@ process.env.DATA_BACKEND = "firestore";
 process.env.FIREBASE_PROJECT_ID ??= "demo-afbm";
 process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ??= "demo-afbm";
 process.env.FIRESTORE_EMULATOR_HOST ??= "127.0.0.1:8080";
+process.env.USE_FIRESTORE_EMULATOR ??= "true";
 
 const ownerId = FIRESTORE_PARITY_IDS.ownerId;
 const leagueId = FIRESTORE_PARITY_IDS.leagueId;
@@ -42,6 +47,9 @@ const seasonId = FIRESTORE_PARITY_IDS.seasonId;
 const teamId = "team-demo-arrows";
 const playerId = "team-demo-arrows-qb";
 const matchId = FIRESTORE_PARITY_IDS.firstMatchId;
+const onlineLeagueId = MULTIPLAYER_TEST_LEAGUE_ID;
+const onlineUserId = "firestore-usage-online-gm";
+const onlineDraftInitialPlayerLimit = 120;
 
 type MeasuredFlow = FirestoreUsageSummary & {
   notes?: string;
@@ -55,11 +63,56 @@ async function measure(flow: string, callback: () => Promise<unknown>, notes?: s
   } satisfies MeasuredFlow;
 }
 
+type FirestoreReadableQuery = {
+  get(): Promise<{
+    docs?: unknown[];
+    empty?: boolean;
+    exists?: boolean;
+    size?: number;
+  }>;
+};
+
+async function measuredGetDoc(
+  query: FirestoreReadableQuery,
+  collection: string,
+  queryLabel = "doc",
+) {
+  const snapshot = await query.get();
+  const exists = snapshot.exists === true || (snapshot.exists === undefined && !snapshot.empty);
+
+  recordFirestoreUsage({
+    collection,
+    count: exists ? 1 : 0,
+    operation: "read",
+    query: queryLabel,
+  });
+
+  return snapshot;
+}
+
+async function measuredGetCollection(
+  query: FirestoreReadableQuery,
+  collection: string,
+  queryLabel = "collection",
+) {
+  const snapshot = await query.get();
+
+  recordFirestoreUsage({
+    collection,
+    count: snapshot.size ?? snapshot.docs?.length ?? 0,
+    operation: "read",
+    query: queryLabel,
+  });
+
+  return snapshot;
+}
+
 async function runMeasurements() {
   console.log("Preparing Firestore emulator seed for usage measurement...");
   await resetFirestoreEmulator();
   await seedFirestoreEmulator();
   await prepareFirestoreBrowserE2eFixture();
+  await resetAndSeedMultiplayerTestLeague();
 
   process.env.FIRESTORE_USAGE_LOGGING = "true";
 
@@ -130,7 +183,123 @@ async function runMeasurements() {
     await getMatchDetailForUser(ownerId, leagueId, makeFirestoreMatchId(2, 1));
   }));
 
+  flows.push(await measure("Online Dashboard", async () => {
+    const firestore = getFirebaseAdminFirestore();
+    const lobbySnapshot = await measuredGetCollection(
+      firestore
+        .collection("leagues")
+        .where("status", "==", "lobby")
+        .where("settings.onlineBackbone", "==", true),
+      "leagues",
+      "online-dashboard-lobbies",
+    );
+    const mirrorSnapshot = await measuredGetCollection(
+      firestore
+        .collection("leagueMembers")
+        .where("userId", "==", onlineUserId)
+        .where("status", "==", "ACTIVE"),
+      "leagueMembers",
+      "online-dashboard-user-mirror-index",
+    );
+
+    await Promise.all(
+      (mirrorSnapshot.docs ?? []).map(async (document) => {
+        const leagueIdFromMirror = (document as { data(): { leagueId?: unknown } }).data().leagueId;
+
+        if (typeof leagueIdFromMirror !== "string") {
+          return;
+        }
+
+        await measuredGetDoc(
+          firestore
+            .collection("leagues")
+            .doc(leagueIdFromMirror)
+            .collection("memberships")
+            .doc(onlineUserId),
+          "leagues/{leagueId}/memberships",
+          "online-dashboard-membership-canonical-check",
+        );
+      }),
+    );
+
+    await Promise.all(
+      (lobbySnapshot.docs ?? []).map(async (document) => {
+        await measuredGetCollection(
+          firestore.collection("leagues").doc((document as { id: string }).id).collection("teams"),
+          "leagues/{leagueId}/teams",
+          "online-dashboard-public-lobby-teams",
+        );
+      }),
+    );
+  }, "Represents online landing/dashboard discovery: lobby query, user mirror index, canonical membership validation, public team summaries."));
+
+  flows.push(await measure("Online League Load", async () => {
+    await measureOnlineLeagueSnapshot(onlineLeagueId, "online-league-load", {
+      includeDraftPlayerPool: false,
+    });
+  }, "Represents FirebaseOnlineLeagueRepository league-core snapshot for /online/league/[leagueId]; Draft available players are intentionally not loaded outside the Draft route."));
+
+  flows.push(await measure("Online Draft", async () => {
+    const firestore = getFirebaseAdminFirestore();
+    const leagueRef = firestore.collection("leagues").doc(onlineLeagueId);
+    const draftRef = leagueRef.collection("draft").doc("main");
+
+    await measuredGetDoc(draftRef, "leagues/{leagueId}/draft", "online-draft-main-doc");
+    await measuredGetCollection(
+      draftRef.collection("picks"),
+      "leagues/{leagueId}/draft/main/picks",
+      "online-draft-picks",
+    );
+    await measuredGetCollection(
+      draftRef.collection("availablePlayers").limit(onlineDraftInitialPlayerLimit),
+      "leagues/{leagueId}/draft/main/availablePlayers",
+      "online-draft-available-players",
+    );
+  }, `Draft route initial load: Draft Doc, Pick Docs, and first ${onlineDraftInitialPlayerLimit} Available-Player Docs.`));
+
   return flows;
+}
+
+async function measureOnlineLeagueSnapshot(
+  leagueIdForMeasurement: string,
+  queryPrefix: string,
+  options: { includeDraftPlayerPool?: boolean } = {},
+) {
+  const firestore = getFirebaseAdminFirestore();
+  const leagueRef = firestore.collection("leagues").doc(leagueIdForMeasurement);
+  const draftRef = leagueRef.collection("draft").doc("main");
+
+  await Promise.all([
+    measuredGetDoc(leagueRef, "leagues", `${queryPrefix}-league-doc`),
+    measuredGetCollection(
+      leagueRef.collection("memberships"),
+      "leagues/{leagueId}/memberships",
+      `${queryPrefix}-memberships`,
+    ),
+    measuredGetCollection(
+      leagueRef.collection("teams"),
+      "leagues/{leagueId}/teams",
+      `${queryPrefix}-teams`,
+    ),
+    measuredGetCollection(
+      leagueRef.collection("events").orderBy("createdAt", "desc").limit(20),
+      "leagues/{leagueId}/events",
+      `${queryPrefix}-events-limit-20`,
+    ),
+    measuredGetDoc(draftRef, "leagues/{leagueId}/draft", `${queryPrefix}-draft-doc`),
+    measuredGetCollection(
+      draftRef.collection("picks"),
+      "leagues/{leagueId}/draft/main/picks",
+      `${queryPrefix}-draft-picks`,
+    ),
+    options.includeDraftPlayerPool === false
+      ? Promise.resolve()
+      : measuredGetCollection(
+          draftRef.collection("availablePlayers"),
+          "leagues/{leagueId}/draft/main/availablePlayers",
+          `${queryPrefix}-draft-available-players`,
+        ),
+  ]);
 }
 
 function buildSyntheticSimulationContext(matchIdForContext: string) {

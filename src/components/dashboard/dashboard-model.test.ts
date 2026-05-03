@@ -257,7 +257,7 @@ describe("dashboard model", () => {
     expect(action.title).toBe("Woche vorbereiten");
     expect(action.href).toBeNull();
     expect(action.label).toBe("Woche vorbereiten");
-    expect(action.message).toContain("Du bist GM");
+    expect(action.message).toContain("Du bist Manager");
     expect(action.tone).toBe("positive");
   });
 
@@ -349,7 +349,7 @@ describe("dashboard model", () => {
       weekState: "PRE_WEEK",
     });
 
-    expect(actions.find((action) => action.title === "Week Flow")?.href).toBe("#week-loop");
+    expect(actions.find((action) => action.title === "Wochenablauf")?.href).toBe("#week-loop");
     expect(actions.find((action) => action.title === "Game Preview")?.href).toBeNull();
     expect(actions.find((action) => action.title === "Game Preview")?.disabledReason).toContain(
       "Zuerst",

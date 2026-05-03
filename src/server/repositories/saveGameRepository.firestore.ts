@@ -51,6 +51,11 @@ type FirestoreLeagueMemberDoc = {
   userId?: string;
 };
 
+type FirestoreOnlineMembershipDoc = {
+  status?: string;
+  userId?: string;
+};
+
 type FirestoreTeamStatDoc = {
   losses?: number;
   teamId?: string;
@@ -62,24 +67,50 @@ export const saveGameRepositoryFirestore = {
   async listByUser(userId: string) {
     assertFirestoreEmulatorOnly();
     const firestore = getFirebaseAdminFirestore();
-    const membershipSnapshot = await firestore
+    const legacyMirrorSnapshot = await firestore
       .collection("leagueMembers")
       .where("userId", "==", userId)
       .where("status", "==", "ACTIVE")
       .get();
     recordFirestoreUsage({
       collection: "leagueMembers",
-      count: membershipSnapshot.size,
+      count: legacyMirrorSnapshot.size,
       operation: "read",
       query: "userId+status",
     });
+    const onlineMembershipSnapshot = await firestore
+      .collectionGroup("memberships")
+      .where("userId", "==", userId)
+      .where("status", "==", "active")
+      .get();
+    recordFirestoreUsage({
+      collection: "leagues/{leagueId}/memberships",
+      count: onlineMembershipSnapshot.size,
+      operation: "read",
+      query: "collectionGroup userId+status",
+    });
+
+    const candidateLeagueIds = new Set<string>();
+
+    legacyMirrorSnapshot.docs.forEach((document) => {
+      const membership = document.data() as FirestoreLeagueMemberDoc;
+
+      if (membership.leagueId) {
+        candidateLeagueIds.add(membership.leagueId);
+      }
+    });
+    onlineMembershipSnapshot.docs.forEach((document) => {
+      const membership = document.data() as FirestoreOnlineMembershipDoc;
+      const leagueId = document.ref.parent.parent?.id;
+
+      if (membership.userId === userId && leagueId) {
+        candidateLeagueIds.add(leagueId);
+      }
+    });
 
     const saveGames = await Promise.all(
-      membershipSnapshot.docs.map(async (document) => {
-        const membership = document.data() as FirestoreLeagueMemberDoc;
-        const leagueId = membership.leagueId;
-
-        if (!leagueId) {
+      Array.from(candidateLeagueIds).map(async (leagueId) => {
+        if (!(await canReadFirestoreLeague(userId, leagueId))) {
           return null;
         }
 

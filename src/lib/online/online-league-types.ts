@@ -550,6 +550,7 @@ export type OnlineFantasyDraftPickResult =
       status:
         | "missing-league"
         | "missing-user"
+        | "draft-inconsistent"
         | "draft-not-active"
         | "wrong-team"
         | "player-unavailable"

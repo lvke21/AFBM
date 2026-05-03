@@ -51,6 +51,9 @@ export function OnlineLeagueHeader({
             {detailState.currentWeekLabel}
           </span>
           <span className="rounded-full border border-white/10 px-3 py-1">
+            {detailState.draftStatusLabel}
+          </span>
+          <span className="rounded-full border border-white/10 px-3 py-1">
             {detailState.playerCountLabel} Spieler
           </span>
         </div>
@@ -62,7 +65,7 @@ export function OnlineLeagueHeader({
           href="/online"
           className="w-fit rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/8"
         >
-          Zurück zum Online Hub
+          Zurück zum Onlinebereich
         </Link>
         <span className="w-fit rounded-lg border border-emerald-300/25 bg-emerald-300/10 px-4 py-3 text-sm font-semibold text-emerald-50">
           {detailState.currentUserReady
@@ -186,13 +189,13 @@ export function OnlineLeagueFirstSteps({
         <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
-              <GlossaryTerm term="readyState">Ready-State</GlossaryTerm>
+              <GlossaryTerm term="readyState">Bereit-Status</GlossaryTerm>
             </p>
             <h3 className="mt-2 text-xl font-semibold text-white">
               Bereit heißt: Deine Woche ist freigegeben
             </h3>
             <p className="mt-3 text-sm leading-6 text-emerald-50/85">
-              Wenn du bereit bist, wartest du auf die anderen <GlossaryTerm term="gm">GMs</GlossaryTerm> oder den Admin.
+              Wenn du bereit bist, wartest du auf die anderen <GlossaryTerm term="manager">Manager</GlossaryTerm> oder den Admin.
               Du kannst auch später noch Änderungen machen, solange die Woche nicht simuliert wurde.
             </p>
             <div className="mt-4 grid gap-2 sm:grid-cols-3">
@@ -225,7 +228,8 @@ export function OnlineLeagueFirstSteps({
               type="button"
               disabled={
                 !detailState.ownTeamName ||
-                pendingAction !== null
+                pendingAction !== null ||
+                Boolean(detailState.readyActionDisabledReason)
               }
               onClick={() => onReadyForWeek(!detailState.currentUserReady)}
               aria-busy={pendingAction === "ready"}
@@ -238,11 +242,11 @@ export function OnlineLeagueFirstSteps({
               {pendingAction === "ready"
                 ? "Speichert..."
                 : detailState.currentUserReady
-                  ? "Ready zurücknehmen"
+                  ? "Bereit zurücknehmen"
                   : `Bereit für ${detailState.currentWeekLabel}`}
             </button>
             <p className="text-sm font-semibold text-emerald-50/80">
-              {detailState.nextActionLabel}
+              {detailState.readyActionDisabledReason ?? detailState.nextActionLabel}
             </p>
           </div>
         </div>
@@ -266,7 +270,7 @@ export function OnlineLeagueRulesSection({
             Liga-Regeln
           </p>
           <h2 className="mt-2 text-xl font-semibold text-white">
-            Admin, Ready-State und Inaktivität
+            Admin, Bereit-Status und Inaktivität
           </h2>
           <p className="mt-2 text-sm leading-6 text-amber-50/85">
             {expertMode
@@ -319,7 +323,7 @@ export function OnlineLeagueWeekFlowSection({
         <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[520px]">
           <div className="rounded-lg border border-white/10 bg-white/5 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              Dein Ready-State
+              Dein Bereit-Status
             </p>
             <p className="mt-2 text-sm font-semibold text-white">
               {detailState.weekFlow.playerReadyStatusLabel}
@@ -327,7 +331,7 @@ export function OnlineLeagueWeekFlowSection({
           </div>
           <div className="rounded-lg border border-white/10 bg-white/5 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              <GlossaryTerm term="weekSimulation">Wochen-Simulation</GlossaryTerm>
+              <GlossaryTerm term="weekSimulation">Simulation</GlossaryTerm>
             </p>
             <p className="mt-2 text-sm font-semibold text-white">
               {detailState.weekFlow.simulationStatusLabel}
@@ -394,15 +398,11 @@ export function OnlineLeagueWeekFlowSection({
       ) : null}
 
       {detailState.weekFlow.showStartWeekButton ? (
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button
-            type="button"
-            disabled
-            className="w-fit rounded-lg border border-sky-200/25 bg-sky-300/10 px-4 py-3 text-sm font-semibold text-sky-50 disabled:cursor-not-allowed disabled:opacity-70"
-          >
+        <div className="mt-5 rounded-lg border border-sky-200/25 bg-sky-300/10 px-4 py-3">
+          <p className="text-sm font-semibold text-sky-50">
             {detailState.weekFlow.startWeekButtonLabel}
-          </button>
-          <p className="text-sm font-semibold text-slate-300">
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-300">
             {detailState.weekFlow.startWeekHint}
           </p>
         </div>

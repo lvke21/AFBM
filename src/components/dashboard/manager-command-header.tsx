@@ -44,7 +44,7 @@ export function ManagerCommandHeader({
       <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
         <div className="max-w-4xl">
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge label="GM Buero" tone="active" />
+            <StatusBadge label="Managerbüro" tone="active" />
             <StatusBadge label={weekStateLabel(weekState)} tone={weekTone} />
           </div>
           <h1

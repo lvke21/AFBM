@@ -57,7 +57,7 @@ export function OnlineAuthGate({ children }: { children: React.ReactNode }) {
   if (state === "loading") {
     return (
       <div className="w-full rounded-lg border border-white/10 bg-white/5 p-5 text-sm font-semibold text-slate-200">
-        Firebase Login wird geprüft...
+        Login wird geprüft...
       </div>
     );
   }

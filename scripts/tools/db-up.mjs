@@ -5,9 +5,11 @@ import { spawnSync } from "node:child_process";
 const POSTGRES_PORT = process.env.POSTGRES_PORT ?? "5432";
 const POSTGRES_DB = process.env.POSTGRES_DB ?? "afbm_manager";
 const POSTGRES_USER = process.env.POSTGRES_USER ?? "postgres";
+const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD ?? "postgres";
 const DATA_DIR = resolve(process.cwd(), ".local", "postgres16-data");
 const LOG_FILE = resolve(process.cwd(), ".local", "postgres16.log");
 const HOMEBREW_POSTGRES_PREFIX = "/opt/homebrew/opt/postgresql@16";
+const POSTGRES_READY_TIMEOUT_MS = Number(process.env.POSTGRES_READY_TIMEOUT_MS ?? 30_000);
 
 function run(command, args, options = {}) {
   return spawnSync(command, args, {
@@ -33,9 +35,66 @@ function fail(message, result) {
   process.exit(1);
 }
 
+function waitForPostgresReady() {
+  const deadline = Date.now() + POSTGRES_READY_TIMEOUT_MS;
+  const env = {
+    ...process.env,
+    PGPASSWORD: POSTGRES_PASSWORD,
+  };
+
+  while (Date.now() < deadline) {
+    const result = run(
+      "docker",
+      [
+        "compose",
+        "exec",
+        "-T",
+        "postgres",
+        "pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "5432",
+        "-U",
+        POSTGRES_USER,
+        "-d",
+        POSTGRES_DB,
+      ],
+      { env },
+    );
+
+    if (result.status === 0) {
+      return true;
+    }
+
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500);
+  }
+
+  return false;
+}
+
 function dockerComposeUp() {
   const result = run("docker", ["compose", "up", "-d", "postgres"], { stdio: "inherit" });
-  process.exit(result.status ?? 1);
+
+  if (result.status !== 0) {
+    return false;
+  }
+
+  if (!waitForPostgresReady()) {
+    fail(
+      [
+        `Docker PostgreSQL wurde gestartet, wurde aber nicht innerhalb von ${POSTGRES_READY_TIMEOUT_MS}ms bereit.`,
+        "Pruefe den Container mit:",
+        "  docker compose ps",
+        "  docker compose logs postgres",
+      ].join("\n"),
+    );
+  }
+
+  console.log(
+    `[db:up] OK - Docker PostgreSQL laeuft auf 127.0.0.1:${POSTGRES_PORT}, Datenbank "${POSTGRES_DB}" ist bereit.`,
+  );
+  process.exit(0);
 }
 
 function ensureHomebrewPostgresAvailable() {
@@ -103,8 +162,8 @@ function ensureDatabase() {
   }
 }
 
-if (commandExists("docker")) {
-  dockerComposeUp();
+if (commandExists("docker") && dockerComposeUp()) {
+  process.exit(0);
 }
 
 ensureHomebrewPostgresAvailable();

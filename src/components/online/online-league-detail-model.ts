@@ -7,10 +7,20 @@ import {
   getFanMoodTier,
   getTeamChemistryTier,
 } from "@/lib/online/online-league-metrics";
-import { getOnlineLeagueWeekReadyState } from "@/lib/online/online-league-week-service";
+import {
+  buildOnlineLeagueTeamRecords,
+  sortOnlineLeagueTeamRecords,
+  type OnlineLeagueWeekProgressState,
+} from "@/lib/online/online-league-week-simulation";
+import {
+  normalizeOnlineCoreLifecycle,
+  type OnlineCoreLifecyclePhase,
+} from "@/lib/online/online-league-lifecycle";
 import type {
   CoachRole,
   OnlineLeague,
+  OnlineLeagueScheduleMatch,
+  OnlineLeagueStandingRecord,
 } from "@/lib/online/online-league-types";
 import type { OnlineUser } from "@/lib/online/online-user-service";
 
@@ -253,6 +263,8 @@ export type OnlineLeagueFirstStepsState = {
 };
 
 export type OnlineLeagueStandingItem = {
+  gamesPlayedLabel?: string;
+  pointsLabel?: string;
   teamName: string;
   recordLabel: string;
 };
@@ -268,6 +280,7 @@ export type OnlineLeagueDetailState =
       name: string;
       statusLabel: string;
       currentWeekLabel: string;
+      draftStatusLabel: string;
       playerCountLabel: string;
       readyProgressLabel: string;
       allPlayersReady: boolean;
@@ -282,6 +295,9 @@ export type OnlineLeagueDetailState =
       jobSecurityExplanation: string;
       inactivityWarningLabel: string | null;
       currentUserReady: boolean;
+      lifecyclePhase: OnlineCoreLifecyclePhase;
+      lifecycleReasons: string[];
+      readyActionDisabledReason: string | null;
       nextMatchLabel: string;
       waitingLabel: string;
       weekFlow: OnlineLeagueWeekFlowState;
@@ -305,69 +321,155 @@ export type OnlineLeagueDetailState =
       message: string;
     };
 
-function getStatusLabel(status: OnlineLeague["status"]) {
-  return status === "waiting" ? "Wartet auf Spieler" : "Saison läuft";
-}
-
 function getWeekFlowStatusLabel(allPlayersReady: boolean) {
-  return allPlayersReady ? "Alle Spieler bereit" : "Wartet auf Ready-States";
+  return allPlayersReady ? "Alle aktiven Manager bereit" : "Wartet auf Bereitmeldungen";
 }
 
-function getWeekFlowPhaseLabel(league: OnlineLeague, allPlayersReady: boolean) {
-  if (league.weekStatus === "simulating") {
-    return "Simulation läuft";
+function getDraftStatusLabel(draftStatus: ReturnType<typeof normalizeOnlineCoreLifecycle>["draftStatus"]) {
+  switch (draftStatus) {
+    case "active":
+      return "Draft läuft";
+    case "completed":
+      return "Draft abgeschlossen";
+    case "not_started":
+      return "Draft vorbereitet";
+    case "missing":
+      return "Draft nicht eingerichtet";
   }
-
-  if (league.weekStatus === "completed" || league.weekStatus === "post_game") {
-    return "Woche abgeschlossen";
-  }
-
-  if (league.completedWeeks?.[0]?.nextWeek === league.currentWeek) {
-    return allPlayersReady ? "Nächste Woche simulierbar" : "Nächste Woche offen";
-  }
-
-  return allPlayersReady ? "Simulation möglich" : "Woche offen";
 }
 
-function getWeekFlowSimulationStatusLabel(league: OnlineLeague, allPlayersReady: boolean) {
-  if (league.weekStatus === "simulating") {
-    return "Die Woche wird gerade simuliert. Bitte warte auf den Abschluss.";
+function getWeekFlowPhaseLabel(phase: OnlineCoreLifecyclePhase) {
+  switch (phase) {
+    case "blockedConflict":
+      return "Statuskonflikt blockiert";
+    case "draftActive":
+      return "Draft läuft";
+    case "draftPending":
+      return "Draft vorbereitet";
+    case "joining":
+      return "Liga-Beitritt offen";
+    case "noLeague":
+      return "Keine Liga geladen";
+    case "noTeam":
+      return "Kein Team verbunden";
+    case "readyComplete":
+      return "Simulation möglich";
+    case "readyOpen":
+      return "Woche offen";
+    case "resultsAvailable":
+      return "Ergebnisse verfügbar";
+    case "rosterInvalid":
+      return "Kader nicht simulationsfähig";
+    case "simulating":
+      return "Simulation läuft";
+    case "waitingForOthers":
+      return "Warte auf andere Manager";
+    case "weekCompleted":
+      return "Woche abgeschlossen";
   }
-
-  if (league.completedWeeks?.[0]?.nextWeek === league.currentWeek) {
-    return "Die letzte Woche ist abgeschlossen. Die neue Woche wartet auf Ready-States.";
-  }
-
-  return allPlayersReady
-    ? "Alle aktiven Teams sind ready. Der Admin kann simulieren."
-    : "Simulation bleibt gesperrt, bis alle aktiven Teams ready sind.";
 }
 
-function getWeekFlowNextMatchLabel(league: OnlineLeague) {
-  const currentWeekMatch = league.schedule?.find(
-    (match) => match.week === league.currentWeek,
+function getWeekFlowSimulationStatusLabel(
+  phase: OnlineCoreLifecyclePhase,
+  reasons: string[],
+) {
+  switch (phase) {
+    case "blockedConflict":
+      return reasons[0] ?? "Der Lifecycle-State ist widersprüchlich und blockiert den Flow.";
+    case "noTeam":
+      return "Verbinde zuerst ein Team mit deinem Managerprofil.";
+    case "rosterInvalid":
+      return reasons[0] ?? "Dein Team ist noch nicht simulationsfähig.";
+    case "simulating":
+      return "Die Woche wird gerade simuliert. Bitte warte auf den Abschluss.";
+    case "resultsAvailable":
+      return "Die letzte Woche ist abgeschlossen. Ergebnisse und Tabelle können neu geladen werden.";
+    case "weekCompleted":
+      return "Die Woche ist abgeschlossen. Ergebnisdetails werden geladen.";
+    case "readyComplete":
+      return "Alle aktiven Teams sind bereit. Der Admin kann simulieren.";
+    case "waitingForOthers":
+      return "Du bist bereit. Es fehlen noch andere aktive Manager.";
+    case "draftActive":
+      return "Der Draft läuft noch. Ready und Simulation bleiben gesperrt.";
+    case "draftPending":
+      return "Der Draft ist noch nicht abgeschlossen.";
+    case "joining":
+      return "Tritt der Liga bei und verbinde ein Team.";
+    case "noLeague":
+      return "Lade eine Online-Liga, um den Wochenfluss zu sehen.";
+    case "readyOpen":
+      return "Simulation bleibt gesperrt, bis alle aktiven Teams bereit sind.";
+  }
+}
+
+type ScheduleMatchWithTeamIds = OnlineLeagueScheduleMatch & {
+  awayTeamId?: string;
+  homeTeamId?: string;
+};
+
+function getCurrentWeekMatchForUser(
+  league: OnlineLeague,
+  currentLeagueUser: OnlineLeague["users"][number] | undefined,
+  currentWeek: number,
+) {
+  const currentWeekMatches = (league.schedule ?? []).filter(
+    (match) => match.week === currentWeek,
+  ) as ScheduleMatchWithTeamIds[];
+
+  if (currentLeagueUser) {
+    const displayName = getTeamDisplayName(currentLeagueUser);
+    const ownMatch = currentWeekMatches.find(
+      (match) =>
+        match.homeTeamId === currentLeagueUser.teamId ||
+        match.awayTeamId === currentLeagueUser.teamId ||
+        match.homeTeamName === displayName ||
+        match.awayTeamName === displayName ||
+        match.homeTeamName === currentLeagueUser.teamName ||
+        match.awayTeamName === currentLeagueUser.teamName,
+    );
+
+    if (ownMatch) {
+      return ownMatch;
+    }
+  }
+
+  return currentWeekMatches[0];
+}
+
+function getNextMatchLabel(
+  league: OnlineLeague,
+  currentLeagueUser: OnlineLeague["users"][number] | undefined,
+  currentWeek: number,
+) {
+  const hasCurrentWeekMatches = (league.schedule ?? []).some(
+    (match) => match.week === currentWeek,
   );
+  const currentWeekMatch = getCurrentWeekMatchForUser(league, currentLeagueUser, currentWeek);
 
   if (!currentWeekMatch) {
-    return "Spielplan wird im nächsten Schritt erstellt";
+    return currentLeagueUser && hasCurrentWeekMatches
+      ? `Kein Spiel für dein Team in Woche ${currentWeek} gefunden`
+      : "Spielplan wird im nächsten Schritt erstellt";
   }
 
   return `${currentWeekMatch.homeTeamName} vs. ${currentWeekMatch.awayTeamName}`;
 }
 
-function getLastCompletedWeekLabel(league: OnlineLeague) {
-  const completedWeek = league.completedWeeks?.[0];
-
+function getLastCompletedWeekLabel(weekProgress: OnlineLeagueWeekProgressState) {
+  const completedWeek = weekProgress.latestCompletedWeek;
   if (!completedWeek) {
     return null;
   }
 
-  return `Zuletzt abgeschlossen: Season ${completedWeek.season}, Week ${completedWeek.week}.`;
+  return `Zuletzt abgeschlossen: Saison ${completedWeek.season}, Woche ${completedWeek.week}.`;
 }
 
-function getCompletedResultsLabel(league: OnlineLeague) {
-  const completedWeek = league.completedWeeks?.[0];
-
+function getCompletedResultsLabel(
+  league: OnlineLeague,
+  weekProgress: OnlineLeagueWeekProgressState,
+) {
+  const completedWeek = weekProgress.latestCompletedWeek;
   if (!completedWeek) {
     return null;
   }
@@ -385,7 +487,7 @@ function getTeamDisplayName(user: OnlineLeague["users"][number]) {
 
 function getJobSecurityLabel(user: OnlineLeague["users"][number] | undefined) {
   if (!user) {
-    return "Noch keine GM-Rolle in dieser Liga";
+    return "Noch keine Manager-Rolle in dieser Liga";
   }
 
   return `${user.jobSecurity?.score ?? 72}/100 · ${user.jobSecurity?.status ?? "stable"}`;
@@ -404,7 +506,7 @@ function getOwnerExpectationLabel(user: OnlineLeague["users"][number] | undefine
           ? "Playoffs"
           : "Championship";
 
-    return `GM-Ziel: ${goalLabel}`;
+    return `Manager-Ziel: ${goalLabel}`;
   }
 
   const ownershipProfile = user.ownershipProfile;
@@ -448,7 +550,7 @@ function getJobSecurityExplanation(user: OnlineLeague["users"][number] | undefin
   const lastHistoryEntry = user.jobSecurity?.gmPerformanceHistory.at(-1);
 
   if (user.activity?.inactiveStatus && user.activity.inactiveStatus !== "active") {
-    return "Inaktivitätswarnung: Week Action fehlt";
+    return "Inaktivitätswarnung: Wochenaktion fehlt";
   }
 
   if (lastHistoryEntry?.expectationResult === "failed") {
@@ -841,7 +943,7 @@ function getTrainingState(
           ? "Dein Strength Staff kann Belastung gut abfedern."
           : "Coaches setzen den Plan solide um, aber Ratings begrenzen den Effekt.",
     lastOutcomeLabel: lastOutcome
-      ? `Week ${lastOutcome.week} · Execution ${lastOutcome.coachExecutionRating}/100`
+      ? `Woche ${lastOutcome.week} · Ausführung ${lastOutcome.coachExecutionRating}/100`
       : "Noch keine Trainingsauswertung. Sie entsteht nach der Wochen-Simulation.",
     lastDevelopmentLabel: lastOutcome
       ? `${lastOutcome.developmentDeltaSummary}`
@@ -1130,6 +1232,11 @@ function getRosterState(
     return null;
   }
 
+  const activePlayers = user.contractRoster.filter((player) => player.status === "active");
+  if (activePlayers.length === 0) {
+    return null;
+  }
+
   const playersById = new Map(user.contractRoster.map((player) => [player.playerId, player]));
   const depthChart = user.depthChart ?? [];
   const starterPlayers = depthChart
@@ -1140,7 +1247,7 @@ function getRosterState(
     Math.max(1, starterPlayers.length);
 
   return {
-    totalPlayersLabel: `${user.contractRoster.filter((player) => player.status === "active").length} aktive Spieler`,
+    totalPlayersLabel: `${activePlayers.length} aktive Spieler`,
     starterAverageLabel: `${Math.round(starterAverage)}/100 Starter-Schnitt`,
     depthChart: depthChart.slice(0, 8).map((entry) => {
       const starter = playersById.get(entry.starterPlayerId);
@@ -1157,58 +1264,69 @@ function getRosterState(
   };
 }
 
+function getTeamNameById(league: OnlineLeague, teamId: string) {
+  const leagueUser = league.users.find((user) => user.teamId === teamId);
+
+  if (leagueUser) {
+    return getTeamDisplayName(leagueUser);
+  }
+
+  return league.teams.find((team) => team.id === teamId)?.name ?? teamId;
+}
+
+function toStandingItem(
+  league: OnlineLeague,
+  record: OnlineLeagueStandingRecord,
+): OnlineLeagueStandingItem {
+  return {
+    gamesPlayedLabel: `${record.gamesPlayed} Spiele`,
+    pointsLabel: `${record.pointsFor}:${record.pointsAgainst} · ${record.pointDifferential >= 0 ? "+" : ""}${record.pointDifferential}`,
+    teamName: getTeamNameById(league, record.teamId),
+    recordLabel:
+      record.ties > 0
+        ? `${record.wins}-${record.losses}-${record.ties}`
+        : `${record.wins}-${record.losses}`,
+  };
+}
+
 function getStandings(league: OnlineLeague): OnlineLeagueStandingItem[] {
-  const records = new Map<string, { teamName: string; wins: number; losses: number }>();
+  if ((league.standings ?? []).length > 0) {
+    return sortOnlineLeagueTeamRecords(league.standings ?? []).map((record) =>
+      toStandingItem(league, record),
+    );
+  }
 
-  league.users.forEach((user) => {
-    records.set(user.teamId, {
-      teamName: getTeamDisplayName(user),
-      wins: 0,
-      losses: 0,
-    });
-  });
-
-  (league.matchResults ?? []).forEach((result) => {
-    const home = records.get(result.homeTeamId);
-    const away = records.get(result.awayTeamId);
-    const homeWon = result.homeScore > result.awayScore;
-
-    if (home) {
-      records.set(result.homeTeamId, {
-        ...home,
-        wins: home.wins + (homeWon ? 1 : 0),
-        losses: home.losses + (homeWon ? 0 : 1),
-      });
-    }
-
-    if (away) {
-      records.set(result.awayTeamId, {
-        ...away,
-        wins: away.wins + (homeWon ? 0 : 1),
-        losses: away.losses + (homeWon ? 1 : 0),
-      });
-    }
-  });
-
-  return Array.from(records.values())
-    .sort((left, right) => right.wins - left.wins || left.losses - right.losses)
-    .map((record) => ({
-      teamName: record.teamName,
-      recordLabel: `${record.wins}-${record.losses}`,
-    }));
+  return buildOnlineLeagueTeamRecords(league).map((record) => toStandingItem(league, record));
 }
 
 function getRecentResults(league: OnlineLeague): OnlineLeagueResultItem[] {
-  return (league.matchResults ?? []).slice(0, 5).map((result) => ({
-    matchId: result.matchId,
-    label: `${result.homeTeamName} ${result.homeScore} - ${result.awayScore} ${result.awayTeamName}`,
-  }));
+  return [...(league.matchResults ?? [])]
+    .sort((left, right) => {
+      const seasonDelta = (right.season ?? 1) - (left.season ?? 1);
+      const weekDelta = (right.week ?? 1) - (left.week ?? 1);
+
+      if (seasonDelta !== 0) {
+        return seasonDelta;
+      }
+
+      if (weekDelta !== 0) {
+        return weekDelta;
+      }
+
+      return (right.simulatedAt ?? "").localeCompare(left.simulatedAt ?? "");
+    })
+    .slice(0, 5)
+    .map((result) => ({
+      matchId: result.matchId,
+      label: `${result.homeTeamName} ${result.homeScore} - ${result.awayScore} ${result.awayTeamName}`,
+    }));
 }
 
 function getNextActionLabel(
   league: OnlineLeague,
   currentLeagueUser: OnlineLeague["users"][number] | undefined,
   allPlayersReady: boolean,
+  currentUserReady: boolean,
 ) {
   if (!currentLeagueUser) {
     return "Liga beitreten oder vom Admin ein Team zuweisen lassen.";
@@ -1218,12 +1336,12 @@ function getNextActionLabel(
     return "Depth Chart prüfen, bevor du die Woche freigibst.";
   }
 
-  if (!currentLeagueUser.readyForWeek) {
+  if (!currentUserReady) {
     return "Bereit für die aktuelle Woche setzen.";
   }
 
   if (allPlayersReady) {
-    return "Alle Spieler sind bereit. Der Liga-Admin kann die Woche simulieren.";
+    return "Alle aktiven Manager sind bereit. Der Liga-Admin kann die Woche simulieren.";
   }
 
   return "Du bist bereit. Warte auf fehlende Spieler oder den Liga-Admin.";
@@ -1231,13 +1349,14 @@ function getNextActionLabel(
 
 function getPlayerReadyStatusLabel(
   currentLeagueUser: OnlineLeague["users"][number] | undefined,
+  currentUserReady: boolean,
   weekLabel: string,
 ) {
   if (!currentLeagueUser) {
     return "Du hast in dieser Liga noch kein Team.";
   }
 
-  return currentLeagueUser.readyForWeek
+  return currentUserReady
     ? `Du bist bereit für ${weekLabel}.`
     : `Du bist noch nicht bereit für ${weekLabel}.`;
 }
@@ -1245,13 +1364,14 @@ function getPlayerReadyStatusLabel(
 function getWaitingStatusLabel(
   currentLeagueUser: OnlineLeague["users"][number] | undefined,
   allPlayersReady: boolean,
+  currentUserReady: boolean,
 ) {
   if (allPlayersReady) {
-    return "Alle Spieler sind bereit. Es wartet nur noch der Liga-Admin.";
+    return "Alle aktiven Manager sind bereit. Es wartet nur noch der Liga-Admin.";
   }
 
-  if (currentLeagueUser?.readyForWeek) {
-    return "Dein Ready-State ist gesetzt. Die Liga wartet noch auf fehlende Spieler oder den Admin.";
+  if (currentLeagueUser && currentUserReady) {
+    return "Dein Bereit-Status ist gesetzt. Die Liga wartet noch auf fehlende Spieler oder den Admin.";
   }
 
   return "Prüfe Team und Training. Setze dich bereit, wenn deine Woche passt.";
@@ -1280,11 +1400,11 @@ function hasCurrentWeekTrainingPlan(
 function getFirstStepsState(
   league: OnlineLeague,
   currentLeagueUser: OnlineLeague["users"][number] | undefined,
+  currentUserReady: boolean,
 ): OnlineLeagueFirstStepsState {
   const teamReviewed =
     Boolean(currentLeagueUser?.teamId) && Boolean(currentLeagueUser?.contractRoster?.length);
   const trainingSet = hasCurrentWeekTrainingPlan(currentLeagueUser, league);
-  const readyForWeek = currentLeagueUser?.readyForWeek ?? false;
 
   const items: OnlineLeagueFirstStepsItem[] = [
     {
@@ -1299,14 +1419,14 @@ function getFirstStepsState(
       label: "Training prüfen oder setzen",
       description: "Speichere einen Plan oder bestätige bewusst den Wochenfokus.",
       completed: trainingSet,
-      statusLabel: trainingSet ? "Plan gespeichert" : "Noch kein GM-Plan",
+      statusLabel: trainingSet ? "Plan gespeichert" : "Noch kein Manager-Plan",
     },
     {
       id: "ready",
       label: "Bereit für die Woche klicken",
-      description: "Erst danach wartet die Liga auf Simulation oder andere GMs.",
-      completed: readyForWeek,
-      statusLabel: readyForWeek ? "Bereit" : "Noch nicht bereit",
+      description: "Erst danach wartet die Liga auf Simulation oder andere Manager.",
+      completed: currentUserReady,
+      statusLabel: currentUserReady ? "Bereit" : "Noch nicht bereit",
     },
   ];
   const completedCount = items.filter((item) => item.completed).length;
@@ -1341,16 +1461,16 @@ function getLeagueRulesState(league: OnlineLeague): OnlineLeagueRulesState {
   const autoVacateLabel =
     activityRules.autoVacateAfterMissedWeeks === false
       ? "Automatisches Vakantsetzen ist nicht aktiv; Admin-Entscheidungen bleiben manuell."
-      : `Automatisches Vakantsetzen ist ab ${activityRules.autoVacateAfterMissedWeeks} verpassten Week Actions konfiguriert.`;
+      : `Automatisches Vakantsetzen ist ab ${activityRules.autoVacateAfterMissedWeeks} verpassten Wochenaktionen konfiguriert.`;
 
   return {
     sourceLabel: "Gespeicherte Ligaregeln",
-    compactSummary: `Warnung ab ${activityRules.warningAfterMissedWeeks}, inaktiv ab ${activityRules.inactiveAfterMissedWeeks}, Admin-Prüfung ab ${activityRules.removalEligibleAfterMissedWeeks} verpassten Week Actions.`,
+    compactSummary: `Warnung ab ${activityRules.warningAfterMissedWeeks}, inaktiv ab ${activityRules.inactiveAfterMissedWeeks}, Admin-Prüfung ab ${activityRules.removalEligibleAfterMissedWeeks} verpassten Wochenaktionen.`,
     items: [
       ...baseItems,
-      `Warnung ab ${activityRules.warningAfterMissedWeeks} verpasster Week Action.`,
-      `Inaktivitätsstatus ab ${activityRules.inactiveAfterMissedWeeks} verpassten Week Actions.`,
-      `Admin-Prüfung für Teamfreigabe ab ${activityRules.removalEligibleAfterMissedWeeks} verpassten Week Actions.`,
+      `Warnung ab ${activityRules.warningAfterMissedWeeks} verpasster Wochenaktion.`,
+      `Inaktivitätsstatus ab ${activityRules.inactiveAfterMissedWeeks} verpassten Wochenaktionen.`,
+      `Admin-Prüfung für Teamfreigabe ab ${activityRules.removalEligibleAfterMissedWeeks} verpassten Wochenaktionen.`,
     ],
     activityRuleLabel: autoVacateLabel,
   };
@@ -1367,23 +1487,34 @@ export function toOnlineLeagueDetailState(
     };
   }
 
-  const readyState = getOnlineLeagueWeekReadyState(league);
+  const lifecycle = normalizeOnlineCoreLifecycle({ currentUser, league, requiresDraft: true });
+  const readyState = lifecycle.readyState;
+  const weekProgress = lifecycle.weekProgress;
+  if (!readyState || !weekProgress) {
+    return {
+      status: "missing",
+      message: "Liga konnte nicht gefunden werden.",
+    };
+  }
   const readyCount = readyState.readyCount;
   const allPlayersReady = readyState.allReady;
-  const currentLeagueUser = league.users.find(
-    (user) => currentUser?.userId === user.userId,
-  );
+  const currentLeagueUser = lifecycle.currentLeagueUser ?? undefined;
+  const currentUserReady = lifecycle.currentUserReady;
+  const readyActionDisabledReason = lifecycle.canSetReady
+    ? null
+    : (lifecycle.reasons[0] ?? null);
 
   return {
     status: "found",
     name: league.name,
-    statusLabel: getStatusLabel(league.status),
-    currentWeekLabel: `Week ${league.currentWeek}`,
+    statusLabel: league.status === "waiting" ? "Wartet auf Spieler" : "Saison läuft",
+    currentWeekLabel: `Woche ${weekProgress.currentWeek}`,
+    draftStatusLabel: getDraftStatusLabel(lifecycle.draftStatus),
     playerCountLabel: `${league.users.length}/${league.maxUsers}`,
-    readyProgressLabel: `${readyCount}/${readyState.requiredCount} aktive Teams bereit`,
+    readyProgressLabel: `${readyCount}/${readyState.requiredCount} aktive Manager bereit`,
     allPlayersReady,
     allPlayersReadyLabel: allPlayersReady
-      ? "Alle Spieler sind bereit. Der Admin kann die Woche simulieren."
+      ? "Alle aktiven Manager sind bereit. Der Admin kann die Woche simulieren."
       : null,
     ownTeamName: currentLeagueUser ? getTeamDisplayName(currentLeagueUser) : null,
     ownCoachName: currentLeagueUser?.username ?? null,
@@ -1401,33 +1532,51 @@ export function toOnlineLeagueDetailState(
       currentLeagueUser?.activity && currentLeagueUser.activity.inactiveStatus !== "active"
         ? `Inaktivität: ${currentLeagueUser.activity.inactiveStatus}`
         : null,
-    currentUserReady: currentLeagueUser?.readyForWeek ?? false,
-    nextMatchLabel: "Nächste Partie wird nach Ligastart erstellt",
+    currentUserReady,
+    lifecyclePhase: lifecycle.phase,
+    lifecycleReasons: lifecycle.reasons,
+    readyActionDisabledReason,
+    nextMatchLabel: getNextMatchLabel(league, currentLeagueUser, weekProgress.currentWeek),
     waitingLabel: "Warte auf andere Spieler",
-    nextActionLabel: getNextActionLabel(league, currentLeagueUser, allPlayersReady),
-    firstSteps: getFirstStepsState(league, currentLeagueUser),
+    nextActionLabel: getNextActionLabel(
+      league,
+      currentLeagueUser,
+      allPlayersReady,
+      currentUserReady,
+    ),
+    firstSteps: getFirstStepsState(league, currentLeagueUser, currentUserReady),
     leagueRules: getLeagueRulesState(league),
     weekFlow: {
       title: "Ligawoche",
-      weekLabel: `Week ${league.currentWeek}`,
-      phaseLabel: getWeekFlowPhaseLabel(league, allPlayersReady),
+      weekLabel: `Woche ${weekProgress.currentWeek}`,
+      phaseLabel: getWeekFlowPhaseLabel(lifecycle.phase),
       statusLabel: getWeekFlowStatusLabel(allPlayersReady),
-      simulationStatusLabel: getWeekFlowSimulationStatusLabel(league, allPlayersReady),
+      simulationStatusLabel: getWeekFlowSimulationStatusLabel(lifecycle.phase, lifecycle.reasons),
       playerReadyStatusLabel: getPlayerReadyStatusLabel(
         currentLeagueUser,
-        `Week ${league.currentWeek}`,
+        currentUserReady,
+        `Woche ${weekProgress.currentWeek}`,
       ),
-      waitingStatusLabel: getWaitingStatusLabel(currentLeagueUser, allPlayersReady),
+      waitingStatusLabel: getWaitingStatusLabel(
+        currentLeagueUser,
+        allPlayersReady,
+        currentUserReady,
+      ),
       adminProgressLabel:
-        "Sobald alle Spieler bereit sind, kann der Admin die Woche simulieren.",
-      nextMatchLabel: getWeekFlowNextMatchLabel(league),
-      nextActionCtaLabel: getNextActionLabel(league, currentLeagueUser, allPlayersReady),
-      completedResultsLabel: getCompletedResultsLabel(league),
-      showStartWeekButton: allPlayersReady,
-      startWeekButtonLabel: "Admin simuliert die Woche",
+        "Sobald alle aktiven Manager bereit sind, kann der Admin die Woche simulieren.",
+      nextMatchLabel: getNextMatchLabel(league, currentLeagueUser, weekProgress.currentWeek),
+      nextActionCtaLabel: getNextActionLabel(
+        league,
+        currentLeagueUser,
+        allPlayersReady,
+        currentUserReady,
+      ),
+      completedResultsLabel: getCompletedResultsLabel(league, weekProgress),
+      showStartWeekButton: lifecycle.phase === "readyComplete",
+      startWeekButtonLabel: "Admin-Simulation bereit",
       startWeekHint:
-        "Der Admin schaltet die Liga weiter. Danach beginnt die nächste Week mit zurückgesetztem Ready-State.",
-      lastCompletedWeekLabel: getLastCompletedWeekLabel(league),
+        "Der Admin schaltet die Liga weiter. Danach beginnt die nächste Woche mit zurückgesetztem Bereit-Status.",
+      lastCompletedWeekLabel: getLastCompletedWeekLabel(weekProgress),
     },
     roster: getRosterState(currentLeagueUser),
     standings: getStandings(league),
@@ -1442,7 +1591,7 @@ export function toOnlineLeagueDetailState(
       ...user,
       teamName: getTeamDisplayName(user),
       teamStatus: user.teamStatus ?? "occupied",
-      readyLabel: user.readyForWeek ? "Ready" : "Nicht bereit",
+      readyLabel: user.readyForWeek ? "Bereit" : "Nicht bereit",
       isCurrentUser: currentUser?.userId === user.userId,
     })),
     vacantTeams: league.users

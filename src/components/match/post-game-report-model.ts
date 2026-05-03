@@ -1221,7 +1221,7 @@ function attentionConsequence({
     contractAttention(teamDetail, saveGameId) ??
     developmentAttention(teamDetail, saveGameId) ??
     needAttention(teamDetail, saveGameId) ?? {
-      description: "Keine harte Warnung aus den vorhandenen Kaderdaten. Nutze den Week Flow, um den naechsten Gegner vorzubereiten.",
+      description: "Keine harte Warnung aus den vorhandenen Kaderdaten. Nutze den Wochenablauf, um den naechsten Gegner vorzubereiten.",
       href: `/app/savegames/${saveGameId}`,
       label: "Welche Entscheidung braucht Aufmerksamkeit?",
       title: "Keine akute Kaderwarnung",

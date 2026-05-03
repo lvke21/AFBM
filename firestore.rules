@@ -6,6 +6,8 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Canonical admin truth: Firebase Auth custom claim admin=true. UID allowlists
+    // are bootstrap hints only and must not grant Rules access.
     function isGlobalAdmin() {
       return isSignedIn()
         && ("admin" in request.auth.token)
@@ -31,6 +33,7 @@ service cloud.firestore {
     function isActiveLeagueMember(leagueId) {
       return isSignedIn()
         && exists(membershipPath(leagueId))
+        && !isOnlineLeague(leagueId)
         && get(membershipPath(leagueId)).data.status == "ACTIVE";
     }
 
@@ -46,7 +49,7 @@ service cloud.firestore {
     }
 
     function canReadLeague(leagueId) {
-      return isActiveLeagueMember(leagueId) || isLeagueOwner(leagueId);
+      return isOnlineActiveMember(leagueId) || isActiveLeagueMember(leagueId) || isLeagueOwner(leagueId);
     }
 
     function canReadLeagueDoc() {
@@ -75,6 +78,8 @@ service cloud.firestore {
 
     function isOnlineLeague(leagueId) {
       return exists(onlineLeaguePath(leagueId))
+        && ("settings" in get(onlineLeaguePath(leagueId)).data)
+        && ("onlineBackbone" in get(onlineLeaguePath(leagueId)).data.settings)
         && get(onlineLeaguePath(leagueId)).data.settings.onlineBackbone == true;
     }
 
@@ -275,6 +280,7 @@ service cloud.firestore {
 
     function isOnlineDraftRosterFinalizeUpdate(leagueId) {
       return isOnlineActiveMember(leagueId)
+        && get(onlineDraftPath(leagueId)).data.status != "completed"
         && existsAfter(onlineDraftPath(leagueId))
         && getAfter(onlineDraftPath(leagueId)).data.status == "completed"
         && request.resource.data.diff(resource.data).affectedKeys()
@@ -366,11 +372,11 @@ service cloud.firestore {
         ];
     }
 
-    // TODO(firebase-auth): Revisit role mapping once Firebase Auth and
-    // custom claims are finalized. Until then, membership documents are the
-    // only client-visible authorization source.
-    // TODO(firebase-writes): Keep all game-state, simulation, stat, finance,
-    // roster, and report writes behind server/Admin SDK paths.
+    // Tracked in docs/reports/code-hygiene-triage.md: revisit role mapping once
+    // Firebase Auth and custom claims are finalized. Until then, membership
+    // documents are the only client-visible authorization source.
+    // Tracked in docs/reports/code-hygiene-triage.md: keep all game-state,
+    // simulation, stat, finance, roster, and report writes behind server/Admin SDK paths.
     match /reference/{document=**} {
       allow read: if isSignedIn();
       allow write: if false;
@@ -448,6 +454,11 @@ service cloud.firestore {
 
       match /adminLogs/{logId} {
         allow read, write: if false;
+      }
+
+      match /adminActionLocks/{lockId} {
+        allow read: if isOnlineActiveMember(leagueId) || isOnlineAdmin(leagueId);
+        allow write: if false;
       }
     }
 

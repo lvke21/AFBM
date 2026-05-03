@@ -1,5 +1,5 @@
 import type { OnlineUser } from "./online-user-service";
-import { createRng, createSeededId } from "@/lib/random/seeded-rng";
+import { createSeededId } from "@/lib/random/seeded-rng";
 import {
   resolveTeamIdentitySelection,
   type TeamIdentitySelection,
@@ -25,10 +25,6 @@ import type {
   OnlineTeamControl,
   OnlineGmActivityRules,
   OnlineFinanceRules,
-  TrainingIntensity,
-  TrainingPrimaryFocus,
-  TrainingSecondaryFocus,
-  TrainingRiskTolerance,
   TrainingPlanSource,
   CoachRole,
   CoachRatings,
@@ -43,7 +39,6 @@ import type {
   TeamChemistryHistoryEntry,
   PlayerContract,
   PlayerDevelopmentPath,
-  OnlineXFactorAbilityId,
   OnlinePlayerXFactor,
   OnlineXFactorPlayContext,
   OnlineXFactorTriggerResult,
@@ -89,9 +84,6 @@ import type {
   OnlineLeague,
   CreateOnlineLeagueInput,
   JoinOnlineLeagueResult,
-  OnlineLeagueStateValidationIssue,
-  OnlineLeagueStateValidationResult,
-  OnlineLeagueStateRepairResult,
   SubmitWeeklyTrainingPlanResult,
 } from "./online-league-types";
 import {
@@ -104,12 +96,14 @@ import {
 import {
   getNextFantasyDraftStateAfterPick,
   isOnlineFantasyDraftComplete,
-  ONLINE_FANTASY_DRAFT_POSITIONS,
-  ONLINE_FANTASY_DRAFT_RESERVE_RATE,
-  ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
-  ONLINE_FANTASY_DRAFT_SEED,
   type OnlineFantasyDraftPosition,
 } from "./online-league-draft-service";
+import {
+  createFantasyDraftPlayerPool,
+  createInitialFantasyDraftState,
+  isOnlineFantasyDraftState,
+  normalizeFantasyDraftState,
+} from "./online-league-fantasy-draft-defaults";
 import {
   createUserFacingLeagueId,
   normalizeMaxUsers,
@@ -122,11 +116,9 @@ import {
 import { resolveJoinArguments } from "./online-league-join";
 import { saveOnlineLeagueCollection } from "./online-league-persistence";
 import {
-  getOnlineLeagueWeekReadyState,
   isOnlineLeagueUserActiveWeekParticipant,
 } from "./online-league-week-service";
 import {
-  canCreateOnlineLeagueSchedule,
   createOnlineLeagueSchedule,
 } from "./online-league-schedule";
 import {
@@ -134,7 +126,13 @@ import {
   getStrategyContractBlockReason,
   hasStrategyCapSpace,
 } from "./online-league-contract-queries";
-import { simulateOnlineGame } from "./online-game-simulation";
+import {
+  createDefaultOnlineDepthChart,
+  validateOnlineDepthChartForRoster,
+} from "./online-depth-chart-service";
+import {
+  getOnlineLeagueWeekProgressState,
+} from "./online-league-week-simulation";
 import {
   clearStoredLastOnlineLeagueId,
   getBrowserOnlineLeagueStorage,
@@ -145,6 +143,65 @@ import {
   type OnlineLeagueStorage,
 } from "./online-league-storage";
 import { validatePreparedMultiplayerDraftPick } from "./multiplayer-draft-logic";
+import {
+  normalizeOnlineCoreLifecycle,
+  normalizeOnlineLeagueCoreLifecycle,
+} from "./online-league-lifecycle";
+import {
+  clampOnlinePercentage as clampPercentage,
+  clampOnlineScore as clampScore,
+  clampOnlineTrait as clampTrait,
+  createCompletedOnlineWeek,
+  createOnlineMatchResultsForWeek,
+  getOnlineSeasonFromLeagueWeek,
+  isOnlineOffseasonWeek,
+  normalizeOnlineSeasonNumber as normalizeSeasonNumber,
+} from "./online-league-derived-state";
+import {
+  DEFAULT_ONLINE_SALARY_CAP_LIMIT,
+  DEFAULT_ONLINE_SOFT_CAP_BUFFER_PERCENTAGE,
+  createContract,
+  createDefaultContractRoster,
+  getDefaultPotentialForPath,
+  getOnlineXFactorDefinition,
+  inferContractType,
+  inferDefaultXFactors,
+  inferPlayerDevelopmentPath,
+} from "./online-league-contract-defaults";
+import {
+  createDefaultActivityMetrics,
+  createDefaultAdminRemovalState,
+  createDefaultCoachingStaffProfile,
+  createDefaultFanbaseProfile,
+  createDefaultFinanceProfile,
+  createDefaultJobSecurityScore,
+  createDefaultOwnershipProfile,
+  createDefaultStadiumProfile,
+  createDefaultTeamChemistryProfile,
+} from "./online-league-default-profiles";
+import {
+  createDefaultOnlineLeagueSettings as createDefaultLeagueSettings,
+  createOnlineTeamAbbreviationFromId as createTeamAbbreviationFromId,
+  createScheduleForOnlineTeamPool as createScheduleForTeamPool,
+  DEFAULT_ONLINE_FINANCE_RULES as DEFAULT_FINANCE_RULES,
+  DEFAULT_ONLINE_GM_ACTIVITY_RULES as DEFAULT_GM_ACTIVITY_RULES,
+  normalizeOnlineLeagueSettings as normalizeLeagueSettings,
+  resetOnlineLeagueUserReadyState as resetReadyState,
+} from "./online-league-mappers";
+import {
+  isFranchiseStrategyType,
+  isOnlineGmExpectation,
+  isOnlineMediaExpectationGoal,
+  isOnlineWeekFlowStatus,
+  isOnlineXFactorAbilityId,
+  isPlayerDevelopmentPath,
+  isTrainingIntensity,
+  isTrainingPlanSource,
+  isTrainingPrimaryFocus,
+  isTrainingRiskTolerance,
+  isTrainingSecondaryFocus,
+  repairOnlineLeagueState,
+} from "./online-league-state-validation";
 
 export type * from "./online-league-types";
 export {
@@ -154,7 +211,10 @@ export {
   ONLINE_MVP_TEAM_POOL,
 } from "./online-league-constants";
 export {
+  isOnlineLeagueCurrentWeekCanonicallyCompleted,
+  getOnlineLeagueReadyChangeState,
   getOnlineLeagueWeekReadyState,
+  type OnlineLeagueReadyChangeResult,
   type OnlineLeagueWeekReadyParticipant,
   type OnlineLeagueWeekReadyState,
 } from "./online-league-week-service";
@@ -167,10 +227,15 @@ export {
   buildOnlineLeagueTeamRecords,
   canSimulateWeek,
   getCurrentWeekGames,
+  getOnlineLeagueWeekKey,
+  hasOnlineLeagueWeekCompletionSignal,
+  isOnlineLeagueWeekCanonicallyCompleted,
   hasValidScheduleForWeek,
   normalizeOnlineLeagueWeekSimulationState,
   sortOnlineLeagueTeamRecords,
   type OnlineLeagueTeamRecord,
+  type OnlineLeagueWeekProgressPhase,
+  type OnlineLeagueWeekProgressState,
   type OnlineLeagueWeekGameStatus,
   type OnlineLeagueWeekSimulationGame,
   type OnlineLeagueWeekSimulationState,
@@ -193,6 +258,10 @@ export {
   type SimulateOnlineGameResult,
 } from "./online-game-simulation";
 export {
+  repairOnlineLeagueState,
+  validateOnlineLeagueState,
+} from "./online-league-state-validation";
+export {
   ONLINE_FANTASY_DRAFT_POSITIONS,
   ONLINE_FANTASY_DRAFT_RESERVE_RATE,
   ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
@@ -200,6 +269,11 @@ export {
   ONLINE_FANTASY_DRAFT_SEED,
   type OnlineFantasyDraftPosition,
 } from "./online-league-draft-service";
+export {
+  createFantasyDraftPlayerPool,
+  createInitialFantasyDraftState,
+  getFantasyDraftPositionTargetCounts,
+} from "./online-league-fantasy-draft-defaults";
 type StoredOnlineLeagueUser = Omit<
   OnlineLeagueUser,
   | "readyForWeek"
@@ -264,189 +338,6 @@ type StoredOnlineLeague = Omit<
   currentWeek?: number;
   leagueSettings?: OnlineLeagueSettings;
   weekStatus?: OnlineWeekFlowStatus;
-};
-
-const DEFAULT_GM_ACTIVITY_RULES: OnlineGmActivityRules = {
-  warningAfterMissedWeeks: 1,
-  inactiveAfterMissedWeeks: 2,
-  removalEligibleAfterMissedWeeks: 3,
-  autoVacateAfterMissedWeeks: false,
-};
-
-const DEFAULT_FINANCE_RULES: OnlineFinanceRules = {
-  enableStadiumFinance: true,
-  enableFanPressure: true,
-  enableMerchRevenue: true,
-  equalMediaRevenue: true,
-  revenueSharingEnabled: true,
-  revenueSharingPercentage: 20,
-  ownerBailoutEnabled: true,
-  minCashFloor: 0,
-  maxTicketPriceLevel: 100,
-  allowStadiumUpgrades: false,
-};
-
-const DEFAULT_ONLINE_SALARY_CAP_LIMIT = 200_000_000;
-const DEFAULT_ONLINE_SOFT_CAP_BUFFER_PERCENTAGE = 5;
-const CONTRACT_ROSTER_TEMPLATE: Array<{
-  suffix: string;
-  playerName: string;
-  position: string;
-  age: number;
-  overall: number;
-  potential: number;
-  developmentPath: PlayerDevelopmentPath;
-  salaryPerYear: number;
-  yearsRemaining: number;
-  guaranteedMoney: number;
-}> = [
-  {
-    suffix: "qb1",
-    playerName: "Franchise QB",
-    position: "QB",
-    age: 27,
-    overall: 86,
-    potential: 93,
-    developmentPath: "star",
-    salaryPerYear: 42_000_000,
-    yearsRemaining: 3,
-    guaranteedMoney: 72_000_000,
-  },
-  {
-    suffix: "wr1",
-    playerName: "WR1",
-    position: "WR",
-    age: 25,
-    overall: 84,
-    potential: 88,
-    developmentPath: "solid",
-    salaryPerYear: 22_000_000,
-    yearsRemaining: 2,
-    guaranteedMoney: 24_000_000,
-  },
-  {
-    suffix: "edge1",
-    playerName: "Edge Starter",
-    position: "EDGE",
-    age: 28,
-    overall: 83,
-    potential: 86,
-    developmentPath: "solid",
-    salaryPerYear: 24_000_000,
-    yearsRemaining: 3,
-    guaranteedMoney: 30_000_000,
-  },
-  {
-    suffix: "cb1",
-    playerName: "CB1",
-    position: "CB",
-    age: 26,
-    overall: 81,
-    potential: 83,
-    developmentPath: "bust",
-    salaryPerYear: 17_000_000,
-    yearsRemaining: 2,
-    guaranteedMoney: 14_000_000,
-  },
-  {
-    suffix: "ot1",
-    playerName: "Left Tackle",
-    position: "OT",
-    age: 29,
-    overall: 80,
-    potential: 84,
-    developmentPath: "solid",
-    salaryPerYear: 18_000_000,
-    yearsRemaining: 2,
-    guaranteedMoney: 16_000_000,
-  },
-];
-
-const FANTASY_DRAFT_FIRST_NAMES = [
-  "Adrian",
-  "Bastian",
-  "Caleb",
-  "Dario",
-  "Elias",
-  "Finn",
-  "Gabriel",
-  "Hugo",
-  "Isaac",
-  "Jonas",
-  "Kian",
-  "Luca",
-  "Milan",
-  "Noah",
-  "Oscar",
-  "Rafael",
-  "Silas",
-  "Theo",
-  "Victor",
-  "Yann",
-  "Zane",
-  "Mateo",
-  "Emil",
-  "Nico",
-];
-const FANTASY_DRAFT_LAST_NAMES = [
-  "Alder",
-  "Berg",
-  "Cross",
-  "Diaz",
-  "Eden",
-  "Frost",
-  "Grant",
-  "Hale",
-  "Ivers",
-  "Jensen",
-  "Keller",
-  "Lang",
-  "Morrow",
-  "Novak",
-  "Ortega",
-  "Price",
-  "Quinn",
-  "Reed",
-  "Stone",
-  "Tanner",
-  "Vale",
-  "West",
-  "Young",
-  "Ziegler",
-  "Voss",
-  "Marin",
-  "Sato",
-  "Moreau",
-  "Peters",
-  "Rossi",
-  "Schneider",
-  "Walker",
-];
-const FANTASY_DRAFT_POSITION_SUFFIX: Record<OnlineFantasyDraftPosition, string> = {
-  QB: "Field General",
-  RB: "Runner",
-  WR: "Receiver",
-  TE: "Tight End",
-  OL: "Lineman",
-  DL: "Defender",
-  LB: "Linebacker",
-  CB: "Corner",
-  S: "Safety",
-  K: "Kicker",
-  P: "Punter",
-};
-const FANTASY_DRAFT_SALARY_BASE: Record<OnlineFantasyDraftPosition, number> = {
-  QB: 18_000_000,
-  RB: 5_500_000,
-  WR: 9_500_000,
-  TE: 6_500_000,
-  OL: 7_500_000,
-  DL: 8_500_000,
-  LB: 6_500_000,
-  CB: 8_500_000,
-  S: 6_000_000,
-  K: 2_500_000,
-  P: 2_200_000,
 };
 
 const FREE_AGENT_TEMPLATE: Array<{
@@ -594,228 +485,6 @@ const PROSPECT_TEMPLATE: Array<{
   },
 ];
 
-const OWNER_PROFILE_TEMPLATES: Array<Omit<OwnershipProfile, "ownerId" | "ownerName">> = [
-  {
-    patience: 82,
-    ambition: 52,
-    financialPressure: 42,
-    loyalty: 78,
-    mediaSensitivity: 35,
-    rebuildTolerance: 84,
-  },
-  {
-    patience: 32,
-    ambition: 88,
-    financialPressure: 65,
-    loyalty: 42,
-    mediaSensitivity: 72,
-    rebuildTolerance: 24,
-  },
-  {
-    patience: 58,
-    ambition: 72,
-    financialPressure: 88,
-    loyalty: 55,
-    mediaSensitivity: 48,
-    rebuildTolerance: 46,
-  },
-  {
-    patience: 65,
-    ambition: 68,
-    financialPressure: 50,
-    loyalty: 86,
-    mediaSensitivity: 78,
-    rebuildTolerance: 58,
-  },
-];
-
-function clampScore(value: number) {
-  return Math.min(100, Math.max(0, Math.round(value)));
-}
-
-function clampTrait(value: number) {
-  return Math.min(100, Math.max(1, Math.round(value)));
-}
-
-function clampPercentage(value: number) {
-  return Math.min(100, Math.max(0, Math.round(value)));
-}
-
-function inferContractType(
-  input: Pick<OnlineContractPlayer, "age" | "overall"> | Pick<PlayerContract, "salaryPerYear" | "yearsRemaining">,
-): PlayerContract["contractType"] {
-  if ("age" in input) {
-    if (input.age <= 24) {
-      return "rookie";
-    }
-
-    return input.overall >= 84 ? "star" : "regular";
-  }
-
-  if (input.salaryPerYear >= DEFAULT_ONLINE_SALARY_CAP_LIMIT * 0.15) {
-    return "star";
-  }
-
-  if (input.yearsRemaining >= 4 && input.salaryPerYear <= DEFAULT_ONLINE_SALARY_CAP_LIMIT * 0.025) {
-    return "rookie";
-  }
-
-  return "regular";
-}
-
-function isPlayerDevelopmentPath(value: unknown): value is PlayerDevelopmentPath {
-  return value === "star" || value === "solid" || value === "bust";
-}
-
-function isOnlineXFactorAbilityId(value: unknown): value is OnlineXFactorAbilityId {
-  return value === "clutch" || value === "speed_burst" || value === "playmaker";
-}
-
-function getOnlineXFactorDefinition(
-  abilityId: OnlineXFactorAbilityId,
-): OnlinePlayerXFactor {
-  if (abilityId === "clutch") {
-    return {
-      abilityId,
-      abilityName: "Clutch",
-      description: "Aktiviert in engen Schlussphasen einen kleinen Entscheidungs- und Execution-Bonus.",
-      rarity: "rare",
-    };
-  }
-
-  if (abilityId === "speed_burst") {
-    return {
-      abilityId,
-      abilityName: "Speed Burst",
-      description: "Kann bei Raum, langen Downs oder Returns explosive Plays anschieben.",
-      rarity: "rare",
-    };
-  }
-
-  return {
-    abilityId,
-    abilityName: "Playmaker",
-    description: "Aktiviert in Passing-Situationen mit hoher Hebelwirkung einen kleinen Creation-Bonus.",
-    rarity: "rare",
-  };
-}
-
-function inferPlayerDevelopmentPath(
-  player: Pick<OnlineContractPlayer, "age" | "overall"> & Partial<Pick<OnlineContractPlayer, "potential">>,
-): PlayerDevelopmentPath {
-  const potential = player.potential ?? player.overall;
-  const upside = potential - player.overall;
-
-  if (player.age <= 25 && (potential >= 88 || upside >= 8)) {
-    return "star";
-  }
-
-  if (player.age >= 29 || upside <= 2) {
-    return "bust";
-  }
-
-  return "solid";
-}
-
-function inferDefaultXFactors(
-  player: Pick<
-    OnlineContractPlayer,
-    "age" | "overall" | "position" | "potential" | "developmentPath"
-  >,
-): OnlinePlayerXFactor[] {
-  const abilityIds: OnlineXFactorAbilityId[] = [];
-  const isPremiumPlayer =
-    player.overall >= 86 ||
-    (player.developmentPath === "star" && player.potential >= 90 && player.overall >= 78);
-
-  if (!isPremiumPlayer) {
-    return [];
-  }
-
-  if (player.overall >= 86 && ["QB", "K"].includes(player.position)) {
-    abilityIds.push("clutch");
-  }
-
-  if (
-    ["WR", "RB", "TE", "CB"].includes(player.position) &&
-    player.age <= 27 &&
-    player.potential >= 86
-  ) {
-    abilityIds.push("speed_burst");
-  }
-
-  if (
-    ["QB", "WR", "TE", "RB"].includes(player.position) &&
-    player.overall >= 84 &&
-    player.potential >= 88
-  ) {
-    abilityIds.push("playmaker");
-  }
-
-  return Array.from(new Set(abilityIds))
-    .slice(0, player.overall >= 90 ? 2 : 1)
-    .map(getOnlineXFactorDefinition);
-}
-
-function getDefaultPotentialForPath(overall: number, path: PlayerDevelopmentPath) {
-  if (path === "star") {
-    return Math.max(overall, Math.min(99, overall + 9));
-  }
-
-  if (path === "solid") {
-    return Math.max(overall, Math.min(95, overall + 5));
-  }
-
-  return Math.max(overall, Math.min(90, overall + 2));
-}
-
-function createDefaultLeagueSettings(): OnlineLeagueSettings {
-  return {
-    gmActivityRules: { ...DEFAULT_GM_ACTIVITY_RULES },
-    financeRules: { ...DEFAULT_FINANCE_RULES },
-  };
-}
-
-function createDefaultOwnershipProfile(teamId: string, teamName: string): OwnershipProfile {
-  const charTotal = Array.from(teamId).reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  const template = OWNER_PROFILE_TEMPLATES[charTotal % OWNER_PROFILE_TEMPLATES.length];
-
-  return {
-    ownerId: `owner-${teamId}`,
-    ownerName: `${teamName} Ownership Group`,
-    ...template,
-  };
-}
-
-function createDefaultJobSecurityScore(
-  currentWeek: number,
-  currentSeason = 1,
-): GmJobSecurityScore {
-  return {
-    score: 72,
-    status: "stable",
-    lastUpdatedWeek: currentWeek,
-    lastUpdatedSeason: currentSeason,
-    gmPerformanceHistory: [],
-  };
-}
-
-function createDefaultActivityMetrics(now = new Date().toISOString()): OnlineGmActivityMetrics {
-  return {
-    lastSeenAt: now,
-    lastLeagueActionAt: now,
-    missedWeeklyActions: 0,
-    missedLineupSubmissions: 0,
-    inactiveStatus: "active",
-  };
-}
-
-function createDefaultAdminRemovalState(): OnlineGmAdminRemovalState {
-  return {
-    status: "none",
-  };
-}
-
 function getMediaExpectationNarrative(goal: OnlineMediaExpectationGoal) {
   if (goal === "rebuild") {
     return "Rebuild: Entwicklung, Geduld und stabile Fortschritte stehen vor kurzfristigem Druck.";
@@ -826,24 +495,6 @@ function getMediaExpectationNarrative(goal: OnlineMediaExpectationGoal) {
   }
 
   return "Championship: Der GM verspricht ein Titel-Fenster. Jeder Rückschlag wird lauter.";
-}
-
-function getOnlineSeasonFromLeagueWeek(currentWeek: number) {
-  if (!Number.isFinite(currentWeek) || currentWeek <= 1) {
-    return 1;
-  }
-
-  return Math.max(1, Math.ceil(currentWeek / 18));
-}
-
-function isOnlineOffseasonWeek(currentWeek: number) {
-  if (!Number.isFinite(currentWeek)) {
-    return false;
-  }
-
-  const normalizedWeek = Math.max(1, Math.floor(currentWeek));
-
-  return normalizedWeek === 1 || (normalizedWeek - 1) % 18 === 0;
 }
 
 function getFranchiseStrategyDefaults(strategy: FranchiseStrategyType) {
@@ -1026,134 +677,6 @@ function createMediaExpectationProfile(
   };
 }
 
-function getStableNumberFromString(value: string) {
-  return Array.from(value).reduce((sum, char) => sum + char.charCodeAt(0), 0);
-}
-
-function createDefaultStadiumProfile(
-  teamId: string,
-  teamName: string,
-  cityName: string | undefined,
-  season: number,
-  now = new Date().toISOString(),
-): StadiumProfile {
-  const seed = getStableNumberFromString(teamId);
-  const capacity = 35_000 + (seed % 56_000);
-
-  return {
-    stadiumId: `stadium-${teamId}`,
-    teamId,
-    name: `${teamName} Stadium`,
-    city: cityName ?? "Local Market",
-    capacity,
-    condition: 60 + (seed % 31),
-    comfort: 50 + (seed % 41),
-    atmosphere: 50 + (seed % 46),
-    ticketPriceLevel: 45 + (seed % 31),
-    merchPriceLevel: 45 + ((seed + 11) % 31),
-    parkingRevenueLevel: 35 + (seed % 41),
-    concessionsQuality: 45 + (seed % 41),
-    luxurySuitesLevel: 30 + (seed % 51),
-    lastRenovatedSeason: season,
-    createdAt: now,
-    updatedAt: now,
-  };
-}
-
-function createDefaultFanbaseProfile(
-  teamId: string,
-  cityName: string | undefined,
-  now = new Date().toISOString(),
-): FanbaseProfile {
-  const seed = getStableNumberFromString(`${teamId}-${cityName ?? ""}`);
-
-  return {
-    teamId,
-    marketSize: 35 + (seed % 66),
-    fanLoyalty: 45 + (seed % 46),
-    fanMood: 58 + (seed % 18),
-    expectations: 45 + (seed % 46),
-    patience: 45 + (seed % 46),
-    bandwagonFactor: 25 + (seed % 66),
-    mediaPressure: 30 + (seed % 66),
-    seasonTicketBase: 35 + (seed % 56),
-    merchInterest: 35 + (seed % 56),
-    rivalryIntensity: 35 + (seed % 61),
-    updatedAt: now,
-  };
-}
-
-function createDefaultTeamChemistryProfile(
-  teamId: string,
-  currentWeek: number,
-  currentSeason = 1,
-  now = new Date().toISOString(),
-): TeamChemistryProfile {
-  const seed = getStableNumberFromString(teamId);
-  const score = 56 + (seed % 14);
-
-  return {
-    teamId,
-    score,
-    playerSatisfaction: 58 + (seed % 16),
-    gameplayModifier: calculateTeamChemistryGameplayModifier(score),
-    recentTrend: 0,
-    lastUpdatedSeason: currentSeason,
-    lastUpdatedWeek: currentWeek,
-    updatedAt: now,
-  };
-}
-
-function createDefaultFinanceProfile(teamId: string, now = new Date().toISOString()) {
-  return {
-    teamId,
-    ticketRevenue: 0,
-    concessionsRevenue: 0,
-    parkingRevenue: 0,
-    merchandiseRevenue: 0,
-    sponsorshipRevenue: 0,
-    mediaRevenue: 0,
-    playoffRevenue: 0,
-    totalRevenue: 0,
-    playerPayroll: 0,
-    staffPayroll: 0,
-    stadiumMaintenance: 0,
-    gameDayOperations: 0,
-    travelCosts: 0,
-    adminCosts: 0,
-    totalExpenses: 0,
-    weeklyProfitLoss: 0,
-    seasonProfitLoss: 0,
-    cashBalance: 25_000_000,
-    ownerInvestment: 0,
-    updatedAt: now,
-  };
-}
-
-function createDefaultCoachingStaffProfile(teamId: string, teamName: string): CoachingStaffProfile {
-  const seed = getStableNumberFromString(`${teamId}-${teamName}`);
-  const surnames = ["Keller", "Morgan", "Reeves", "Bennett", "Fischer", "Hayes"];
-  const surname = surnames[seed % surnames.length];
-
-  return {
-    teamId,
-    headCoachName: `${surname} Head Coach`,
-    offensiveCoordinatorName: `${surname} OC`,
-    defensiveCoordinatorName: `${surname} DC`,
-    specialTeamsCoachName: `${surname} ST`,
-    strengthCoachName: `${surname} Strength`,
-    developmentCoachName: `${surname} Development`,
-    offenseTraining: 48 + (seed % 35),
-    defenseTraining: 46 + ((seed + 7) % 37),
-    playerDevelopment: 45 + ((seed + 13) % 40),
-    injuryPrevention: 48 + ((seed + 19) % 36),
-    discipline: 45 + ((seed + 23) % 39),
-    motivation: 48 + ((seed + 29) % 38),
-    gamePreparation: 46 + ((seed + 31) % 40),
-    adaptability: 45 + ((seed + 37) % 39),
-  };
-}
-
 function createDefaultTrainingPlan(
   leagueId: string,
   teamId: string,
@@ -1216,355 +739,6 @@ function applyFranchiseStrategyToDefaultTrainingPlan(
   }
 
   return plan;
-}
-
-function createContract(
-  salaryPerYear: number,
-  yearsRemaining: number,
-  guaranteedMoney: number,
-  contractType?: PlayerContract["contractType"],
-  signingBonus?: number,
-): PlayerContract {
-  const normalizedYears = Math.max(1, Math.floor(yearsRemaining));
-  const normalizedSalary = Math.max(0, Math.round(salaryPerYear));
-  const normalizedGuaranteed = Math.max(0, Math.round(guaranteedMoney));
-  const normalizedSigningBonus = Math.max(
-    0,
-    Math.round(signingBonus ?? normalizedGuaranteed * 0.15),
-  );
-  const normalizedContractType =
-    contractType ?? inferContractType({ salaryPerYear: normalizedSalary, yearsRemaining: normalizedYears });
-  const capHitPerYear = Math.max(
-    0,
-    Math.round(normalizedSalary + normalizedSigningBonus / normalizedYears),
-  );
-  const deadCapPerYear = Math.max(
-    0,
-    Math.round((normalizedGuaranteed + normalizedSigningBonus) / normalizedYears),
-  );
-
-  return {
-    salaryPerYear: normalizedSalary,
-    yearsRemaining: normalizedYears,
-    totalValue: Math.max(
-      0,
-      Math.round(normalizedSalary * normalizedYears + normalizedSigningBonus),
-    ),
-    guaranteedMoney: normalizedGuaranteed,
-    signingBonus: normalizedSigningBonus,
-    contractType: normalizedContractType,
-    capHitPerYear,
-    deadCapPerYear,
-  };
-}
-
-function createDefaultContractRoster(teamId: string, teamName: string): OnlineContractPlayer[] {
-  return CONTRACT_ROSTER_TEMPLATE.map((player) => ({
-    playerId: `${teamId}-${player.suffix}`,
-    playerName: `${teamName} ${player.playerName}`,
-    position: player.position,
-    age: player.age,
-    overall: player.overall,
-    potential: player.potential,
-    developmentPath: player.developmentPath,
-    developmentProgress: 0,
-    xFactors: inferDefaultXFactors(player),
-    contract: createContract(
-      player.salaryPerYear,
-      player.yearsRemaining,
-      player.guaranteedMoney,
-      inferContractType({ age: player.age, overall: player.overall }),
-    ),
-    status: "active",
-  }));
-}
-
-export function getFantasyDraftPositionTargetCounts(
-  maxUsers: number,
-): Record<OnlineFantasyDraftPosition, number> {
-  const normalizedTeams = normalizeMaxUsers(maxUsers);
-
-  return ONLINE_FANTASY_DRAFT_POSITIONS.reduce(
-    (counts, position) => ({
-      ...counts,
-      [position]: Math.ceil(
-        ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS[position] *
-          normalizedTeams *
-          (1 + ONLINE_FANTASY_DRAFT_RESERVE_RATE),
-      ),
-    }),
-    {} as Record<OnlineFantasyDraftPosition, number>,
-  );
-}
-
-function getFantasyDraftPlayerRating(
-  position: OnlineFantasyDraftPosition,
-  index: number,
-  count: number,
-) {
-  const tier = index / Math.max(1, count - 1);
-
-  if (position === "K" || position === "P") {
-    if (tier < 0.15) {
-      return { min: 82, max: 90 };
-    }
-
-    if (tier < 0.45) {
-      return { min: 74, max: 81 };
-    }
-
-    return { min: 62, max: 73 };
-  }
-
-  if (tier < 0.05) {
-    return { min: 88, max: 94 };
-  }
-
-  if (tier < 0.2) {
-    return { min: 80, max: 87 };
-  }
-
-  if (tier < 0.75) {
-    return { min: 68, max: 79 };
-  }
-
-  return { min: 58, max: 67 };
-}
-
-function getFantasyDraftPlayerAge(
-  position: OnlineFantasyDraftPosition,
-  overall: number,
-  rng: ReturnType<typeof createRng>,
-) {
-  if (position === "K" || position === "P") {
-    return rng.int(23, 36);
-  }
-
-  if (overall >= 86) {
-    return rng.int(24, 31);
-  }
-
-  if (overall >= 76) {
-    return rng.int(22, 32);
-  }
-
-  return rng.int(21, 34);
-}
-
-function getFantasyDraftPlayerName(
-  position: OnlineFantasyDraftPosition,
-  index: number,
-  rng: ReturnType<typeof createRng>,
-) {
-  const firstName = FANTASY_DRAFT_FIRST_NAMES[
-    rng.int(0, FANTASY_DRAFT_FIRST_NAMES.length - 1)
-  ];
-  const lastName = FANTASY_DRAFT_LAST_NAMES[
-    rng.int(0, FANTASY_DRAFT_LAST_NAMES.length - 1)
-  ];
-
-  return `${firstName} ${lastName} ${FANTASY_DRAFT_POSITION_SUFFIX[position]} ${index + 1}`;
-}
-
-function getFantasyDraftSalary(
-  position: OnlineFantasyDraftPosition,
-  overall: number,
-  rng: ReturnType<typeof createRng>,
-) {
-  const base = FANTASY_DRAFT_SALARY_BASE[position];
-  const ratingMultiplier = 0.45 + Math.max(0, overall - 55) / 38;
-  const positionPremium = position === "QB" && overall >= 84 ? 1.35 : 1;
-  const variance = rng.int(88, 114) / 100;
-
-  return Math.round(base * ratingMultiplier * positionPremium * variance);
-}
-
-function createFantasyDraftPlayer(
-  leagueId: string,
-  position: OnlineFantasyDraftPosition,
-  index: number,
-  count: number,
-  seed: string,
-): OnlineContractPlayer {
-  const rng = createRng(`${seed}:${leagueId}:${position}:${index}`);
-  const ratingBand = getFantasyDraftPlayerRating(position, index, count);
-  const overall = rng.int(ratingBand.min, ratingBand.max);
-  const age = getFantasyDraftPlayerAge(position, overall, rng);
-  const developmentPath = inferPlayerDevelopmentPath({
-    age,
-    overall,
-    potential: Math.min(99, overall + rng.int(age <= 24 ? 4 : 0, age <= 27 ? 9 : 4)),
-  });
-  const potential = Math.min(
-    99,
-    overall + rng.int(developmentPath === "star" ? 5 : 0, developmentPath === "bust" ? 3 : 7),
-  );
-  const salaryPerYear = getFantasyDraftSalary(position, overall, rng);
-  const yearsRemaining = rng.int(1, overall >= 82 ? 5 : 4);
-  const guaranteedMoney = Math.round(salaryPerYear * yearsRemaining * rng.int(20, 55) / 100);
-  const player: OnlineContractPlayer = {
-    playerId: createSeededId(
-      `pool-${position.toLowerCase()}-${String(index + 1).padStart(3, "0")}`,
-      `${seed}:${leagueId}:${position}:${index}:id`,
-      8,
-    ),
-    playerName: getFantasyDraftPlayerName(position, index, rng),
-    position,
-    age,
-    overall,
-    potential,
-    developmentPath,
-    developmentProgress: 0,
-    xFactors: [],
-    contract: createContract(
-      salaryPerYear,
-      yearsRemaining,
-      guaranteedMoney,
-      inferContractType({ age, overall }),
-    ),
-    status: "active",
-  };
-
-  return {
-    ...player,
-    xFactors: inferDefaultXFactors(player),
-  };
-}
-
-export function createFantasyDraftPlayerPool(
-  leagueId: string,
-  maxUsers: number,
-): OnlineContractPlayer[] {
-  const counts = getFantasyDraftPositionTargetCounts(maxUsers);
-
-  return ONLINE_FANTASY_DRAFT_POSITIONS.flatMap((position) =>
-    Array.from({ length: counts[position] }, (_, index) =>
-      createFantasyDraftPlayer(
-        leagueId,
-        position,
-        index,
-        counts[position],
-        ONLINE_FANTASY_DRAFT_SEED,
-      ),
-    ),
-  );
-}
-
-export function createInitialFantasyDraftState(
-  leagueId: string,
-  maxUsers: number,
-): OnlineFantasyDraftState {
-  const playerPool = createFantasyDraftPlayerPool(leagueId, maxUsers);
-
-  return {
-    leagueId,
-    status: "not_started",
-    round: 1,
-    pickNumber: 1,
-    currentTeamId: "",
-    draftOrder: [],
-    picks: [],
-    availablePlayerIds: playerPool.map((player) => player.playerId),
-    startedAt: null,
-    completedAt: null,
-  };
-}
-
-function isOnlineFantasyDraftPick(value: unknown): value is OnlineFantasyDraftPick {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const pick = value as Partial<OnlineFantasyDraftPick>;
-
-  return (
-    typeof pick.pickNumber === "number" &&
-    typeof pick.round === "number" &&
-    typeof pick.teamId === "string" &&
-    typeof pick.playerId === "string" &&
-    typeof pick.pickedByUserId === "string" &&
-    typeof pick.timestamp === "string"
-  );
-}
-
-function isOnlineFantasyDraftState(value: unknown): value is OnlineFantasyDraftState {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const state = value as Partial<OnlineFantasyDraftState>;
-
-  return (
-    typeof state.leagueId === "string" &&
-    (state.status === "not_started" || state.status === "active" || state.status === "completed") &&
-    typeof state.round === "number" &&
-    typeof state.pickNumber === "number" &&
-    typeof state.currentTeamId === "string" &&
-    Array.isArray(state.draftOrder) &&
-    state.draftOrder.every((teamId) => typeof teamId === "string") &&
-    Array.isArray(state.picks) &&
-    state.picks.every(isOnlineFantasyDraftPick) &&
-    Array.isArray(state.availablePlayerIds) &&
-    state.availablePlayerIds.every((playerId) => typeof playerId === "string") &&
-    (state.startedAt === null || typeof state.startedAt === "string") &&
-    (state.completedAt === null || typeof state.completedAt === "string")
-  );
-}
-
-function normalizeFantasyDraftState(state: OnlineFantasyDraftState): OnlineFantasyDraftState {
-  const picks = state.picks
-    .map((pick) => ({
-      ...pick,
-      pickNumber: Math.max(1, Math.floor(pick.pickNumber)),
-      round: Math.max(1, Math.floor(pick.round)),
-    }))
-    .sort((left, right) => left.pickNumber - right.pickNumber);
-  const pickedPlayerIds = new Set(picks.map((pick) => pick.playerId));
-
-  return {
-    ...state,
-    round: Math.max(1, Math.floor(state.round)),
-    pickNumber: Math.max(1, Math.floor(state.pickNumber)),
-    draftOrder: Array.from(new Set(state.draftOrder)),
-    picks,
-    availablePlayerIds: Array.from(
-      new Set(state.availablePlayerIds.filter((playerId) => !pickedPlayerIds.has(playerId))),
-    ),
-    startedAt: state.startedAt ?? null,
-    completedAt: state.completedAt ?? null,
-  };
-}
-
-function createDefaultOnlineDepthChart(
-  roster: OnlineContractPlayer[],
-  now = new Date().toISOString(),
-): OnlineDepthChartEntry[] {
-  const playersByPosition = new Map<string, OnlineContractPlayer[]>();
-
-  roster
-    .filter((player) => player.status === "active")
-    .forEach((player) => {
-      playersByPosition.set(player.position, [
-        ...(playersByPosition.get(player.position) ?? []),
-        player,
-      ]);
-    });
-
-  return Array.from(playersByPosition.entries())
-    .map(([position, players]) => {
-      const sortedPlayers = [...players].sort((left, right) => right.overall - left.overall);
-      const starter = sortedPlayers[0];
-
-      return starter
-        ? {
-            position,
-            starterPlayerId: starter.playerId,
-            backupPlayerIds: sortedPlayers.slice(1).map((player) => player.playerId),
-            updatedAt: now,
-          }
-        : null;
-    })
-    .filter((entry): entry is OnlineDepthChartEntry => Boolean(entry));
 }
 
 function createDefaultFreeAgents(): OnlineContractPlayer[] {
@@ -1667,35 +841,6 @@ function calculateSalaryCap(
           ? "tight"
           : "healthy",
   };
-}
-
-function normalizeFinanceRules(rules: Partial<OnlineFinanceRules> | undefined): OnlineFinanceRules {
-  return {
-    ...DEFAULT_FINANCE_RULES,
-    ...rules,
-    revenueSharingPercentage: clampPercentage(
-      rules?.revenueSharingPercentage ?? DEFAULT_FINANCE_RULES.revenueSharingPercentage,
-    ),
-    minCashFloor: Math.max(0, Math.round(rules?.minCashFloor ?? DEFAULT_FINANCE_RULES.minCashFloor)),
-    maxTicketPriceLevel: clampTrait(
-      rules?.maxTicketPriceLevel ?? DEFAULT_FINANCE_RULES.maxTicketPriceLevel,
-    ),
-    allowStadiumUpgrades: false,
-  };
-}
-
-function normalizeLeagueSettings(settings: Partial<OnlineLeagueSettings> | undefined): OnlineLeagueSettings {
-  return {
-    gmActivityRules: {
-      ...DEFAULT_GM_ACTIVITY_RULES,
-      ...(settings?.gmActivityRules ?? {}),
-    },
-    financeRules: normalizeFinanceRules(settings?.financeRules),
-  };
-}
-
-function createScheduleForTeamPool(leagueId: string, teams: OnlineLeagueTeam[]) {
-  return canCreateOnlineLeagueSchedule(teams) ? createOnlineLeagueSchedule(leagueId, teams) : [];
 }
 
 function createGlobalTestLeague(): OnlineLeague {
@@ -1975,28 +1120,6 @@ function isFanPressureSnapshot(value: unknown): value is FanPressureSnapshot {
   );
 }
 
-function isOnlineMediaExpectationGoal(value: unknown): value is OnlineMediaExpectationGoal {
-  return value === "rebuild" || value === "playoffs" || value === "championship";
-}
-
-function isFranchiseStrategyType(value: unknown): value is FranchiseStrategyType {
-  return (
-    value === "rebuild" ||
-    value === "win_now" ||
-    value === "balanced" ||
-    value === "youth_focus"
-  );
-}
-
-function isOnlineGmExpectation(value: unknown): value is OnlineGmExpectation {
-  return (
-    value === "rebuild" ||
-    value === "competitive" ||
-    value === "playoffs" ||
-    value === "championship"
-  );
-}
-
 function isFranchiseStrategyProfile(value: unknown): value is FranchiseStrategyProfile {
   if (!value || typeof value !== "object") {
     return false;
@@ -2123,45 +1246,6 @@ function isFranchiseFinanceProfile(value: unknown): value is FranchiseFinancePro
     typeof finance.ownerInvestment === "number" &&
     typeof finance.updatedAt === "string"
   );
-}
-
-function isTrainingIntensity(value: unknown): value is TrainingIntensity {
-  return value === "light" || value === "normal" || value === "hard" || value === "extreme";
-}
-
-function isTrainingPrimaryFocus(value: unknown): value is TrainingPrimaryFocus {
-  return (
-    value === "offense" ||
-    value === "defense" ||
-    value === "balanced" ||
-    value === "conditioning" ||
-    value === "recovery" ||
-    value === "player_development" ||
-    value === "team_chemistry"
-  );
-}
-
-function isTrainingSecondaryFocus(value: unknown): value is TrainingSecondaryFocus {
-  return (
-    value === "passing_game" ||
-    value === "running_game" ||
-    value === "pass_protection" ||
-    value === "pass_rush" ||
-    value === "run_defense" ||
-    value === "coverage" ||
-    value === "turnovers" ||
-    value === "red_zone" ||
-    value === "two_minute_drill" ||
-    value === "special_teams"
-  );
-}
-
-function isTrainingRiskTolerance(value: unknown): value is TrainingRiskTolerance {
-  return value === "low" || value === "medium" || value === "high";
-}
-
-function isTrainingPlanSource(value: unknown): value is TrainingPlanSource {
-  return value === "gm_submitted" || value === "auto_default";
 }
 
 function isCoachRole(value: unknown): value is CoachRole {
@@ -2399,16 +1483,6 @@ function isOnlineDepthChartEntry(value: unknown): value is OnlineDepthChartEntry
     Array.isArray(entry.backupPlayerIds) &&
     entry.backupPlayerIds.every((playerId) => typeof playerId === "string") &&
     typeof entry.updatedAt === "string"
-  );
-}
-
-function isOnlineWeekFlowStatus(value: unknown): value is OnlineWeekFlowStatus {
-  return (
-    value === "pre_week" ||
-    value === "ready" ||
-    value === "simulating" ||
-    value === "completed" ||
-    value === "post_game"
   );
 }
 
@@ -3437,154 +2511,7 @@ function validateOnlineDepthChart(
   user: OnlineLeagueUser,
   depthChart: OnlineDepthChartEntry[],
 ) {
-  const roster = getOnlineLeagueUserContractRoster(user).filter(
-    (player) => player.status === "active",
-  );
-  const activePlayerIds = new Set(roster.map((player) => player.playerId));
-  const positions = new Set(roster.map((player) => player.position));
-  const usedStarters = new Set<string>();
-
-  return depthChart.every((entry) => {
-    if (!positions.has(entry.position) || !activePlayerIds.has(entry.starterPlayerId)) {
-      return false;
-    }
-
-    if (usedStarters.has(entry.starterPlayerId)) {
-      return false;
-    }
-
-    usedStarters.add(entry.starterPlayerId);
-
-    return entry.backupPlayerIds.every(
-      (playerId) => playerId !== entry.starterPlayerId && activePlayerIds.has(playerId),
-    );
-  });
-}
-
-function getOnlineMatchResultForWeek(
-  league: OnlineLeague,
-  season: number,
-  week: number,
-) {
-  return (league.matchResults ?? []).find(
-    (result) => result.season === season && result.week === week,
-  );
-}
-
-type OnlineWeekMatchup = {
-  away: OnlineLeagueUser;
-  home: OnlineLeagueUser;
-  matchId: string;
-};
-
-function getOnlineWeekMatchups(
-  league: OnlineLeague,
-  season: number,
-  week: number,
-): OnlineWeekMatchup[] {
-  const activeUsers = league.users.filter(isOnlineLeagueUserActiveWeekParticipant);
-  const usersByTeamId = new Map(activeUsers.map((user) => [user.teamId, user]));
-  const scheduledMatches = (league.schedule ?? []).filter((match) => match.week === week);
-
-  if (scheduledMatches.length > 0) {
-    const matchups = scheduledMatches
-      .map((match) => {
-        const home =
-          usersByTeamId.get(match.homeTeamName) ??
-          activeUsers.find((user) => (user.teamDisplayName ?? user.teamName) === match.homeTeamName);
-        const away =
-          usersByTeamId.get(match.awayTeamName) ??
-          activeUsers.find((user) => (user.teamDisplayName ?? user.teamName) === match.awayTeamName);
-
-        return home && away
-          ? {
-              away,
-              home,
-              matchId: match.id,
-            }
-          : null;
-      })
-      .filter((matchup): matchup is OnlineWeekMatchup => matchup !== null);
-
-    if (matchups.length > 0) {
-      return matchups;
-    }
-  }
-
-  const results: OnlineWeekMatchup[] = [];
-
-  for (let index = 0; index < activeUsers.length; index += 2) {
-    const home = activeUsers[index];
-    const away = activeUsers[index + 1];
-
-    if (!home || !away) {
-      continue;
-    }
-
-    results.push({
-      away,
-      home,
-      matchId: `${league.id}-s${season}-w${week}-${home.teamId}-${away.teamId}`,
-    });
-  }
-
-  return results;
-}
-
-function createOnlineMatchResultsForWeek(
-  league: OnlineLeague,
-  now = new Date().toISOString(),
-  simulatedByUserId = "admin",
-): OnlineMatchResult[] {
-  const season = normalizeSeasonNumber(league.currentSeason ?? Math.ceil(league.currentWeek / 18));
-  const results: OnlineMatchResult[] = [];
-
-  for (const matchup of getOnlineWeekMatchups(league, season, league.currentWeek)) {
-    const simulated = simulateOnlineGame(
-      {
-        awayTeamId: matchup.away.teamId,
-        awayTeamName: matchup.away.teamDisplayName ?? matchup.away.teamName,
-        homeTeamId: matchup.home.teamId,
-        homeTeamName: matchup.home.teamDisplayName ?? matchup.home.teamName,
-        id: matchup.matchId,
-        season,
-        week: league.currentWeek,
-      },
-      league,
-      {
-        simulatedAt: now,
-        simulatedByUserId,
-      },
-    );
-
-    if (simulated.ok) {
-      results.push(simulated.result);
-    }
-  }
-
-  return results;
-}
-
-function createCompletedOnlineWeek(input: {
-  completedAt: string;
-  nextSeason: number;
-  nextWeek: number;
-  resultMatchIds: string[];
-  season: number;
-  simulatedByUserId: string;
-  week: number;
-}): OnlineCompletedWeek {
-  return {
-    weekKey: `s${input.season}-w${input.week}`,
-    season: input.season,
-    week: input.week,
-    status: "completed",
-    resultMatchIds: input.resultMatchIds,
-    completedAt: input.completedAt,
-    simulatedByUserId: input.simulatedByUserId,
-    nextSeason: input.nextSeason,
-    nextWeek: input.nextWeek,
-  };
+  return validateOnlineDepthChartForRoster(getOnlineLeagueUserContractRoster(user), depthChart);
 }
 
 function getOnlineLeagueUserDraftPicks(user: OnlineLeagueUser) {
@@ -3640,171 +2567,6 @@ function normalizeOnlineLeague(league: StoredOnlineLeague): OnlineLeague {
   };
 }
 
-export function validateOnlineLeagueState(
-  league: OnlineLeague,
-): OnlineLeagueStateValidationResult {
-  const issues: OnlineLeagueStateValidationIssue[] = [];
-  const seenUserIds = new Set<string>();
-  const seenAssignedTeamIds = new Set<string>();
-  const activeUsers = league.users.filter((user) => user.teamStatus !== "vacant");
-
-  if (!league.id.trim()) {
-    issues.push({
-      code: "missing-id",
-      severity: "error",
-      message: "Liga hat keine gültige ID.",
-    });
-  }
-
-  if (league.status !== "waiting" && league.status !== "active") {
-    issues.push({
-      code: "invalid-status",
-      severity: "error",
-      message: "Liga hat keinen gültigen Status.",
-    });
-  }
-
-  if (!Number.isFinite(league.currentWeek) || league.currentWeek < 1) {
-    issues.push({
-      code: "invalid-week",
-      severity: "error",
-      message: "Liga hat keine gültige aktuelle Woche.",
-    });
-  }
-
-  if (league.currentSeason !== undefined && (!Number.isFinite(league.currentSeason) || league.currentSeason < 1)) {
-    issues.push({
-      code: "invalid-season",
-      severity: "error",
-      message: "Liga hat keine gültige aktuelle Saison.",
-    });
-  }
-
-  if (!Number.isFinite(league.maxUsers) || league.maxUsers < 1) {
-    issues.push({
-      code: "invalid-max-users",
-      severity: "error",
-      message: "Liga hat keine gültige maximale Spieleranzahl.",
-    });
-  }
-
-  if (activeUsers.length > league.maxUsers) {
-    issues.push({
-      code: "over-capacity",
-      severity: "error",
-      message: "Liga hat mehr aktive Mitglieder als erlaubte Slots.",
-    });
-  }
-
-  for (const user of league.users) {
-    if (seenUserIds.has(user.userId)) {
-      issues.push({
-        code: "duplicate-user",
-        severity: "error",
-        message: `User ${user.userId} ist mehrfach Mitglied derselben Liga.`,
-      });
-    }
-    seenUserIds.add(user.userId);
-
-    if (!user.teamId || !user.teamName) {
-      issues.push({
-        code: "missing-team-assignment",
-        severity: "error",
-        message: `User ${user.username} hat keine vollständige Team-Zuweisung.`,
-      });
-    }
-
-    if (user.teamStatus === "vacant" && user.readyForWeek) {
-      issues.push({
-        code: "ready-vacant-member",
-        severity: "warning",
-        message: `Vakantes Team ${user.teamDisplayName ?? user.teamName} ist noch ready markiert.`,
-      });
-    }
-
-    if (user.teamStatus !== "vacant") {
-      const assignmentKey = user.teamId;
-
-      if (seenAssignedTeamIds.has(assignmentKey)) {
-        issues.push({
-          code: "duplicate-team",
-          severity: "error",
-          message: `Team ${user.teamDisplayName ?? user.teamName} ist mehrfach vergeben.`,
-        });
-      }
-      seenAssignedTeamIds.add(assignmentKey);
-    }
-  }
-
-  return {
-    valid: issues.every((issue) => issue.severity !== "error"),
-    issues,
-  };
-}
-
-export function repairOnlineLeagueState(league: OnlineLeague): OnlineLeagueStateRepairResult {
-  const before = validateOnlineLeagueState(league);
-  const seenUserIds = new Set<string>();
-  let repaired = false;
-
-  const repairedUsers = league.users
-    .filter((user) => {
-      if (seenUserIds.has(user.userId)) {
-        repaired = true;
-        return false;
-      }
-
-      seenUserIds.add(user.userId);
-      return true;
-    })
-    .map((user) => {
-      if (user.teamStatus === "vacant" && user.readyForWeek) {
-        repaired = true;
-        return resetReadyState(user);
-      }
-
-      return user;
-    });
-
-  const safeLeague: OnlineLeague = {
-    ...league,
-    currentWeek:
-      Number.isFinite(league.currentWeek) && league.currentWeek >= 1
-        ? Math.floor(league.currentWeek)
-        : 1,
-    currentSeason:
-      league.currentSeason === undefined
-        ? league.currentSeason
-        : normalizeSeasonNumber(league.currentSeason),
-    maxUsers: normalizeMaxUsers(league.maxUsers),
-    weekStatus: isOnlineWeekFlowStatus(league.weekStatus) ? league.weekStatus : "pre_week",
-    users: repairedUsers,
-  };
-
-  if (
-    safeLeague.currentWeek !== league.currentWeek ||
-    safeLeague.currentSeason !== league.currentSeason ||
-    safeLeague.maxUsers !== league.maxUsers ||
-    safeLeague.weekStatus !== league.weekStatus
-  ) {
-    repaired = true;
-  }
-
-  return {
-    league: safeLeague,
-    repaired,
-    issues: before.issues,
-  };
-}
-
-function normalizeSeasonNumber(season: number | undefined) {
-  if (typeof season !== "number" || !Number.isFinite(season)) {
-    return 1;
-  }
-
-  return Math.max(Math.floor(season), 1);
-}
-
 function createLeagueLogEntry(message: string): OnlineLeagueLogEntry {
   const createdAt = new Date().toISOString();
 
@@ -3826,16 +2588,6 @@ function createLeagueEvent(input: Omit<OnlineLeagueEvent, "id" | "createdAt">): 
       12,
     ),
     createdAt,
-  };
-}
-
-function resetReadyState(user: OnlineLeagueUser): OnlineLeagueUser {
-  const userWithoutReadyAt = { ...user };
-  delete userWithoutReadyAt.readyAt;
-
-  return {
-    ...userWithoutReadyAt,
-    readyForWeek: false,
   };
 }
 
@@ -4199,10 +2951,21 @@ export function makeOnlineFantasyDraftPick(
   });
 
   if (!validation.ok) {
+    if (validation.status === "draft-inconsistent") {
+      console.error("[online-draft] blocked by contradictory local draft state", {
+        leagueId,
+        message: validation.message,
+        playerId,
+        teamId,
+      });
+    }
+
     return {
       status:
         validation.status === "wrong-team"
           ? "wrong-team"
+          : validation.status === "draft-inconsistent"
+            ? "draft-inconsistent"
           : validation.status === "draft-not-active" || validation.status === "missing-draft"
             ? "draft-not-active"
             : "player-unavailable",
@@ -4373,6 +3136,31 @@ export function buildOnlineFantasyDraftRosters(
 
   const state = getFantasyDraftState(league);
   const playerPool = getFantasyDraftPlayerPool(league);
+
+  if (state.status === "completed") {
+    const completedAt = state.completedAt ?? new Date().toISOString();
+    const normalizedLeague =
+      league.status === "active" &&
+      league.weekStatus === "ready" &&
+      league.currentWeek === 1 &&
+      league.fantasyDraft?.currentTeamId === "" &&
+      league.fantasyDraft?.completedAt
+        ? league
+        : {
+            ...league,
+            currentWeek: 1,
+            status: "active" as const,
+            weekStatus: "ready" as const,
+            fantasyDraft: {
+              ...state,
+              status: "completed" as const,
+              currentTeamId: "",
+              completedAt,
+            },
+          };
+
+    return normalizedLeague === league ? league : saveOnlineLeague(normalizedLeague, storage);
+  }
 
   if (!isOnlineFantasyDraftComplete(state, playerPool)) {
     return league;
@@ -7809,6 +6597,26 @@ export function joinOnlineLeague(
           };
         })(),
       ],
+      teams: league.teams.some((team) => team.id === getTeamIdentityId(resolvedTeamIdentity))
+        ? league.teams.map((team) =>
+            team.id === getTeamIdentityId(resolvedTeamIdentity)
+              ? {
+                  ...team,
+                  assignedUserId: user.userId,
+                  assignmentStatus: "assigned" as const,
+                }
+              : team,
+          )
+        : [
+            ...league.teams,
+            {
+              id: getTeamIdentityId(resolvedTeamIdentity),
+              name: resolvedTeamIdentity.teamDisplayName,
+              abbreviation: createTeamAbbreviationFromId(getTeamIdentityId(resolvedTeamIdentity)),
+              assignedUserId: user.userId,
+              assignmentStatus: "assigned" as const,
+            },
+          ],
     },
     storage,
   );
@@ -7847,7 +6655,12 @@ export function setOnlineLeagueUserReadyState(
     return league;
   }
 
-  if (!isOnlineLeagueUserActiveWeekParticipant(existingUser)) {
+  const lifecycle = normalizeOnlineCoreLifecycle({
+    currentUser: { userId, username: existingUser.username },
+    league,
+  });
+
+  if (!lifecycle.canSetReady) {
     return league;
   }
 
@@ -8039,24 +6852,34 @@ export function simulateOnlineLeagueWeek(
     return null;
   }
 
-  if (league.fantasyDraft && league.fantasyDraft.status !== "completed") {
-    return league;
-  }
+  const lifecycle = normalizeOnlineLeagueCoreLifecycle({
+    league,
+    requiresDraft: Boolean(league.fantasyDraft),
+  });
 
-  if (league.weekStatus === "simulating") {
-    return league;
-  }
-
-  const readyState = getOnlineLeagueWeekReadyState(league);
-
-  if (!readyState.canSimulate) {
+  if (!lifecycle.canSimulate) {
     return league;
   }
 
   const season = normalizeSeasonNumber(league.currentSeason ?? Math.ceil(league.currentWeek / 18));
   const weekKey = `s${season}-w${league.currentWeek}`;
 
-  if (league.lastSimulatedWeekKey === weekKey || getOnlineMatchResultForWeek(league, season, league.currentWeek)) {
+  const weekProgress = getOnlineLeagueWeekProgressState(league);
+
+  if (
+    lifecycle.phase === "weekCompleted" ||
+    lifecycle.phase === "resultsAvailable" ||
+    lifecycle.phase === "blockedConflict"
+  ) {
+    if (lifecycle.phase === "blockedConflict") {
+      console.error("[online-week-simulation] blocked by contradictory local week state", {
+        conflictCodes: weekProgress.conflictCodes,
+        conflictReasons: lifecycle.reasons,
+        leagueId: league.id,
+        weekKey,
+      });
+    }
+
     return league;
   }
 

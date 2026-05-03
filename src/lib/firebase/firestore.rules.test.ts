@@ -21,6 +21,7 @@ import {
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 const PROJECT_ID = "demo-afbm";
+const UID_ALLOWLISTED_USER = "KFy5PrqAzzP7vRbfP4wIDamzbh43";
 
 describe("firestore security rules", () => {
   let testEnv: RulesTestEnvironment;
@@ -64,6 +65,34 @@ describe("firestore security rules", () => {
     await assertSucceeds(getDoc(doc(aliceDb, "playerStats/player-stat-alpha")));
     await assertSucceeds(getDoc(doc(aliceDb, "teamStats/team-stat-alpha")));
     await assertSucceeds(getDoc(doc(aliceDb, "reports/report-alpha")));
+  });
+
+  it("uses canonical online membership, not the global mirror, for online league scoped reads", async () => {
+    const gmDb = testEnv.authenticatedContext("online-gm").firestore();
+    const mirrorOnlyDb = testEnv.authenticatedContext("mirror-only").firestore();
+
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+
+      await setDoc(doc(db, "teams/online-flat-team"), {
+        createdAt: new Date(),
+        id: "online-flat-team",
+        leagueId: "online-alpha",
+        updatedAt: new Date(),
+      });
+      await setDoc(doc(db, "leagueMembers/online-alpha_mirror-only"), {
+        createdAt: new Date(),
+        id: "online-alpha_mirror-only",
+        leagueId: "online-alpha",
+        role: "GM",
+        status: "ACTIVE",
+        updatedAt: new Date(),
+        userId: "mirror-only",
+      });
+    });
+
+    await assertSucceeds(getDoc(doc(gmDb, "teams/online-flat-team")));
+    await assertFails(getDoc(doc(mirrorOnlyDb, "teams/online-flat-team")));
   });
 
   it("allows league owners to read league scoped documents without a membership row", async () => {
@@ -350,6 +379,25 @@ describe("firestore security rules", () => {
     await assertSucceeds(batch.commit());
   });
 
+  it("blocks post-draft cross-user team roster writes after finalize", async () => {
+    const gmDb = testEnv.authenticatedContext("online-gm").firestore();
+
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+
+      await updateDoc(doc(db, "leagues/online-alpha/draft/main"), {
+        completedAt: new Date(),
+        currentTeamId: "",
+        status: "completed",
+      });
+    });
+
+    await assertFails(updateDoc(doc(gmDb, "leagues/online-alpha/teams/online-team-peer"), {
+      depthChart: [],
+      updatedAt: new Date(),
+    }));
+  });
+
   it("limits online membership and team writes to the authenticated player", async () => {
     const gmDb = testEnv.authenticatedContext("online-gm").firestore();
     const outsiderDb = testEnv.authenticatedContext("online-outsider").firestore();
@@ -545,6 +593,95 @@ describe("firestore security rules", () => {
     await assertFails(getDoc(doc(anonymousDb, "control/weekly-simulation")));
     await assertFails(setDoc(doc(anonymousDb, "control/weekly-simulation"), {
       status: "run",
+    }));
+  });
+
+  it("allows only custom-claim admins to access global admin documents", async () => {
+    const claimAdminDb = testEnv
+      .authenticatedContext("claim-admin", { admin: true })
+      .firestore();
+    const uidAllowlistedWithoutClaimDb = testEnv
+      .authenticatedContext(UID_ALLOWLISTED_USER, { admin: false })
+      .firestore();
+    const gmDb = testEnv.authenticatedContext("online-gm").firestore();
+    const updatedAt = new Date();
+
+    await assertSucceeds(getDoc(doc(claimAdminDb, "admin/global-control")));
+    await assertSucceeds(setDoc(doc(claimAdminDb, "admin/global-control"), {
+      enabled: false,
+      updatedAt,
+    }));
+    await assertFails(getDoc(doc(uidAllowlistedWithoutClaimDb, "admin/global-control")));
+    await assertFails(setDoc(doc(uidAllowlistedWithoutClaimDb, "admin/global-control"), {
+      enabled: false,
+      updatedAt,
+    }));
+    await assertFails(getDoc(doc(gmDb, "admin/global-control")));
+    await assertFails(setDoc(doc(gmDb, "admin/global-control"), {
+      enabled: false,
+      updatedAt,
+    }));
+  });
+
+  it("keeps the admin rules parity matrix explicit", async () => {
+    const updatedAt = new Date();
+    const matrix = [
+      {
+        adminDocumentAllowed: true,
+        db: testEnv.authenticatedContext("claim-admin", { admin: true }).firestore(),
+        label: "custom-claim-admin",
+      },
+      {
+        adminDocumentAllowed: false,
+        db: testEnv.authenticatedContext(UID_ALLOWLISTED_USER, { admin: false }).firestore(),
+        label: "uid-allowlist-without-claim",
+      },
+      {
+        adminDocumentAllowed: false,
+        db: testEnv.authenticatedContext("normal-user", { admin: false }).firestore(),
+        label: "normal-user",
+      },
+      {
+        adminDocumentAllowed: false,
+        db: testEnv.unauthenticatedContext().firestore(),
+        label: "unauthenticated",
+      },
+    ] as const;
+
+    for (const matrixCase of matrix) {
+      const adminDocRef = doc(matrixCase.db, `admin/parity-${matrixCase.label}`);
+      const crossUserReadyRef = doc(
+        matrixCase.db,
+        "leagues/online-alpha/memberships/online-peer",
+      );
+
+      if (matrixCase.adminDocumentAllowed) {
+        await assertSucceeds(getDoc(adminDocRef));
+        await assertSucceeds(setDoc(adminDocRef, {
+          label: matrixCase.label,
+          updatedAt,
+        }));
+      } else {
+        await assertFails(getDoc(adminDocRef));
+        await assertFails(setDoc(adminDocRef, {
+          label: matrixCase.label,
+          updatedAt,
+        }));
+      }
+
+      await assertFails(updateDoc(crossUserReadyRef, {
+        ready: true,
+        lastSeenAt: updatedAt,
+      }));
+    }
+  });
+
+  it("blocks cross-user ready writes even for active league members", async () => {
+    const gmDb = testEnv.authenticatedContext("online-gm").firestore();
+
+    await assertFails(updateDoc(doc(gmDb, "leagues/online-alpha/memberships/online-peer"), {
+      ready: true,
+      lastSeenAt: new Date(),
     }));
   });
 

@@ -41,5 +41,34 @@ export function validateOnlineLeagueRouteState(input: {
     };
   }
 
+  if (leagueUser.teamStatus === "vacant") {
+    return {
+      message: getMissingTeamRecoveryCopy().message,
+      requiresSearch: true,
+    };
+  }
+
+  const assignedTeamExists = input.league.teams.some((team) => team.id === leagueUser.teamId);
+
+  if (!assignedTeamExists) {
+    return {
+      message: getMissingTeamRecoveryCopy().message,
+      requiresSearch: true,
+    };
+  }
+
+  const assignedTeam = input.league.teams.find((team) => team.id === leagueUser.teamId);
+  const teamProjectionUserId = assignedTeam?.assignedUserId;
+
+  if (
+    (teamProjectionUserId && teamProjectionUserId !== leagueUser.userId) ||
+    (assignedTeam?.assignmentStatus === "assigned" && teamProjectionUserId === null)
+  ) {
+    return {
+      message: "Membership-Projektion inkonsistent: Team-Zuordnung weicht von deiner Membership ab.",
+      requiresSearch: true,
+    };
+  }
+
   return null;
 }

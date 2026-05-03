@@ -94,6 +94,14 @@ function simulateWeekFromApi(
     throw new AdminActionError("Liga-ID fehlt.", 400, "ADMIN_ACTION_INVALID");
   }
 
+  if (input.confirmed !== true) {
+    throw new AdminActionError(
+      "Admin-Mutation benötigt eine explizite Bestätigung.",
+      400,
+      "ADMIN_ACTION_POLICY_VIOLATION",
+    );
+  }
+
   return simulateOnlineLeagueWeek(input.leagueId, actor, {
     expectedSeason: input.season,
     expectedWeek: input.week,

@@ -3,6 +3,7 @@ import {
   getAvailableOnlineLeagues,
   getLastOnlineLeagueId,
   getOnlineLeagueById,
+  getOnlineLeagueReadyChangeState,
   joinOnlineLeague,
   makeOnlineFantasyDraftPick,
   setOnlineLeagueUserReadyState,
@@ -25,6 +26,7 @@ import type {
   FirestoreOnlineTeamDoc,
   OnlineAuthenticatedUser,
   OnlineLeagueRepository,
+  OnlineLeagueReadyStepGuard,
   OnlineLeagueRepositoryUnsubscribe,
 } from "../types";
 
@@ -110,8 +112,26 @@ export class LocalOnlineLeagueRepository implements OnlineLeagueRepository {
     );
   }
 
-  async setUserReady(leagueId: string, ready: boolean) {
+  async setUserReady(leagueId: string, ready: boolean, expectedStep?: OnlineLeagueReadyStepGuard) {
     const user = this.storage ? ensureCurrentOnlineUser(this.storage) : ensureCurrentOnlineUser();
+    const league = getOnlineLeagueById(leagueId, this.storage);
+
+    if (
+      league &&
+      expectedStep &&
+      (league.currentSeason !== expectedStep.season || league.currentWeek !== expectedStep.week)
+    ) {
+      throw new Error("Woche wurde bereits weitergeschaltet. Lade die Liga neu.");
+    }
+
+    if (league) {
+      const currentLeagueUser = league.users.find((leagueUser) => leagueUser.userId === user.userId);
+      const readyChangeState = getOnlineLeagueReadyChangeState(league, currentLeagueUser);
+
+      if (!readyChangeState.allowed) {
+        throw new Error(readyChangeState.reason);
+      }
+    }
 
     return setOnlineLeagueUserReadyState(leagueId, user.userId, ready, this.storage);
   }

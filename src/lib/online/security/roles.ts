@@ -63,12 +63,21 @@ export function assertTeamOwner(
   leagueId: string,
   teamId: string,
   teams: FirestoreOnlineTeamDoc[],
+  memberships: FirestoreOnlineMembershipDoc[],
 ) {
+  const membership = assertActiveMembership(userId, leagueId, memberships);
+
+  if (membership.teamId !== teamId) {
+    throw new OnlineAuthorizationError(
+      `User ${userId} is not assigned to team ${teamId} by active membership in ${leagueId}.`,
+    );
+  }
+
   const team = teams.find((candidate) => candidate.id === teamId);
 
   if (!team || team.assignedUserId !== userId || team.status !== "assigned") {
     throw new OnlineAuthorizationError(
-      `User ${userId} does not control team ${teamId} in ${leagueId}.`,
+      `Membership projection conflict for user ${userId} and team ${teamId} in ${leagueId}.`,
     );
   }
 

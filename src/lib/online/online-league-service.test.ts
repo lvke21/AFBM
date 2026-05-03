@@ -34,6 +34,7 @@ import {
   repairOnlineLeagueState,
   type OnlineLeague,
 } from "./online-league-service";
+import { buildOnlineLeagueTeamRecords } from "./online-league-week-simulation";
 import type { TeamIdentitySelection } from "./team-identity-options";
 
 const BERLIN_WOLVES: TeamIdentitySelection = {
@@ -345,6 +346,37 @@ describe("online-league-service", () => {
     ]);
   });
 
+  it("keeps parallel join attempts from assigning the same team twice", async () => {
+    const storage = new MemoryStorage();
+    const league = createOnlineLeague({ name: "Parallel Join League", maxUsers: 2 }, storage);
+    const [firstJoin, secondJoin] = await Promise.all([
+      Promise.resolve().then(() =>
+        joinOnlineLeague(
+          league.id,
+          { userId: "user-1", username: "Coach_1234" },
+          BERLIN_WOLVES,
+          storage,
+        ),
+      ),
+      Promise.resolve().then(() =>
+        joinOnlineLeague(
+          league.id,
+          { userId: "user-2", username: "Coach_5678" },
+          BERLIN_WOLVES,
+          storage,
+        ),
+      ),
+    ]);
+    const storedLeague = getOnlineLeagueById(league.id, storage);
+
+    expect([firstJoin.status, secondJoin.status].filter((status) => status === "joined"))
+      .toHaveLength(1);
+    expect([firstJoin.status, secondJoin.status]).toContain("team-identity-taken");
+    expect(storedLeague?.users).toHaveLength(1);
+    expect(storedLeague?.users[0]?.teamDisplayName).toBe("Berlin Wolves");
+    expect(new Set(storedLeague?.users.map((user) => user.teamId)).size).toBe(1);
+  });
+
   it("blocks joining without a selected team identity", () => {
     const storage = new MemoryStorage();
 
@@ -441,6 +473,30 @@ describe("online-league-service", () => {
     expect(reloadedLeague?.users).toHaveLength(1);
     expect(reloadedLeague?.users[0]?.userId).toBe("user-1");
     expect(reloadedLeague?.users[0]?.teamDisplayName).toBe("Berlin Wolves");
+  });
+
+  it("adds the selected team identity to the league team catalog", () => {
+    const storage = new MemoryStorage();
+
+    joinOnlineLeague(
+      "global-test-league",
+      { userId: "user-1", username: "Coach_1234" },
+      BERLIN_WOLVES,
+      storage,
+    );
+
+    const reloadedLeague = getOnlineLeagueById("global-test-league", storage);
+
+    expect(reloadedLeague?.teams).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "berlin-wolves",
+          name: "Berlin Wolves",
+          assignedUserId: "user-1",
+          assignmentStatus: "assigned",
+        }),
+      ]),
+    );
   });
 
   it("creates an admin league without removing the global test league", () => {
@@ -901,6 +957,63 @@ describe("online-league-service", () => {
     expect(duplicateClickAttempt?.completedWeeks).toEqual(simulated?.completedWeeks);
   });
 
+  it("keeps parallel week simulation requests from writing duplicate results", async () => {
+    const storage = new MemoryStorage();
+    const league = createOnlineLeague(
+      {
+        name: "Parallel Week League",
+        maxUsers: 4,
+      },
+      storage,
+    );
+
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-1", username: "Coach_1234" },
+      BERLIN_WOLVES,
+      storage,
+    );
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-2", username: "Coach_5678" },
+      ZURICH_FORGE,
+      storage,
+    );
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-3", username: "Coach_9012" },
+      PARIS_GUARDIANS,
+      storage,
+    );
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-4", username: "Coach_3456" },
+      LONDON_TITANS,
+      storage,
+    );
+    completeFantasyDraftForTest(league.id, storage);
+    setAllOnlineLeagueUsersReady(league.id, storage);
+
+    const [firstSimulation, secondSimulation] = await Promise.all([
+      Promise.resolve().then(() =>
+        simulateOnlineLeagueWeek(league.id, storage, { simulatedByUserId: "admin-race-a" }),
+      ),
+      Promise.resolve().then(() =>
+        simulateOnlineLeagueWeek(league.id, storage, { simulatedByUserId: "admin-race-b" }),
+      ),
+    ]);
+    const storedLeague = getOnlineLeagueById(league.id, storage);
+
+    expect(firstSimulation?.currentWeek).toBe(2);
+    expect(secondSimulation?.currentWeek).toBe(2);
+    expect(storedLeague?.currentWeek).toBe(2);
+    expect(storedLeague?.completedWeeks?.filter((week) => week.weekKey === "s1-w1"))
+      .toHaveLength(1);
+    expect(storedLeague?.matchResults).toHaveLength(2);
+    expect(new Set(storedLeague?.matchResults?.map((result) => result.matchId)).size).toBe(2);
+    expect(storedLeague?.users.every((user) => !user.readyForWeek && !user.readyAt)).toBe(true);
+  });
+
   it("does not simulate the current week until every active team is ready", () => {
     const storage = new MemoryStorage();
     const league = createOnlineLeague({ name: "Blocked Results League" }, storage);
@@ -924,6 +1037,64 @@ describe("online-league-service", () => {
     expect(blockedLeague?.currentWeek).toBe(1);
     expect(blockedLeague?.matchResults ?? []).toHaveLength(0);
     expect(getOnlineLeagueWeekReadyState(blockedLeague!).allReady).toBe(false);
+  });
+
+  it("persists results, standings and next week after reload", () => {
+    const storage = new MemoryStorage();
+    const league = createOnlineLeague({ name: "Reload Standings League", maxUsers: 4 }, storage);
+
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-1", username: "Coach_1234" },
+      BERLIN_WOLVES,
+      storage,
+    );
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-2", username: "Coach_5678" },
+      ZURICH_FORGE,
+      storage,
+    );
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-3", username: "Coach_9012" },
+      PARIS_GUARDIANS,
+      storage,
+    );
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-4", username: "Coach_3456" },
+      LONDON_TITANS,
+      storage,
+    );
+    completeFantasyDraftForTest(league.id, storage);
+    setAllOnlineLeagueUsersReady(league.id, storage);
+
+    const simulated = simulateOnlineLeagueWeek(league.id, storage, {
+      simulatedByUserId: "reload-admin",
+    });
+    const reloaded = getOnlineLeagueById(league.id, storage);
+
+    expect(simulated?.currentWeek).toBe(2);
+    expect(reloaded?.currentWeek).toBe(2);
+    expect(reloaded?.matchResults).toEqual(simulated?.matchResults);
+    const reloadedStandings = reloaded
+      ? buildOnlineLeagueTeamRecords(reloaded, "reload-check")
+      : [];
+    const playedStandings = reloadedStandings.filter((record) => record.gamesPlayed > 0);
+
+    expect(playedStandings).toHaveLength(4);
+    expect(
+      playedStandings.reduce((sum, record) => sum + record.gamesPlayed, 0),
+    ).toBe(4);
+    expect(
+      playedStandings.every(
+        (record) =>
+          record.pointDifferential === record.pointsFor - record.pointsAgainst &&
+          record.updatedAt,
+      ),
+    ).toBe(true);
+    expect(reloaded?.users.every((user) => !user.readyForWeek)).toBe(true);
   });
 
   it("does not advance a week that is already marked as simulating", () => {
@@ -1036,6 +1207,41 @@ describe("online-league-service", () => {
       readyForWeek: false,
     });
     expect(unchangedUser).not.toHaveProperty("readyAt");
+  });
+
+  it("keeps parallel ready toggles consistent for active GMs", async () => {
+    const storage = new MemoryStorage();
+
+    joinOnlineLeague(
+      "global-test-league",
+      { userId: "user-1", username: "Coach_1234" },
+      BERLIN_WOLVES,
+      storage,
+    );
+    joinOnlineLeague(
+      "global-test-league",
+      { userId: "user-2", username: "Coach_5678" },
+      ZURICH_FORGE,
+      storage,
+    );
+    completeFantasyDraftForTest("global-test-league", storage);
+
+    const [firstReady, secondReady] = await Promise.all([
+      Promise.resolve().then(() =>
+        setOnlineLeagueUserReadyState("global-test-league", "user-1", true, storage),
+      ),
+      Promise.resolve().then(() =>
+        setOnlineLeagueUserReadyState("global-test-league", "user-2", true, storage),
+      ),
+    ]);
+    const storedLeague = getOnlineLeagueById("global-test-league", storage);
+
+    expect(firstReady?.users).toHaveLength(2);
+    expect(secondReady?.users).toHaveLength(2);
+    expect(storedLeague?.users).toHaveLength(2);
+    expect(storedLeague?.users.every((user) => user.readyForWeek)).toBe(true);
+    expect(storedLeague?.users.every((user) => typeof user.readyAt === "string")).toBe(true);
+    expect(getOnlineLeagueWeekReadyState(storedLeague!).readyCount).toBe(2);
   });
 
   it("lets an active user take ready back and keeps the state after reload", () => {

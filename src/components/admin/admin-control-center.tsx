@@ -17,12 +17,17 @@ import {
 import { getFirebaseClientConfig } from "@/lib/firebase/client";
 import { getOnlineFirebaseAuth } from "@/lib/online/auth/online-auth";
 import { getOnlineBackendMode } from "@/lib/online/online-league-repository-provider";
-import { getOnlineLeagueWeekReadyState } from "@/lib/online/online-league-week-service";
-import { getCurrentWeekGames } from "@/lib/online/online-league-week-simulation";
+import {
+  normalizeOnlineLeagueCoreLifecycle,
+  type OnlineCoreLifecycleState,
+} from "@/lib/online/online-league-lifecycle";
+import {
+  getCurrentWeekGames,
+} from "@/lib/online/online-league-week-simulation";
 import type { OnlineLeague } from "@/lib/online/online-league-types";
 
 type HighlightTarget = "create" | "leagues" | null;
-type HubPendingAction = "simulate-week" | "complete-week" | null;
+type HubPendingAction = "simulate-week" | null;
 type AdminActionResponse = {
   ok: boolean;
   message: string;
@@ -86,28 +91,21 @@ function getAdminHubWeekBlockReason(league: OnlineLeague | null) {
     return "Wähle zuerst eine Liga aus.";
   }
 
-  const readyState = getOnlineLeagueWeekReadyState(league);
-  const currentWeekGameCount = getCurrentWeekScheduledGameCount(league);
+  const lifecycle = normalizeAdminHubLifecycle(league);
 
-  if (league.status !== "active") {
-    return "Liga ist noch nicht aktiv.";
-  }
-
-  if (league.fantasyDraft && league.fantasyDraft.status !== "completed") {
-    return "Fantasy Draft ist noch nicht abgeschlossen.";
-  }
-
-  if (currentWeekGameCount === 0) {
-    return "Für die aktuelle Woche sind keine Games vorhanden.";
-  }
-
-  if (!readyState.canSimulate) {
-    return readyState.missingParticipants.length > 0
-      ? `${readyState.missingParticipants.length} aktive Team${readyState.missingParticipants.length === 1 ? "" : "s"} fehlen noch im Ready-State.`
-      : "Week-Simulation ist aktuell gesperrt.";
+  if (!lifecycle?.canSimulate) {
+    return lifecycle?.reasons[0] ?? "Simulation ist aktuell gesperrt.";
   }
 
   return null;
+}
+
+function normalizeAdminHubLifecycle(league: OnlineLeague | null): OnlineCoreLifecycleState | null {
+  if (!league) {
+    return null;
+  }
+
+  return normalizeOnlineLeagueCoreLifecycle({ league, requiresDraft: true });
 }
 
 export function AdminControlCenter() {
@@ -123,7 +121,8 @@ export function AdminControlCenter() {
   const backendMode = getOnlineBackendMode();
   const uid = authState.user?.uid ?? null;
   const uidAllowlisted = isAdminUid(uid);
-  const readyState = selectedLeague ? getOnlineLeagueWeekReadyState(selectedLeague) : null;
+  const lifecycle = normalizeAdminHubLifecycle(selectedLeague);
+  const readyState = lifecycle?.readyState ?? null;
   const selectedLeagueGameCount = selectedLeague
     ? getCurrentWeekScheduledGameCount(selectedLeague)
     : 0;
@@ -215,7 +214,7 @@ export function AdminControlCenter() {
 
   function handleDebugTools() {
     setDebugVisible(true);
-    setNotice("Debug Tools sind geöffnet.");
+    setNotice("Debug/Repair ist geöffnet.");
     window.setTimeout(() => focusElement("admin-debug-tools"), 0);
   }
 
@@ -229,6 +228,7 @@ export function AdminControlCenter() {
       body: JSON.stringify({
         action,
         backendMode,
+        confirmed: true,
         localState: backendMode !== "firebase" ? getLocalAdminBrowserState() : undefined,
         ...payload,
       }),
@@ -243,7 +243,7 @@ export function AdminControlCenter() {
     return result;
   }
 
-  async function runSelectedLeagueWeekAction(kind: Exclude<HubPendingAction, null>) {
+  async function runSelectedLeagueWeekAction() {
     if (!selectedLeague || pendingHubAction) {
       return;
     }
@@ -255,17 +255,11 @@ export function AdminControlCenter() {
       return;
     }
 
-    const actionLabel = kind === "complete-week" ? "Woche abschließen" : "Woche simulieren";
-    const actionImpact =
-      kind === "complete-week"
-        ? [
-            "Diese Aktion simuliert die aktuelle Woche, speichert Ergebnisse und erhöht danach den Week-State, sofern die Admin API die Woche erfolgreich abschließt.",
-            "Sie verändert Liga-Daten, Team-Records und gespeicherte Game Results.",
-          ].join("\n")
-        : [
-            "Diese Aktion simuliert alle Games der aktuellen Woche und speichert die Ergebnisse.",
-            "Sie verändert Liga-Daten, Team-Records und gespeicherte Game Results.",
-          ].join("\n");
+    const actionLabel = "Woche simulieren und abschließen";
+    const actionImpact = [
+      "Diese Aktion prüft die Preconditions, simuliert alle Games der aktuellen Woche, speichert Ergebnisse und Team-Records und erhöht danach den Week-State.",
+      "Sie verändert Liga-Daten, Team-Records und gespeicherte Game Results.",
+    ].join("\n");
     const confirmed = window.confirm(
       [
         `${actionLabel} für "${selectedLeague.name}"?`,
@@ -284,7 +278,7 @@ export function AdminControlCenter() {
       return;
     }
 
-    setPendingHubAction(kind);
+    setPendingHubAction("simulate-week");
     setNotice(`${actionLabel} läuft...`);
 
     try {
@@ -308,7 +302,7 @@ export function AdminControlCenter() {
 
   function handleSelectedLeagueChange(league: OnlineLeague) {
     setSelectedLeague(league);
-    setNotice(`${league.name} ist für Simulation & Woche ausgewählt.`);
+    setNotice(`${league.name} ist für die Simulation ausgewählt.`);
   }
 
   return (
@@ -361,18 +355,18 @@ export function AdminControlCenter() {
                     </p>
                     <div className="mt-3 grid gap-3">
                       <AdminActionButton
-                        description="Öffnet die ausgewählte Liga für Week-State, Simulation und Abschluss."
+                        description="Öffnet die ausgewählte Liga mit Preconditions, Games, Results und Standings."
                         onClick={handleSimulationAndWeek}
                         tone="warning"
                       >
-                        Simulation & Woche
+                        Simulation öffnen
                       </AdminActionButton>
                       <AdminActionButton
-                        description="Zeigt Memberships, unzugewiesene Teams und aktuelle Admin-Umgebung."
+                        description="Zeigt Memberships, unzugewiesene Teams und sichere Reparaturhinweise."
                         onClick={handleDebugTools}
                         tone="debug"
                       >
-                        Debug Tools
+                        Debug/Repair öffnen
                       </AdminActionButton>
                     </div>
                   </div>
@@ -400,11 +394,11 @@ export function AdminControlCenter() {
                 canRunWeekAction={canRunSelectedLeagueWeekAction}
                 currentWeekGameCount={selectedLeagueGameCount}
                 league={selectedLeague}
+                lifecycle={lifecycle}
                 pendingHubAction={pendingHubAction}
                 readyCount={readyState?.readyCount ?? 0}
                 requiredReadyCount={readyState?.requiredCount ?? 0}
                 weekBlockReason={selectedLeagueBlockReason}
-                onCompleteWeek={() => void runSelectedLeagueWeekAction("complete-week")}
                 onDebug={() => {
                   setDebugVisible(true);
                   window.setTimeout(() => focusElement("admin-debug-tools"), 0);
@@ -419,7 +413,7 @@ export function AdminControlCenter() {
                     `Draft-Status ${selectedLeague.name}: ${selectedLeague.fantasyDraft?.status ?? "completed"}.`,
                   );
                 }}
-                onSimulateWeek={() => void runSelectedLeagueWeekAction("simulate-week")}
+                onSimulateWeek={() => void runSelectedLeagueWeekAction()}
               />
 
               <AdminLeagueManager
@@ -450,11 +444,11 @@ function AdminHubOverview({
   canRunWeekAction,
   currentWeekGameCount,
   league,
+  lifecycle,
   pendingHubAction,
   readyCount,
   requiredReadyCount,
   weekBlockReason,
-  onCompleteWeek,
   onDebug,
   onDraftCheck,
   onSimulateWeek,
@@ -462,16 +456,17 @@ function AdminHubOverview({
   canRunWeekAction: boolean;
   currentWeekGameCount: number;
   league: OnlineLeague | null;
+  lifecycle: OnlineCoreLifecycleState | null;
   pendingHubAction: HubPendingAction;
   readyCount: number;
   requiredReadyCount: number;
   weekBlockReason: string | null;
-  onCompleteWeek: () => void;
   onDebug: () => void;
   onDraftCheck: () => void;
   onSimulateWeek: () => void;
 }) {
-  const draftStatus = league?.fantasyDraft?.status ?? "completed";
+  const draftStatus = lifecycle?.draftStatus ?? "missing";
+  const lifecyclePhase = lifecycle?.phase ?? "noLeague";
   const statusTone = weekBlockReason ? "text-amber-100" : "text-emerald-100";
 
   return (
@@ -510,7 +505,11 @@ function AdminHubOverview({
         />
         <OverviewMetric
           label="Week-State"
-          value={league ? `S${league.currentSeason ?? 1} W${league.currentWeek} · ${league.weekStatus ?? "pre_week"}` : "n/a"}
+          value={
+            lifecycle
+              ? `S${lifecycle.currentSeason ?? 1} W${lifecycle.currentWeek ?? 1} · ${lifecyclePhase}`
+              : "n/a"
+          }
         />
         <OverviewMetric label="Draft-State" value={draftStatus} />
       </div>
@@ -530,7 +529,15 @@ function AdminHubOverview({
           )}
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[420px]">
+        <div className="grid gap-3 lg:min-w-[420px]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sky-200">
+              Simulation
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-400">
+              Eine serverseitige Aktion: simulieren, Ergebnisse speichern, Standings aktualisieren und nächste Woche vorbereiten.
+            </p>
+          </div>
           <button
             type="button"
             disabled={!canRunWeekAction || pendingHubAction !== null}
@@ -538,25 +545,17 @@ function AdminHubOverview({
             className="rounded-lg border border-sky-200/25 bg-sky-300/10 px-4 py-3 text-sm font-semibold text-sky-50 transition hover:bg-sky-300/16 disabled:cursor-not-allowed disabled:opacity-55"
           >
             <span className="block">
-              {pendingHubAction === "simulate-week" ? "Simulation läuft..." : "Woche simulieren"}
+              {pendingHubAction === "simulate-week" ? "Simulation läuft..." : "Woche simulieren und abschließen"}
             </span>
             <span className="mt-1 block text-xs font-medium leading-5 opacity-80">
-              Simulation · schreibt Ergebnisse und Records
+              Prüft Spielplan, Teams, Kader, Bereit-Status und doppelte Simulation.
             </span>
           </button>
-          <button
-            type="button"
-            disabled={!canRunWeekAction || pendingHubAction !== null}
-            onClick={onCompleteWeek}
-            className="rounded-lg border border-amber-200/25 bg-amber-300/10 px-4 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-300/16 disabled:cursor-not-allowed disabled:opacity-55"
-          >
-            <span className="block">
-              {pendingHubAction === "complete-week" ? "Abschluss läuft..." : "Woche abschließen"}
-            </span>
-            <span className="mt-1 block text-xs font-medium leading-5 opacity-80">
-              Week-State · nur nach Confirm ausführen
-            </span>
-          </button>
+          <div className="mt-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-200">
+              Debug/Repair
+            </p>
+          </div>
           <button
             type="button"
             disabled={!league}
@@ -565,9 +564,14 @@ function AdminHubOverview({
           >
             <span className="block">Debug-Status anzeigen</span>
             <span className="mt-1 block text-xs font-medium leading-5 opacity-80">
-              Debug · Memberships und Team-Zuweisungen
+              Debug · Mitgliedschaften und Team-Zuweisungen
             </span>
           </button>
+          <div className="mt-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+              Übersicht
+            </p>
+          </div>
           <button
             type="button"
             disabled={!league}
@@ -603,7 +607,7 @@ function AdminDebugPanel({
     claimAdmin === true
       ? "Admin via Custom Claim"
       : uidAllowlisted
-        ? "Admin via UID-Allowlist"
+        ? "UID-Allowlist: Bootstrap-Hinweis, kein Adminzugang ohne Claim"
         : "Kein Adminstatus erkannt";
   const debugState = league ? buildAdminHubDebugState(league, uid) : null;
 
@@ -614,7 +618,7 @@ function AdminDebugPanel({
       className="mt-6 rounded-lg border border-sky-200/20 bg-sky-300/5 p-5 outline-none focus-visible:ring-2 focus-visible:ring-sky-200/35"
     >
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">
-        Debug Tools
+        Debug/Repair
       </p>
       <h2 className="mt-2 text-2xl font-semibold text-white">Admin Debug Snapshot</h2>
       <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
@@ -622,7 +626,7 @@ function AdminDebugPanel({
         <DebugItem label="Adminstatus" value={adminLabel} />
         <DebugItem label="Claim admin" value={claimAdmin === null ? "Unbekannt" : String(claimAdmin)} />
         <DebugItem label="UID-Allowlist" value={String(uidAllowlisted)} />
-        <DebugItem label="Backend-Modus" value={backendMode} />
+        <DebugItem label="Datenquelle" value={backendMode} />
         <DebugItem label="Firebase Projekt" value={firebaseProjectId} />
         <DebugItem label="Deploy Env" value={process.env.NEXT_PUBLIC_AFBM_DEPLOY_ENV ?? "Nicht gesetzt"} />
         <DebugItem label="Build Env" value={process.env.NODE_ENV} />

@@ -27,7 +27,7 @@ export function FinanceDecisionPanel({ team }: FinanceDecisionPanelProps) {
   return (
     <section className="rounded-lg border border-white/10 bg-white/5 p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-        GM Decisions
+        Manager-Entscheidungen
       </p>
       <h2 className="mt-2 text-xl font-semibold text-white">Finanzielle Prioritaeten</h2>
       <p className="mt-2 text-sm text-slate-300">

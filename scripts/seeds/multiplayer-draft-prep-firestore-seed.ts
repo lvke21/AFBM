@@ -45,6 +45,7 @@ type DraftPlayerResult =
       status:
         | "missing-league"
         | "missing-draft"
+        | "draft-inconsistent"
         | "draft-not-active"
         | "missing-team"
         | "wrong-team"

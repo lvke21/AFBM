@@ -78,7 +78,7 @@ export function PostGameConsequencesPanel({ state }: PostGameConsequencesPanelPr
           </p>
           <h2 className="mt-2 text-xl font-semibold text-white">What This Means For Next Week</h2>
         </div>
-        <StatusBadge label="GM Takeaway" tone="active" />
+        <StatusBadge label="Manager-Fazit" tone="active" />
       </div>
 
       <div className="mt-5 grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">

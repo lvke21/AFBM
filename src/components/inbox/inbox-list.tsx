@@ -102,7 +102,7 @@ export function InboxList({ saveGameId, state, updateTaskAction }: InboxListProp
   return (
     <SectionPanel
       title="Inbox / Aufgaben"
-      description="Persistente GM-Tasks mit Status, Prioritaet und direkter Aktion."
+      description="Manager-Aufgaben mit Status, Prioritaet und direkter Aktion."
     >
       <div className="mb-5 flex flex-wrap gap-2">
         {FILTERS.map((filter) => {

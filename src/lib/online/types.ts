@@ -275,17 +275,31 @@ export type FirestoreOnlineAdminLogDoc = {
 
 export type OnlineLeagueRepositoryUnsubscribe = () => void;
 
+export type OnlineLeagueReadOptions = {
+  includeDraftPlayerPool?: boolean;
+  draftPlayerLimit?: number;
+};
+
+export type OnlineLeagueReadyStepGuard = {
+  season: number;
+  week: number;
+};
+
 export type OnlineLeagueRepository = {
   readonly mode: OnlineBackendMode;
   getCurrentUser(): Promise<OnlineAuthenticatedUser>;
   createLeague(input: CreateOnlineLeagueInput): Promise<OnlineLeague>;
   getAvailableLeagues(): Promise<OnlineLeague[]>;
-  getLeagueById(leagueId: string): Promise<OnlineLeague | null>;
+  getLeagueById(leagueId: string, options?: OnlineLeagueReadOptions): Promise<OnlineLeague | null>;
   joinLeague(
     leagueId: string,
     teamIdentity?: TeamIdentitySelection,
   ): Promise<JoinOnlineLeagueResult>;
-  setUserReady(leagueId: string, ready: boolean): Promise<OnlineLeague | null>;
+  setUserReady(
+    leagueId: string,
+    ready: boolean,
+    expectedStep?: OnlineLeagueReadyStepGuard,
+  ): Promise<OnlineLeague | null>;
   updateDepthChart(
     leagueId: string,
     depthChart: OnlineDepthChartEntry[],
@@ -302,6 +316,7 @@ export type OnlineLeagueRepository = {
     leagueId: string,
     onNext: (league: OnlineLeague | null) => void,
     onError?: (error: Error) => void,
+    options?: OnlineLeagueReadOptions,
   ): OnlineLeagueRepositoryUnsubscribe;
   subscribeToAvailableLeagues(
     onNext: (leagues: OnlineLeague[]) => void,
@@ -349,6 +364,20 @@ export type FirestoreOnlineLeagueSnapshot = {
   draftAvailablePlayers?: FirestoreOnlineDraftAvailablePlayerDoc[];
 };
 
+function isCanonicalActiveMembership(membership: FirestoreOnlineMembershipDoc) {
+  if (membership.role === "admin" && !membership.teamId) {
+    return false;
+  }
+
+  return membership.status === "active";
+}
+
+function mapFirestoreMembershipTeamStatus(team: FirestoreOnlineTeamDoc | undefined) {
+  return !team || team.status === "available" || team.status === "vacant"
+    ? "vacant"
+    : "occupied";
+}
+
 export function mapFirestoreStatusToLocalStatus(
   status: FirestoreOnlineLeagueStatus,
 ): OnlineLeague["status"] {
@@ -370,8 +399,13 @@ export function mapLocalTeamToFirestoreTeam(
   };
 }
 
+export type FirestoreOnlineLeagueMapperOptions = {
+  allowLegacyDraftFallback?: boolean;
+};
+
 export function mapFirestoreSnapshotToOnlineLeague(
   snapshot: FirestoreOnlineLeagueSnapshot,
+  options: FirestoreOnlineLeagueMapperOptions = {},
 ): OnlineLeague {
   const teamsById = new Map(snapshot.teams.map((team) => [team.id, team]));
   const subcollectionDraft = mapFirestoreDraftStateFromSubcollections(
@@ -384,6 +418,12 @@ export function mapFirestoreSnapshotToOnlineLeague(
     snapshot.draftAvailablePlayers,
     snapshot.draftState?.draftRunId,
   );
+  const legacyDraft = options.allowLegacyDraftFallback
+    ? mapFirestoreFantasyDraftState(snapshot.league.settings.fantasyDraft)
+    : undefined;
+  const legacyPlayerPool = options.allowLegacyDraftFallback
+    ? mapFirestoreFantasyDraftPlayerPool(snapshot.league.settings.fantasyDraftPlayerPool)
+    : undefined;
 
   return {
     id: snapshot.league.id,
@@ -403,7 +443,7 @@ export function mapFirestoreSnapshotToOnlineLeague(
     })),
     schedule: snapshot.league.schedule ?? [],
     users: snapshot.memberships
-      .filter((membership) => membership.status !== "removed" && membership.teamId)
+      .filter(isCanonicalActiveMembership)
       .map((membership) => {
         const team = teamsById.get(membership.teamId);
 
@@ -419,7 +459,7 @@ export function mapFirestoreSnapshotToOnlineLeague(
           teamDisplayName: team?.displayName ?? membership.teamId,
           depthChart: team?.depthChart,
           contractRoster: team?.contractRoster,
-          teamStatus: team?.status === "vacant" ? "vacant" : "occupied",
+          teamStatus: mapFirestoreMembershipTeamStatus(team),
           readyForWeek: membership.ready,
         };
     }),
@@ -427,10 +467,8 @@ export function mapFirestoreSnapshotToOnlineLeague(
     completedWeeks: snapshot.league.completedWeeks ?? [],
     standings: snapshot.league.standings ?? [],
     lastSimulatedWeekKey: snapshot.league.lastSimulatedWeekKey,
-    fantasyDraft: subcollectionDraft ?? mapFirestoreFantasyDraftState(snapshot.league.settings.fantasyDraft),
-    fantasyDraftPlayerPool: subcollectionPlayerPool ?? mapFirestoreFantasyDraftPlayerPool(
-      snapshot.league.settings.fantasyDraftPlayerPool,
-    ),
+    fantasyDraft: subcollectionDraft ?? legacyDraft,
+    fantasyDraftPlayerPool: subcollectionPlayerPool ?? legacyPlayerPool,
     events: snapshot.events?.map((event) => ({
       id: `${event.type}-${event.createdAt}`,
       eventType: event.type as never,

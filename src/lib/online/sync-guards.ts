@@ -53,6 +53,54 @@ export function createOrderedAsyncEmitter<T>(
   };
 }
 
+export function createCoalescedAsyncEmitter<T>(
+  onNext: (value: T) => void,
+  onError?: (error: Error) => void,
+  fallbackMessage = "Online-Daten konnten nicht synchronisiert werden.",
+  delayMs = 25,
+): OrderedAsyncEmitter<T> {
+  const inner = createOrderedAsyncEmitter(onNext, onError, fallbackMessage);
+  let active = true;
+  let pendingLoad: (() => Promise<T> | T) | null = null;
+  let pendingTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function flush() {
+    pendingTimer = null;
+
+    if (!active || !pendingLoad) {
+      pendingLoad = null;
+      return;
+    }
+
+    const load = pendingLoad;
+    pendingLoad = null;
+    inner.emit(load);
+  }
+
+  return {
+    emit(load) {
+      pendingLoad = load;
+
+      if (pendingTimer) {
+        return;
+      }
+
+      pendingTimer = setTimeout(flush, delayMs);
+    },
+    close() {
+      active = false;
+
+      if (pendingTimer) {
+        clearTimeout(pendingTimer);
+        pendingTimer = null;
+      }
+
+      pendingLoad = null;
+      inner.close();
+    },
+  };
+}
+
 function normalizeDepthChartForSync(depthChart: OnlineDepthChartEntry[] | undefined) {
   return (depthChart ?? []).map((entry) => ({
     position: entry.position,

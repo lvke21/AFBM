@@ -15,7 +15,7 @@ import type { OnlineLeague } from "@/lib/online/online-league-types";
 import { getOnlineRecoveryCopy } from "@/lib/online/error-recovery";
 import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository-provider";
 import { getOnlineLeagueById } from "@/lib/online/online-league-service";
-import type { OnlineLeagueRepository } from "@/lib/online/types";
+import type { OnlineLeagueReadOptions, OnlineLeagueRepository } from "@/lib/online/types";
 import { ensureCurrentOnlineUser, type OnlineUser } from "@/lib/online/online-user-service";
 import { validateOnlineLeagueRouteState } from "./online-league-route-state-model";
 
@@ -32,7 +32,10 @@ export type OnlineLeagueRouteState = {
 
 const OnlineLeagueRouteStateContext = createContext<OnlineLeagueRouteState | null>(null);
 
-export function useOnlineLeagueRouteStateValue(leagueId: string): OnlineLeagueRouteState {
+export function useOnlineLeagueRouteStateValue(
+  leagueId: string,
+  readOptions?: OnlineLeagueReadOptions,
+): OnlineLeagueRouteState {
   const repository = useMemo(() => getOnlineLeagueRepository(), []);
   const [league, setLeague] = useState<OnlineLeague | null>(null);
   const [currentUser, setCurrentUser] = useState<OnlineUser | null>(null);
@@ -40,6 +43,13 @@ export function useOnlineLeagueRouteStateValue(leagueId: string): OnlineLeagueRo
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadErrorRequiresSearch, setLoadErrorRequiresSearch] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
+  const repositoryReadOptions = useMemo<OnlineLeagueReadOptions>(
+    () => ({
+      draftPlayerLimit: readOptions?.draftPlayerLimit,
+      includeDraftPlayerPool: readOptions?.includeDraftPlayerPool,
+    }),
+    [readOptions?.draftPlayerLimit, readOptions?.includeDraftPlayerPool],
+  );
 
   function retryLoad() {
     setLoaded(false);
@@ -124,7 +134,7 @@ export function useOnlineLeagueRouteStateValue(leagueId: string): OnlineLeagueRo
       setCurrentUser(user);
 
       try {
-        const initialLeague = await repository.getLeagueById(leagueId);
+        const initialLeague = await repository.getLeagueById(leagueId, repositoryReadOptions);
 
         if (!active) {
           return;
@@ -171,6 +181,7 @@ export function useOnlineLeagueRouteStateValue(leagueId: string): OnlineLeagueRo
               recovery.kind === "permission" || recovery.kind === "not-found",
             );
           },
+          repositoryReadOptions,
         );
       } catch (error) {
         if (!active) {
@@ -204,7 +215,12 @@ export function useOnlineLeagueRouteStateValue(leagueId: string): OnlineLeagueRo
       active = false;
       unsubscribe();
     };
-  }, [leagueId, repository, reloadToken]);
+  }, [
+    leagueId,
+    repository,
+    repositoryReadOptions,
+    reloadToken,
+  ]);
 
   return {
     repository,

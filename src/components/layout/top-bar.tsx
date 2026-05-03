@@ -28,7 +28,7 @@ export function TopBar({ context }: TopBarProps) {
 
       <div className="grid gap-2 text-sm text-slate-300 sm:grid-cols-2">
         <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-          <p className="text-xs uppercase tracking-[0.16em] text-slate-500">GM Team</p>
+          <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Manager-Team</p>
           <p className="mt-1 font-semibold text-white">
             {context.managerTeam
               ? `${context.managerTeam.abbreviation} · ${context.managerTeam.currentRecord}`

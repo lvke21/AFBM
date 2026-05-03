@@ -3,10 +3,33 @@
 import React from "react";
 
 export const ONLINE_GLOSSARY = {
-  gm: {
-    label: "GM",
+  liga: {
+    label: "Liga",
     description:
-      "General Manager: du steuerst Kader, Training, Verträge und Wochenfreigabe deines Teams.",
+      "Gemeinsamer Wettbewerb mit Teams, Managerinnen und Managern, Spielplan und Wochenfortschritt.",
+  },
+  team: {
+    label: "Team",
+    description: "Dein Kader mit Spielern, Depth Chart und Wochenaufgaben.",
+  },
+  manager: {
+    label: "Manager",
+    description:
+      "Person, die ein Team steuert, Training und Kader prüft und die Woche freigibt.",
+  },
+  woche: {
+    label: "Woche",
+    description:
+      "Aktueller Spielabschnitt der Liga. Erst Team und Training prüfen, dann bereit setzen.",
+  },
+  simulation: {
+    label: "Simulation",
+    description: "Berechnung der Spiele einer Woche durch den Admin.",
+  },
+  gm: {
+    label: "Manager",
+    description:
+      "Du steuerst Kader, Training, Verträge und Wochenfreigabe deines Teams.",
   },
   owner: {
     label: "Owner",
@@ -66,7 +89,7 @@ export const ONLINE_GLOSSARY = {
   draft: {
     label: "Draft",
     description:
-      "Auswahl neuer Talente. Teams wählen nacheinander Prospects für ihren zukünftigen Kader.",
+      "Auswahl neuer Talente. Teams wählen nacheinander Spieler für ihren zukünftigen Kader.",
   },
   trainingFocus: {
     label: "Trainingsfokus",
@@ -114,14 +137,13 @@ export const ONLINE_GLOSSARY = {
       "Vertrauen des Owners in deine Arbeit. Es verändert sich durch Ergebnisse, Ziele und Fan-Druck.",
   },
   readyState: {
-    label: "Ready-State",
+    label: "Bereit-Status",
     description:
       "Dein Signal: Team und Woche sind für dich bereit. Danach wartest du auf andere Spieler oder den Admin.",
   },
   weekSimulation: {
-    label: "Wochen-Simulation",
-    description:
-      "Wochenberechnung der Liga. Der Admin startet sie, danach werden die vorbereiteten Teams simuliert.",
+    label: "Simulation",
+    description: "Berechnung der Spiele einer Woche durch den Admin.",
   },
 } as const;
 

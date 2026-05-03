@@ -205,6 +205,160 @@ describe("fantasy-draft-service", () => {
     expect(storedState?.availablePlayerIds).not.toContain(player.playerId);
   });
 
+  it("blocks stale same-team parallel picks for the same pick slot", () => {
+    const storage = new MemoryStorage();
+    const league = createFilledDraftLeague(storage, 2);
+    const initialized = initializeFantasyDraft(league.id, storage);
+    const state = initialized?.fantasyDraft;
+    const currentUser = initialized?.users.find((user) => user.teamId === state?.currentTeamId);
+    const players = getAvailablePlayers(league.id, { position: "QB" }, storage).slice(0, 2);
+
+    if (!state || !currentUser || players.length < 2) {
+      throw new Error("Expected draft pick setup.");
+    }
+
+    const first = makeDraftPick(league.id, state.currentTeamId, currentUser.userId, players[0].playerId, storage);
+    const staleSameTeam = makeDraftPick(
+      league.id,
+      state.currentTeamId,
+      currentUser.userId,
+      players[1].playerId,
+      storage,
+    );
+    const storedState = getDraftState(league.id, storage);
+
+    expect(first.status).toBe("success");
+    expect(staleSameTeam.status).toBe("wrong-team");
+    expect(storedState?.picks).toHaveLength(1);
+    expect(storedState?.pickNumber).toBe(2);
+    expect(storedState?.currentTeamId).not.toBe(state.currentTeamId);
+  });
+
+  it("keeps Promise.all draft-pick races to one persisted pick slot", async () => {
+    const storage = new MemoryStorage();
+    const league = createFilledDraftLeague(storage, 2);
+    const initialized = initializeFantasyDraft(league.id, storage);
+    const state = initialized?.fantasyDraft;
+    const currentUser = initialized?.users.find((user) => user.teamId === state?.currentTeamId);
+    const players = getAvailablePlayers(league.id, { position: "QB" }, storage).slice(0, 2);
+
+    if (!state || !currentUser || players.length < 2) {
+      throw new Error("Expected draft race setup.");
+    }
+
+    const [firstPick, secondPick] = await Promise.all([
+      Promise.resolve().then(() =>
+        makeDraftPick(
+          league.id,
+          state.currentTeamId,
+          currentUser.userId,
+          players[0].playerId,
+          storage,
+        ),
+      ),
+      Promise.resolve().then(() =>
+        makeDraftPick(
+          league.id,
+          state.currentTeamId,
+          currentUser.userId,
+          players[1].playerId,
+          storage,
+        ),
+      ),
+    ]);
+    const storedState = getDraftState(league.id, storage);
+
+    expect([firstPick.status, secondPick.status].filter((status) => status === "success"))
+      .toHaveLength(1);
+    expect([firstPick.status, secondPick.status]).toContain("wrong-team");
+    expect(storedState?.picks).toHaveLength(1);
+    expect(storedState?.pickNumber).toBe(2);
+    expect(storedState?.availablePlayerIds).toHaveLength(
+      (initialized.fantasyDraft?.availablePlayerIds.length ?? 0) - 1,
+    );
+  });
+
+  it("blocks unavailable players after another team already picked them", () => {
+    const storage = new MemoryStorage();
+    const league = createFilledDraftLeague(storage, 2);
+    const initialized = initializeFantasyDraft(league.id, storage);
+    const state = initialized?.fantasyDraft;
+    const currentUser = initialized?.users.find((user) => user.teamId === state?.currentTeamId);
+    const player = getAvailablePlayers(league.id, { position: "QB" }, storage)[0];
+
+    if (!state || !currentUser || !player) {
+      throw new Error("Expected draft pick setup.");
+    }
+
+    const first = makeDraftPick(league.id, state.currentTeamId, currentUser.userId, player.playerId, storage);
+    const nextState = getDraftState(league.id, storage);
+    const nextUser = getOnlineLeagueById(league.id, storage)?.users.find(
+      (user) => user.teamId === nextState?.currentTeamId,
+    );
+
+    if (!nextState || !nextUser) {
+      throw new Error("Expected next draft team.");
+    }
+
+    const unavailable = makeDraftPick(
+      league.id,
+      nextState.currentTeamId,
+      nextUser.userId,
+      player.playerId,
+      storage,
+    );
+
+    expect(first.status).toBe("success");
+    expect(unavailable.status).toBe("player-unavailable");
+    expect(getDraftState(league.id, storage)?.picks.filter((pick) => pick.playerId === player.playerId)).toHaveLength(1);
+  });
+
+  it("does not silently normalize contradictory legacy draft availability", () => {
+    const storage = new MemoryStorage();
+    const league = createFilledDraftLeague(storage, 2);
+    const initialized = initializeFantasyDraft(league.id, storage);
+    const state = initialized?.fantasyDraft;
+    const currentUser = initialized?.users.find((user) => user.teamId === state?.currentTeamId);
+    const players = getAvailablePlayers(league.id, { position: "QB" }, storage).slice(0, 2);
+
+    if (!initialized || !state || !currentUser || players.length < 2) {
+      throw new Error("Expected draft setup.");
+    }
+
+    saveOnlineLeague(
+      {
+        ...initialized,
+        fantasyDraft: {
+          ...state,
+          picks: [
+            {
+              pickNumber: 1,
+              round: 1,
+              teamId: state.currentTeamId,
+              playerId: players[0].playerId,
+              pickedByUserId: currentUser.userId,
+              timestamp: "2026-05-01T11:01:00.000Z",
+            },
+          ],
+          availablePlayerIds: state.availablePlayerIds,
+        },
+      },
+      storage,
+    );
+
+    const result = makeDraftPick(
+      league.id,
+      state.currentTeamId,
+      currentUser.userId,
+      players[1].playerId,
+      storage,
+    );
+
+    expect(result.status).toBe("draft-inconsistent");
+    expect(result.message).toContain("Draft-State ist inkonsistent");
+    expect(getDraftState(league.id, storage)?.availablePlayerIds).toContain(players[0].playerId);
+  });
+
   it("blocks invalid users and invalid players", () => {
     const storage = new MemoryStorage();
     const league = createFilledDraftLeague(storage, 2);
@@ -266,6 +420,43 @@ describe("fantasy-draft-service", () => {
     expect(result.status).toBe("player-unavailable");
     expect(result.message).toBe("Roster-Limit ist erreicht.");
   });
+
+  it("keeps completed draft finalization idempotent", () => {
+    const storage = new MemoryStorage();
+    const league = createFilledDraftLeague(storage, 4);
+
+    initializeFantasyDraft(league.id, storage);
+    const completed = completeBalancedDraft(league.id, storage);
+
+    if (!completed?.fantasyDraft) {
+      throw new Error("Expected completed draft.");
+    }
+
+    const completedAt = completed.fantasyDraft.completedAt;
+    const eventCount = completed.events?.length ?? 0;
+    const logCount = completed.logs?.length ?? 0;
+    const rosterIdsByTeam = completed.users.map((user) => ({
+      teamId: user.teamId,
+      rosterIds: user.contractRoster?.map((player) => player.playerId) ?? [],
+    }));
+    const rebuilt = buildRostersFromDraft(league.id, storage);
+    const completedAgain = completeDraftIfReady(league.id, storage);
+
+    expect(rebuilt?.fantasyDraft).toMatchObject({
+      status: "completed",
+      currentTeamId: "",
+      completedAt,
+    });
+    expect(completedAgain?.fantasyDraft?.completedAt).toBe(completedAt);
+    expect(completedAgain?.events?.length ?? 0).toBe(eventCount);
+    expect(completedAgain?.logs?.length ?? 0).toBe(logCount);
+    expect(
+      completedAgain?.users.map((user) => ({
+        teamId: user.teamId,
+        rosterIds: user.contractRoster?.map((player) => player.playerId) ?? [],
+      })),
+    ).toEqual(rosterIdsByTeam);
+  }, 15_000);
 
   it("exposes available player filters and roster build helpers", () => {
     const storage = new MemoryStorage();

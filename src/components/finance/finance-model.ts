@@ -67,7 +67,7 @@ export function buildFinanceDecisionItems(team: TeamDetail): FinanceDecisionItem
     items.push({
       id: "cap-stable",
       title: "Cap Space ist handlungsfaehig",
-      message: "Der GM hat genug Spielraum fuer gezielte Kaderbewegungen.",
+      message: "Der Manager hat genug Spielraum fuer gezielte Kaderbewegungen.",
       tone: "positive",
     });
   }

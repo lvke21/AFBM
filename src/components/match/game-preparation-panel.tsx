@@ -122,7 +122,7 @@ export function GamePreparationPanel({
     return (
       <SectionPanel
         title="Spielvorbereitung"
-        description="Dieses Match enthaelt kein vom GM gesteuertes Team."
+        description="Dieses Match enthaelt kein vom Manager gesteuertes Team."
         tone="subtle"
       >
         <p className="text-sm text-slate-400">

@@ -24,9 +24,11 @@ export function OnlineContinueButton() {
     }
 
     setIsLoading(true);
+    let attemptedLastLeagueId: string | null = null;
 
     try {
       const lastLeagueId = repository.getLastLeagueId();
+      attemptedLastLeagueId = lastLeagueId;
       const league = isSafeOnlineLeagueId(lastLeagueId)
         ? await repository.getLeagueById(lastLeagueId)
         : null;
@@ -58,10 +60,19 @@ export function OnlineContinueButton() {
         message: "Online-Liga konnte nicht geladen werden.",
         helper: "Prüfe deine Verbindung oder suche erneut nach einer Liga.",
       });
+      let clearedLastLeague = false;
+
+      if (
+        attemptedLastLeagueId &&
+        (recovery.kind === "permission" || recovery.kind === "not-found")
+      ) {
+        repository.clearLastLeagueId(attemptedLastLeagueId);
+        clearedLastLeague = true;
+      }
 
       setFeedback({
         message: recovery.message,
-        helper: recovery.helper,
+        helper: clearedLastLeague ? modeStatus.missingLeagueHelper : recovery.helper,
       });
     } finally {
       setIsLoading(false);

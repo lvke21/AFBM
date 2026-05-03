@@ -71,6 +71,7 @@ import {
   FIREBASE_MVP_LOCAL_ACTION_MESSAGE,
   guardFirebaseMvpLocalAction,
 } from "./online-firebase-mvp-action-guard";
+import { getOnlineReadyGuidanceItems } from "./online-league-placeholder-model";
 import { useOnlineLeagueRouteState } from "./online-league-route-state";
 import { useOnlineLeaguePlaceholderActions } from "./use-online-league-placeholder-actions";
 
@@ -165,9 +166,12 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     setPendingAction("ready");
 
     try {
+      const expectedStep = league
+        ? { season: league.currentSeason ?? 1, week: league.currentWeek }
+        : undefined;
       const updatedLeague =
         repository.mode === "firebase"
-          ? await repository.setUserReady(leagueId, ready)
+          ? await repository.setUserReady(leagueId, ready, expectedStep)
           : setOnlineLeagueUserReadyState(leagueId, currentUser.userId, ready);
 
       if (updatedLeague) {
@@ -175,8 +179,8 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
         setActionFeedback({
           tone: "success",
           message: ready
-            ? `Du bist bereit für Week ${updatedLeague.currentWeek}.`
-            : `Ready für Week ${updatedLeague.currentWeek} wurde zurückgenommen.`,
+            ? `Du bist bereit für Woche ${updatedLeague.currentWeek}.`
+            : `Bereit für Woche ${updatedLeague.currentWeek} wurde zurückgenommen.`,
         });
       } else {
         setActionFeedback({
@@ -184,10 +188,13 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
           message: "Bereitschaft konnte nicht gespeichert werden. Bitte versuche es erneut.",
         });
       }
-    } catch {
+    } catch (error) {
       setActionFeedback({
         tone: "warning",
-        message: "Bereitschaft konnte nicht gespeichert werden. Deine Woche wurde nicht freigegeben.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Bereitschaft konnte nicht gespeichert werden. Deine Woche wurde nicht freigegeben.",
       });
     } finally {
       setPendingAction(null);
@@ -556,12 +563,6 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
     );
   }
 
-  const teamStepCompleted =
-    detailState.firstSteps.items.find((step) => step.id === "team")?.completed ?? false;
-  const trainingStepCompleted =
-    detailState.firstSteps.items.find((step) => step.id === "training")?.completed ?? false;
-  const optionalPlanningCompleted =
-    Boolean(detailState.roster?.depthChart.length) || Boolean(detailState.franchise);
   const trainingPreview = getTrainingPreview(
     trainingIntensity,
     trainingPrimaryFocus,
@@ -571,23 +572,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
   );
   const ticketPriceHint = getOnlineLeaguePriceChangeHint("ticket", ticketPriceLevel);
   const merchPriceHint = getOnlineLeaguePriceChangeHint("merch", merchPriceLevel);
-  const readyGuidanceItems = [
-    {
-      label: "Team geprüft",
-      completed: teamStepCompleted,
-      statusLabel: teamStepCompleted ? "Erledigt" : "Empfohlen",
-    },
-    {
-      label: "Training geprüft",
-      completed: trainingStepCompleted,
-      statusLabel: trainingStepCompleted ? "Erledigt" : "Empfohlen",
-    },
-    {
-      label: "Strategie/Depth Chart optional geprüft",
-      completed: optionalPlanningCompleted,
-      statusLabel: optionalPlanningCompleted ? "Geprüft" : "Optional",
-    },
-  ];
+  const readyGuidanceItems = getOnlineReadyGuidanceItems(detailState, isFirebaseMvpMode);
 
   return (
     <section className="w-full rounded-lg border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/30 sm:p-6">
@@ -622,31 +607,21 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
         <PlayerActionsPanel detailState={detailState} />
       </div>
 
-      <section className="mt-8 rounded-lg border border-white/10 bg-[#07111d]/80 p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              Ansicht
-            </p>
-            <h2 className="mt-2 text-xl font-semibold text-white">
-              {isFirebaseMvpMode ? "Multiplayer MVP" : "Beginner Mode"}
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-              {isFirebaseMvpMode ? (
-                <>
-                  Im Firebase-MVP bleiben nur synchronisierte Aktionen sichtbar: Fantasy Draft,
-                  <GlossaryTerm term="readyState"> Ready-State</GlossaryTerm>,
-                  gespeicherte Ergebnisse und Liga-Status.
-                </>
-              ) : (
-                <>
-                  Standardmäßig bleiben Wochenablauf, Team, Training und <GlossaryTerm term="readyState">Ready-State</GlossaryTerm> im Fokus.
-                  Verträge, Trades, <GlossaryTerm term="draft">Draft</GlossaryTerm>, Finanzen, Coaches und <GlossaryTerm term="owner">Owner</GlossaryTerm>-Druck bleiben erreichbar.
-                </>
-              )}
-            </p>
-          </div>
-          {!isFirebaseMvpMode ? (
+      {!isFirebaseMvpMode ? (
+        <section className="mt-8 rounded-lg border border-white/10 bg-[#07111d]/80 p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Ansicht
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-white">
+                Beginner Mode
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+                Standardmäßig bleiben Wochenablauf, Team, Training und <GlossaryTerm term="readyState">Bereit-Status</GlossaryTerm> im Fokus.
+                Erweiterte lokale Systeme sind nur im Expertenmodus sichtbar.
+              </p>
+            </div>
             <button
               type="button"
               aria-expanded={expertMode}
@@ -655,9 +630,9 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
             >
               {expertMode ? "Expertenmodus ausblenden" : "Expertenmodus anzeigen"}
             </button>
-          ) : null}
-        </div>
-      </section>
+          </div>
+        </section>
+      ) : null}
 
       {showAdvancedLocalActions && detailState.franchise ? (
         <section className="mt-8 rounded-lg border border-cyan-200/20 bg-[#07111d]/80 p-5">
@@ -1072,7 +1047,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
               </div>
             ) : (
               <div className="rounded-lg border border-violet-200/20 bg-violet-300/10 p-4 text-sm font-semibold leading-6 text-violet-50">
-                Trainingspläne sind im Firebase-MVP nur lesbar. Die Week-Simulation nutzt
+                Trainingspläne sind im Online-MVP nur lesbar. Die Simulation nutzt
                 synchronisierte Standardwerte, damit keine ungespeicherten lokalen Pläne entstehen.
               </div>
             )}
@@ -1083,7 +1058,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
                   Einsteiger-Empfehlung
                 </p>
                 <p className="mt-2 text-sm font-semibold text-emerald-50">
-                  {detailState.currentWeekLabel === "Week 1"
+                  {detailState.currentWeekLabel === "Woche 1"
                     ? "Empfohlen für Woche 1: Ausgewogen / Normal"
                     : "Sichere Grundeinstellung: Ausgewogen / Normal"}
                 </p>

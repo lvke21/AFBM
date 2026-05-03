@@ -1,4 +1,4 @@
-export type AdminFeedbackTone = "success" | "warning";
+type AdminFeedbackTone = "success" | "warning";
 
 export function AdminFeedbackBanner({
   className = "mt-5",

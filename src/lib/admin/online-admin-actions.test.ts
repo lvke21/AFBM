@@ -7,8 +7,13 @@ import {
   ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
   startOnlineFantasyDraft,
 } from "@/lib/online/online-league-service";
+import type { FirestoreOnlineLeagueDoc } from "@/lib/online/types";
 
 import { LocalAdminMemoryStorage, type LocalAdminStateOutput } from "./local-admin-storage";
+import {
+  getFirestoreFantasyDraftPlayerPool,
+  getFirestoreFantasyDraftState,
+} from "./online-admin-draft-use-cases";
 import {
   executeOnlineAdminAction,
   toOnlineAdminActionError,
@@ -68,11 +73,49 @@ function completeFantasyDraftForLocalState(
 }
 
 describe("online admin actions", () => {
+  it("keeps legacy draft admin reads explicit and never synthesizes a missing player pool", () => {
+    const legacyLeague: FirestoreOnlineLeagueDoc = {
+      completedWeeks: [],
+      createdAt: "2026-01-01T00:00:00.000Z",
+      createdByUserId: "admin",
+      currentSeason: 1,
+      currentWeek: 1,
+      id: "legacy-admin-draft",
+      maxTeams: 2,
+      memberCount: 2,
+      name: "Legacy Admin Draft",
+      settings: {
+        fantasyDraft: {
+          leagueId: "legacy-admin-draft",
+          status: "active",
+          round: 1,
+          pickNumber: 1,
+          currentTeamId: "team-a",
+          draftOrder: ["team-a", "team-b"],
+          picks: [],
+          availablePlayerIds: ["player-a"],
+          startedAt: "2026-01-01T00:05:00.000Z",
+          completedAt: null,
+        },
+      },
+      status: "lobby",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      version: 1,
+    };
+
+    expect(getFirestoreFantasyDraftState(legacyLeague)).toMatchObject({
+      leagueId: "legacy-admin-draft",
+      pickNumber: 1,
+    });
+    expect(getFirestoreFantasyDraftPlayerPool(legacyLeague)).toEqual([]);
+  });
+
   it("lists leagues for admin management", async () => {
     const created = await executeOnlineAdminAction(
       {
         action: "createLeague",
         backendMode: "local",
+        confirmed: true,
         name: "Admin Listed League",
         maxUsers: 4,
         localState: {
@@ -103,6 +146,7 @@ describe("online admin actions", () => {
       {
         action: "createLeague",
         backendMode: "local",
+        confirmed: true,
         name: "Admin Detail League",
         maxUsers: 4,
         localState: {
@@ -134,6 +178,7 @@ describe("online admin actions", () => {
         {
           action: "createLeague",
           backendMode: "local",
+          confirmed: true,
           name: "   ",
           maxUsers: 8,
           localState: {
@@ -149,6 +194,7 @@ describe("online admin actions", () => {
         {
           action: "createLeague",
           backendMode: "local",
+          confirmed: true,
           name: "Valid League",
           maxUsers: 33,
           localState: {
@@ -165,6 +211,7 @@ describe("online admin actions", () => {
       {
         action: "createLeague",
         backendMode: "local",
+        confirmed: true,
         name: "Admin Draft Control",
         maxUsers: 2,
         localState: {
@@ -189,6 +236,7 @@ describe("online admin actions", () => {
       {
         action: "initializeFantasyDraft",
         backendMode: "local",
+        confirmed: true,
         leagueId,
         localState: setupStorage.toLocalState(),
       },
@@ -198,6 +246,7 @@ describe("online admin actions", () => {
       {
         action: "startFantasyDraft",
         backendMode: "local",
+        confirmed: true,
         leagueId,
         localState: initialized.localState,
       },
@@ -219,6 +268,7 @@ describe("online admin actions", () => {
       {
         action: "autoDraftNextFantasyDraft",
         backendMode: "local",
+        confirmed: true,
         leagueId,
         localState: started.localState,
       },
@@ -232,6 +282,7 @@ describe("online admin actions", () => {
       {
         action: "autoDraftToEndFantasyDraft",
         backendMode: "local",
+        confirmed: true,
         leagueId,
         localState: autoPicked.localState,
       },
@@ -251,6 +302,7 @@ describe("online admin actions", () => {
         {
           action: "simulateWeek",
           backendMode: "local",
+          confirmed: true,
           leagueId: "league-alpha",
           localState: {
             leaguesJson: "[]",
@@ -266,6 +318,7 @@ describe("online admin actions", () => {
       {
         action: "createLeague",
         backendMode: "local",
+        confirmed: true,
         name: "Admin Ready Gate",
         maxUsers: 2,
         localState: {
@@ -293,6 +346,7 @@ describe("online admin actions", () => {
       {
         action: "simulateWeek",
         backendMode: "local",
+        confirmed: true,
         leagueId,
         localState: draftCompletedState,
         season: 1,
@@ -310,6 +364,7 @@ describe("online admin actions", () => {
       {
         action: "setAllReady",
         backendMode: "local",
+        confirmed: true,
         leagueId,
         localState: blocked.localState,
       },
@@ -319,6 +374,7 @@ describe("online admin actions", () => {
       {
         action: "simulateWeek",
         backendMode: "local",
+        confirmed: true,
         leagueId,
         localState: ready.localState,
         season: 1,
@@ -335,6 +391,7 @@ describe("online admin actions", () => {
       {
         action: "createLeague",
         backendMode: "local",
+        confirmed: true,
         name: "Admin Idempotence League",
         maxUsers: 4,
         startWeek: 1,
@@ -364,6 +421,7 @@ describe("online admin actions", () => {
       {
         action: "setAllReady",
         backendMode: "local",
+        confirmed: true,
         leagueId,
         localState: draftCompletedState,
       },
@@ -374,6 +432,7 @@ describe("online admin actions", () => {
       {
         action: "simulateWeek",
         backendMode: "local",
+        confirmed: true,
         leagueId,
         season: 1,
         week: 1,
@@ -385,6 +444,7 @@ describe("online admin actions", () => {
       {
         action: "simulateWeek",
         backendMode: "local",
+        confirmed: true,
         leagueId,
         season: 1,
         week: 1,

@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 
+import { getAdminAuthDecision } from "@/lib/admin/admin-auth-model";
 import { createAuditId } from "@/lib/audit/security-audit-log";
-import { isAdminUid } from "@/lib/admin/admin-uid-allowlist";
 import { getFirebaseAdminAuth } from "@/lib/firebase/admin";
 
 export type FirebaseAdminClaims = {
@@ -45,9 +45,12 @@ export async function verifyFirebaseAdminBearerToken(request: NextRequest): Prom
 
   try {
     const decodedToken = await getFirebaseAdminAuth().verifyIdToken(token, true);
-    const isAdmin = decodedToken.admin === true || isAdminUid(decodedToken.uid);
+    const adminDecision = getAdminAuthDecision({
+      claims: { admin: decodedToken.admin },
+      uid: decodedToken.uid,
+    });
 
-    if (!isAdmin) {
+    if (!adminDecision.allowed) {
       return {
         status: "not-admin",
         uid: decodedToken.uid,

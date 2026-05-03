@@ -14,19 +14,19 @@ export type OnlineModeStatusCopy = {
 
 export function getOnlineModeStatusCopy(
   mode: OnlineBackendMode,
-  role = "GM",
+  role = "Manager",
 ): OnlineModeStatusCopy {
   if (mode === "firebase") {
     return {
       mode,
       primaryBadge: "Live Multiplayer",
-      syncBadge: "Firebase verbunden",
+      syncBadge: "Online verbunden",
       roleBadge: `Rolle: ${role}`,
       title: "Online synchronisiert",
       description:
-        "Du spielst im Live-Multiplayer. Ligaänderungen werden über Firebase mit anderen Spielern synchronisiert.",
+        "Du spielst im Live-Multiplayer. Ligaänderungen werden mit anderen Spielern synchronisiert.",
       dashboardDescription:
-        "Diese Liga ist online synchronisiert. Ready-State, Teamaktionen und Admin-Fortschritt werden über Firebase geteilt.",
+        "Diese Liga ist online synchronisiert. Bereit-Status, Teamaktionen und Admin-Fortschritt werden geteilt.",
       searchHelper:
         "Wähle eine verfügbare Live-Liga aus. Beitritt und Ligaaktionen werden online synchronisiert.",
       missingLeagueHelper:
