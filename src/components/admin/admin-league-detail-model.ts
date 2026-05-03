@@ -60,6 +60,8 @@ export function adminWeekPhaseLabel(input: {
       return "Ergebnisse verfügbar";
     case "rosterInvalid":
       return "Kader nicht simulationsfähig";
+    case "seasonComplete":
+      return "Saison abgeschlossen";
     case "simulating":
       return "Simulation läuft";
     case "weekCompleted":
@@ -100,6 +102,8 @@ export function adminSimulationHint(input: {
       return "Ergebnisse sind verfügbar. Prüfe Results und Standings nach Reload.";
     case "rosterInvalid":
       return input.lifecycle.reasons[0] ?? "Mindestens ein Kader ist nicht simulationsfähig.";
+    case "seasonComplete":
+      return input.lifecycle.reasons[0] ?? "Die Saison ist abgeschlossen. Es gibt keine spielbare Woche mehr.";
     case "simulating":
       return "Simulation läuft. Mehrfachklicks sind gesperrt, bis die Aktion abgeschlossen ist.";
     case "weekCompleted":

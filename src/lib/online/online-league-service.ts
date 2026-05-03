@@ -131,6 +131,7 @@ import {
   validateOnlineDepthChartForRoster,
 } from "./online-depth-chart-service";
 import {
+  buildOnlineLeagueTeamRecords,
   getOnlineLeagueWeekProgressState,
 } from "./online-league-week-simulation";
 import {
@@ -6715,22 +6716,118 @@ export function setAllOnlineLeagueUsersReady(
   }
 
   const readyAt = new Date().toISOString();
+  const activeUsers = league.users.filter(isOnlineLeagueUserActiveWeekParticipant);
+  const nextLeague = {
+    ...league,
+    users: league.users.map((leagueUser) =>
+      !isOnlineLeagueUserActiveWeekParticipant(leagueUser)
+        ? resetReadyState(leagueUser)
+        : {
+            ...leagueUser,
+            readyForWeek: true,
+            readyAt: leagueUser.readyAt ?? readyAt,
+          },
+    ),
+  };
 
-  return saveOnlineLeague(
-    {
-      ...league,
-      users: league.users.map((leagueUser) =>
-        !isOnlineLeagueUserActiveWeekParticipant(leagueUser)
-          ? resetReadyState(leagueUser)
-          : {
-              ...leagueUser,
-              readyForWeek: true,
-              readyAt: leagueUser.readyAt ?? readyAt,
-            },
-      ),
-    },
-    storage,
+  console.info("[online-week-flow] setAllReady", {
+    activeUsers: activeUsers.length,
+    leagueId,
+    readyUsers: nextLeague.users.filter((user) => user.readyForWeek).length,
+    week: league.currentWeek,
+  });
+
+  return saveOnlineLeague(nextLeague, storage);
+}
+
+function logOnlineWeekFlowStep(
+  step: string,
+  payload: Record<string, unknown>,
+) {
+  console.info("[online-week-flow]", {
+    step,
+    ...payload,
+  });
+}
+
+function getNextLocalWeekStep(league: OnlineLeague) {
+  const nextWeek = league.currentWeek + 1;
+  const nextSeason = normalizeSeasonNumber(league.currentSeason ?? Math.ceil(nextWeek / 18));
+  const scheduledWeeks = (league.schedule ?? [])
+    .map((match) => match.week)
+    .filter((week) => Number.isInteger(week) && week >= 1);
+  const lastScheduledWeek = scheduledWeeks.length > 0 ? Math.max(...scheduledWeeks) : undefined;
+
+  return {
+    lastScheduledWeek,
+    nextSeason,
+    nextWeek,
+    seasonComplete: lastScheduledWeek !== undefined && nextWeek > lastScheduledWeek,
+  };
+}
+
+function buildSimulatedOnlineLeague(input: {
+  league: OnlineLeague;
+  matchResults: OnlineMatchResult[];
+  now: string;
+  simulatedByUserId: string;
+  weekKey: string;
+}) {
+  const { nextSeason, nextWeek, seasonComplete } = getNextLocalWeekStep(input.league);
+  const completedWeek = createCompletedOnlineWeek({
+    completedAt: input.now,
+    nextSeason,
+    nextWeek,
+    resultMatchIds: input.matchResults.map((result) => result.matchId),
+    season: normalizeSeasonNumber(
+      input.league.currentSeason ?? Math.ceil(input.league.currentWeek / 18),
+    ),
+    simulatedByUserId: input.simulatedByUserId,
+    week: input.league.currentWeek,
+  });
+  const existingCompletedWeeks = (input.league.completedWeeks ?? []).filter(
+    (week) => week.weekKey !== completedWeek.weekKey,
   );
+  const nextMatchResults = [...input.matchResults, ...(input.league.matchResults ?? [])];
+  const standingsLeague = {
+    ...input.league,
+    matchResults: nextMatchResults,
+  };
+
+  return {
+    ...input.league,
+    currentWeek: nextWeek,
+    currentSeason: nextSeason,
+    status: seasonComplete ? "waiting" as const : input.league.status,
+    weekStatus: seasonComplete ? "completed" as const : "pre_week" as const,
+    lastSimulatedWeekKey: input.weekKey,
+    matchResults: nextMatchResults,
+    standings: buildOnlineLeagueTeamRecords(standingsLeague, input.now),
+    completedWeeks: [completedWeek, ...existingCompletedWeeks],
+    users: input.league.users.map(resetReadyState),
+    logs: [
+      createLeagueLogEntry(
+        input.matchResults.length > 0
+          ? "Simulation placeholder ausgeführt und Ergebnisse gespeichert"
+          : "Simulation placeholder ausgeführt",
+      ),
+      ...(input.league.logs ?? []),
+    ],
+    events: [
+      ...input.matchResults.map((result) =>
+        createLeagueEvent({
+          eventType: "online_match_result_recorded",
+          leagueId: input.league.id,
+          teamId: result.homeTeamId,
+          userId: input.simulatedByUserId,
+          reason: `${result.homeTeamName} ${result.homeScore} - ${result.awayScore} ${result.awayTeamName}`,
+          season: result.season,
+          week: result.week,
+        }),
+      ),
+      ...(input.league.events ?? []),
+    ],
+  };
 }
 
 export function updateOnlineLeagueUserDepthChart(
@@ -6858,6 +6955,11 @@ export function simulateOnlineLeagueWeek(
   });
 
   if (!lifecycle.canSimulate) {
+    logOnlineWeekFlowStep("blocked", {
+      leagueId,
+      reason: lifecycle.reasons[0] ?? "not simulatable",
+      week: league.currentWeek,
+    });
     return league;
   }
 
@@ -6890,6 +6992,10 @@ export function simulateOnlineLeagueWeek(
     },
     storage,
   );
+  logOnlineWeekFlowStep("simulation-started", {
+    leagueId,
+    week: league.currentWeek,
+  });
 
   for (const user of league.users) {
     if (user.teamStatus === "vacant") {
@@ -6928,55 +7034,40 @@ export function simulateOnlineLeagueWeek(
     now,
     options.simulatedByUserId ?? "admin",
   );
-  const nextWeek = league.currentWeek + 1;
-  const nextSeason = normalizeSeasonNumber(league.currentSeason ?? Math.ceil(nextWeek / 18));
-  const completedWeek = createCompletedOnlineWeek({
-    completedAt: now,
-    nextSeason,
-    nextWeek,
-    resultMatchIds: matchResults.map((result) => result.matchId),
-    season,
-    simulatedByUserId: options.simulatedByUserId ?? "admin",
-    week: league.currentWeek,
+
+  if (matchResults.length === 0) {
+    console.error("[online-week-flow] simulation produced no results", {
+      leagueId,
+      week: league.currentWeek,
+    });
+    return saveOnlineLeague(
+      {
+        ...league,
+        weekStatus: "pre_week",
+      },
+      storage,
+    );
+  }
+
+  const simulatedByUserId = options.simulatedByUserId ?? "admin";
+  const simulatedLeague = buildSimulatedOnlineLeague({
+    league,
+    matchResults,
+    now,
+    simulatedByUserId,
+    weekKey,
   });
-  const existingCompletedWeeks = (league.completedWeeks ?? []).filter(
-    (week) => week.weekKey !== completedWeek.weekKey,
-  );
   const advancedLeague = saveOnlineLeague(
-    {
-      ...league,
-      currentWeek: nextWeek,
-      currentSeason: nextSeason,
-      weekStatus: "pre_week",
-      lastSimulatedWeekKey: weekKey,
-      matchResults: [...matchResults, ...(league.matchResults ?? [])],
-      completedWeeks: [completedWeek, ...existingCompletedWeeks],
-      users: league.users.map(resetReadyState),
-      logs: [
-        createLeagueLogEntry(
-          matchResults.length > 0
-            ? "Simulation placeholder ausgeführt und Ergebnisse gespeichert"
-            : "Simulation placeholder ausgeführt",
-        ),
-        ...(league.logs ?? []),
-      ],
-      events: [
-        ...matchResults.map((result) =>
-          createLeagueEvent({
-            eventType: "online_match_result_recorded",
-            leagueId: league.id,
-            teamId: result.homeTeamId,
-            userId: "admin",
-            reason: `${result.homeTeamName} ${result.homeScore} - ${result.awayScore} ${result.awayTeamName}`,
-            season: result.season,
-            week: result.week,
-          }),
-        ),
-        ...(league.events ?? []),
-      ],
-    },
+    simulatedLeague,
     storage,
   );
+  logOnlineWeekFlowStep("simulation-completed", {
+    currentWeek: advancedLeague.currentWeek,
+    leagueId,
+    resultCount: matchResults.length,
+    standingsCount: advancedLeague.standings?.length ?? 0,
+    weekStatus: advancedLeague.weekStatus,
+  });
 
   if (league.currentWeek > 0 && league.currentWeek % 18 === 0) {
     return advanceOnlineContractsOneYear(advancedLeague.id, storage) ?? advancedLeague;

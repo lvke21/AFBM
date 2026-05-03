@@ -67,6 +67,7 @@ export type OnlineCoreLifecyclePhase =
   | "readyOpen"
   | "resultsAvailable"
   | "rosterInvalid"
+  | "seasonComplete"
   | "simulating"
   | "waitingForOthers"
   | "weekCompleted";
@@ -110,6 +111,7 @@ export const ONLINE_CORE_LIFECYCLE_ALLOWED_TRANSITIONS = {
   readyOpen: ["waitingForOthers", "readyComplete", "blockedConflict"],
   resultsAvailable: ["readyOpen", "readyComplete", "draftPending", "blockedConflict"],
   rosterInvalid: ["readyOpen", "blockedConflict"],
+  seasonComplete: ["draftPending", "blockedConflict"],
   simulating: ["weekCompleted", "resultsAvailable", "blockedConflict"],
   waitingForOthers: ["readyOpen", "readyComplete", "simulating", "blockedConflict"],
   weekCompleted: ["resultsAvailable", "readyOpen", "blockedConflict"],
@@ -261,12 +263,12 @@ function getCoreLifecyclePhase(input: {
     return "simulating";
   }
 
-  if (input.weekProgress.phase === "completed") {
-    return input.hasResults ? "resultsAvailable" : "weekCompleted";
+  if (input.weekProgress.phase === "season_complete") {
+    return "seasonComplete";
   }
 
-  if (input.weekProgress.phase === "advanced" && input.hasResults) {
-    return "resultsAvailable";
+  if (input.weekProgress.phase === "completed") {
+    return input.hasResults ? "resultsAvailable" : "weekCompleted";
   }
 
   if (input.draftStatus === "active") {
@@ -331,12 +333,12 @@ function getGlobalCoreLifecyclePhase(input: {
     return "simulating";
   }
 
-  if (input.weekProgress.phase === "completed") {
-    return input.hasResults ? "resultsAvailable" : "weekCompleted";
+  if (input.weekProgress.phase === "season_complete") {
+    return "seasonComplete";
   }
 
-  if (input.weekProgress.phase === "advanced" && input.hasResults) {
-    return "resultsAvailable";
+  if (input.weekProgress.phase === "completed") {
+    return input.hasResults ? "resultsAvailable" : "weekCompleted";
   }
 
   if (input.draftStatus === "active") {
@@ -399,6 +401,8 @@ function getCoreLifecyclePhaseBlockReason(phase: OnlineCoreLifecyclePhase) {
       return "Kein Manager-Team verbunden.";
     case "resultsAvailable":
       return "Ergebnisse sind bereits verfügbar.";
+    case "seasonComplete":
+      return "Die Saison ist abgeschlossen.";
     case "simulating":
       return "Simulation läuft gerade.";
     case "weekCompleted":

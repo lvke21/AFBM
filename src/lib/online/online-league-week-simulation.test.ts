@@ -338,6 +338,46 @@ describe("online league week simulation model", () => {
     expect(hasOnlineLeagueWeekCompletionSignal(completedLeague, 1, 1)).toBe(true);
   });
 
+  it("treats the cursor after the last scheduled week as season complete", () => {
+    const completedSeasonLeague = league({
+      currentWeek: 2,
+      completedWeeks: [
+        {
+          completedAt: "2026-05-01T08:00:00.000Z",
+          nextSeason: 1,
+          nextWeek: 2,
+          resultMatchIds: [],
+          season: 1,
+          simulatedByUserId: "admin",
+          status: "completed",
+          week: 1,
+          weekKey: "s1-w1",
+        },
+      ],
+      lastSimulatedWeekKey: "s1-w1",
+      schedule: [
+        {
+          awayTeamName: "basel",
+          homeTeamName: "zurich",
+          id: "game-1",
+          week: 1,
+        },
+      ],
+    });
+
+    const state = normalizeOnlineLeagueWeekSimulationState(completedSeasonLeague);
+
+    expect(state.canSimulate).toBe(false);
+    expect(state.completion).toMatchObject({
+      lastScheduledWeek: 1,
+      phase: "season_complete",
+      seasonComplete: true,
+    });
+    expect(state.reasons).toContain(
+      "Die Saison ist abgeschlossen; Woche 2 liegt nach der letzten geplanten Woche 1.",
+    );
+  });
+
   it("detects legacy completion signals without canonical completedWeeks", () => {
     const inconsistentLeague = league({
       lastSimulatedWeekKey: "s1-w1",
@@ -668,6 +708,14 @@ describe("online league week simulation model", () => {
       streak: "L1",
       wins: 0,
     });
+  });
+
+  it("omits undefined optional record fields before Firestore persistence", () => {
+    const records = buildOnlineLeagueTeamRecords(league());
+
+    expect(records).toHaveLength(2);
+    expect(records.some((record) => Object.hasOwn(record, "streak"))).toBe(false);
+    expect(records.some((record) => Object.hasOwn(record, "updatedAt"))).toBe(false);
   });
 
   it("sorts records by wins, losses, point differential and points for", () => {

@@ -67,6 +67,7 @@ export type OnlineLeagueWeekProgressPhase =
   | "completed"
   | "pending"
   | "ready"
+  | "season_complete"
   | "simulating";
 
 export type OnlineLeagueWeekProgressTransition =
@@ -95,8 +96,10 @@ export type OnlineLeagueWeekProgressState = {
   hasConflicts: boolean;
   latestCompletedWeek?: OnlineCompletedWeek;
   latestCompletedWeekKey?: string;
+  lastScheduledWeek?: number;
   legacyCompletionWeekKeys: string[];
   phase: OnlineLeagueWeekProgressPhase;
+  seasonComplete: boolean;
 };
 
 export type OnlineLeagueWeekStateConflictCode =
@@ -170,6 +173,26 @@ function normalizePositiveInteger(value: unknown, fallback: number) {
   return typeof value === "number" && Number.isFinite(value) && value >= 1
     ? Math.floor(value)
     : fallback;
+}
+
+function getLastScheduledWeek(league: OnlineLeague) {
+  const scheduledWeeks = (league.schedule ?? [])
+    .map((match) => match.week)
+    .filter((week) => Number.isInteger(week) && week >= 1);
+
+  return scheduledWeeks.length > 0 ? Math.max(...scheduledWeeks) : undefined;
+}
+
+function isSeasonCompleteBySchedule(input: {
+  currentWeek: number;
+  latestCompletionAdvancedCursor: boolean;
+  lastScheduledWeek?: number;
+}) {
+  return (
+    input.lastScheduledWeek !== undefined &&
+    input.currentWeek > input.lastScheduledWeek &&
+    input.latestCompletionAdvancedCursor
+  );
 }
 
 function isDefinedInvalidWeek(value: unknown) {
@@ -424,6 +447,12 @@ export function getOnlineLeagueWeekProgressState(
     latestCompletedWeek?.nextWeek === currentWeek;
   const readyState = getOnlineLeagueWeekReadyState(league);
   const normalizedWeekStatus = normalizeWeekStatus(league.weekStatus);
+  const lastScheduledWeek = getLastScheduledWeek(league);
+  const seasonComplete = isSeasonCompleteBySchedule({
+    currentWeek,
+    latestCompletionAdvancedCursor,
+    lastScheduledWeek,
+  });
   const lifecycle = normalizeOnlineLeagueWeekProgressLifecycle({
     currentWeekCompleted,
     latestCompletionAdvancedCursor,
@@ -452,8 +481,10 @@ export function getOnlineLeagueWeekProgressState(
     hasConflicts: uniqueConflicts.length > 0,
     latestCompletedWeek,
     latestCompletedWeekKey,
+    lastScheduledWeek,
     legacyCompletionWeekKeys,
-    phase: lifecycle.phase,
+    phase: seasonComplete ? "season_complete" : lifecycle.phase,
+    seasonComplete,
   };
 }
 
@@ -510,7 +541,14 @@ function getCurrentWeekScheduleMatches(league: OnlineLeague, currentWeek: number
 function getScheduleValidationReasons(
   league: OnlineLeague,
   scheduleMatches: OnlineLeagueScheduleMatch[],
+  weekProgress?: OnlineLeagueWeekProgressState,
 ) {
+  if (weekProgress?.seasonComplete) {
+    return [
+      `Die Saison ist abgeschlossen; Woche ${weekProgress.currentWeek} liegt nach der letzten geplanten Woche ${weekProgress.lastScheduledWeek}.`,
+    ];
+  }
+
   if (scheduleMatches.length === 0) {
     return ["Für die aktuelle Woche ist kein gültiger Schedule vorhanden."];
   }
@@ -601,7 +639,7 @@ export function normalizeOnlineLeagueWeekSimulationState(
     reasons.push(`${teamName} hat kein spielbares Roster.`);
   }
 
-  reasons.push(...getScheduleValidationReasons(league, scheduleMatches));
+  reasons.push(...getScheduleValidationReasons(league, scheduleMatches, weekProgress));
 
   return {
     canSimulate: lifecycle.canSimulate && reasons.length === 0,
@@ -611,7 +649,7 @@ export function normalizeOnlineLeagueWeekSimulationState(
     games,
     hasValidSchedule:
       scheduleMatches.length > 0 &&
-      getScheduleValidationReasons(league, scheduleMatches).length === 0,
+      getScheduleValidationReasons(league, scheduleMatches, weekProgress).length === 0,
     lastSimulatedWeekKey: league.lastSimulatedWeekKey,
     records: buildOnlineLeagueTeamRecords(league),
     reasons,
@@ -728,13 +766,20 @@ export function buildOnlineLeagueTeamRecords(
   return sortOnlineLeagueTeamRecords(
     Array.from(records.values()).map((record) => {
       const streak = streaks.get(record.teamId);
-
-      return {
+      const normalizedRecord: OnlineLeagueTeamRecord = {
         ...record,
         pointDifferential: record.pointsFor - record.pointsAgainst,
-        streak: streak ? `${streak.type}${streak.count}` : undefined,
-        updatedAt,
       };
+
+      if (streak) {
+        normalizedRecord.streak = `${streak.type}${streak.count}`;
+      }
+
+      if (updatedAt) {
+        normalizedRecord.updatedAt = updatedAt;
+      }
+
+      return normalizedRecord;
     }),
   );
 }

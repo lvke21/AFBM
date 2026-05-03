@@ -16,6 +16,7 @@ import {
 } from "./online-admin-draft-use-cases";
 import {
   executeOnlineAdminAction,
+  shouldMarkFirestoreWeekSimulationFailed,
   toOnlineAdminActionError,
 } from "./online-admin-actions";
 
@@ -73,6 +74,57 @@ function completeFantasyDraftForLocalState(
 }
 
 describe("online admin actions", () => {
+  it("marks only own failed simulation attempts as failed", () => {
+    expect(
+      shouldMarkFirestoreWeekSimulationFailed({
+        errorCode: "schedule_missing",
+        lockAttemptId: "attempt-1",
+        lockStatus: "simulating",
+        simulationAttemptId: "attempt-1",
+      }),
+    ).toBe(true);
+    expect(
+      shouldMarkFirestoreWeekSimulationFailed({
+        errorCode: "week_already_simulated",
+        lockAttemptId: "attempt-1",
+        lockStatus: "simulating",
+        simulationAttemptId: "attempt-1",
+      }),
+    ).toBe(true);
+    expect(
+      shouldMarkFirestoreWeekSimulationFailed({
+        errorCode: "simulation_failed",
+        lockAttemptId: "attempt-1",
+        lockStatus: "simulating",
+        simulationAttemptId: "attempt-1",
+      }),
+    ).toBe(true);
+    expect(
+      shouldMarkFirestoreWeekSimulationFailed({
+        errorCode: "week_already_simulated",
+        lockAttemptId: "attempt-1",
+        lockStatus: "simulated",
+        simulationAttemptId: "attempt-1",
+      }),
+    ).toBe(false);
+    expect(
+      shouldMarkFirestoreWeekSimulationFailed({
+        errorCode: "schedule_missing",
+        lockAttemptId: "other-attempt",
+        lockStatus: "simulating",
+        simulationAttemptId: "attempt-1",
+      }),
+    ).toBe(false);
+    expect(
+      shouldMarkFirestoreWeekSimulationFailed({
+        errorCode: "simulation_in_progress",
+        lockAttemptId: "other-attempt",
+        lockStatus: "simulating",
+        simulationAttemptId: "attempt-1",
+      }),
+    ).toBe(false);
+  });
+
   it("keeps legacy draft admin reads explicit and never synthesizes a missing player pool", () => {
     const legacyLeague: FirestoreOnlineLeagueDoc = {
       completedWeeks: [],
@@ -370,6 +422,9 @@ describe("online admin actions", () => {
       },
       actor,
     );
+
+    expect(ready.league?.users.every((user) => user.readyForWeek)).toBe(true);
+
     const simulated = await executeOnlineAdminAction(
       {
         action: "simulateWeek",
@@ -384,6 +439,84 @@ describe("online admin actions", () => {
     );
 
     expect(simulated.league?.currentWeek).toBe(2);
+    expect(simulated.league?.matchResults?.length).toBeGreaterThan(0);
+    expect(simulated.league?.standings?.length).toBe(2);
+    expect(simulated.league?.standings?.some((record) => record.gamesPlayed > 0)).toBe(true);
+    expect(simulated.league?.users.every((user) => user.readyForWeek === false)).toBe(true);
+  });
+
+  it("runs the complete deterministic minimal week loop", async () => {
+    const created = await executeOnlineAdminAction(
+      {
+        action: "createLeague",
+        backendMode: "local",
+        confirmed: true,
+        name: "Admin Week Flow",
+        maxUsers: 4,
+        localState: {
+          leaguesJson: "[]",
+        },
+      },
+      actor,
+    );
+    const leagueId = created.league?.id;
+
+    if (!leagueId || !created.localState) {
+      throw new Error("Expected created week-flow league.");
+    }
+
+    const setupStorage = new LocalAdminMemoryStorage(created.localState);
+
+    for (let index = 0; index < 4; index += 1) {
+      addFakeUserToOnlineLeague(setupStorage);
+    }
+
+    const draftCompletedState = completeFantasyDraftForLocalState(
+      leagueId,
+      setupStorage.toLocalState(),
+    );
+    const ready = await executeOnlineAdminAction(
+      {
+        action: "setAllReady",
+        backendMode: "local",
+        confirmed: true,
+        leagueId,
+        localState: draftCompletedState,
+      },
+      actor,
+    );
+
+    expect(ready.league?.currentWeek).toBe(1);
+    expect(ready.league?.users).toHaveLength(4);
+    expect(ready.league?.users.every((user) => user.readyForWeek)).toBe(true);
+
+    const simulated = await executeOnlineAdminAction(
+      {
+        action: "simulateWeek",
+        backendMode: "local",
+        confirmed: true,
+        leagueId,
+        localState: ready.localState,
+        season: 1,
+        week: 1,
+      },
+      actor,
+    );
+
+    expect(simulated.league?.matchResults?.length).toBeGreaterThan(0);
+    expect(simulated.league?.standings).toHaveLength(4);
+    expect(simulated.league?.standings?.reduce((sum, record) => sum + record.gamesPlayed, 0)).toBe(
+      (simulated.league?.matchResults?.length ?? 0) * 2,
+    );
+    expect(simulated.league?.currentWeek).toBe(2);
+    expect(simulated.league?.weekStatus).toBe("pre_week");
+    expect(simulated.league?.users.every((user) => user.readyForWeek === false)).toBe(true);
+    expect(simulated.league?.completedWeeks?.[0]).toMatchObject({
+      nextWeek: 2,
+      status: "completed",
+      week: 1,
+      weekKey: "s1-w1",
+    });
   });
 
   it("keeps repeated local simulation requests for the same expected week idempotent", async () => {

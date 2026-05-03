@@ -28,6 +28,7 @@ export type OnlineLeagueWeekSimulationLifecyclePhase =
   | "draftBlocked"
   | "leagueInactive"
   | "readyComplete"
+  | "seasonComplete"
   | "simulating"
   | "teamsNotReady"
   | "weekCompleted";
@@ -72,6 +73,8 @@ function getOnlineLeagueWeekSimulationLifecycleBlockReason(
       return "Liga ist nicht aktiv.";
     case "readyComplete":
       return null;
+    case "seasonComplete":
+      return "Die Saison ist abgeschlossen.";
     case "simulating":
       return "Die Woche wird bereits simuliert.";
     case "teamsNotReady":
@@ -90,6 +93,10 @@ function getOnlineLeagueWeekSimulationLifecyclePhase(
 
   if (input.leagueStatus !== "active") {
     return "leagueInactive";
+  }
+
+  if (input.weekProgress.phase === "season_complete") {
+    return "seasonComplete";
   }
 
   if (input.weekProgress.phase === "simulating") {

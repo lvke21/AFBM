@@ -8,7 +8,7 @@ import {
   ONLINE_FANTASY_DRAFT_POSITIONS,
   ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS,
   saveOnlineLeague,
-  setOnlineLeagueUserReady,
+  setAllOnlineLeagueUsersReady,
   simulateOnlineLeagueWeek,
   startOnlineFantasyDraft,
   submitWeeklyTrainingPlan,
@@ -37,6 +37,12 @@ const BERLIN_WOLVES: TeamIdentitySelection = {
   cityId: "berlin",
   category: "aggressive_competitive",
   teamNameId: "wolves",
+};
+
+const ZURICH_FORGE: TeamIdentitySelection = {
+  cityId: "zurich",
+  category: "identity_city",
+  teamNameId: "forge",
 };
 
 function createJoinedLeague(storage: MemoryStorage) {
@@ -344,8 +350,14 @@ describe("online training system", () => {
   it("does not block week flow when no training plan exists", () => {
     const storage = new MemoryStorage();
     const league = createJoinedLeague(storage);
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-2", username: "Coach_5678" },
+      ZURICH_FORGE,
+      storage,
+    );
     completeFantasyDraftForTest(league.id, storage);
-    setOnlineLeagueUserReady(league.id, "user-1", storage);
+    setAllOnlineLeagueUsersReady(league.id, storage);
 
     const updatedLeague = simulateOnlineLeagueWeek(league.id, storage);
 

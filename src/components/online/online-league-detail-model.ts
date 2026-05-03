@@ -360,6 +360,8 @@ function getWeekFlowPhaseLabel(phase: OnlineCoreLifecyclePhase) {
       return "Ergebnisse verfügbar";
     case "rosterInvalid":
       return "Kader nicht simulationsfähig";
+    case "seasonComplete":
+      return "Saison abgeschlossen";
     case "simulating":
       return "Simulation läuft";
     case "waitingForOthers":
@@ -380,6 +382,8 @@ function getWeekFlowSimulationStatusLabel(
       return "Verbinde zuerst ein Team mit deinem Managerprofil.";
     case "rosterInvalid":
       return reasons[0] ?? "Dein Team ist noch nicht simulationsfähig.";
+    case "seasonComplete":
+      return reasons[0] ?? "Die Saison ist abgeschlossen. Es gibt keine spielbare Woche mehr.";
     case "simulating":
       return "Die Woche wird gerade simuliert. Bitte warte auf den Abschluss.";
     case "resultsAvailable":

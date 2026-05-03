@@ -32,6 +32,7 @@ export type OnlineLeagueWeekSimulationErrorCode =
   | "draft_not_completed"
   | "teams_not_ready"
   | "simulation_in_progress"
+  | "season_complete"
   | "week_already_simulated"
   | "week_state_conflict"
   | "membership_projection_conflict"
@@ -55,10 +56,12 @@ export class OnlineLeagueWeekSimulationError extends Error {
 
 export type OnlineLeagueWeekSimulationSummary = {
   gamesSimulated: number;
+  lastScheduledWeek?: number;
   leagueId: string;
   nextSeason: number;
   nextWeek: number;
   results: OnlineMatchResult[];
+  seasonComplete: boolean;
   simulatedSeason: number;
   simulatedWeek: number;
   standingsSummary: OnlineLeagueTeamRecord[];
@@ -468,12 +471,24 @@ function validateScheduledMatches(input: {
   return validatedMatches;
 }
 
+function getLastScheduledWeek(league: FirestoreOnlineLeagueDoc) {
+  const scheduledWeeks = (league.schedule ?? [])
+    .map((match) => match.week)
+    .filter((week) => Number.isInteger(week) && week >= 1);
+
+  return scheduledWeeks.length > 0 ? Math.max(...scheduledWeeks) : undefined;
+}
+
 function getNextWeekStep(league: FirestoreOnlineLeagueDoc) {
   const rawNextWeek = league.currentWeek + 1;
+  const lastScheduledWeek = getLastScheduledWeek(league);
+  const seasonComplete = lastScheduledWeek !== undefined && rawNextWeek > lastScheduledWeek;
 
   return {
     nextSeason: rawNextWeek > 18 ? league.currentSeason + 1 : league.currentSeason,
     nextWeek: rawNextWeek > 18 ? 1 : rawNextWeek,
+    lastScheduledWeek,
+    seasonComplete,
   };
 }
 
@@ -602,6 +617,13 @@ export function prepareOnlineLeagueWeekSimulation(
     );
   }
 
+  if (lifecycle.phase === "seasonComplete") {
+    throw new OnlineLeagueWeekSimulationError(
+      "season_complete",
+      lifecycle.reasons[0] ?? "Die Saison ist abgeschlossen.",
+    );
+  }
+
   if (!lifecycle.canSimulate) {
     throw new OnlineLeagueWeekSimulationError(
       "teams_not_ready",
@@ -653,7 +675,7 @@ export function prepareOnlineLeagueWeekSimulation(
     );
   }
 
-  const { nextSeason, nextWeek } = getNextWeekStep(league);
+  const { lastScheduledWeek, nextSeason, nextWeek, seasonComplete } = getNextWeekStep(league);
   const completedWeek = createCompletedOnlineWeek({
     completedAt: input.now,
     nextSeason,
@@ -678,11 +700,13 @@ export function prepareOnlineLeagueWeekSimulation(
     completedWeek,
     existingMatchResults,
     gamesSimulated: results.length,
+    lastScheduledWeek,
     leagueId: league.id,
     nextCompletedWeeks,
     nextSeason,
     nextWeek,
     results,
+    seasonComplete,
     simulatedSeason,
     simulatedWeek,
     standingsSummary,

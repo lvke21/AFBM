@@ -6,6 +6,7 @@ import type {
   FirestoreOnlineTeamDoc,
 } from "@/lib/online/types";
 import type {
+  OnlineMatchResult,
   OnlineContractPlayer,
   OnlineDepthChartEntry,
 } from "@/lib/online/online-league-types";
@@ -105,6 +106,30 @@ function membership(teamId: string): FirestoreOnlineMembershipDoc {
     teamId,
     userId: `${teamId}-gm`,
     username: `${teamId} GM`,
+  };
+}
+
+function matchResult(overrides: Partial<OnlineMatchResult> = {}): OnlineMatchResult {
+  return {
+    awayScore: 14,
+    awayStats: { firstDowns: 10, passingYards: 120, rushingYards: 80, totalYards: 200, turnovers: 1 },
+    awayTeamId: "basel",
+    awayTeamName: "Basel Rhinos",
+    createdAt: NOW,
+    homeScore: 21,
+    homeStats: { firstDowns: 12, passingYards: 140, rushingYards: 100, totalYards: 240, turnovers: 0 },
+    homeTeamId: "zurich",
+    homeTeamName: "Zurich Guardians",
+    matchId: "game-1",
+    season: 1,
+    simulatedAt: NOW,
+    simulatedByUserId: "admin-user",
+    status: "completed",
+    tiebreakerApplied: false,
+    week: 1,
+    winnerTeamId: "zurich",
+    winnerTeamName: "Zurich Guardians",
+    ...overrides,
   };
 }
 
@@ -235,9 +260,11 @@ describe("online week simulation preparation", () => {
 
     expect(prepared).toMatchObject({
       gamesSimulated: 1,
+      lastScheduledWeek: 1,
       leagueId: "league-1",
       nextSeason: 1,
       nextWeek: 2,
+      seasonComplete: true,
       simulatedSeason: 1,
       simulatedWeek: 1,
       updatedAt: NOW,
@@ -250,6 +277,93 @@ describe("online week simulation preparation", () => {
       simulatedAt: NOW,
       simulatedByUserId: "admin-user",
       status: "completed",
+    });
+  });
+
+  it("keeps the next week playable when later scheduled games exist", () => {
+    const prepared = prepareOnlineLeagueWeekSimulation({
+      actorUserId: "admin-user",
+      draftState: { completedAt: NOW, currentTeamId: "", draftOrder: [], leagueId: "league-1", pickNumber: 1, round: 1, startedAt: NOW, status: "completed" },
+      expectedSeason: 1,
+      expectedWeek: 1,
+      league: league({
+        schedule: [
+          {
+            awayTeamName: "basel",
+            homeTeamName: "zurich",
+            id: "game-1",
+            week: 1,
+          },
+          {
+            awayTeamName: "basel",
+            homeTeamName: "zurich",
+            id: "game-2",
+            week: 2,
+          },
+        ],
+      }),
+      memberships,
+      now: NOW,
+      teams,
+    });
+
+    expect(prepared).toMatchObject({
+      lastScheduledWeek: 2,
+      nextWeek: 2,
+      seasonComplete: false,
+      simulatedWeek: 1,
+    });
+  });
+
+  it("allows the next week after prior completed results advanced the cursor", () => {
+    const prepared = prepareOnlineLeagueWeekSimulation({
+      actorUserId: "admin-user",
+      draftState: { completedAt: NOW, currentTeamId: "", draftOrder: [], leagueId: "league-1", pickNumber: 1, round: 1, startedAt: NOW, status: "completed" },
+      expectedSeason: 1,
+      expectedWeek: 2,
+      league: league({
+        completedWeeks: [
+          {
+            completedAt: NOW,
+            nextSeason: 1,
+            nextWeek: 2,
+            resultMatchIds: ["game-1"],
+            season: 1,
+            simulatedByUserId: "admin-user",
+            status: "completed",
+            week: 1,
+            weekKey: "s1-w1",
+          },
+        ],
+        currentWeek: 2,
+        matchResults: [matchResult()],
+        schedule: [
+          {
+            awayTeamName: "basel",
+            homeTeamName: "zurich",
+            id: "game-1",
+            week: 1,
+          },
+          {
+            awayTeamName: "basel",
+            homeTeamName: "zurich",
+            id: "game-2",
+            week: 2,
+          },
+        ],
+      }),
+      memberships,
+      now: NOW,
+      teams,
+    });
+
+    expect(prepared).toMatchObject({
+      gamesSimulated: 1,
+      lastScheduledWeek: 2,
+      nextWeek: 3,
+      seasonComplete: true,
+      simulatedWeek: 2,
+      weekKey: "s1-w2",
     });
   });
 
@@ -331,7 +445,7 @@ describe("online week simulation preparation", () => {
               completedAt: NOW,
               nextSeason: 1,
               nextWeek: 2,
-              resultMatchIds: ["game-1"],
+              resultMatchIds: [],
               season: 1,
               simulatedByUserId: "admin-user",
               status: "completed",
@@ -367,6 +481,35 @@ describe("online week simulation preparation", () => {
         teams,
       }),
     ).toThrow(OnlineLeagueWeekSimulationError);
+  });
+
+  it("blocks simulation when the week cursor is beyond the last scheduled game", () => {
+    expect(() =>
+      prepareOnlineLeagueWeekSimulation({
+        actorUserId: "admin-user",
+        expectedSeason: 1,
+        expectedWeek: 2,
+        league: league({
+          completedWeeks: [
+            {
+              completedAt: NOW,
+              nextSeason: 1,
+              nextWeek: 2,
+              resultMatchIds: [],
+              season: 1,
+              simulatedByUserId: "admin-user",
+              status: "completed",
+              week: 1,
+              weekKey: "s1-w1",
+            },
+          ],
+          currentWeek: 2,
+        }),
+        memberships,
+        now: NOW,
+        teams,
+      }),
+    ).toThrow(/Saison ist abgeschlossen/);
   });
 
   it("blocks contradictory legacy completion state without treating it as canonical", () => {

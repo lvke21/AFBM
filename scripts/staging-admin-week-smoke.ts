@@ -3,6 +3,12 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import {
+  formatStagingSmokeState,
+  prepareStagingSmokeMutationRun,
+  readStagingSmokeState,
+} from "./staging-smoke-state";
+
 type AdminActionResponse = {
   ok: boolean;
   code?: string;
@@ -66,12 +72,15 @@ Options:
   --expected-commit <sha> Commit that must be deployed on Staging. Default: local git HEAD.
   --season <number>     Expected season sent to Admin API.
   --week <number>       Expected week sent to Admin API.
+  --reset-before-run    Reset the Staging test league before mutation. Requires CONFIRM_STAGING_SEED=true and CONFIRM_STAGING_PLAYABILITY_SEED=true.
   --auth-only           Read-only smoke: verify login, Admin API auth, league load and user-team assignment.
   --read-only           Alias for --auth-only.
   --help                Show this help.
 
 Safety:
   - Requires CONFIRM_STAGING_SMOKE=true.
+  - Without --reset-before-run, refuses dirty or already-simulated test state before mutating.
+  - With --reset-before-run, requires staging seed confirmations and logs resetUsed=true.
   - Refuses non-afbm-staging hosted URLs.
   - Never prints tokens or passwords.
 `);
@@ -459,6 +468,11 @@ async function run() {
   const season = normalizePositiveInt(readArg("--season"), "season");
   const week = normalizePositiveInt(readArg("--week"), "week");
   const authOnly = hasArg("--auth-only") || hasArg("--read-only");
+  const resetBeforeRun = hasArg("--reset-before-run");
+
+  if (authOnly && resetBeforeRun) {
+    throw new Error("--reset-before-run is only supported for mutating admin-week smoke mode.");
+  }
 
   if (!expectedCommit) {
     throw new Error(
@@ -470,8 +484,21 @@ async function run() {
   console.log(`[staging-smoke] leagueId=${leagueId}`);
   console.log(`[staging-smoke] expectedCommit=${expectedCommit}`);
   console.log(`[staging-smoke] mode=${authOnly ? "read-only-auth" : "simulate-week"}`);
+  console.log(`[staging-smoke] resetBeforeRun=${resetBeforeRun ? "true" : "false"}`);
 
   await verifyStagingCommit(baseUrl, expectedCommit);
+
+  if (authOnly) {
+    const readOnlyState = await readStagingSmokeState(leagueId);
+    console.log(`[staging-smoke] preflight state ${formatStagingSmokeState(readOnlyState)} resetUsed=false`);
+  } else {
+    await prepareStagingSmokeMutationRun({
+      leagueId,
+      logPrefix: "staging-smoke",
+      resetBeforeRun,
+      resetKind: "admin-week",
+    });
+  }
 
   const { token, source } = await getFirebaseIdToken();
 
@@ -521,9 +548,17 @@ async function run() {
   );
   console.log(`[staging-smoke] team assignments=${assignments || "none"}`);
 
+  const simulationSeason = season ?? beforeLeague.currentSeason ?? 1;
+  const simulationWeek = week ?? beforeLeague.currentWeek;
+
+  if (!Number.isInteger(simulationSeason) || !Number.isInteger(simulationWeek)) {
+    throw new Error("League did not expose a valid current season/week for simulation.");
+  }
+
   const readyResult = await postAdminAction(baseUrl, token, {
     action: "setAllReady",
     backendMode: "firebase",
+    confirmed: true,
     leagueId,
   });
 
@@ -541,9 +576,10 @@ async function run() {
   const simulationResult = await postAdminAction(baseUrl, token, {
     action: "simulateWeek",
     backendMode: "firebase",
+    confirmed: true,
     leagueId,
-    season,
-    week,
+    season: simulationSeason,
+    week: simulationWeek,
   });
 
   if (!simulationResult.payload.ok) {

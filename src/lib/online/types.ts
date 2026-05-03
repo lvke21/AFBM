@@ -378,6 +378,12 @@ function mapFirestoreMembershipTeamStatus(team: FirestoreOnlineTeamDoc | undefin
     : "occupied";
 }
 
+function normalizePositiveFirestoreInteger(value: unknown, fallback: number) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 1
+    ? Math.floor(value)
+    : fallback;
+}
+
 export function mapFirestoreStatusToLocalStatus(
   status: FirestoreOnlineLeagueStatus,
 ): OnlineLeague["status"] {
@@ -424,13 +430,16 @@ export function mapFirestoreSnapshotToOnlineLeague(
   const legacyPlayerPool = options.allowLegacyDraftFallback
     ? mapFirestoreFantasyDraftPlayerPool(snapshot.league.settings.fantasyDraftPlayerPool)
     : undefined;
+  const currentWeek = normalizePositiveFirestoreInteger(snapshot.league.currentWeek, 1);
+  const currentSeason = normalizePositiveFirestoreInteger(snapshot.league.currentSeason, 1);
 
   return {
     id: snapshot.league.id,
     name: snapshot.league.name,
     createdAt: snapshot.league.createdAt,
     updatedAt: snapshot.league.updatedAt,
-    currentWeek: snapshot.league.currentWeek,
+    currentWeek,
+    currentSeason,
     weekStatus: snapshot.league.weekStatus ?? "pre_week",
     maxUsers: snapshot.league.maxTeams,
     status: mapFirestoreStatusToLocalStatus(snapshot.league.status),
@@ -476,8 +485,8 @@ export function mapFirestoreSnapshotToOnlineLeague(
       teamId: "",
       userId: event.createdByUserId,
       reason: JSON.stringify(event.payload),
-      season: snapshot.league.currentSeason,
-      week: snapshot.league.currentWeek,
+      season: currentSeason,
+      week: currentWeek,
       createdAt: event.createdAt,
     })),
   };

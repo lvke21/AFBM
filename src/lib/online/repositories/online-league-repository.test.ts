@@ -436,6 +436,162 @@ describe("online league repository backbone", () => {
     });
   });
 
+  it("keeps canonical team, week, results and standings stable across a fresh Firestore reload", () => {
+    const simulatedAt = "2026-05-01T12:00:00.000Z";
+    const snapshot: FirestoreOnlineLeagueSnapshot = {
+      league: firestoreLeagueDoc({
+        id: "league-reload",
+        name: "Reload Stability",
+        status: "active",
+        currentSeason: 1,
+        currentWeek: 2,
+        weekStatus: "pre_week",
+        schedule: [
+          {
+            id: "league-reload-s1-w2-team-a-team-b",
+            week: 2,
+            homeTeamName: "Team A",
+            awayTeamName: "Team B",
+          },
+        ],
+        matchResults: [
+          {
+            matchId: "league-reload-s1-w1-team-a-team-b",
+            season: 1,
+            week: 1,
+            homeTeamId: "team-a",
+            awayTeamId: "team-b",
+            homeTeamName: "Team A",
+            awayTeamName: "Team B",
+            homeScore: 24,
+            awayScore: 17,
+            homeStats: {
+              firstDowns: 22,
+              passingYards: 240,
+              rushingYards: 120,
+              totalYards: 360,
+              turnovers: 1,
+            },
+            awayStats: {
+              firstDowns: 18,
+              passingYards: 210,
+              rushingYards: 95,
+              totalYards: 305,
+              turnovers: 2,
+            },
+            winnerTeamId: "team-a",
+            winnerTeamName: "Team A",
+            loserTeamId: "team-b",
+            loserTeamName: "Team B",
+            tiebreakerApplied: false,
+            simulatedAt,
+            simulatedByUserId: "admin-user",
+            status: "completed",
+            createdAt: simulatedAt,
+          },
+        ],
+        completedWeeks: [
+          {
+            weekKey: "s1-w1",
+            season: 1,
+            week: 1,
+            status: "completed",
+            resultMatchIds: ["league-reload-s1-w1-team-a-team-b"],
+            completedAt: simulatedAt,
+            simulatedByUserId: "admin-user",
+            nextSeason: 1,
+            nextWeek: 2,
+          },
+        ],
+        standings: [
+          {
+            teamId: "team-a",
+            gamesPlayed: 1,
+            wins: 1,
+            losses: 0,
+            ties: 0,
+            pointsFor: 24,
+            pointsAgainst: 17,
+            pointDifferential: 7,
+            streak: "W1",
+            updatedAt: simulatedAt,
+          },
+          {
+            teamId: "team-b",
+            gamesPlayed: 1,
+            wins: 0,
+            losses: 1,
+            ties: 0,
+            pointsFor: 17,
+            pointsAgainst: 24,
+            pointDifferential: -7,
+            streak: "L1",
+            updatedAt: simulatedAt,
+          },
+        ],
+        lastSimulatedWeekKey: "s1-w1",
+      }),
+      memberships: [
+        firestoreMembership({
+          userId: "gm-a",
+          username: "Coach A",
+          displayName: "Coach A",
+          teamId: "team-a",
+          ready: false,
+        }),
+        firestoreMembership({
+          userId: "gm-b",
+          username: "Coach B",
+          displayName: "Coach B",
+          teamId: "team-b",
+          ready: false,
+        }),
+      ],
+      teams: [
+        firestoreTeam("team-a", {
+          teamName: "Team A",
+          displayName: "Team A",
+          assignedUserId: "gm-a",
+          status: "assigned",
+        }),
+        firestoreTeam("team-b", {
+          teamName: "Team B",
+          displayName: "Team B",
+          assignedUserId: "gm-b",
+          status: "assigned",
+        }),
+      ],
+    };
+
+    const firstLoad = mapFirestoreSnapshotToOnlineLeague(snapshot);
+    const reloadedSnapshot = JSON.parse(JSON.stringify(snapshot)) as FirestoreOnlineLeagueSnapshot;
+    const reloaded = mapFirestoreSnapshotToOnlineLeague(reloadedSnapshot);
+
+    expect(firstLoad.users.find((user) => user.userId === "gm-a")?.teamId).toBe("team-a");
+    expect(reloaded.users.find((user) => user.userId === "gm-a")).toMatchObject({
+      teamId: "team-a",
+      teamDisplayName: "Team A",
+      readyForWeek: false,
+    });
+    expect(reloaded.currentSeason).toBe(1);
+    expect(reloaded.currentWeek).toBe(2);
+    expect(reloaded.weekStatus).toBe("pre_week");
+    expect(reloaded.lastSimulatedWeekKey).toBe("s1-w1");
+    expect(reloaded.matchResults).toEqual(firstLoad.matchResults);
+    expect(reloaded.matchResults).toHaveLength(1);
+    expect(reloaded.standings).toEqual(firstLoad.standings);
+    expect(reloaded.standings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          teamId: "team-a",
+          gamesPlayed: 1,
+          wins: 1,
+          pointDifferential: 7,
+        }),
+      ]),
+    );
+  });
+
   it("maps split Firestore draft subcollections without reading the legacy league blob", () => {
     const snapshot: FirestoreOnlineLeagueSnapshot = {
       league: {

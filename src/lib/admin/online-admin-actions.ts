@@ -35,6 +35,7 @@ import {
   isOnlineLeagueWeekSimulationLockStale,
   OnlineLeagueWeekSimulationError,
   prepareOnlineLeagueWeekSimulation,
+  type OnlineLeagueWeekSimulationErrorCode,
   type OnlineLeagueWeekSimulationSummary,
 } from "@/lib/admin/online-week-simulation";
 import {
@@ -263,6 +264,31 @@ function createEvent(
   };
 }
 
+export function shouldMarkFirestoreWeekSimulationFailed(input: {
+  errorCode: OnlineLeagueWeekSimulationErrorCode;
+  lockAttemptId?: string;
+  lockStatus: ReturnType<typeof getOnlineLeagueSimulationLockStatus>;
+  simulationAttemptId: string;
+}) {
+  if (input.errorCode === "simulation_in_progress") {
+    return false;
+  }
+
+  if (input.lockStatus === "simulated") {
+    return false;
+  }
+
+  if (
+    input.lockStatus === "simulating" &&
+    input.lockAttemptId &&
+    input.lockAttemptId !== input.simulationAttemptId
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 async function markFirestoreWeekSimulationFailed(input: {
   actor: AdminActionActor;
   error: OnlineLeagueWeekSimulationError;
@@ -283,16 +309,14 @@ async function markFirestoreWeekSimulationFailed(input: {
     const lockData = lockSnapshot.exists
       ? (lockSnapshot.data() as { simulationAttemptId?: string } | undefined)
       : undefined;
+    const lockAttemptId = lockData?.simulationAttemptId;
 
-    if (lockStatus === "simulated") {
-      return;
-    }
-
-    if (
-      lockStatus === "simulating" &&
-      lockData?.simulationAttemptId &&
-      lockData.simulationAttemptId !== input.simulationAttemptId
-    ) {
+    if (!shouldMarkFirestoreWeekSimulationFailed({
+      errorCode: input.error.code,
+      lockAttemptId,
+      lockStatus,
+      simulationAttemptId: input.simulationAttemptId,
+    })) {
       return;
     }
 
@@ -651,6 +675,11 @@ async function executeFirebaseAction(
         };
       });
 
+      console.info("[online-week-flow] firebase setAllReady", {
+        leagueId,
+        message: result.message,
+      });
+
       return { ok: true, message: result.message, league: await mapFirestoreLeague(leagueId) };
     }
     case "startLeague": {
@@ -876,7 +905,8 @@ async function executeFirebaseAction(
             lastSimulatedWeekKey: preparedSimulation.weekKey,
             matchResults: [...preparedSimulation.results, ...preparedSimulation.existingMatchResults],
             standings: preparedSimulation.standingsSummary,
-            weekStatus: "pre_week",
+            status: preparedSimulation.seasonComplete ? "completed" : "active",
+            weekStatus: preparedSimulation.seasonComplete ? "completed" : "pre_week",
             updatedAt: preparedSimulation.updatedAt,
             version: FieldValue.increment(1),
           });
@@ -910,16 +940,18 @@ async function executeFirebaseAction(
             },
             { merge: true },
           );
-          transaction.set(
-            leagueRef.collection("weeks").doc(`s${preparedSimulation.nextSeason}-w${preparedSimulation.nextWeek}`),
-            {
-              season: preparedSimulation.nextSeason,
-              week: preparedSimulation.nextWeek,
-              status: "pre_week",
-              startedAt: preparedSimulation.updatedAt,
-            },
-            { merge: true },
-          );
+          if (!preparedSimulation.seasonComplete) {
+            transaction.set(
+              leagueRef.collection("weeks").doc(`s${preparedSimulation.nextSeason}-w${preparedSimulation.nextWeek}`),
+              {
+                season: preparedSimulation.nextSeason,
+                week: preparedSimulation.nextWeek,
+                status: "pre_week",
+                startedAt: preparedSimulation.updatedAt,
+              },
+              { merge: true },
+            );
+          }
           transaction.set(leagueRef.collection("adminLogs").doc(), {
             action: "simulateWeek",
             createdAt,
@@ -931,6 +963,7 @@ async function executeFirebaseAction(
               nextSeason: preparedSimulation.nextSeason,
               nextWeek: preparedSimulation.nextWeek,
               resultCount: preparedSimulation.gamesSimulated,
+              seasonComplete: preparedSimulation.seasonComplete,
             },
           });
           transaction.set(
@@ -941,10 +974,19 @@ async function executeFirebaseAction(
               nextSeason: preparedSimulation.nextSeason,
               nextWeek: preparedSimulation.nextWeek,
               resultCount: preparedSimulation.gamesSimulated,
+              seasonComplete: preparedSimulation.seasonComplete,
             }),
           );
 
           return preparedSimulation;
+        });
+        console.info("[online-week-flow] firebase simulation completed", {
+          currentWeek: simulation.nextWeek,
+          gamesSimulated: simulation.gamesSimulated,
+          leagueId,
+          seasonComplete: simulation.seasonComplete,
+          standingsCount: simulation.standingsSummary.length,
+          week: simulation.simulatedWeek,
         });
       } catch (error) {
         const simulationError =
@@ -957,21 +999,16 @@ async function executeFirebaseAction(
                   : "Week-Simulation konnte nicht abgeschlossen werden.",
               );
 
-        if (
-          simulationError.code !== "simulation_in_progress" &&
-          simulationError.code !== "week_already_simulated"
-        ) {
-          await markFirestoreWeekSimulationFailed({
-            actor,
-            error: simulationError,
-            failedAt: createdAt,
-            leagueId,
-            lockRef,
-            season: expectedStep.season,
-            simulationAttemptId,
-            week: expectedStep.week,
-          });
-        }
+        await markFirestoreWeekSimulationFailed({
+          actor,
+          error: simulationError,
+          failedAt: createdAt,
+          leagueId,
+          lockRef,
+          season: expectedStep.season,
+          simulationAttemptId,
+          week: expectedStep.week,
+        });
 
         throw error;
       }

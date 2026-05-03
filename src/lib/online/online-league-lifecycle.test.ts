@@ -455,6 +455,63 @@ describe("normalizeOnlineCoreLifecycle", () => {
     });
   });
 
+  it("does not let previous-week results block the next ready week", () => {
+    expect(
+      normalizeOnlineLeagueCoreLifecycle({
+        league: createLeague({
+          completedWeeks: [completedWeek({ resultMatchIds: ["match-1"] })],
+          currentWeek: 2,
+          fantasyDraft: COMPLETED_DRAFT,
+          matchResults: [matchResult()],
+          schedule: [
+            {
+              awayTeamName: "Basel Bears",
+              homeTeamName: "Zurich Guardians",
+              id: "game-2",
+              week: 2,
+            },
+          ],
+          users: [
+            { ...ACTIVE_USER, readyForWeek: true },
+            { ...SECOND_USER, readyForWeek: true },
+          ],
+        }),
+      }),
+    ).toMatchObject({
+      canSimulate: true,
+      phase: "readyComplete",
+    });
+  });
+
+  it("returns seasonComplete when the week cursor moves beyond the planned schedule", () => {
+    expect(
+      normalizeOnlineLeagueCoreLifecycle({
+        league: createLeague({
+          completedWeeks: [completedWeek()],
+          currentWeek: 2,
+          fantasyDraft: COMPLETED_DRAFT,
+          schedule: [
+            {
+              awayTeamName: "Basel Bears",
+              homeTeamName: "Zurich Guardians",
+              id: "game-1",
+              week: 1,
+            },
+          ],
+          users: [
+            { ...ACTIVE_USER, readyForWeek: true },
+            { ...SECOND_USER, readyForWeek: true },
+          ],
+        }),
+      }),
+    ).toMatchObject({
+      canSetReady: false,
+      canSimulate: false,
+      phase: "seasonComplete",
+      reasons: ["Die Saison ist abgeschlossen."],
+    });
+  });
+
   it("returns blockedConflict when lifecycle sources contradict each other", () => {
     expect(
       normalizeOnlineCoreLifecycle({

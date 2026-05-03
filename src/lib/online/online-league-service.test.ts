@@ -715,19 +715,28 @@ describe("online-league-service", () => {
       BERLIN_WOLVES,
       storage,
     );
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-2", username: "Coach_5678" },
+      ZURICH_FORGE,
+      storage,
+    );
     completeFantasyDraftForTest(league.id, storage);
     setOnlineLeagueUserReady(league.id, "user-1", storage);
+    setOnlineLeagueUserReady(league.id, "user-2", storage);
 
     const updatedLeague = simulateOnlineLeagueWeek(league.id, storage);
 
     expect(updatedLeague?.currentWeek).toBe(2);
     expect(updatedLeague?.weekStatus).toBe("pre_week");
+    expect(updatedLeague?.matchResults?.length).toBeGreaterThan(0);
+    expect(updatedLeague?.standings?.length).toBeGreaterThan(0);
     expect(updatedLeague?.completedWeeks?.[0]).toMatchObject({
       weekKey: "s1-w1",
       season: 1,
       week: 1,
       status: "completed",
-      resultMatchIds: [],
+      resultMatchIds: updatedLeague?.matchResults?.map((result) => result.matchId),
       completedAt: expect.any(String),
       simulatedByUserId: "admin",
       nextSeason: 1,
@@ -739,7 +748,7 @@ describe("online-league-service", () => {
     });
     expect(updatedLeague?.users[0]).not.toHaveProperty("readyAt");
     expect(updatedLeague?.logs?.[0]).toMatchObject({
-      message: "Simulation placeholder ausgeführt",
+      message: "Simulation placeholder ausgeführt und Ergebnisse gespeichert",
       createdAt: expect.any(String),
     });
     expect(getOnlineLeagueById(league.id, storage)?.currentWeek).toBe(2);
