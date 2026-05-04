@@ -615,10 +615,6 @@ async function executeFirebaseAction(
         }
 
         const league = leagueSnapshot.data() as FirestoreOnlineLeagueDoc;
-        if (league.weekStatus === "season_complete") {
-          throw new OnlineAdminActionValidationError("Die Saison ist abgeschlossen. Offseason kommt bald.");
-        }
-
         const memberships = await transaction.get(leagueRef.collection("memberships"));
         const teams = await transaction.get(leagueRef.collection("teams"));
         const membershipDocs = memberships.docs.map(
