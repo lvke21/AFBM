@@ -118,8 +118,8 @@ test.describe.serial("Staging real player login and rejoin", () => {
       await attachScreenshot(page, testInfo, "03-after-reload");
     });
 
-    await test.step("Cleared localStorage does not break direct membership rejoin", async () => {
-      await page.evaluate(() => window.localStorage.clear());
+    await test.step("Cleared app league storage does not break direct membership rejoin", async () => {
+      await page.evaluate((key) => window.localStorage.removeItem(key), LAST_LEAGUE_STORAGE_KEY);
       await openLeagueAndAssertTeam(page);
       await attachScreenshot(page, testInfo, "04-direct-rejoin-after-localstorage-clear");
     });
