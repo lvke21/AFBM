@@ -615,9 +615,21 @@ async function executeFirebaseAction(
         }
 
         const league = leagueSnapshot.data() as FirestoreOnlineLeagueDoc;
+        if (league.weekStatus === "season_complete") {
+          throw new OnlineAdminActionValidationError("Die Saison ist abgeschlossen. Offseason kommt bald.");
+        }
+
         const memberships = await transaction.get(leagueRef.collection("memberships"));
         const teams = await transaction.get(leagueRef.collection("teams"));
+        const membershipDocs = memberships.docs.map(
+          (membership) => membership.data() as FirestoreOnlineMembershipDoc,
+        );
         const teamDocs = teams.docs.map((team) => team.data() as FirestoreOnlineTeamDoc);
+        const mappedLeague = mapFirestoreSnapshotToOnlineLeague({
+          league,
+          memberships: membershipDocs,
+          teams: teamDocs,
+        });
         let updatedMembers = 0;
 
         memberships.docs.forEach((membership) => {
@@ -638,15 +650,14 @@ async function executeFirebaseAction(
             );
           }
 
-          const mappedLeague = mapFirestoreSnapshotToOnlineLeague({
-            league,
-            memberships: [data],
-            teams: teamDocs,
-          });
           const mappedUser = mappedLeague.users.find((user) => user.userId === data.userId);
           const readyChangeState = getOnlineLeagueReadyChangeState(mappedLeague, mappedUser);
 
-          if (readyChangeState.allowed && !data.ready) {
+          if (!readyChangeState.allowed) {
+            throw new OnlineAdminActionValidationError(readyChangeState.reason);
+          }
+
+          if (!data.ready) {
             updatedMembers += 1;
             transaction.update(membership.ref, { ready, lastSeenAt: createdAt });
           }

@@ -519,6 +519,66 @@ describe("online admin actions", () => {
     });
   });
 
+  it("blocks setAllReady after the season is complete", async () => {
+    const created = await executeOnlineAdminAction(
+      {
+        action: "createLeague",
+        backendMode: "local",
+        confirmed: true,
+        name: "Admin Season Complete Ready Gate",
+        maxUsers: 2,
+        localState: {
+          leaguesJson: "[]",
+        },
+      },
+      actor,
+    );
+    const leagueId = created.league?.id;
+
+    if (!leagueId || !created.localState) {
+      throw new Error("Expected created season-complete league.");
+    }
+
+    const setupStorage = new LocalAdminMemoryStorage(created.localState);
+
+    addFakeUserToOnlineLeague(setupStorage);
+    addFakeUserToOnlineLeague(setupStorage);
+
+    const draftCompletedState = completeFantasyDraftForLocalState(
+      leagueId,
+      setupStorage.toLocalState(),
+    );
+    const leagues = JSON.parse(draftCompletedState.leaguesJson ?? "[]") as Array<Record<string, unknown>>;
+    const seasonCompleteState = {
+      ...draftCompletedState,
+      leaguesJson: JSON.stringify(
+        leagues.map((league) =>
+          league.id === leagueId
+            ? {
+                ...league,
+                currentWeek: 2,
+                status: "waiting",
+                weekStatus: "season_complete",
+              }
+            : league,
+        ),
+      ),
+    };
+
+    await expect(
+      executeOnlineAdminAction(
+        {
+          action: "setAllReady",
+          backendMode: "local",
+          confirmed: true,
+          leagueId,
+          localState: seasonCompleteState,
+        },
+        actor,
+      ),
+    ).rejects.toThrow("Die Saison ist abgeschlossen");
+  });
+
   it("keeps repeated local simulation requests for the same expected week idempotent", async () => {
     const created = await executeOnlineAdminAction(
       {

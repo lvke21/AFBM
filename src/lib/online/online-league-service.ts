@@ -116,6 +116,7 @@ import {
 import { resolveJoinArguments } from "./online-league-join";
 import { saveOnlineLeagueCollection } from "./online-league-persistence";
 import {
+  getOnlineLeagueReadyChangeState,
   isOnlineLeagueUserActiveWeekParticipant,
 } from "./online-league-week-service";
 import {
@@ -6755,8 +6756,20 @@ export function setAllOnlineLeagueUsersReady(
     return null;
   }
 
+  if (league.weekStatus === "season_complete") {
+    throw new Error("Die Saison ist abgeschlossen. Offseason kommt bald.");
+  }
+
   const readyAt = new Date().toISOString();
   const activeUsers = league.users.filter(isOnlineLeagueUserActiveWeekParticipant);
+  const blockedUser = activeUsers
+    .map((leagueUser) => getOnlineLeagueReadyChangeState(league, leagueUser))
+    .find((readyChangeState) => !readyChangeState.allowed);
+
+  if (blockedUser) {
+    throw new Error(blockedUser.reason);
+  }
+
   const nextLeague = {
     ...league,
     users: league.users.map((leagueUser) =>
