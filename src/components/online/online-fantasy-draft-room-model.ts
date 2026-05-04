@@ -16,6 +16,13 @@ export type PickedDraftPlayer = {
   player: OnlineContractPlayer;
 };
 
+export type DraftOrderRow = {
+  index: number;
+  isCurrent: boolean;
+  teamId: string;
+  teamName: string;
+};
+
 export function createDraftPlayerMap(players: OnlineContractPlayer[]) {
   return new Map(players.map((player) => [player.playerId, player]));
 }
@@ -79,5 +86,18 @@ export function deriveDraftRosterCounts(players: OnlineContractPlayer[]) {
     position,
     count: countByPosition.get(position) ?? 0,
     target: ONLINE_FANTASY_DRAFT_ROSTER_REQUIREMENTS[position],
+  }));
+}
+
+export function deriveDraftOrderRows(input: {
+  currentTeamId: string;
+  draftOrder: string[];
+  teamNameById: Map<string, string>;
+}) {
+  return input.draftOrder.map((teamId, index): DraftOrderRow => ({
+    index: index + 1,
+    isCurrent: teamId === input.currentTeamId,
+    teamId,
+    teamName: input.teamNameById.get(teamId) ?? teamId,
   }));
 }

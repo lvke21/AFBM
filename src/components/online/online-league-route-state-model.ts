@@ -28,6 +28,20 @@ export function validateOnlineLeagueRouteState(input: {
   const leagueUser = input.league.users.find((user) => user.userId === input.user?.userId);
 
   if (!leagueUser) {
+    const projectedTeam = input.league.teams.find(
+      (team) =>
+        team.assignedUserId === input.user?.userId &&
+        team.assignmentStatus !== "available" &&
+        team.assignmentStatus !== "vacant",
+    );
+
+    if (projectedTeam) {
+      return {
+        message: `Membership-Projektion inkonsistent: Team ${projectedTeam.id} zeigt auf deinen Account, aber deine Membership fehlt.`,
+        requiresSearch: true,
+      };
+    }
+
     return {
       message: getMissingPlayerRecoveryCopy().message,
       requiresSearch: true,
@@ -71,4 +85,29 @@ export function validateOnlineLeagueRouteState(input: {
   }
 
   return null;
+}
+
+export function shouldAttemptOnlineLeagueRouteJoin(input: {
+  league: OnlineLeague | null;
+  user: OnlineUser | null;
+}) {
+  if (!input.user) {
+    return false;
+  }
+
+  if (!input.league) {
+    return true;
+  }
+
+  const hasMembership = input.league.users.some(
+    (leagueUser) => leagueUser.userId === input.user?.userId,
+  );
+  const hasTeamProjection = input.league.teams.some(
+    (team) =>
+      team.assignedUserId === input.user?.userId &&
+      team.assignmentStatus !== "available" &&
+      team.assignmentStatus !== "vacant",
+  );
+
+  return !hasMembership && !hasTeamProjection;
 }

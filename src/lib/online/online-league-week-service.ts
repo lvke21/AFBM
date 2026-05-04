@@ -70,6 +70,32 @@ function normalizeWeekNumber(week: number | undefined) {
   return Math.max(1, Math.floor(week));
 }
 
+function getLastScheduledWeek(league: OnlineLeague) {
+  const scheduledWeeks = (league.schedule ?? [])
+    .map((match) => match.week)
+    .filter((week) => Number.isInteger(week) && week >= 1);
+
+  return scheduledWeeks.length > 0 ? Math.max(...scheduledWeeks) : undefined;
+}
+
+function hasCurrentWeekSchedule(league: OnlineLeague, currentWeek: number) {
+  return (league.schedule ?? []).some((match) => match.week === currentWeek);
+}
+
+function getReadyWeekPlayabilityBlockReason(league: OnlineLeague, currentWeek: number) {
+  const lastScheduledWeek = getLastScheduledWeek(league);
+
+  if (lastScheduledWeek !== undefined && currentWeek > lastScheduledWeek) {
+    return `Die Saison ist abgeschlossen; Woche ${currentWeek} liegt nach der letzten geplanten Woche ${lastScheduledWeek}.`;
+  }
+
+  if ((league.schedule?.length ?? 0) > 0 && !hasCurrentWeekSchedule(league, currentWeek)) {
+    return "Bereit gesperrt: Für die aktuelle Woche ist kein gültiger Schedule vorhanden.";
+  }
+
+  return null;
+}
+
 function getOnlineLeagueTeamReadinessBlockReason(
   _league: OnlineLeague,
   user: OnlineLeagueUser,
@@ -209,6 +235,18 @@ export function getOnlineLeagueReadyChangeState(
     };
   }
 
+  const weekPlayabilityBlockReason = getReadyWeekPlayabilityBlockReason(league, currentWeek);
+
+  if (weekPlayabilityBlockReason) {
+    return {
+      allowed: false,
+      currentSeason,
+      currentWeek,
+      reason: weekPlayabilityBlockReason,
+      weekKey,
+    };
+  }
+
   if (isOnlineLeagueCurrentWeekCanonicallyCompleted(league)) {
     return {
       allowed: false,
@@ -277,6 +315,7 @@ export function getOnlineLeagueWeekReadyState(
   const missingParticipants = activeParticipants.filter((participant) => !participant.readyForWeek);
   const allReady = activeParticipants.length > 0 && missingParticipants.length === 0;
   const draftReady = !league.fantasyDraft || league.fantasyDraft.status === "completed";
+  const weekPlayable = getReadyWeekPlayabilityBlockReason(league, currentWeek) === null;
 
   return {
     activeParticipants,
@@ -284,6 +323,7 @@ export function getOnlineLeagueWeekReadyState(
     canSimulate:
       league.status === "active" &&
       draftReady &&
+      weekPlayable &&
       allReady &&
       league.weekStatus !== "simulating",
     currentSeason,

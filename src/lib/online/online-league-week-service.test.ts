@@ -79,6 +79,14 @@ function league(overrides: Partial<OnlineLeague> = {}): OnlineLeague {
         name: "Zurich Guardians",
       },
     ],
+    schedule: [
+      {
+        awayTeamName: "Zurich Guardians",
+        homeTeamName: "Zurich Guardians",
+        id: "ready-validation-league-week-1",
+        week: 1,
+      },
+    ],
     users: [user()],
     weekStatus: "pre_week",
     ...overrides,
@@ -193,6 +201,50 @@ describe("online league ready validation", () => {
     expect(getOnlineLeagueReadyChangeState(testLeague, testLeague.users[0])).toMatchObject({
       allowed: false,
       reason: "Bereit-Status ist während der Simulation gesperrt.",
+    });
+  });
+
+  it("blocks ready when a schedule exists but the current week has no games", () => {
+    const testLeague = league({
+      schedule: [
+        {
+          awayTeamName: "Zurich Guardians",
+          homeTeamName: "Zurich Guardians",
+          id: "ready-validation-league-week-2",
+          week: 2,
+        },
+      ],
+    });
+
+    expect(getOnlineLeagueReadyChangeState(testLeague, testLeague.users[0])).toMatchObject({
+      allowed: false,
+      reason: "Bereit gesperrt: Für die aktuelle Woche ist kein gültiger Schedule vorhanden.",
+    });
+    expect(getOnlineLeagueWeekReadyState(testLeague)).toMatchObject({
+      allReady: false,
+      canSimulate: false,
+    });
+  });
+
+  it("blocks ready when the current week is beyond the scheduled season", () => {
+    const testLeague = league({
+      currentWeek: 2,
+      schedule: [
+        {
+          awayTeamName: "Zurich Guardians",
+          homeTeamName: "Zurich Guardians",
+          id: "ready-validation-league-week-1",
+          week: 1,
+        },
+      ],
+    });
+
+    expect(getOnlineLeagueReadyChangeState(testLeague, testLeague.users[0])).toMatchObject({
+      allowed: false,
+      reason: "Die Saison ist abgeschlossen; Woche 2 liegt nach der letzten geplanten Woche 1.",
+    });
+    expect(getOnlineLeagueWeekReadyState(testLeague)).toMatchObject({
+      canSimulate: false,
     });
   });
 

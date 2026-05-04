@@ -27,16 +27,20 @@ export function OnlineContinueButton() {
     let attemptedLastLeagueId: string | null = null;
 
     try {
+      const currentUser = await repository.getCurrentUser();
       const lastLeagueId = repository.getLastLeagueId();
       attemptedLastLeagueId = lastLeagueId;
       const league = isSafeOnlineLeagueId(lastLeagueId)
         ? await repository.getLeagueById(lastLeagueId)
         : null;
-      const continueState = buildOnlineContinueState(lastLeagueId, league);
+      const continueState = buildOnlineContinueState(lastLeagueId, league, {
+        hadAuthenticatedUser: Boolean(currentUser),
+      });
 
       if (continueState.status !== "ready") {
         if (
           continueState.status === "missing-league" ||
+          continueState.status === "missing-membership" ||
           continueState.status === "invalid-last-league"
         ) {
           repository.clearLastLeagueId(lastLeagueId ?? undefined);

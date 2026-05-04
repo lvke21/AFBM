@@ -36,6 +36,14 @@ describe("online-auth", () => {
     expect(source).not.toContain(["Email", "AuthProvider"].join(""));
   });
 
+  it("uses persistent Firebase browser sessions for real player login", () => {
+    const source = readFileSync(fileURLToPath(import.meta.url).replace(".test.ts", ".ts"), "utf8");
+
+    expect(source).toContain("browserLocalPersistence");
+    expect(source).toContain("setPersistence");
+    expect(source).toContain("ensureOnlineFirebaseAuthPersistence");
+  });
+
   it("keeps Firebase error codes and messages available for the UI", () => {
     expect(
       getOnlineAuthErrorDetails({

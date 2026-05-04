@@ -48,6 +48,14 @@ describe("buildOnlineContinueState", () => {
     });
   });
 
+  it("explains when the signed-in player has no membership in the stored league", () => {
+    expect(buildOnlineContinueState("missing-league", null, { hadAuthenticatedUser: true })).toEqual({
+      status: "missing-membership",
+      message: "Du bist mit dieser Online-Liga nicht als Manager verbunden.",
+      helper: "Melde dich mit dem richtigen Spieler-Account an oder tritt der Liga erneut bei.",
+    });
+  });
+
   it("does not navigate when the loaded league does not match the stored id", () => {
     expect(buildOnlineContinueState("other-league", league)).toEqual({
       status: "missing-league",

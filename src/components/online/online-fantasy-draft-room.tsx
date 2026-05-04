@@ -15,6 +15,7 @@ import type { OnlineUser } from "@/lib/online/online-user-service";
 import {
   createDraftPlayerMap,
   deriveAvailableDraftPlayers,
+  deriveDraftOrderRows,
   deriveDraftRosterCounts,
   derivePickedDraftPlayers,
   deriveTeamDraftRoster,
@@ -192,6 +193,15 @@ export function OnlineFantasyDraftRoom({
     [draftPicks, ownTeamId, playersById],
   );
   const rosterCounts = useMemo(() => deriveDraftRosterCounts(ownRoster), [ownRoster]);
+  const draftOrderRows = useMemo(
+    () =>
+      deriveDraftOrderRows({
+        currentTeamId: draft?.currentTeamId ?? "",
+        draftOrder: draft?.draftOrder ?? EMPTY_PLAYER_IDS,
+        teamNameById,
+      }),
+    [draft?.currentTeamId, draft?.draftOrder, teamNameById],
+  );
 
   useEffect(() => {
     if (selectedPlayerId && !availablePlayerIds.has(selectedPlayerId)) {
@@ -370,6 +380,26 @@ export function OnlineFantasyDraftRoom({
         </section>
 
         <aside className="grid gap-5">
+          <section className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+            <h2 className="text-lg font-semibold text-white">Pick-Reihenfolge</h2>
+            <div className="mt-3 grid gap-2">
+              {draftOrderRows.map((row) => (
+                <div
+                  key={`${row.index}-${row.teamId}`}
+                  className={`rounded-lg border px-3 py-2 text-sm ${
+                    row.isCurrent
+                      ? "border-cyan-200/35 bg-cyan-300/10 text-cyan-50"
+                      : "border-white/10 bg-white/5 text-slate-200"
+                  }`}
+                >
+                  <span className="font-semibold">#{row.index}</span>{" "}
+                  {row.teamName}
+                  {row.isCurrent ? " · am Zug" : ""}
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
             <h2 className="text-lg font-semibold text-white">Eigener Kaderstand</h2>
             <p className="mt-1 text-sm text-slate-400">

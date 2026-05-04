@@ -60,15 +60,17 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
   const base = saveGameBase(context);
   const onlineTeamReady = context.online?.teamNavigationReady === true;
   const isOnlineLeague = Boolean(context.online && base);
+  const onlineDraftComplete = !isOnlineLeague || context.online?.draftStatus === "completed";
+  const onlineCoreReady = onlineTeamReady && onlineDraftComplete;
   const teamHref = isOnlineLeague
     ? onlineTeamReady ? `${base}#team` : null
     : base && context.managerTeam ? `${base}/team` : null;
   const onlineComingSoonBase = isOnlineLeague && base ? `${base}/coming-soon` : null;
   const rosterHref = isOnlineLeague
-    ? onlineTeamReady ? `${base}#roster` : null
+    ? onlineCoreReady ? `${base}#roster` : null
     : teamHref ? `${teamHref}/roster` : null;
   const depthChartHref = isOnlineLeague
-    ? onlineTeamReady ? `${base}#depth-chart` : null
+    ? onlineCoreReady ? `${base}#depth-chart` : null
     : teamHref ? `${teamHref}/depth-chart` : null;
   const contractsHref = isOnlineLeague
     ? onlineComingSoonBase ? `${onlineComingSoonBase}/contracts-cap` : null
@@ -87,7 +89,7 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
     : base ? `${base}/development` : null;
   const draftHref = base ? `${base}/draft` : null;
   const gameFlowHref = isOnlineLeague
-    ? base ? `${base}#week-loop` : null
+    ? onlineCoreReady ? `${base}#week-loop` : null
     : context.nextGameHref ?? (base ? `${base}/game/setup` : null);
   const inboxHref = isOnlineLeague
     ? onlineComingSoonBase ? `${onlineComingSoonBase}/inbox` : null
@@ -95,6 +97,7 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
   const teamDisabledReason = isOnlineLeague
     ? "Kein Manager-Team"
     : "Kein Manager-Team";
+  const onlineDraftDisabledReason = "Draft läuft";
 
   const items: NavigationItem[] = [
     {
@@ -111,7 +114,9 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
       disabledReason: gameFlowHref
         ? undefined
         : isOnlineLeague
-            ? teamDisabledReason
+            ? onlineTeamReady && !onlineDraftComplete
+              ? onlineDraftDisabledReason
+              : teamDisabledReason
             : "Kein Savegame",
     },
     {
@@ -119,14 +124,26 @@ export function buildNavigationItems(context: AppShellContext): NavigationItem[]
       href: rosterHref,
       activePatterns: ["/team/roster", "/players/"],
       section: "Core Actions",
-      disabledReason: rosterHref ? undefined : teamDisabledReason,
+      disabledReason: rosterHref
+        ? undefined
+        : isOnlineLeague
+          ? onlineTeamReady && !onlineDraftComplete
+            ? onlineDraftDisabledReason
+            : teamDisabledReason
+          : teamDisabledReason,
     },
     {
       label: "Depth Chart",
       href: depthChartHref,
       activePatterns: ["/team/depth-chart"],
       section: "Core Actions",
-      disabledReason: depthChartHref ? undefined : teamDisabledReason,
+      disabledReason: depthChartHref
+        ? undefined
+        : isOnlineLeague
+          ? onlineTeamReady && !onlineDraftComplete
+            ? onlineDraftDisabledReason
+            : teamDisabledReason
+          : teamDisabledReason,
     },
     {
       label: "Contracts/Cap",

@@ -377,7 +377,7 @@ describe("online-league-service", () => {
     expect(new Set(storedLeague?.users.map((user) => user.teamId)).size).toBe(1);
   });
 
-  it("blocks joining without a selected team identity", () => {
+  it("assigns the first free team when joining without a selected team identity", () => {
     const storage = new MemoryStorage();
 
     const result = joinOnlineLeague(
@@ -386,12 +386,34 @@ describe("online-league-service", () => {
       storage,
     );
 
+    expect(result.status).toBe("joined");
+    expect(result.league.users[0]).toMatchObject({
+      userId: "user-1",
+      teamId: ONLINE_MVP_TEAM_POOL[0]?.id,
+      teamDisplayName: ONLINE_MVP_TEAM_POOL[0]?.name,
+    });
+    expect(result.league.teams[0]).toMatchObject({
+      assignedUserId: "user-1",
+      assignmentStatus: "assigned",
+    });
+    expect(storage.getItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY)).toBe("global-test-league");
+  });
+
+  it("keeps incomplete team identity input as a clear validation error", () => {
+    const storage = new MemoryStorage();
+
+    const result = joinOnlineLeague(
+      "global-test-league",
+      { userId: "user-1", username: "Coach_1234" },
+      { cityId: "berlin" } as TeamIdentitySelection,
+      storage,
+    );
+
     expect(result).toMatchObject({
       status: "invalid-team-identity",
       message: "Bitte wähle zuerst Stadt, Kategorie und Teamnamen.",
     });
     expect(result.league.users).toEqual([]);
-    expect(storage.getItem(ONLINE_LAST_LEAGUE_ID_STORAGE_KEY)).toBeNull();
   });
 
   it("blocks duplicate team identity combinations in the same league", () => {

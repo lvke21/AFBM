@@ -408,13 +408,35 @@ describe("GM navigation model", () => {
     expect(activeDraftItems.find((item) => item.label === "Draft")?.href).toBe(
       "/online/league/afbm-multiplayer-test-league/draft",
     );
-    expect(activeDraftItems.find((item) => item.label === "Spielablauf")?.href).toBe(
+    expect(activeDraftItems.find((item) => item.label === "Spielablauf")).toMatchObject({
+      href: null,
+      disabledReason: "Draft läuft",
+    });
+    expect(activeDraftItems.find((item) => item.label === "Roster")).toMatchObject({
+      href: null,
+      disabledReason: "Draft läuft",
+    });
+    expect(activeDraftItems.find((item) => item.label === "Depth Chart")).toMatchObject({
+      href: null,
+      disabledReason: "Draft läuft",
+    });
+
+    const completedDraftItems = buildNavigationItems({
+      ...baseOnlineContext,
+      online: {
+        draftStatus: "completed",
+        rosterReady: true,
+        teamNavigationReady: true,
+      },
+    });
+
+    expect(completedDraftItems.find((item) => item.label === "Spielablauf")?.href).toBe(
       "/online/league/afbm-multiplayer-test-league#week-loop",
     );
-    expect(activeDraftItems.find((item) => item.label === "Roster")?.href).toBe(
+    expect(completedDraftItems.find((item) => item.label === "Roster")?.href).toBe(
       "/online/league/afbm-multiplayer-test-league#roster",
     );
-    expect(activeDraftItems.find((item) => item.label === "Depth Chart")?.href).toBe(
+    expect(completedDraftItems.find((item) => item.label === "Depth Chart")?.href).toBe(
       "/online/league/afbm-multiplayer-test-league#depth-chart",
     );
 

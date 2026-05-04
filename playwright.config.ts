@@ -32,6 +32,7 @@ const HTML_REPORT_DIR = process.env.E2E_HTML_REPORT_DIR ?? "/tmp/afbm-playwright
 const JSON_REPORT_FILE = process.env.E2E_JSON_REPORT_FILE ?? "/tmp/afbm-playwright-results.json";
 const E2E_USER_EMAIL = getNonEmptyEnv("E2E_USER_EMAIL", "e2e-gm@example.test");
 const E2E_USER_ID = getNonEmptyEnv("E2E_USER_ID", `dev-user:${E2E_USER_EMAIL}`);
+const SKIP_WEB_SERVER = process.env.E2E_SKIP_WEB_SERVER === "true";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -62,43 +63,45 @@ export default defineConfig({
     actionTimeout: 8_000,
     navigationTimeout: NAVIGATION_TIMEOUT_MS,
   },
-  webServer: {
-    command: `npm run dev -- --hostname 127.0.0.1 --port ${PORT}`,
-    url: BASE_URL,
-    reuseExistingServer: process.env.E2E_REUSE_SERVER === "true",
-    timeout: WEB_SERVER_TIMEOUT_MS,
-    gracefulShutdown: {
-      signal: "SIGTERM",
-      timeout: 5_000,
-    },
-    stdout: "pipe",
-    stderr: "pipe",
-    env: {
-      ...process.env,
-      AFBM_APP_USER_ID: E2E_USER_ID,
-      E2E_USER_ID,
-      FIREBASE_PROJECT_ID,
-      NEXT_PUBLIC_FIREBASE_PROJECT_ID:
-        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_PROJECT_ID", FIREBASE_PROJECT_ID),
-      NEXT_PUBLIC_FIREBASE_API_KEY:
-        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_API_KEY", "demo-api-key"),
-      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:
-        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN", `${FIREBASE_PROJECT_ID}.firebaseapp.com`),
-      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:
-        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET", `${FIREBASE_PROJECT_ID}.appspot.com`),
-      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:
-        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID", "000000000000"),
-      NEXT_PUBLIC_FIREBASE_APP_ID:
-        getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_APP_ID", "1:000000000000:web:e2e"),
-      NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: FIRESTORE_EMULATOR_HOST,
-      NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: FIREBASE_AUTH_EMULATOR_HOST,
-      NEXT_PUBLIC_AFBM_ONLINE_BACKEND:
-        getNonEmptyEnv(
-          "NEXT_PUBLIC_AFBM_ONLINE_BACKEND",
-          getNonEmptyEnv("AFBM_ONLINE_BACKEND", "local"),
-        ),
-    },
-  },
+  webServer: SKIP_WEB_SERVER
+    ? undefined
+    : {
+        command: `npm run dev -- --hostname 127.0.0.1 --port ${PORT}`,
+        url: BASE_URL,
+        reuseExistingServer: process.env.E2E_REUSE_SERVER === "true",
+        timeout: WEB_SERVER_TIMEOUT_MS,
+        gracefulShutdown: {
+          signal: "SIGTERM",
+          timeout: 5_000,
+        },
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          AFBM_APP_USER_ID: E2E_USER_ID,
+          E2E_USER_ID,
+          FIREBASE_PROJECT_ID,
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID:
+            getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_PROJECT_ID", FIREBASE_PROJECT_ID),
+          NEXT_PUBLIC_FIREBASE_API_KEY:
+            getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_API_KEY", "demo-api-key"),
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:
+            getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN", `${FIREBASE_PROJECT_ID}.firebaseapp.com`),
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:
+            getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET", `${FIREBASE_PROJECT_ID}.appspot.com`),
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:
+            getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID", "000000000000"),
+          NEXT_PUBLIC_FIREBASE_APP_ID:
+            getNonEmptyEnv("NEXT_PUBLIC_FIREBASE_APP_ID", "1:000000000000:web:e2e"),
+          NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: FIRESTORE_EMULATOR_HOST,
+          NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: FIREBASE_AUTH_EMULATOR_HOST,
+          NEXT_PUBLIC_AFBM_ONLINE_BACKEND:
+            getNonEmptyEnv(
+              "NEXT_PUBLIC_AFBM_ONLINE_BACKEND",
+              getNonEmptyEnv("AFBM_ONLINE_BACKEND", "local"),
+            ),
+        },
+      },
   projects: [
     {
       name: "chromium",

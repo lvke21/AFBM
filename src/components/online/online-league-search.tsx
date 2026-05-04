@@ -161,22 +161,15 @@ export function OnlineLeagueSearch() {
       return;
     }
 
-    if (!isCurrentUserMember && !resolvedTeamIdentity) {
-      setJoinFeedback({
-        leagueId: selectedLeague.id,
-        tone: "warning",
-        message: "Bitte wähle zuerst Stadt, Kategorie und Teamnamen.",
-      });
-      return;
-    }
-
     joiningLeagueIdRef.current = leagueId;
     setJoiningLeagueId(leagueId);
 
     try {
+      const joinTeamIdentity =
+        !isCurrentUserMember && resolvedTeamIdentity ? selectedTeamIdentity : undefined;
       const result = await repository.joinLeague(
         selectedLeague.id,
-        isCurrentUserMember ? undefined : selectedTeamIdentity,
+        joinTeamIdentity,
       );
 
       if (result.league) {

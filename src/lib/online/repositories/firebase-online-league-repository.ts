@@ -49,9 +49,11 @@ import {
 
 export {
   canLoadOnlineLeagueFromMembership,
+  chooseAvailableFirestoreTeamForIdentity,
   chooseFirstAvailableFirestoreTeam,
   createLeagueMemberMirrorFromMembership,
   getMembershipProjectionProblem,
+  getTeamProjectionWithoutMembershipProblem,
   isFirestoreWeekSimulationLockActive,
   isLeagueMemberMirrorAligned,
   resolveFirestoreMembershipForUser,

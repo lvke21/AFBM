@@ -19,6 +19,11 @@ export type OnlineContinueState =
       status: "missing-league";
       message: string;
       helper: string;
+    }
+  | {
+      status: "missing-membership";
+      message: string;
+      helper: string;
     };
 
 export function isSafeOnlineLeagueId(leagueId: string | null): leagueId is string {
@@ -28,6 +33,7 @@ export function isSafeOnlineLeagueId(leagueId: string | null): leagueId is strin
 export function buildOnlineContinueState(
   lastLeagueId: string | null,
   league: OnlineLeague | null,
+  options: { hadAuthenticatedUser?: boolean } = {},
 ): OnlineContinueState {
   if (!lastLeagueId) {
     return {
@@ -46,6 +52,14 @@ export function buildOnlineContinueState(
   }
 
   if (!league || league.id !== lastLeagueId) {
+    if (options.hadAuthenticatedUser) {
+      return {
+        status: "missing-membership",
+        message: "Du bist mit dieser Online-Liga nicht als Manager verbunden.",
+        helper: "Melde dich mit dem richtigen Spieler-Account an oder tritt der Liga erneut bei.",
+      };
+    }
+
     return {
       status: "missing-league",
       message: "Die zuletzt gespielte Online-Liga konnte nicht gefunden werden.",

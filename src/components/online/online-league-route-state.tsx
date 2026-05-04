@@ -17,7 +17,10 @@ import { getOnlineLeagueRepository } from "@/lib/online/online-league-repository
 import { getOnlineLeagueById } from "@/lib/online/online-league-service";
 import type { OnlineLeagueReadOptions, OnlineLeagueRepository } from "@/lib/online/types";
 import { ensureCurrentOnlineUser, type OnlineUser } from "@/lib/online/online-user-service";
-import { validateOnlineLeagueRouteState } from "./online-league-route-state-model";
+import {
+  shouldAttemptOnlineLeagueRouteJoin,
+  validateOnlineLeagueRouteState,
+} from "./online-league-route-state-model";
 
 export type OnlineLeagueRouteState = {
   repository: OnlineLeagueRepository;
@@ -92,6 +95,41 @@ export function useOnlineLeagueRouteStateValue(
       setLoaded(true);
     }
 
+    function subscribeToAcceptedRouteLeague(user: OnlineUser) {
+      unsubscribe = repository.subscribeToLeague(
+        leagueId,
+        (loadedLeague) => {
+          if (!active) {
+            return;
+          }
+
+          acceptLeagueRouteState(loadedLeague, user);
+        },
+        (error) => {
+          if (!active) {
+            return;
+          }
+
+          if (repository.mode === "local") {
+            acceptLeagueRouteState(getOnlineLeagueById(leagueId), user);
+            return;
+          }
+
+          const recovery = getOnlineRecoveryCopy(error, {
+            title: "Online-Liga konnte nicht geladen werden.",
+            message: error.message || "Online-Liga konnte nicht aus Firebase geladen werden.",
+            helper: "Bitte versuche es erneut.",
+          });
+
+          failRouteLoad(
+            recovery.message,
+            recovery.kind === "permission" || recovery.kind === "not-found",
+          );
+        },
+        repositoryReadOptions,
+      );
+    }
+
     async function loadRouteState() {
       setLoaded(false);
       setLeague(null);
@@ -146,43 +184,39 @@ export function useOnlineLeagueRouteStateValue(
         });
 
         if (initialValidationIssue) {
+          if (shouldAttemptOnlineLeagueRouteJoin({ league: initialLeague, user })) {
+            const joinResult = await repository.joinLeague(leagueId);
+
+            if (!active) {
+              return;
+            }
+
+            if (joinResult.status === "joined" || joinResult.status === "already-member") {
+              acceptLeagueRouteState(joinResult.league, user);
+              subscribeToAcceptedRouteLeague(user);
+              return;
+            }
+
+            if (
+              joinResult.status === "missing-league" ||
+              joinResult.status === "full" ||
+              joinResult.status === "invalid-team-identity" ||
+              joinResult.status === "team-identity-taken"
+            ) {
+              failRouteLoad(joinResult.message, true);
+              return;
+            }
+
+            failRouteLoad(initialValidationIssue.message, initialValidationIssue.requiresSearch);
+            return;
+          }
+
           failRouteLoad(initialValidationIssue.message, initialValidationIssue.requiresSearch);
           return;
         }
 
         acceptLeagueRouteState(initialLeague, user);
-        unsubscribe = repository.subscribeToLeague(
-          leagueId,
-          (loadedLeague) => {
-            if (!active) {
-              return;
-            }
-
-            acceptLeagueRouteState(loadedLeague, user);
-          },
-          (error) => {
-            if (!active) {
-              return;
-            }
-
-            if (repository.mode === "local") {
-              acceptLeagueRouteState(getOnlineLeagueById(leagueId), user);
-              return;
-            }
-
-            const recovery = getOnlineRecoveryCopy(error, {
-              title: "Online-Liga konnte nicht geladen werden.",
-              message: error.message || "Online-Liga konnte nicht aus Firebase geladen werden.",
-              helper: "Bitte versuche es erneut.",
-            });
-
-            failRouteLoad(
-              recovery.message,
-              recovery.kind === "permission" || recovery.kind === "not-found",
-            );
-          },
-          repositoryReadOptions,
-        );
+        subscribeToAcceptedRouteLeague(user);
       } catch (error) {
         if (!active) {
           return;

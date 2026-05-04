@@ -23,6 +23,15 @@ describe("online league route fallback model", () => {
       type: "anchor",
       anchor: "league",
     });
+    expect(getOnlineLeagueRouteFallbackHref("league-1", resolveOnlineLeagueRouteFallback([
+      "week-flow",
+    ]))).toBe("/online/league/league-1#week-loop");
+    expect(getOnlineLeagueRouteFallbackHref("league-1", resolveOnlineLeagueRouteFallback([
+      "roster",
+    ]))).toBe("/online/league/league-1#roster");
+    expect(getOnlineLeagueRouteFallbackHref("league-1", resolveOnlineLeagueRouteFallback([
+      "depth-chart",
+    ]))).toBe("/online/league/league-1#depth-chart");
   });
 
   it("maps known non-MVP sections to coming-soon routes", () => {

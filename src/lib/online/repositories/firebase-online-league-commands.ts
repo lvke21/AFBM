@@ -36,6 +36,8 @@ import {
   belongsToCurrentMultiplayerDraftRun,
   getMultiplayerDraftPickDocumentId,
   isCurrentMultiplayerDraftPickDocumentOccupied,
+  type MultiplayerDraftPickValidationResult,
+  validatePreparedMultiplayerDraftPick,
   validateMultiplayerDraftSourceConsistency,
   validateMultiplayerDraftStateIntegrity,
 } from "../multiplayer-draft-logic";
@@ -53,11 +55,12 @@ import {
   type OnlineLeagueReadyStepGuard,
 } from "../types";
 import {
-  chooseFirstAvailableFirestoreTeam,
+  chooseAvailableFirestoreTeamForIdentity,
   createLeagueMemberMirrorFromMembership,
   createMembershipProjectionConflictMessage,
   createUnavailableOnlineLeague,
   getMembershipProjectionProblem,
+  getTeamProjectionWithoutMembershipProblem,
   isFirestoreWeekSimulationLockActive,
   isLeagueMemberMirrorAligned,
   isMembershipMirrorProjectionProblem,
@@ -260,6 +263,28 @@ export function clearFirebaseLastLeagueId(leagueId?: string) {
   clearStoredLastOnlineLeagueId(storage, leagueId);
 }
 
+function mapDraftPickValidationStatus(
+  status: Extract<MultiplayerDraftPickValidationResult, { ok: false }>["status"],
+) {
+  if (status === "wrong-team") {
+    return "wrong-team" as const;
+  }
+
+  if (status === "draft-inconsistent") {
+    return "draft-inconsistent" as const;
+  }
+
+  if (status === "draft-not-active" || status === "missing-draft") {
+    return "draft-not-active" as const;
+  }
+
+  if (status === "missing-team") {
+    return "missing-user" as const;
+  }
+
+  return "player-unavailable" as const;
+}
+
 export async function joinFirebaseLeague(
   db: Firestore,
   leagueId: string,
@@ -382,6 +407,24 @@ export async function joinFirebaseLeague(
       };
     }
 
+    const teamOnlyProjectionProblem = getTeamProjectionWithoutMembershipProblem(
+      existingMembership,
+      teams,
+      user.userId,
+    );
+
+    if (teamOnlyProjectionProblem) {
+      return {
+        status: "missing-league" as const,
+        leagueId,
+        message: createMembershipProjectionConflictMessage(
+          leagueId,
+          user.userId,
+          teamOnlyProjectionProblem,
+        ),
+      };
+    }
+
     if (league.status !== "lobby") {
       return {
         status: "missing-league" as const,
@@ -391,11 +434,9 @@ export async function joinFirebaseLeague(
       };
     }
 
-    const resolvedIdentity = teamIdentity
-      ? resolveTeamIdentitySelection(teamIdentity)
-      : null;
+    const resolvedIdentity = teamIdentity ? resolveTeamIdentitySelection(teamIdentity) : null;
 
-    if (!resolvedIdentity) {
+    if (teamIdentity && !resolvedIdentity) {
       return {
         status: "invalid-team-identity" as const,
         leagueId,
@@ -419,13 +460,14 @@ export async function joinFirebaseLeague(
       };
     }
 
-    const identityTaken =
-      teams.some(
-        (team) =>
-          team.status !== "available" &&
-          team.cityId === resolvedIdentity.cityId &&
-          team.teamNameId === resolvedIdentity.teamNameId,
-      );
+    const identityTaken = resolvedIdentity
+      ? teams.some(
+          (team) =>
+            team.status !== "available" &&
+            team.cityId === resolvedIdentity.cityId &&
+            team.teamNameId === resolvedIdentity.teamNameId,
+        )
+      : false;
 
     if (identityTaken) {
       return {
@@ -434,7 +476,15 @@ export async function joinFirebaseLeague(
       };
     }
 
-    const availableTeam = chooseFirstAvailableFirestoreTeam(teamPool);
+    const availableTeam = chooseAvailableFirestoreTeamForIdentity(
+      teamPool,
+      resolvedIdentity
+        ? {
+            cityId: resolvedIdentity.cityId,
+            teamNameId: resolvedIdentity.teamNameId,
+          }
+        : null,
+    );
 
     if (!availableTeam) {
       return {
@@ -883,14 +933,24 @@ export async function makeFirebaseFantasyDraftPick(
       };
     }
 
-    const selectedPlayer = playerPool.find((player) => player.playerId === playerId);
+    const validation = validatePreparedMultiplayerDraftPick({
+      state,
+      teamIds: mappedLeagueBeforePick?.users.map((candidate) => candidate.teamId) ?? [],
+      teamId,
+      playerId,
+      availablePlayers: playerPool,
+      existingPicks: state.picks,
+      rosterSize: state.picks.filter((pick) => pick.teamId === teamId).length,
+    });
 
-    if (!selectedPlayer) {
+    if (!validation.ok) {
       return {
-        status: "player-unavailable" as const,
-        message: "Spieler ist nicht im Draft-Pool.",
+        status: mapDraftPickValidationStatus(validation.status),
+        message: validation.message,
       };
     }
+
+    const selectedPlayer = validation.player;
 
     const pickRef = doc(
       draftPicksRef(db, leagueId),

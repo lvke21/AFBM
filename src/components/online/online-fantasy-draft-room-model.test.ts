@@ -7,6 +7,7 @@ import type {
 import {
   createDraftPlayerMap,
   deriveAvailableDraftPlayers,
+  deriveDraftOrderRows,
   deriveDraftRosterCounts,
   derivePickedDraftPlayers,
   deriveTeamDraftRoster,
@@ -113,5 +114,37 @@ describe("online fantasy draft room model", () => {
         { position: "WR", count: 0, target: 5 },
       ]),
     );
+  });
+
+  it("derives pick order rows and marks the current team", () => {
+    const rows = deriveDraftOrderRows({
+      currentTeamId: "team-b",
+      draftOrder: ["team-a", "team-b", "team-c"],
+      teamNameById: new Map([
+        ["team-a", "Zurich Guardians"],
+        ["team-b", "Basel Rhinos"],
+      ]),
+    });
+
+    expect(rows).toEqual([
+      {
+        index: 1,
+        isCurrent: false,
+        teamId: "team-a",
+        teamName: "Zurich Guardians",
+      },
+      {
+        index: 2,
+        isCurrent: true,
+        teamId: "team-b",
+        teamName: "Basel Rhinos",
+      },
+      {
+        index: 3,
+        isCurrent: false,
+        teamId: "team-c",
+        teamName: "team-c",
+      },
+    ]);
   });
 });

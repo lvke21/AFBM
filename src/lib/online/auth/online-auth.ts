@@ -1,7 +1,9 @@
 import {
+  browserLocalPersistence,
   createUserWithEmailAndPassword,
   getAuth,
   onAuthStateChanged,
+  setPersistence,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -64,6 +66,8 @@ export class OnlineAuthRequiredError extends Error {
     this.name = "OnlineAuthRequiredError";
   }
 }
+
+let onlineAuthPersistencePromise: Promise<void> | null = null;
 
 function getStoredDisplayName() {
   return getOptionalBrowserStorage()?.getItem(ONLINE_USERNAME_STORAGE_KEY) ?? null;
@@ -137,6 +141,12 @@ export function getOnlineFirebaseAuth(): Auth {
   return getAuth(getFirebaseClientApp());
 }
 
+export function ensureOnlineFirebaseAuthPersistence(auth = getOnlineFirebaseAuth()) {
+  onlineAuthPersistencePromise ??= setPersistence(auth, browserLocalPersistence);
+
+  return onlineAuthPersistencePromise;
+}
+
 export function getOnlineAuthErrorDetails(error: unknown): OnlineAuthErrorDetails {
   return {
     code:
@@ -204,6 +214,8 @@ export function subscribeToOnlineAuthState(
 ): Unsubscribe {
   const auth = getOnlineFirebaseAuth();
 
+  void ensureOnlineFirebaseAuthPersistence(auth).catch(onError);
+
   return onAuthStateChanged(
     auth,
     (user) => {
@@ -234,6 +246,9 @@ export async function getCurrentAuthenticatedOnlineUser(
   }
 
   const auth = getOnlineFirebaseAuth();
+
+  await ensureOnlineFirebaseAuthPersistence(auth);
+
   const authenticatedUser = assertEmailPasswordFirebaseUser(
     await waitForFirebaseAuthUser(auth),
   );
@@ -305,6 +320,9 @@ export async function registerOnlineUserWithEmailPassword(input: {
   displayName?: string;
 }): Promise<OnlineAuthenticatedUser> {
   const auth = getOnlineFirebaseAuth();
+
+  await ensureOnlineFirebaseAuthPersistence(auth);
+
   const credential = await createUserWithEmailAndPassword(
     auth,
     input.email.trim(),
@@ -327,6 +345,9 @@ export async function signInOnlineUserWithEmailPassword(input: {
   password: string;
 }): Promise<OnlineAuthenticatedUser> {
   const auth = getOnlineFirebaseAuth();
+
+  await ensureOnlineFirebaseAuthPersistence(auth);
+
   const credential = await signInWithEmailAndPassword(
     auth,
     input.email.trim(),

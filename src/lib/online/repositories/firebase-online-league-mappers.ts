@@ -191,6 +191,25 @@ export function getMembershipProjectionProblem(
   return null;
 }
 
+export function getTeamProjectionWithoutMembershipProblem(
+  membership: FirestoreOnlineMembershipDoc | null,
+  teams: FirestoreOnlineTeamDoc[],
+  userId: string,
+) {
+  if (membership) {
+    return null;
+  }
+
+  const assignedTeam = teams.find(
+    (team) =>
+      team.assignedUserId === userId &&
+      team.status !== "available" &&
+      team.status !== "vacant",
+  );
+
+  return assignedTeam ? `missing-membership-for-team:${assignedTeam.id}` : null;
+}
+
 export function createMembershipProjectionConflictMessage(
   leagueId: string,
   userId: string,
@@ -291,6 +310,30 @@ export function chooseFirstAvailableFirestoreTeam(teams: FirestoreOnlineTeamDoc[
   return [...teams]
     .sort((left, right) => left.createdAt.localeCompare(right.createdAt) || left.id.localeCompare(right.id))
     .find((team) => team.status === "available" || team.status === "vacant") ?? null;
+}
+
+export function chooseAvailableFirestoreTeamForIdentity(
+  teams: FirestoreOnlineTeamDoc[],
+  identity: { cityId: string; teamNameId: string } | null,
+) {
+  const sortedTeams = [...teams].sort(
+    (left, right) => left.createdAt.localeCompare(right.createdAt) || left.id.localeCompare(right.id),
+  );
+  const availableTeams = sortedTeams.filter(
+    (team) => team.status === "available" || team.status === "vacant",
+  );
+
+  if (identity) {
+    const matchingTeam = availableTeams.find(
+      (team) => team.cityId === identity.cityId && team.teamNameId === identity.teamNameId,
+    );
+
+    if (matchingTeam) {
+      return matchingTeam;
+    }
+  }
+
+  return availableTeams[0] ?? null;
 }
 
 function isActiveMembershipStatus(status: unknown) {

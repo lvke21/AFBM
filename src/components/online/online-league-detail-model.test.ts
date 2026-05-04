@@ -587,6 +587,18 @@ describe("toOnlineLeagueDetailState", () => {
       currentWeek: 2,
       currentSeason: 1,
       weekStatus: "pre_week",
+      fantasyDraft: {
+        availablePlayerIds: [],
+        completedAt: "2026-05-01T07:00:00.000Z",
+        currentTeamId: "",
+        draftOrder: ["bos-guardians", "nyt-titans"],
+        leagueId: "completed-week-league",
+        pickNumber: 1,
+        picks: [],
+        round: 1,
+        startedAt: "2026-05-01T06:00:00.000Z",
+        status: "completed",
+      },
       completedWeeks: [
         {
           weekKey: "s1-w1",
@@ -642,6 +654,8 @@ describe("toOnlineLeagueDetailState", () => {
           teamId: "bos-guardians",
           teamName: "Boston Guardians",
           readyForWeek: false,
+          contractRoster: testRoster(),
+          depthChart: testDepthChart(),
         },
         {
           userId: "user-2",
@@ -650,6 +664,8 @@ describe("toOnlineLeagueDetailState", () => {
           teamId: "nyt-titans",
           teamName: "New York Titans",
           readyForWeek: false,
+          contractRoster: testRoster("player-2"),
+          depthChart: testDepthChart("player-2"),
         },
       ],
     };
@@ -660,9 +676,9 @@ describe("toOnlineLeagueDetailState", () => {
         currentWeekLabel: "Woche 2",
         readyProgressLabel: "0/2 aktive Manager bereit",
         weekFlow: {
-          phaseLabel: "Ergebnisse verfügbar",
+          phaseLabel: "Woche offen",
           simulationStatusLabel:
-            "Die letzte Woche ist abgeschlossen. Ergebnisse und Tabelle können neu geladen werden.",
+            "Simulation bleibt gesperrt, bis alle aktiven Teams bereit sind.",
           lastCompletedWeekLabel: "Zuletzt abgeschlossen: Saison 1, Woche 1.",
           completedResultsLabel: "1 Ergebnis gespeichert",
         },
@@ -955,6 +971,94 @@ describe("toOnlineLeagueDetailState", () => {
       readyActionDisabledReason: "Bereit-Status ist während des Drafts gesperrt.",
       weekFlow: {
         phaseLabel: "Draft läuft",
+      },
+    });
+  });
+
+  it("unlocks dashboard flow after a completed draft reload", () => {
+    const league: OnlineLeague = {
+      id: "draft-completed-reload",
+      name: "Draft Completed Reload",
+      maxUsers: 2,
+      status: "active",
+      teams: ONLINE_MVP_TEAM_POOL.slice(0, 2),
+      currentWeek: 1,
+      weekStatus: "pre_week",
+      schedule: [
+        {
+          id: "match-1",
+          week: 1,
+          homeTeamName: "Boston Guardians",
+          awayTeamName: "New York Titans",
+        },
+      ],
+      fantasyDraft: {
+        availablePlayerIds: [],
+        completedAt: "2026-05-01T08:30:00.000Z",
+        currentTeamId: "",
+        draftOrder: ["bos-guardians", "nyt-titans"],
+        leagueId: "draft-completed-reload",
+        pickNumber: 2,
+        picks: [
+          {
+            pickNumber: 1,
+            round: 1,
+            teamId: "bos-guardians",
+            playerId: "player-1",
+            pickedByUserId: "user-1",
+            timestamp: "2026-05-01T08:01:00.000Z",
+          },
+          {
+            pickNumber: 2,
+            round: 1,
+            teamId: "nyt-titans",
+            playerId: "player-2",
+            pickedByUserId: "user-2",
+            timestamp: "2026-05-01T08:02:00.000Z",
+          },
+        ],
+        round: 1,
+        startedAt: "2026-05-01T08:00:00.000Z",
+        status: "completed",
+      },
+      users: [
+        {
+          userId: "user-1",
+          username: "Coach_1234",
+          joinedAt: "2026-04-29T19:00:00.000Z",
+          teamId: "bos-guardians",
+          teamName: "Boston Guardians",
+          readyForWeek: false,
+          contractRoster: testRoster(),
+          depthChart: testDepthChart(),
+        },
+        {
+          userId: "user-2",
+          username: "Coach_5678",
+          joinedAt: "2026-04-29T19:01:00.000Z",
+          teamId: "nyt-titans",
+          teamName: "New York Titans",
+          readyForWeek: false,
+          contractRoster: testRoster("player-2"),
+          depthChart: testDepthChart("player-2"),
+        },
+      ],
+    };
+
+    expect(
+      toOnlineLeagueDetailState(league, { userId: "user-1", username: "Coach_1234" }),
+    ).toMatchObject({
+      status: "found",
+      draftStatusLabel: "Draft abgeschlossen",
+      lifecyclePhase: "readyOpen",
+      readyActionDisabledReason: null,
+      roster: {
+        totalPlayersLabel: "1 aktive Spieler",
+      },
+      weekFlow: {
+        phaseLabel: "Woche offen",
+        nextMatchLabel: "Boston Guardians vs. New York Titans",
+        simulationStatusLabel: "Simulation bleibt gesperrt, bis alle aktiven Teams bereit sind.",
       },
     });
   });

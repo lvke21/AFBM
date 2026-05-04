@@ -6490,6 +6490,12 @@ export function joinOnlineLeague(
   const existingUser = league.users.some(
     (leagueUser) => leagueUser.userId === user.userId && leagueUser.teamStatus !== "vacant",
   );
+  const teamOnlyProjection = league.teams.find(
+    (team) =>
+      team.assignedUserId === user.userId &&
+      team.assignmentStatus !== "available" &&
+      team.assignmentStatus !== "vacant",
+  );
 
   if (existingUser) {
     setStoredLastOnlineLeagueId(storage, league.id);
@@ -6500,9 +6506,17 @@ export function joinOnlineLeague(
     };
   }
 
-  const resolvedTeamIdentity = resolveTeamIdentitySelection(teamIdentity);
+  if (teamOnlyProjection) {
+    return {
+      status: "missing-league",
+      league,
+      message: `Membership-Projektion inkonsistent in ${leagueId} für ${user.userId}: missing-membership-for-team:${teamOnlyProjection.id}`,
+    };
+  }
 
-  if (!resolvedTeamIdentity) {
+  const resolvedTeamIdentity = teamIdentity ? resolveTeamIdentitySelection(teamIdentity) : null;
+
+  if (teamIdentity && !resolvedTeamIdentity) {
     return {
       status: "invalid-team-identity",
       league,
@@ -6520,11 +6534,35 @@ export function joinOnlineLeague(
     };
   }
 
-  if (hasTeamDisplayName(league, resolvedTeamIdentity.teamDisplayName)) {
+  if (resolvedTeamIdentity && hasTeamDisplayName(league, resolvedTeamIdentity.teamDisplayName)) {
     return {
       status: "team-identity-taken",
       league,
       message: "Diese Team-Identität ist in der Liga bereits vergeben.",
+    };
+  }
+
+  const occupiedTeamIds = new Set(occupiedUsers.map((leagueUser) => leagueUser.teamId));
+  const availableTeam =
+    league.teams.find(
+      (team) =>
+        !occupiedTeamIds.has(team.id) &&
+        team.assignmentStatus !== "assigned" &&
+        !team.assignedUserId,
+    ) ?? null;
+  const assignedTeamId = resolvedTeamIdentity
+    ? getTeamIdentityId(resolvedTeamIdentity)
+    : availableTeam?.id;
+  const assignedTeamDisplayName =
+    resolvedTeamIdentity?.teamDisplayName ?? availableTeam?.name ?? assignedTeamId;
+  const assignedTeamName =
+    resolvedTeamIdentity?.teamName ?? availableTeam?.name ?? assignedTeamDisplayName;
+
+  if (!assignedTeamId || !assignedTeamDisplayName || !assignedTeamName) {
+    return {
+      status: "full",
+      league,
+      message: "Diese Liga ist bereits voll.",
     };
   }
 
@@ -6535,26 +6573,25 @@ export function joinOnlineLeague(
         ...league.users,
         (() => {
           const now = new Date().toISOString();
-          const teamId = getTeamIdentityId(resolvedTeamIdentity);
           const contractRoster = createDefaultContractRoster(
-            teamId,
-            resolvedTeamIdentity.teamDisplayName,
+            assignedTeamId,
+            assignedTeamDisplayName,
           );
 
           return {
             userId: user.userId,
             username: user.username,
             joinedAt: now,
-            teamId,
-            teamName: resolvedTeamIdentity.teamName,
-            cityId: resolvedTeamIdentity.cityId,
-            cityName: resolvedTeamIdentity.cityName,
-            teamNameId: resolvedTeamIdentity.teamNameId,
-            teamCategory: resolvedTeamIdentity.teamCategory,
-            teamDisplayName: resolvedTeamIdentity.teamDisplayName,
+            teamId: assignedTeamId,
+            teamName: assignedTeamName,
+            cityId: resolvedTeamIdentity?.cityId,
+            cityName: resolvedTeamIdentity?.cityName,
+            teamNameId: resolvedTeamIdentity?.teamNameId,
+            teamCategory: resolvedTeamIdentity?.teamCategory,
+            teamDisplayName: assignedTeamDisplayName,
             ownershipProfile: createDefaultOwnershipProfile(
-              teamId,
-              resolvedTeamIdentity.teamDisplayName,
+              assignedTeamId,
+              assignedTeamDisplayName,
             ),
             jobSecurity: createDefaultJobSecurityScore(league.currentWeek),
             activity: createDefaultActivityMetrics(now),
@@ -6563,46 +6600,47 @@ export function joinOnlineLeague(
             controlledBy: "user" as const,
             allowNewUserJoin: false,
             stadiumProfile: createDefaultStadiumProfile(
-              teamId,
-              resolvedTeamIdentity.teamDisplayName,
-              resolvedTeamIdentity.cityName,
+              assignedTeamId,
+              assignedTeamDisplayName,
+              resolvedTeamIdentity?.cityName,
               league.currentWeek,
               now,
             ),
             attendanceHistory: [],
             fanbaseProfile: createDefaultFanbaseProfile(
-              teamId,
-              resolvedTeamIdentity.cityName,
+              assignedTeamId,
+              resolvedTeamIdentity?.cityName,
               now,
             ),
             teamChemistryProfile: createDefaultTeamChemistryProfile(
-              teamId,
+              assignedTeamId,
               league.currentWeek,
               1,
               now,
             ),
             chemistryHistory: [],
             merchandiseFinancials: [],
-            financeProfile: createDefaultFinanceProfile(teamId, now),
+            financeProfile: createDefaultFinanceProfile(assignedTeamId, now),
             coachingStaffProfile: createDefaultCoachingStaffProfile(
-              teamId,
-              resolvedTeamIdentity.teamDisplayName,
+              assignedTeamId,
+              assignedTeamDisplayName,
             ),
             weeklyTrainingPlans: [],
             trainingOutcomes: [],
             contractRoster,
             depthChart: createDefaultOnlineDepthChart(contractRoster, now),
             salaryCap: calculateSalaryCap(contractRoster),
-            draftPicks: createDefaultDraftPicks(teamId),
+            draftPicks: createDefaultDraftPicks(assignedTeamId),
             readyForWeek: false,
           };
         })(),
       ],
-      teams: league.teams.some((team) => team.id === getTeamIdentityId(resolvedTeamIdentity))
+      teams: league.teams.some((team) => team.id === assignedTeamId)
         ? league.teams.map((team) =>
-            team.id === getTeamIdentityId(resolvedTeamIdentity)
+            team.id === assignedTeamId
               ? {
                   ...team,
+                  name: assignedTeamDisplayName,
                   assignedUserId: user.userId,
                   assignmentStatus: "assigned" as const,
                 }
@@ -6611,9 +6649,9 @@ export function joinOnlineLeague(
         : [
             ...league.teams,
             {
-              id: getTeamIdentityId(resolvedTeamIdentity),
-              name: resolvedTeamIdentity.teamDisplayName,
-              abbreviation: createTeamAbbreviationFromId(getTeamIdentityId(resolvedTeamIdentity)),
+              id: assignedTeamId,
+              name: assignedTeamDisplayName,
+              abbreviation: createTeamAbbreviationFromId(assignedTeamId),
               assignedUserId: user.userId,
               assignmentStatus: "assigned" as const,
             },
@@ -6662,7 +6700,9 @@ export function setOnlineLeagueUserReadyState(
   });
 
   if (!lifecycle.canSetReady) {
-    return league;
+    throw new Error(
+      lifecycle.reasons[0] ?? "Bereit-Status ist aktuell durch den Lifecycle gesperrt.",
+    );
   }
 
   if (existingUser.readyForWeek === ready) {

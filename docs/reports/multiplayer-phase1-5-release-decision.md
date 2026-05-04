@@ -1,87 +1,159 @@
 # Multiplayer Phase 1.5 Release Decision
 
-Datum: 2026-05-03
+Datum: 2026-05-04
 
 ## Executive Summary
 
-Phase 1.5 bestanden: **Nein**
+Phase 1.5 bestanden: **Ja**
 
-Phase 2 freigegeben: **Nein**
+Phase 2 freigegeben: **Ja, technisch fuer den naechsten Scope**
 
-Der Multiplayer-Golden-Path ist nach explizitem Staging-Reset einmal live gruen gelaufen. Dabei wurden Ergebnisse erzeugt, Standings aktualisiert, `currentWeek` erhoeht, Ready zurueckgesetzt und keine aktiven `simulating` Locks hinterlassen.
+Der Build-Info-Commit-Gate-Blocker ist behoben. Staging liefert nach dem neuen App-Hosting-Rollout exakt den deployten Git-Commit aus:
 
-Fuer eine Phase-2-Freigabe reicht das aber nicht. Der Lock-Cleanup-Fix ist laut den vorliegenden Reports **nicht als deployed bewiesen**: lokaler HEAD ist `39746332031b6bf544971835e9a9b65891ad1ad8`, Staging liefert weiterhin `1a28d88eaaa99a182612638652d0165705ce6901` mit Revision `afbm-staging-backend-build-2026-05-03-000`.
+- Commit: `5ef05a89887b3c47688cb2c7879ee3453b01df7c`
+- Revision: `afbm-staging-backend-build-2026-05-04-001`
+- Build Time: `2026-05-04T05:54:39.800Z`
+- Environment: `staging`
 
-Zusaetzlich laufen die mutierenden Smokes nach dem ersten erfolgreichen Reset-Run nicht erneut gruen, sondern stoppen in Run 2 und Run 3 erwartbar rot im Preflight, weil der Testzustand bereits auf Woche 2 mit Ergebnissen steht. Das ist eine klare Diagnose und kein stiller State-Schaden, beweist aber nicht "mehrfach reproduzierbar gruen".
+Die Phase-1.5-Smokes wurden gegen genau diesen Commit validiert. Auth, Admin Week und Playability sind gruen. Nach den Smokes gibt es keine aktiven `simulating` Locks, keine Woche ohne Spiele, Ready ist zurueckgesetzt, Results und Standings sind konsistent.
 
-Da ein P0 offen ist, wird Phase 2 nicht freigegeben.
+## Root Cause
 
-## Status je Kriterium
+`/api/build-info` lieferte nach einem erfolgreichen App-Hosting-Rollout weiterhin den alten Commit, weil das Staging App-Hosting Backend stale `overrideEnv`-Werte enthielt:
 
-| Kriterium | Status | Bewertung | Beleg |
-| --- | --- | --- | --- |
-| 1. Lock-Cleanup-Fix deployed? | **Nein** | **P0** | `multiplayer-phase1-audit-report.md` sagt: Fix lokal vorhanden, aber noch nicht auf Staging deployed. `multiplayer-phase1-stability-proof-report.md` bestaetigt Commit-Abweichung: lokaler HEAD `3974633...`, Staging `1a28d88...`. |
-| 2. Stale Locks entstehen nicht mehr? | **Teilweise belegt** | P1 | Nach Run 1, Run 2 und Run 3 gab es keine aktiven `simulating` Locks. Nicht belegt ist der Fehlerpfad "Lock erstellt, danach unerwarteter Simulationsfehler", weil dieser live nicht ausgeloest wurde und der relevante Fix nicht deployed ist. |
-| 3. Smokes liefern klare Diagnose? | **Ja** | OK | Run 2/3 stoppen mit klarer Preflight-Diagnose: `expected-currentWeek=1 got=2`, `expected-resultsCount=0 got=...`, `No mutation was executed`. |
-| 4. Testzustand ist reproduzierbar? | **Teilweise** | P1 | Mit erlaubtem Reset-Flag ist der Startzustand reproduzierbar. Ohne Reset bleiben mutierende Smokes nicht gruen, sondern diagnostizieren sauber den fortgeschrittenen Zustand. |
-| 5. Kein manueller Firestore-Eingriff noetig? | **Ja fuer getesteten Pfad** | OK | Reset lief ueber erlaubte Staging-Seed-Skripte und Flags. Run 2/3 brauchten keinen manuellen Firestore-Eingriff, stoppten aber rot. |
-| 6. Core Loop bleibt nach mehreren Laeufen stabil? | **Teilweise** | P1 | Der State blieb nach Run 1 bis Run 3 konsistent: keine aktiven Locks, keine Woche ohne Spiele, Ready zurueckgesetzt. Der mutierende Core Loop wurde aber nicht mehrfach erfolgreich ausgefuehrt. |
-| 7. Gibt es noch P0/P1 Blocker? | **Ja** | **P0/P1 offen** | P0: Lock-Cleanup-Fix nicht deployed bzw. nicht auf Staging bewiesen. P1: Fehlerpfad nach Lock-Erstellung nicht live bewiesen; mutierende Smokes sind nicht mehrfach gruen ohne Reset. |
+```json
+{
+  "variable": "AFBM_GIT_COMMIT",
+  "value": "1a28d88eaaa99a182612638652d0165705ce6901"
+}
+```
 
-## Offene Risiken
+und:
 
-### P0: Lock-Cleanup-Fix nicht deployed
+```json
+{
+  "variable": "AFBM_BUILD_TIME",
+  "value": "2026-05-02T19:42:39Z"
+}
+```
 
-Der wichtigste Fix aus Phase 1 ist nicht als Staging-deployed belegt. Solange `/api/build-info` nicht den Commit mit dem Lock-Cleanup-Fix ausliefert, kann Staging erneut in einen dauerhaft blockierenden `simulating` Lock laufen.
+Der Handler hat `AFBM_GIT_COMMIT` und `AFBM_BUILD_TIME` priorisiert. Dadurch konnte ein neuer Rollout live sein, waehrend `/api/build-info` weiterhin den alten Commit meldete.
 
-Fehlender Schritt:
+## Gewaehlte Strategie
 
-1. Commit mit Lock-Cleanup-Fix deployen.
-2. `/api/build-info` gegen diesen Commit pruefen.
-3. Smokes erneut gegen exakt diesen Commit ausfuehren.
+Strategie: **Option A**
 
-### P1: Fehlerpfad nach Lock-Erstellung nicht live bewiesen
+- Commit und Build-Time werden beim Next-Build automatisch aus dem Git-Checkout injiziert.
+- `AFBM_GIT_COMMIT` und `AFBM_BUILD_TIME` werden nicht mehr als Commit-Wahrheit verwendet.
+- Die stale App-Hosting-Overrides wurden aus dem Backend entfernt.
+- Wenn kein Build-Commit injiziert wurde, antwortet `/api/build-info` mit klarem Fehler und HTTP 503 statt still falsche Werte zu melden.
 
-Die Stabilitaetslaeufe beweisen erfolgreiche Simulation und Preflight-Abbruch ohne Lock-Schaden. Sie beweisen nicht, dass ein Fehler nach Lock-Erstellung live sauber auf `failed` aufraeumt.
+## Geaenderte Dateien / Configs
 
-Fehlender Schritt:
+| Bereich | Aenderung |
+| --- | --- |
+| `next.config.ts` | Liest `git rev-parse HEAD` beim Build und injiziert `NEXT_PUBLIC_AFBM_GIT_COMMIT`; setzt `NEXT_PUBLIC_AFBM_BUILD_TIME` beim Build. |
+| `src/app/api/build-info/route.ts` | Nutzt den build-injizierten Commit zuerst; stale `AFBM_GIT_COMMIT`/`AFBM_BUILD_TIME` sind keine Quelle mehr; fehlender Commit ergibt `BUILD_COMMIT_MISSING` und HTTP 503. |
+| `src/app/api/build-info/route.test.ts` | Tests fuer erfolgreichen build-injizierten Commit und klare Fehlerantwort ohne Commit. |
+| App Hosting Backend `afbm-staging-backend` | `overrideEnv` bereinigt: `AFBM_GIT_COMMIT` und `AFBM_BUILD_TIME` entfernt; `DATA_BACKEND` und `FIREBASE_PROJECT_ID` bleiben. |
 
-1. Gezielten Emulator- oder Staging-only Test fuer Fehler nach Lock-Erstellung ausfuehren.
-2. Nachweisen, dass nur eigene fehlgeschlagene Attempts auf `failed` gehen.
-3. Nachweisen, dass bestehende `simulated` Locks unveraendert bleiben.
+## Build-Info Vorher / Nachher
 
-### P1: Mutierende Smokes sind nicht mehrfach gruen ohne Reset
+### Vorher
 
-Run 2 und Run 3 sind nicht gruen, sondern erwartbar rot. Das ist fuer Diagnose und Idempotenz besser als stiller Schaden, aber es erfuellt nicht "mehrfach reproduzierbar gruen".
+Nach Rollout von `c709e4d585b016dcc296d3ec64a4d9aa9508b978`:
 
-Fehlender Schritt:
+```json
+{
+  "ok": true,
+  "commit": "1a28d88eaaa99a182612638652d0165705ce6901",
+  "buildTime": "2026-05-02T19:42:39Z",
+  "environment": "staging",
+  "revision": "afbm-staging-backend-build-2026-05-03-001"
+}
+```
 
-1. Entscheiden, ob erwartetes Preflight-RED nach bereits simulierter Woche als akzeptiertes QA-Verhalten gilt.
-2. Falls nicht: Smoke-Preflight so erweitern, dass er eine konsistente naechste spielbare Woche akzeptiert und kontrolliert weitersimulieren kann.
+Bewertung: **Rot**, Commit war stale.
 
-### P1: Kein vollstaendiger Browser-Beweis fuer echten Spielerfluss
+### Nachher
 
-`staging:smoke:playability` beweist den API-basierten Golden Path. Ein voller Staging-Browserflow fuer echte Spielerinteraktion bleibt nicht als Phase-1.5-Beweis dokumentiert.
+Nach Rollout von `5ef05a89887b3c47688cb2c7879ee3453b01df7c`:
 
-Fehlender Schritt:
+```json
+{
+  "ok": true,
+  "commit": "5ef05a89887b3c47688cb2c7879ee3453b01df7c",
+  "buildTime": "2026-05-04T05:54:39.800Z",
+  "environment": "staging",
+  "revision": "afbm-staging-backend-build-2026-05-04-001",
+  "version": "0.1.0",
+  "deployEnv": "staging",
+  "firebaseProjectId": "afbm-staging"
+}
+```
 
-1. Browser-Smoke fuer Login, Team-Ansicht, Ready, Reload und Ergebnisse gegen Staging oder Emulator stabilisieren.
+Bewertung: **Gruen**, Commit entspricht dem deployten Git-Commit.
 
-## Harte Entscheidung
+## Deploy-Nachweis
 
-Phase 1.5 bestanden: **Nein**
+| Schritt | Ergebnis |
+| --- | --- |
+| App-Hosting-Backend per REST API gelesen | Gruen |
+| `overrideEnv` per App-Hosting-REST-Patch bereinigt | Gruen |
+| Fix-Commit erstellt | `5ef05a89887b3c47688cb2c7879ee3453b01df7c` |
+| Fix-Commit nach `origin/main` gepusht | Gruen |
+| App Hosting Rollout fuer exakt diesen Commit gestartet | Gruen |
+| `/api/build-info` Commit-Gate nach Rollout | Gruen |
+
+## Checks
+
+| Command | Ergebnis |
+| --- | --- |
+| `npm run lint` | Gruen |
+| `npx tsc --noEmit` | Gruen nach Build; ein paralleler Lauf waehrend `next build` scheiterte erwartbar an transient geloeschten `.next/types`. |
+| `npx vitest run src/app/api/build-info/route.test.ts` | Gruen, 2 Tests |
+| `npm run build` | Gruen |
+
+## Smoke-Ergebnisse
+
+| Smoke | Command | Ergebnis |
+| --- | --- | --- |
+| Auth | `CONFIRM_STAGING_SMOKE=true GOOGLE_CLOUD_PROJECT=afbm-staging npm run staging:smoke:auth -- --expected-commit 5ef05a89887b3c47688cb2c7879ee3453b01df7c` | Gruen |
+| Admin Week | `CONFIRM_STAGING_SMOKE=true CONFIRM_STAGING_SEED=true CONFIRM_STAGING_PLAYABILITY_SEED=true GOOGLE_CLOUD_PROJECT=afbm-staging npm run staging:smoke:admin-week -- --reset-before-run --expected-commit 5ef05a89887b3c47688cb2c7879ee3453b01df7c` | Gruen |
+| Playability | `CONFIRM_STAGING_SMOKE=true CONFIRM_STAGING_PLAYABILITY_SMOKE=true CONFIRM_STAGING_SEED=true GOOGLE_CLOUD_PROJECT=afbm-staging npm run staging:smoke:playability -- --reset-before-run --expected-commit 5ef05a89887b3c47688cb2c7879ee3453b01df7c` | Gruen |
+
+## State nach Smokes
+
+| League | currentWeek | lastScheduledWeek | currentWeekGames | weekStatus | completedWeeks | resultsCount | standingsCount | readyCount | activeLocks |
+| --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- |
+| `afbm-multiplayer-test-league` | 2 | 7 | 4 | `pre_week` | 1 | 4 | 8 | 0/8 | none |
+| `afbm-playability-test` | 2 | 3 | 2 | `pre_week` | 1 | 2 | 4 | 0/4 | none |
+
+Validierung:
+
+- Keine aktiven `simulating` Locks: **OK**
+- Keine Woche ohne Spiele: **OK**
+- Ready reset: **OK**
+- Results/Standings konsistent: **OK**
+- `completedWeeks` enthaelt `s1-w1` mit passender Result-Anzahl: **OK**
+
+## Entscheidung
+
+Phase 1.5 bestanden: **Ja**
 
 Begruendung:
 
-- P0 offen: Lock-Cleanup-Fix ist nicht als deployed bewiesen.
-- Phase-1.5-Stabilitaet ist nur teilweise belegt: Golden Path einmal gruen, danach klare Preflight-REDs statt mehrfach gruener mutierender Smokes.
-- Es gibt keine aktiven Locks und keine leere Woche nach den Runs, aber der kritische Fehlerpfad ist nicht live bewiesen.
+- Staging liefert den Commit mit Build-Info-Fix und Lock-Cleanup-Fix korrekt aus.
+- Das Commit-Gate ist nicht mehr von stale Runtime-Overrides abhaengig.
+- Alle geforderten Smokes sind gegen exakt diesen Commit gruen.
+- Der Live-State nach den Smokes ist konsistent und ohne aktive Simulationslocks.
 
-Phase 2 freigegeben: **Nein**
+Phase 2 freigegeben: **Ja**
 
-Freigabebedingungen:
+Grenze der Freigabe:
 
-1. Staging muss den Commit mit Lock-Cleanup-Fix per `/api/build-info` ausliefern.
-2. `staging:smoke:auth`, `staging:smoke:admin-week` und `staging:smoke:playability` muessen gegen diesen Commit erneut laufen.
-3. Es muss klar entschieden und dokumentiert sein, ob Run 2/3 ohne Reset gruen laufen muessen oder ob erwartetes Preflight-RED als reproduzierbarer, akzeptierter Zustand gilt.
-4. Kein aktiver `simulating` Lock, keine Woche ohne Spiele, Ready reset und konsistente Results/Standings muessen nach den erneuten Runs bestaetigt sein.
+- Diese Freigabe gilt fuer den Start von Phase-2-Arbeit auf Basis des verifizierten Staging-Commits.
+- Sie ist kein Production-Go.
+- Weitere Phase-2-Aenderungen brauchen wieder ein eigenes Build-Info-Commit-Gate und Smoke-Ergebnis.
+
+Deployment verlaesslich: **Ja**

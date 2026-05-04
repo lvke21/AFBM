@@ -471,6 +471,8 @@ export function resolveTeamIdentitySelection(
 ): ResolvedTeamIdentity | null {
   if (
     !selection ||
+    typeof selection.cityId !== "string" ||
+    typeof selection.teamNameId !== "string" ||
     !selection.cityId.trim() ||
     !selection.teamNameId.trim() ||
     !isTeamNameCategory(selection.category)

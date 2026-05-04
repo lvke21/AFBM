@@ -4,7 +4,7 @@ import {
   ONLINE_USERNAME_STORAGE_KEY,
   ONLINE_USER_ID_STORAGE_KEY,
 } from "../online-user-service";
-import { saveOnlineLeague } from "../online-league-service";
+import { getOnlineLeagueById, saveOnlineLeague } from "../online-league-service";
 import type { OnlineContractPlayer, OnlineLeague } from "../online-league-types";
 import type { TeamIdentitySelection } from "../team-identity-options";
 import {
@@ -22,9 +22,11 @@ import {
 } from "../types";
 import {
   canLoadOnlineLeagueFromMembership,
+  chooseAvailableFirestoreTeamForIdentity,
   chooseFirstAvailableFirestoreTeam,
   createLeagueMemberMirrorFromMembership,
   getMembershipProjectionProblem,
+  getTeamProjectionWithoutMembershipProblem,
   isFirestoreWeekSimulationLockActive,
   isLeagueMemberMirrorAligned,
   resolveLeagueDiscoveryCandidateIds,
@@ -244,6 +246,73 @@ describe("online league repository backbone", () => {
     expect(new Set(secondJoin.league.users.map((user) => user.teamId)).size).toBe(2);
   });
 
+  it("assigns a deterministic free team when a new user joins without team identity", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalOnlineLeagueRepository(storage);
+
+    setUser(storage, "user-a", "Coach_A");
+    const league = await repository.createLeague({ name: "Invite League", maxUsers: 2 });
+    const joined = await repository.joinLeague(league.id);
+
+    expect(joined.status).toBe("joined");
+    expect(joined.league.users[0]).toMatchObject({
+      userId: "user-a",
+      teamId: league.teams[0]?.id,
+      teamDisplayName: league.teams[0]?.name,
+    });
+    expect(joined.league.teams[0]).toMatchObject({
+      assignedUserId: "user-a",
+      assignmentStatus: "assigned",
+    });
+  });
+
+  it("returns a clear full response when no team can be assigned", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalOnlineLeagueRepository(storage);
+
+    setUser(storage, "user-a", "Coach_A");
+    const league = await repository.createLeague({ name: "Full Invite League", maxUsers: 1 });
+    await repository.joinLeague(league.id);
+
+    setUser(storage, "user-b", "Coach_B");
+    const fullJoin = await repository.joinLeague(league.id);
+
+    expect(fullJoin).toMatchObject({
+      status: "full",
+      message: "Diese Liga ist bereits voll.",
+    });
+  });
+
+  it("does not silently repair team-only projections when membership is missing", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalOnlineLeagueRepository(storage);
+
+    setUser(storage, "user-a", "Coach_A");
+    const league = await repository.createLeague({ name: "Team Only League", maxUsers: 2 });
+    saveOnlineLeague(
+      {
+        ...league,
+        teams: league.teams.map((team, index) =>
+          index === 0
+            ? {
+                ...team,
+                assignedUserId: "user-a",
+                assignmentStatus: "assigned" as const,
+              }
+            : team,
+        ),
+      },
+      storage,
+    );
+
+    const joinResult = await repository.joinLeague(league.id);
+
+    expect(joinResult).toMatchObject({
+      status: "missing-league",
+      message: `Membership-Projektion inkonsistent in ${league.id} für user-a: missing-membership-for-team:${league.teams[0]?.id}`,
+    });
+  });
+
   it("exposes stable local subscriptions with safe unsubscribe", async () => {
     const storage = new MemoryStorage();
     const repository = new LocalOnlineLeagueRepository(storage);
@@ -310,6 +379,82 @@ describe("online league repository backbone", () => {
 
     expect(unreadyLeague?.users[0]?.readyForWeek).toBe(false);
     expect(unreadyLeague?.users[0]).not.toHaveProperty("readyAt");
+  });
+
+  it("keeps local player ready state after a reload", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalOnlineLeagueRepository(storage);
+
+    setUser(storage, "user-a", "Coach_A");
+    const league = await repository.createLeague({ name: "Ready Reload League" });
+    const joined = await repository.joinLeague(league.id, BERLIN_WOLVES);
+    await markLocalLeagueWeekReady(storage, joined.league);
+
+    await repository.setUserReady(league.id, true, { season: 1, week: 1 });
+
+    const reloadedLeague = await repository.getLeagueById(league.id);
+
+    expect(reloadedLeague?.users.find((user) => user.userId === "user-a")).toMatchObject({
+      readyForWeek: true,
+      readyAt: expect.any(String),
+    });
+  });
+
+  it("blocks a different local user from setting another team ready", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalOnlineLeagueRepository(storage);
+
+    setUser(storage, "user-a", "Coach_A");
+    const league = await repository.createLeague({ name: "Ready Ownership League" });
+    const joined = await repository.joinLeague(league.id, BERLIN_WOLVES);
+    await markLocalLeagueWeekReady(storage, joined.league);
+    setUser(storage, "user-b", "Coach_B");
+
+    await expect(repository.setUserReady(league.id, true, { season: 1, week: 1 })).rejects.toThrow(
+      /Kein Manager-Team verbunden/,
+    );
+    expect(getOnlineLeagueById(league.id, storage)?.users[0]?.readyForWeek).toBe(false);
+  });
+
+  it("blocks local ready writes when the current user has no team", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalOnlineLeagueRepository(storage);
+
+    setUser(storage, "user-a", "Coach_A");
+    const league = await repository.createLeague({ name: "Ready No Team League" });
+    const joined = await repository.joinLeague(league.id, BERLIN_WOLVES);
+    await markLocalLeagueWeekReady(storage, joined.league, {
+      users: joined.league.users.map((user) =>
+        user.userId === "user-a" ? { ...user, teamId: "", teamName: "" } : user,
+      ),
+    });
+
+    await expect(repository.setUserReady(league.id, true, { season: 1, week: 1 })).rejects.toThrow(
+      /Kein Manager-Team verbunden/,
+    );
+  });
+
+  it("blocks local ready writes when a schedule exists but the current week has no games", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalOnlineLeagueRepository(storage);
+
+    setUser(storage, "user-a", "Coach_A");
+    const league = await repository.createLeague({ name: "Ready Empty Week League" });
+    const joined = await repository.joinLeague(league.id, BERLIN_WOLVES);
+    await markLocalLeagueWeekReady(storage, joined.league, {
+      schedule: [
+        {
+          awayTeamName: "Berlin Wolves",
+          homeTeamName: "Berlin Wolves",
+          id: "ready-empty-week-league-week-2",
+          week: 2,
+        },
+      ],
+    });
+
+    await expect(repository.setUserReady(league.id, true, { season: 1, week: 1 })).rejects.toThrow(
+      /kein gültiger Schedule/,
+    );
   });
 
   it("blocks ready writes during local simulation", async () => {
@@ -1489,6 +1634,29 @@ describe("online league repository backbone", () => {
     ).toThrow("Membership projection conflict");
   });
 
+  it("detects team projection without canonical membership as a hard recovery conflict", () => {
+    expect(
+      getTeamProjectionWithoutMembershipProblem(null, [
+        firestoreTeam("team-a", {
+          assignedUserId: "firebase-user",
+          status: "assigned",
+        }),
+      ], "firebase-user"),
+    ).toBe("missing-membership-for-team:team-a");
+    expect(
+      getTeamProjectionWithoutMembershipProblem(
+        firestoreMembership(),
+        [
+          firestoreTeam("team-a", {
+            assignedUserId: "firebase-user",
+            status: "assigned",
+          }),
+        ],
+        "firebase-user",
+      ),
+    ).toBeNull();
+  });
+
   it("chooses the first free Firestore team and skips assigned teams", () => {
     const teams = [
       firestoreTeam("team-b", {
@@ -1512,5 +1680,55 @@ describe("online league repository backbone", () => {
         teams.map((team) => ({ ...team, status: "assigned" as const })),
       ),
     ).toBeNull();
+  });
+
+  it("selects the next free Firestore team after a transactional retry", () => {
+    const teams = [
+      firestoreTeam("team-b", {
+        status: "available",
+        createdAt: "2026-05-01T09:00:02.000Z",
+      }),
+      firestoreTeam("team-a", {
+        status: "available",
+        createdAt: "2026-05-01T09:00:01.000Z",
+      }),
+    ];
+    const firstAssignment = chooseFirstAvailableFirestoreTeam(teams);
+    const retriedTeams = teams.map((team) =>
+      team.id === firstAssignment?.id
+        ? { ...team, assignedUserId: "user-a", status: "assigned" as const }
+        : team,
+    );
+
+    expect(firstAssignment?.id).toBe("team-a");
+    expect(chooseFirstAvailableFirestoreTeam(retriedTeams)?.id).toBe("team-b");
+  });
+
+  it("prefers a free team whose identity already matches the requested join identity", () => {
+    const teams = [
+      firestoreTeam("team-a", {
+        cityId: "aachen",
+        createdAt: "2026-05-01T09:00:01.000Z",
+        teamNameId: "skyline",
+      }),
+      firestoreTeam("team-b", {
+        cityId: "aachen",
+        createdAt: "2026-05-01T09:00:02.000Z",
+        teamNameId: "harbor",
+      }),
+    ];
+
+    expect(
+      chooseAvailableFirestoreTeamForIdentity(teams, {
+        cityId: "aachen",
+        teamNameId: "harbor",
+      })?.id,
+    ).toBe("team-b");
+    expect(
+      chooseAvailableFirestoreTeamForIdentity(teams, {
+        cityId: "bern",
+        teamNameId: "skyline",
+      })?.id,
+    ).toBe("team-a");
   });
 });
