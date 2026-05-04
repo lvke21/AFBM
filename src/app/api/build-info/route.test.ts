@@ -10,8 +10,8 @@ afterEach(() => {
 
 describe("/api/build-info", () => {
   it("returns build metadata for staging commit checks", async () => {
-    process.env.AFBM_GIT_COMMIT = "9bd4d2cc604f";
-    process.env.AFBM_BUILD_TIME = "2026-05-02T12:00:00.000Z";
+    process.env.NEXT_PUBLIC_AFBM_GIT_COMMIT = "9bd4d2cc604f";
+    process.env.NEXT_PUBLIC_AFBM_BUILD_TIME = "2026-05-02T12:00:00.000Z";
     process.env.AFBM_DEPLOY_ENV = "staging";
     process.env.AFBM_APP_VERSION = "0.1.0-test";
     process.env.K_REVISION = "afbm-staging-backend-build-test";
@@ -30,6 +30,24 @@ describe("/api/build-info", () => {
       version: "0.1.0-test",
       revision: "afbm-staging-backend-build-test",
       firebaseProjectId: "afbm-staging",
+    });
+  });
+
+  it("fails clearly when no build commit was injected", async () => {
+    delete process.env.AFBM_GIT_COMMIT;
+    delete process.env.NEXT_PUBLIC_AFBM_GIT_COMMIT;
+    delete process.env.GIT_COMMIT;
+    delete process.env.SOURCE_VERSION;
+    delete process.env.VERCEL_GIT_COMMIT_SHA;
+
+    const response = await GET();
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload).toMatchObject({
+      ok: false,
+      commit: null,
+      error: "BUILD_COMMIT_MISSING: NEXT_PUBLIC_AFBM_GIT_COMMIT was not injected during build.",
     });
   });
 });
