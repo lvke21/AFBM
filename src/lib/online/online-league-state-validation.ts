@@ -25,7 +25,8 @@ export function isOnlineWeekFlowStatus(value: unknown): value is OnlineWeekFlowS
     value === "ready" ||
     value === "simulating" ||
     value === "completed" ||
-    value === "post_game"
+    value === "post_game" ||
+    value === "season_complete"
   );
 }
 

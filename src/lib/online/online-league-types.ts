@@ -355,7 +355,8 @@ export type OnlineWeekFlowStatus =
   | "ready"
   | "simulating"
   | "completed"
-  | "post_game";
+  | "post_game"
+  | "season_complete";
 
 export type OnlineDepthChartEntry = {
   position: string;

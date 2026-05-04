@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type {
   OnlineContractPlayer,
+  OnlineDepthChartEntry,
   OnlineLeague,
   OnlineLeagueUser,
 } from "./online-league-types";
@@ -10,7 +11,11 @@ import {
   simulateOnlineGame,
 } from "./online-game-simulation";
 
-function player(playerId: string, overall: number): OnlineContractPlayer {
+function player(
+  playerId: string,
+  overall: number,
+  overrides: Partial<OnlineContractPlayer> = {},
+): OnlineContractPlayer {
   return {
     age: 26,
     attributes: {},
@@ -33,12 +38,18 @@ function player(playerId: string, overall: number): OnlineContractPlayer {
     potential: overall,
     status: "active",
     xFactors: [],
+    ...overrides,
   };
 }
 
-function user(teamId: string, roster: OnlineContractPlayer[]): OnlineLeagueUser {
+function user(
+  teamId: string,
+  roster: OnlineContractPlayer[],
+  depthChart?: OnlineDepthChartEntry[],
+): OnlineLeagueUser {
   return {
     contractRoster: roster,
+    depthChart,
     joinedAt: "2026-01-01T00:00:00.000Z",
     readyForWeek: true,
     teamDisplayName: teamId === "zurich" ? "Zurich Guardians" : "Basel Rhinos",
@@ -80,6 +91,167 @@ describe("online game simulation", () => {
       rating: 80,
       warnings: [],
     });
+  });
+
+  it("weights depth-chart starters higher than backups for simulation strength", () => {
+    const highStarterLeague = league({
+      users: [
+        user(
+          "zurich",
+          [player("zurich-high", 90), player("zurich-low", 60)],
+          [
+            {
+              backupPlayerIds: ["zurich-low"],
+              position: "QB",
+              starterPlayerId: "zurich-high",
+              updatedAt: "2026-01-01T00:00:00.000Z",
+            },
+          ],
+        ),
+      ],
+    });
+    const lowStarterLeague = league({
+      users: [
+        user(
+          "zurich",
+          [player("zurich-high", 90), player("zurich-low", 60)],
+          [
+            {
+              backupPlayerIds: ["zurich-high"],
+              position: "QB",
+              starterPlayerId: "zurich-low",
+              updatedAt: "2026-01-01T00:00:00.000Z",
+            },
+          ],
+        ),
+      ],
+    });
+
+    expect(adaptOnlineTeamToSimulationTeam(highStarterLeague, "zurich")?.rating).toBe(83);
+    expect(adaptOnlineTeamToSimulationTeam(lowStarterLeague, "zurich")?.rating).toBe(67);
+  });
+
+  it("ignores released and free-agent players when deriving simulation strength", () => {
+    const adapted = adaptOnlineTeamToSimulationTeam(
+      league({
+        users: [
+          user("zurich", [
+            player("zurich-active", 80),
+            player("zurich-released", 99, { status: "released" }),
+            player("zurich-free-agent", 99, { status: "free_agent" }),
+          ]),
+        ],
+      }),
+      "zurich",
+    );
+
+    expect(adapted?.rating).toBe(80);
+  });
+
+  it("applies a penalty when a required starter position is missing", () => {
+    const adapted = adaptOnlineTeamToSimulationTeam(
+      league({
+        users: [
+          user(
+            "zurich",
+            [player("zurich-rb", 80, { position: "RB" })],
+            [
+              {
+                backupPlayerIds: [],
+                position: "RB",
+                starterPlayerId: "zurich-rb",
+                updatedAt: "2026-01-01T00:00:00.000Z",
+              },
+            ],
+          ),
+        ],
+      }),
+      "zurich",
+    );
+
+    expect(adapted).toMatchObject({
+      rating: 72,
+      warnings: [
+        "Team-Staerke erhaelt -8, weil kein aktiver QB-Starter gesetzt ist.",
+      ],
+    });
+  });
+
+  it("lets a stronger depth-chart team win more deterministic seeded games", () => {
+    const strengthLeague = league({
+      users: [
+        user(
+          "zurich",
+          [
+            player("zurich-qb", 95),
+            player("zurich-rb", 82, { position: "RB" }),
+          ],
+          [
+            {
+              backupPlayerIds: [],
+              position: "QB",
+              starterPlayerId: "zurich-qb",
+              updatedAt: "2026-01-01T00:00:00.000Z",
+            },
+          ],
+        ),
+        user(
+          "basel",
+          [
+            player("basel-qb", 55),
+            player("basel-rb", 56, { position: "RB" }),
+          ],
+          [
+            {
+              backupPlayerIds: [],
+              position: "QB",
+              starterPlayerId: "basel-qb",
+              updatedAt: "2026-01-01T00:00:00.000Z",
+            },
+          ],
+        ),
+      ],
+    });
+    const wins = Array.from({ length: 24 }, (_, index) => {
+      const simulated = simulateOnlineGame(
+        {
+          awayTeamId: "basel",
+          homeTeamId: "zurich",
+          id: `strength-game-${index + 1}`,
+          season: 1,
+          week: index + 1,
+        },
+        strengthLeague,
+      );
+
+      if (!simulated.ok) {
+        throw new Error(simulated.error.message);
+      }
+
+      return simulated.result.winnerTeamId;
+    });
+
+    expect(wins.filter((winnerTeamId) => winnerTeamId === "zurich").length).toBeGreaterThan(14);
+    expect(wins).toEqual(
+      Array.from({ length: 24 }, (_, index) => {
+        const simulated = simulateOnlineGame(
+          {
+            awayTeamId: "basel",
+            homeTeamId: "zurich",
+            id: `strength-game-${index + 1}`,
+            season: 1,
+            week: index + 1,
+          },
+          strengthLeague,
+        );
+
+        if (!simulated.ok) {
+          throw new Error(simulated.error.message);
+        }
+
+        return simulated.result.winnerTeamId;
+      }),
+    );
   });
 
   it("simulates a normal planned online game", () => {

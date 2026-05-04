@@ -13,6 +13,7 @@ import {
   LeagueStatusPanel,
   LoadingState,
   PlayerActionsPanel,
+  PrimaryActionPanel,
   ReadyStatePanel,
   TeamOverviewCard,
   WeekResultPanel,
@@ -46,6 +47,13 @@ function createDetailState(
     jobSecurityLabel: "72/100 · stable",
     jobSecurityExplanation: "Job-Sicherheit ist stabil.",
     inactivityWarningLabel: null,
+    primaryAction: {
+      title: "Bereit für die Woche setzen",
+      description: "Dein Team ist verbunden.",
+      ctaLabel: "Bereit für Woche 1",
+      href: null,
+      kind: "ready",
+    },
     currentUserReady: false,
     lifecyclePhase: "readyOpen",
     lifecycleReasons: [],
@@ -55,6 +63,8 @@ function createDetailState(
     weekFlow: {
       title: "Ligawoche",
       weekLabel: "Woche 1",
+      lastScheduledWeekLabel: "Letzte geplante Woche: Woche 3",
+      nextWeekLabel: "Aktuelle Woche: Woche 1",
       phaseLabel: "Woche offen",
       statusLabel: "Wartet auf Bereitmeldungen",
       simulationStatusLabel: "Simulation bleibt gesperrt, bis alle aktiven Teams bereit sind.",
@@ -115,9 +125,17 @@ function createDetailState(
         },
       ],
     },
+    resultSummary: {
+      emptyMessage:
+        "Sobald die Woche simuliert ist, erscheinen hier Ergebnis, Gegner und Tabelle.",
+      emptyTitle: "Woche noch nicht simuliert",
+      ownLastGame: null,
+      results: [],
+      weekLabel: null,
+    },
     standings: [
-      { teamName: "Berlin Blitz", recordLabel: "1-0" },
-      { teamName: "Hamburg Harbor", recordLabel: "0-1" },
+      { teamName: "Berlin Blitz", recordLabel: "1-0", isOwnTeam: true, rankLabel: "#1" },
+      { teamName: "Hamburg Harbor", recordLabel: "0-1", rankLabel: "#2" },
     ],
     recentResults: [],
     franchise: null,
@@ -206,15 +224,108 @@ describe("online league dashboard panels", () => {
     expect(render(<PlayerActionsPanel detailState={detailState} />)).toContain("Command Center");
   });
 
+  it("renders the primary dashboard action above secondary guidance", () => {
+    const detailState = createDetailState();
+    const markup = render(
+      <PrimaryActionPanel
+        detailState={detailState}
+        pendingAction={null}
+        onReadyForWeek={() => undefined}
+      />,
+    );
+
+    expect(markup).toContain("Nächste Aktion");
+    expect(markup).toContain("Team: Berlin Blitz");
+    expect(markup).toContain("Bereit für Woche 1");
+  });
+
+  it("renders season-complete guidance without a ready action", () => {
+    const detailState = createDetailState({
+      currentWeekLabel: "Woche 2",
+      lifecyclePhase: "seasonComplete",
+      primaryAction: {
+        title: "Regular Season abgeschlossen",
+        description: "Offseason kommt bald. Bis dahin bleiben Endstand und Ergebnisse sichtbar.",
+        ctaLabel: "Endstand ansehen",
+        href: "/online/league/league-1#league",
+        kind: "link",
+      },
+      readyActionDisabledReason: "Die Saison ist abgeschlossen.",
+      statusLabel: "Saison abgeschlossen",
+      weekFlow: {
+        ...createDetailState().weekFlow,
+        nextWeekLabel: "Regular Season abgeschlossen",
+        phaseLabel: "Saison abgeschlossen",
+        playerReadyStatusLabel: "Die Saison ist abgeschlossen.",
+      },
+    });
+    const markup = render(
+      <PrimaryActionPanel
+        detailState={detailState}
+        pendingAction={null}
+        onReadyForWeek={() => undefined}
+      />,
+    );
+
+    expect(markup).toContain("Regular Season abgeschlossen");
+    expect(markup).toContain("Offseason kommt bald");
+    expect(markup).toContain("Endstand ansehen");
+    expect(markup).not.toContain("Bereit für Woche");
+  });
+
   it("renders bereit and simulated-week result states", () => {
     const detailState = createDetailState({
       allPlayersReady: true,
       allPlayersReadyLabel: "Alle aktiven Teams sind bereit.",
       currentUserReady: true,
+      resultSummary: {
+        emptyMessage: "",
+        emptyTitle: "",
+        ownLastGame: {
+          matchId: "match-1",
+          opponentLabel: "Gegner: Hamburg Harbor",
+          outcomeLabel: "Sieg",
+          outcomeTone: "win",
+          scoreLabel: "Berlin Blitz 24 - 17 Hamburg Harbor",
+          stats: [
+            {
+              advantage: "own",
+              label: "Total Yards",
+              opponentValue: "280",
+              ownValue: "360",
+            },
+          ],
+          weekLabel: "Saison 1, Woche 1",
+          winnerLabel: "Gewinner: Berlin Blitz · Verlierer: Hamburg Harbor",
+        },
+        results: [
+          {
+            awayScore: 17,
+            awayTeamName: "Hamburg Harbor",
+            homeScore: 24,
+            homeTeamName: "Berlin Blitz",
+            isCurrentUserTeamInvolved: true,
+            label: "Berlin Blitz 24 - 17 Hamburg Harbor",
+            matchId: "match-1",
+            resultLabel: "24 - 17",
+            weekLabel: "Saison 1, Woche 1",
+            winnerLabel: "Gewinner: Berlin Blitz",
+          },
+        ],
+        weekLabel: "Saison 1, Woche 1",
+      },
       recentResults: [
         {
+          awayScore: 17,
+          awayTeamName: "Hamburg Harbor",
+          homeScore: 24,
+          homeTeamName: "Berlin Blitz",
+          isCurrentUserTeamInvolved: true,
           matchId: "match-1",
           label: "Berlin Blitz 24 - 17 Hamburg Harbor",
+          resultLabel: "24 - 17",
+          weekLabel: "Saison 1, Woche 1",
+          winnerLabel: "Gewinner: Berlin Blitz",
         },
       ],
       weekFlow: {
@@ -237,6 +348,9 @@ describe("online league dashboard panels", () => {
     expect(render(<WeekResultPanel detailState={detailState} />)).toContain(
       "Berlin Blitz 24 - 17 Hamburg Harbor",
     );
+    expect(render(<WeekResultPanel detailState={detailState} />)).toContain("Letztes Spiel");
+    expect(render(<WeekResultPanel detailState={detailState} />)).toContain("Gegner: Hamburg Harbor");
+    expect(render(<WeekResultPanel detailState={detailState} />)).toContain("Gewinner: Berlin Blitz");
   });
 
   it("renders standings and reload-safe result summaries together", () => {
@@ -248,21 +362,52 @@ describe("online league dashboard panels", () => {
           teamName: "Berlin Blitz",
           recordLabel: "1-0",
           gamesPlayedLabel: "1 Spiele",
+          isOwnTeam: true,
           pointsLabel: "24:17 · +7",
+          rankLabel: "#1",
         },
         {
           teamName: "Hamburg Harbor",
           recordLabel: "0-1",
           gamesPlayedLabel: "1 Spiele",
           pointsLabel: "17:24 · -7",
+          rankLabel: "#2",
         },
       ],
       recentResults: [
         {
+          awayScore: 17,
+          awayTeamName: "Hamburg Harbor",
+          homeScore: 24,
+          homeTeamName: "Berlin Blitz",
+          isCurrentUserTeamInvolved: true,
           matchId: "match-1",
           label: "Berlin Blitz 24 - 17 Hamburg Harbor",
+          resultLabel: "24 - 17",
+          weekLabel: "Saison 1, Woche 1",
+          winnerLabel: "Gewinner: Berlin Blitz",
         },
       ],
+      resultSummary: {
+        emptyMessage: "",
+        emptyTitle: "",
+        ownLastGame: null,
+        results: [
+          {
+            awayScore: 17,
+            awayTeamName: "Hamburg Harbor",
+            homeScore: 24,
+            homeTeamName: "Berlin Blitz",
+            isCurrentUserTeamInvolved: true,
+            label: "Berlin Blitz 24 - 17 Hamburg Harbor",
+            matchId: "match-1",
+            resultLabel: "24 - 17",
+            weekLabel: "Saison 1, Woche 1",
+            winnerLabel: "Gewinner: Berlin Blitz",
+          },
+        ],
+        weekLabel: "Saison 1, Woche 1",
+      },
       weekFlow: {
         ...createDetailState().weekFlow,
         weekLabel: "Woche 2",
@@ -274,8 +419,17 @@ describe("online league dashboard panels", () => {
     const resultPanel = render(<WeekResultPanel detailState={detailState} />);
 
     expect(leaguePanel).toContain("Berlin Blitz vs. Munich Riders");
+    expect(leaguePanel).toContain("#1");
+    expect(leaguePanel).toContain("Dein Team");
     expect(leaguePanel).toContain("24:17 · +7");
     expect(resultPanel).toContain("Berlin Blitz 24 - 17 Hamburg Harbor");
+  });
+
+  it("renders clear empty results state before simulation", () => {
+    const markup = render(<WeekResultPanel detailState={createDetailState()} />);
+
+    expect(markup).toContain("Woche noch nicht simuliert");
+    expect(markup).toContain("Sobald die Woche simuliert ist");
   });
 
   it("renders active draft state and hides completed draft gate", () => {
@@ -293,6 +447,28 @@ describe("online league dashboard panels", () => {
       feedback={null}
       onPickPlayer={() => undefined}
     />)).toBe("");
+  });
+
+  it("does not render a ready button when the season is complete", () => {
+    const detailState = createDetailState({
+      lifecyclePhase: "seasonComplete",
+      readyActionDisabledReason: "Die Saison ist abgeschlossen. Es gibt keine spielbare Woche mehr.",
+      nextActionLabel: "Die Saison ist abgeschlossen. Es gibt keine spielbare Woche mehr.",
+    });
+    const markup = render(
+      <ReadyStatePanel
+        detailState={detailState}
+        actionFeedback={null}
+        readyGuidanceItems={[
+          { label: "Saison abgeschlossen", completed: true, statusLabel: "Kein Ready nötig" },
+        ]}
+        pendingAction={null}
+        onReadyForWeek={() => undefined}
+      />,
+    );
+
+    expect(markup).not.toContain("Bereit für Woche 1");
+    expect(markup).toContain("Die Saison ist abgeschlossen");
   });
 
   it("keeps admin controls hidden from the player dashboard", () => {

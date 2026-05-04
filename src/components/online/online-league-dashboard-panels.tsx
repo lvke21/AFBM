@@ -128,6 +128,66 @@ export function ReadyStatePanel({
   );
 }
 
+export function PrimaryActionPanel({
+  detailState,
+  pendingAction,
+  onReadyForWeek,
+}: {
+  detailState: FoundOnlineLeagueDetailState;
+  pendingAction: string | null;
+  onReadyForWeek: (ready: boolean) => void;
+}) {
+  const action = detailState.primaryAction;
+
+  return (
+    <section className="mt-6 rounded-lg border border-emerald-200/35 bg-emerald-300/10 p-5">
+      <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
+            Nächste Aktion
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">{action.title}</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-emerald-50/85">
+            {action.description}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2 text-sm font-semibold text-slate-100">
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              Team: {detailState.ownTeamName ?? "nicht verbunden"}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              {detailState.currentWeekLabel}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              {detailState.draftStatusLabel}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              {detailState.currentUserReady ? "Ready gesetzt" : "Ready offen"}
+            </span>
+          </div>
+        </div>
+        {action.kind === "ready" ? (
+          <button
+            type="button"
+            disabled={pendingAction !== null || Boolean(detailState.readyActionDisabledReason)}
+            onClick={() => onReadyForWeek(true)}
+            aria-busy={pendingAction === "ready"}
+            className="w-fit rounded-lg border border-emerald-100/35 bg-emerald-200/18 px-5 py-3 text-sm font-semibold text-emerald-50 transition hover:bg-emerald-200/24 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/5 disabled:text-slate-400"
+          >
+            {pendingAction === "ready" ? "Speichert..." : action.ctaLabel}
+          </button>
+        ) : action.href && action.ctaLabel ? (
+          <Link
+            href={action.href}
+            className="w-fit rounded-lg border border-emerald-100/35 bg-emerald-200/18 px-5 py-3 text-sm font-semibold text-emerald-50 transition hover:bg-emerald-200/24"
+          >
+            {action.ctaLabel}
+          </Link>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 export function TeamOverviewCard({
   detailState,
   isFirebaseMvpMode,
@@ -279,9 +339,21 @@ export function LeagueStatusPanel({
               {detailState.standings.slice(0, 4).map((standing) => (
                 <div
                   key={standing.teamName}
-                  className="grid gap-1 rounded-lg border border-white/10 bg-[#07111d]/70 px-3 py-2 text-sm sm:grid-cols-[1fr_auto]"
+                  className={`grid gap-1 rounded-lg border px-3 py-2 text-sm sm:grid-cols-[1fr_auto] ${
+                    standing.isOwnTeam
+                      ? "border-emerald-200/35 bg-emerald-300/10"
+                      : "border-white/10 bg-[#07111d]/70"
+                  }`}
                 >
-                  <span className="font-semibold text-white">{standing.teamName}</span>
+                  <span className="font-semibold text-white">
+                    <span className="mr-2 font-mono text-slate-400">{standing.rankLabel}</span>
+                    {standing.teamName}
+                    {standing.isOwnTeam ? (
+                      <span className="ml-2 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-200">
+                        Dein Team
+                      </span>
+                    ) : null}
+                  </span>
                   <span className="font-mono text-slate-300">{standing.recordLabel}</span>
                   {standing.pointsLabel ? (
                     <span className="text-xs font-semibold text-slate-400 sm:col-span-2">
@@ -308,22 +380,86 @@ export function WeekResultPanel({
 }: {
   detailState: FoundOnlineLeagueDetailState;
 }) {
+  const { resultSummary } = detailState;
+  const outcomeToneClass =
+    resultSummary.ownLastGame?.outcomeTone === "win"
+      ? "border-emerald-200/35 bg-emerald-300/10 text-emerald-50"
+      : resultSummary.ownLastGame?.outcomeTone === "loss"
+        ? "border-amber-200/30 bg-amber-300/10 text-amber-50"
+        : "border-sky-200/30 bg-sky-300/10 text-sky-50";
+
   return (
     <div className="rounded-lg border border-white/10 bg-white/5 p-4">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-        Letzte Ergebnisse
+        Ergebnisse
       </p>
-      {detailState.recentResults.length > 0 ? (
-        <div className="mt-3 grid gap-2 text-sm font-semibold text-slate-200">
-          {detailState.recentResults.map((result) => (
-            <p key={result.matchId}>{result.label}</p>
-          ))}
+      {resultSummary.ownLastGame ? (
+        <div className={`mt-3 rounded-lg border px-4 py-3 ${outcomeToneClass}`}>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] opacity-80">
+            Letztes Spiel · {resultSummary.ownLastGame.weekLabel}
+          </p>
+          <p className="mt-2 text-xl font-semibold text-white">
+            {resultSummary.ownLastGame.outcomeLabel}
+          </p>
+          <p className="mt-2 text-sm font-semibold">
+            {resultSummary.ownLastGame.scoreLabel}
+          </p>
+          <p className="mt-1 text-sm font-semibold opacity-85">
+            {resultSummary.ownLastGame.opponentLabel}
+          </p>
+          <p className="mt-1 text-xs font-semibold opacity-80">
+            {resultSummary.ownLastGame.winnerLabel}
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {resultSummary.ownLastGame.stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-lg border border-white/10 bg-[#07111d]/55 px-3 py-2 text-xs"
+              >
+                <p className="font-semibold uppercase tracking-[0.14em] opacity-70">
+                  {stat.label}
+                </p>
+                <p className="mt-1 font-semibold text-white">
+                  Du: {stat.ownValue}
+                </p>
+                <p className="mt-1 opacity-80">Gegner: {stat.opponentValue}</p>
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
-        <p className="mt-2 text-sm font-semibold text-slate-300">
-          Noch keine Online-Ergebnisse.
-        </p>
+        <div className="mt-3 rounded-lg border border-dashed border-white/15 bg-[#07111d]/60 px-4 py-3">
+          <p className="text-sm font-semibold text-white">{resultSummary.emptyTitle}</p>
+          <p className="mt-1 text-sm leading-6 text-slate-300">
+            {resultSummary.emptyMessage}
+          </p>
+        </div>
       )}
+      {resultSummary.results.length > 0 ? (
+        <div className="mt-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+            Ergebnisliste {resultSummary.weekLabel ? `· ${resultSummary.weekLabel}` : ""}
+          </p>
+          <div className="mt-3 grid gap-2 text-sm font-semibold text-slate-200">
+            {resultSummary.results.map((result) => (
+              <div
+                key={result.matchId}
+                className={`rounded-lg border px-3 py-2 ${
+                  result.isCurrentUserTeamInvolved
+                    ? "border-emerald-200/30 bg-emerald-300/10 text-emerald-50"
+                    : "border-white/10 bg-[#07111d]/70"
+                }`}
+              >
+                <p>{result.label}</p>
+                <p className="mt-1 text-xs font-semibold text-slate-400">
+                  {result.winnerLabel}
+                  {result.isCurrentUserTeamInvolved ? " · Dein Spiel" : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -373,9 +509,19 @@ export function PlayerActionsPanel({
               {detailState.standings.slice(0, 4).map((standing) => (
                 <div
                   key={standing.teamName}
-                  className="grid gap-1 text-sm sm:grid-cols-[1fr_auto]"
+                  className={`grid gap-1 rounded-lg px-2 py-1 text-sm sm:grid-cols-[1fr_auto] ${
+                    standing.isOwnTeam ? "bg-emerald-300/10" : ""
+                  }`}
                 >
-                  <span className="font-semibold text-white">{standing.teamName}</span>
+                  <span className="font-semibold text-white">
+                    <span className="mr-2 font-mono text-slate-400">{standing.rankLabel}</span>
+                    {standing.teamName}
+                    {standing.isOwnTeam ? (
+                      <span className="ml-2 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-200">
+                        Dein Team
+                      </span>
+                    ) : null}
+                  </span>
                   <span className="font-mono text-slate-300">{standing.recordLabel}</span>
                   {standing.pointsLabel ? (
                     <span className="text-xs font-semibold text-slate-500 sm:col-span-2">
@@ -396,7 +542,10 @@ export function PlayerActionsPanel({
       </div>
 
       {detailState.roster && detailState.roster.depthChart.length > 0 ? (
-        <div id="depth-chart" className="mt-5 rounded-lg border border-white/10 bg-white/5 p-4">
+        <div
+          id="depth-chart"
+          className="mt-5 scroll-mt-24 rounded-lg border border-white/10 bg-white/5 p-4"
+        >
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
             <GlossaryTerm term="depthChart">Depth Chart</GlossaryTerm>
           </p>

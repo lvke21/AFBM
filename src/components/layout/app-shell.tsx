@@ -53,7 +53,7 @@ export function AppShell({ children, context = EMPTY_CONTEXT }: AppShellProps) {
             <GlobalActionFeedback />
             {children}
           </main>
-          <OnboardingCoach context={context} />
+          {context.online ? null : <OnboardingCoach context={context} />}
         </div>
       </div>
     </div>

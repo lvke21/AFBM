@@ -906,7 +906,7 @@ async function executeFirebaseAction(
             matchResults: [...preparedSimulation.results, ...preparedSimulation.existingMatchResults],
             standings: preparedSimulation.standingsSummary,
             status: preparedSimulation.seasonComplete ? "completed" : "active",
-            weekStatus: preparedSimulation.seasonComplete ? "completed" : "pre_week",
+            weekStatus: preparedSimulation.seasonComplete ? "season_complete" : "pre_week",
             updatedAt: preparedSimulation.updatedAt,
             version: FieldValue.increment(1),
           });

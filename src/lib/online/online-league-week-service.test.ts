@@ -270,4 +270,13 @@ describe("online league ready validation", () => {
       reason: "Diese Woche ist bereits abgeschlossen.",
     });
   });
+
+  it("blocks ready once the season is complete", () => {
+    const testLeague = league({ currentWeek: 2, weekStatus: "season_complete" });
+
+    expect(getOnlineLeagueReadyChangeState(testLeague, testLeague.users[0])).toMatchObject({
+      allowed: false,
+      reason: "Die Saison ist abgeschlossen. Offseason kommt bald.",
+    });
+  });
 });

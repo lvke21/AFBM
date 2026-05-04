@@ -670,7 +670,19 @@ describe("toOnlineLeagueDetailState", () => {
       ],
     };
 
-    expect(toOnlineLeagueDetailState(league, { userId: "user-1", username: "Coach_1234" }))
+    const detailState = toOnlineLeagueDetailState(league, {
+      userId: "user-1",
+      username: "Coach_1234",
+    });
+    const reloadedDetailState = toOnlineLeagueDetailState(
+      JSON.parse(JSON.stringify(league)) as OnlineLeague,
+      {
+        userId: "user-1",
+        username: "Coach_1234",
+      },
+    );
+
+    expect(detailState)
       .toMatchObject({
         status: "found",
         currentWeekLabel: "Woche 2",
@@ -682,6 +694,23 @@ describe("toOnlineLeagueDetailState", () => {
           lastCompletedWeekLabel: "Zuletzt abgeschlossen: Saison 1, Woche 1.",
           completedResultsLabel: "1 Ergebnis gespeichert",
         },
+        resultSummary: {
+          weekLabel: "Saison 1, Woche 1",
+          ownLastGame: {
+            opponentLabel: "Gegner: New York Titans",
+            outcomeLabel: "Sieg",
+            scoreLabel: "Boston Guardians 24 - 17 New York Titans",
+            winnerLabel: "Gewinner: Boston Guardians · Verlierer: New York Titans",
+          },
+          results: [
+            {
+              matchId: "match-1",
+              isCurrentUserTeamInvolved: true,
+              winnerLabel: "Gewinner: Boston Guardians",
+              weekLabel: "Saison 1, Woche 1",
+            },
+          ],
+        },
         recentResults: [
           {
             matchId: "match-1",
@@ -689,6 +718,18 @@ describe("toOnlineLeagueDetailState", () => {
           },
         ],
       });
+    expect(detailState.status === "found" ? detailState.resultSummary.ownLastGame?.stats : [])
+      .toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            label: "Total Yards",
+            ownValue: "360",
+            opponentValue: "318",
+          }),
+        ]),
+      );
+    expect(reloadedDetailState.status === "found" ? reloadedDetailState.resultSummary : null)
+      .toEqual(detailState.status === "found" ? detailState.resultSummary : null);
   });
 
   it("orders recent results by latest season, week and simulation time", () => {
@@ -770,6 +811,14 @@ describe("toOnlineLeagueDetailState", () => {
     };
 
     expect(toOnlineLeagueDetailState(league, null)).toMatchObject({
+      resultSummary: {
+        weekLabel: "Saison 1, Woche 3",
+        results: [
+          {
+            matchId: "latest-week",
+          },
+        ],
+      },
       recentResults: [
         {
           matchId: "latest-week",
@@ -946,6 +995,76 @@ describe("toOnlineLeagueDetailState", () => {
       ),
     ).toMatchObject({
       readyActionDisabledReason: "Diese Woche ist bereits abgeschlossen.",
+    });
+    expect(
+      toOnlineLeagueDetailState(
+        {
+          ...baseLeague,
+          completedWeeks: [
+            {
+              completedAt: "2026-05-02T11:00:00.000Z",
+              nextSeason: 1,
+              nextWeek: 2,
+              resultMatchIds: ["game-1"],
+              season: 1,
+              simulatedByUserId: "admin-1",
+              status: "completed",
+              week: 1,
+              weekKey: "s1-w1",
+            },
+          ],
+          currentWeek: 2,
+          matchResults: [
+            {
+              awayScore: 17,
+              awayStats: { firstDowns: 0, passingYards: 0, rushingYards: 0, totalYards: 0, turnovers: 0 },
+              awayTeamId: "away",
+              awayTeamName: "Away",
+              createdAt: "2026-05-02T11:00:00.000Z",
+              homeScore: 24,
+              homeStats: { firstDowns: 0, passingYards: 0, rushingYards: 0, totalYards: 0, turnovers: 0 },
+              homeTeamId: "bos-guardians",
+              homeTeamName: "Boston Guardians",
+              loserTeamId: "away",
+              loserTeamName: "Away",
+              matchId: "game-1",
+              season: 1,
+              simulatedAt: "2026-05-02T11:00:00.000Z",
+              simulatedByUserId: "admin-1",
+              status: "completed",
+              tiebreakerApplied: false,
+              week: 1,
+              winnerTeamId: "bos-guardians",
+              winnerTeamName: "Boston Guardians",
+            },
+          ],
+          schedule: [
+            {
+              awayTeamName: "Away",
+              homeTeamName: "Boston Guardians",
+              id: "game-1",
+              week: 1,
+            },
+          ],
+          weekStatus: "season_complete",
+        },
+        { userId: "user-1", username: "Coach_1234" },
+      ),
+    ).toMatchObject({
+      firstSteps: {
+        progressLabel: "Saison abgeschlossen",
+      },
+      primaryAction: {
+        ctaLabel: "Endstand ansehen",
+        description: "Offseason kommt bald. Bis dahin bleiben Endstand und Ergebnisse sichtbar.",
+        title: "Regular Season abgeschlossen",
+      },
+      readyActionDisabledReason: "Die Saison ist abgeschlossen. Offseason kommt bald.",
+      statusLabel: "Saison abgeschlossen",
+      weekFlow: {
+        nextWeekLabel: "Regular Season abgeschlossen",
+        phaseLabel: "Saison abgeschlossen",
+      },
     });
     expect(
       toOnlineLeagueDetailState(
@@ -1159,11 +1278,14 @@ describe("toOnlineLeagueDetailState", () => {
         },
         standings: [
           {
+            rankLabel: "#1",
             teamName: "Boston Guardians",
             recordLabel: "2-0",
             pointsLabel: "55:31 · +24",
           },
           {
+            isOwnTeam: true,
+            rankLabel: "#2",
             teamName: "Zürich Forge",
             recordLabel: "1-1",
             pointsLabel: "41:38 · +3",
@@ -1284,6 +1406,168 @@ describe("toOnlineLeagueDetailState", () => {
             yearsRemaining: 4,
           },
         ],
+      },
+    });
+  });
+
+  it("points the primary action to the draft when the current user is on the clock", () => {
+    const league: OnlineLeague = {
+      id: "draft-action-league",
+      name: "Draft Action League",
+      maxUsers: 2,
+      status: "active",
+      teams: ONLINE_MVP_TEAM_POOL.slice(0, 2),
+      currentWeek: 1,
+      fantasyDraft: {
+        availablePlayerIds: ["player-1"],
+        completedAt: null,
+        currentTeamId: "bos-guardians",
+        draftOrder: ["bos-guardians", "nyt-titans"],
+        leagueId: "draft-action-league",
+        pickNumber: 1,
+        picks: [],
+        round: 1,
+        startedAt: "2026-05-01T07:00:00.000Z",
+        status: "active",
+      },
+      users: [
+        {
+          userId: "user-1",
+          username: "Coach_1234",
+          joinedAt: "2026-04-29T19:00:00.000Z",
+          teamId: "bos-guardians",
+          teamName: "Boston Guardians",
+          readyForWeek: false,
+          contractRoster: testRoster(),
+          depthChart: testDepthChart(),
+        },
+      ],
+    };
+
+    expect(
+      toOnlineLeagueDetailState(league, { userId: "user-1", username: "Coach_1234" }),
+    ).toMatchObject({
+      primaryAction: {
+        title: "Du bist im Draft am Zug",
+        ctaLabel: "Zum Pick",
+        href: "/online/league/draft-action-league/draft",
+        kind: "link",
+      },
+    });
+  });
+
+  it("opens week, roster and depth navigation after completed draft", () => {
+    const league: OnlineLeague = {
+      id: "completed-draft-action-league",
+      name: "Completed Draft Action League",
+      maxUsers: 2,
+      status: "active",
+      teams: ONLINE_MVP_TEAM_POOL.slice(0, 2),
+      currentWeek: 1,
+      fantasyDraft: {
+        availablePlayerIds: [],
+        completedAt: "2026-05-01T08:00:00.000Z",
+        currentTeamId: "",
+        draftOrder: ["bos-guardians", "nyt-titans"],
+        leagueId: "completed-draft-action-league",
+        pickNumber: 2,
+        picks: [],
+        round: 1,
+        startedAt: "2026-05-01T07:00:00.000Z",
+        status: "completed",
+      },
+      users: [
+        {
+          userId: "user-1",
+          username: "Coach_1234",
+          joinedAt: "2026-04-29T19:00:00.000Z",
+          teamId: "bos-guardians",
+          teamName: "Boston Guardians",
+          readyForWeek: false,
+          contractRoster: testRoster(),
+          depthChart: testDepthChart(),
+        },
+      ],
+    };
+
+    expect(
+      toOnlineLeagueDetailState(league, { userId: "user-1", username: "Coach_1234" }),
+    ).toMatchObject({
+      primaryAction: {
+        title: "Bereit für die Woche setzen",
+        ctaLabel: "Bereit für Woche 1",
+        kind: "ready",
+      },
+      readyActionDisabledReason: null,
+    });
+  });
+
+  it("does not offer ready as the primary action after the scheduled season is complete", () => {
+    const league: OnlineLeague = {
+      id: "season-complete-action-league",
+      name: "Season Complete Action League",
+      maxUsers: 2,
+      status: "active",
+      teams: ONLINE_MVP_TEAM_POOL.slice(0, 2),
+      currentWeek: 2,
+      weekStatus: "pre_week",
+      completedWeeks: [
+        {
+          completedAt: "2026-05-01T08:00:00.000Z",
+          nextSeason: 1,
+          nextWeek: 2,
+          resultMatchIds: [],
+          season: 1,
+          simulatedByUserId: "admin",
+          status: "completed",
+          week: 1,
+          weekKey: "s1-w1",
+        },
+      ],
+      lastSimulatedWeekKey: "s1-w1",
+      schedule: [
+        {
+          id: "week-1-match-1",
+          week: 1,
+          homeTeamName: "Boston Guardians",
+          awayTeamName: "New York Titans",
+        },
+      ],
+      fantasyDraft: {
+        availablePlayerIds: [],
+        completedAt: "2026-05-01T08:00:00.000Z",
+        currentTeamId: "",
+        draftOrder: ["bos-guardians", "nyt-titans"],
+        leagueId: "season-complete-action-league",
+        pickNumber: 2,
+        picks: [],
+        round: 1,
+        startedAt: "2026-05-01T07:00:00.000Z",
+        status: "completed",
+      },
+      users: [
+        {
+          userId: "user-1",
+          username: "Coach_1234",
+          joinedAt: "2026-04-29T19:00:00.000Z",
+          teamId: "bos-guardians",
+          teamName: "Boston Guardians",
+          readyForWeek: false,
+          contractRoster: testRoster(),
+          depthChart: testDepthChart(),
+        },
+      ],
+    };
+
+    expect(
+      toOnlineLeagueDetailState(league, { userId: "user-1", username: "Coach_1234" }),
+    ).toMatchObject({
+      lifecyclePhase: "seasonComplete",
+      primaryAction: {
+        title: "Regular Season abgeschlossen",
+        ctaLabel: "Endstand ansehen",
+        href: "/online/league/season-complete-action-league#league",
+        kind: "link",
       },
     });
   });

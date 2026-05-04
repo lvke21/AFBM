@@ -91,12 +91,12 @@ function getOnlineLeagueWeekSimulationLifecyclePhase(
     return "blockedConflict";
   }
 
-  if (input.leagueStatus !== "active") {
-    return "leagueInactive";
-  }
-
   if (input.weekProgress.phase === "season_complete") {
     return "seasonComplete";
+  }
+
+  if (input.leagueStatus !== "active") {
+    return "leagueInactive";
   }
 
   if (input.weekProgress.phase === "simulating") {

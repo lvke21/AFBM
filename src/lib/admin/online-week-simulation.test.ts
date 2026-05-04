@@ -315,6 +315,69 @@ describe("online week simulation preparation", () => {
     });
   });
 
+  it("blocks simulation after the last scheduled week with season_complete", () => {
+    expect(() =>
+      prepareOnlineLeagueWeekSimulation({
+        actorUserId: "admin-user",
+        draftState: { completedAt: NOW, currentTeamId: "", draftOrder: [], leagueId: "league-1", pickNumber: 1, round: 1, startedAt: NOW, status: "completed" },
+        expectedSeason: 1,
+        expectedWeek: 2,
+        league: league({
+          completedWeeks: [
+            {
+              completedAt: NOW,
+              nextSeason: 1,
+              nextWeek: 2,
+              resultMatchIds: ["game-1"],
+              season: 1,
+              simulatedByUserId: "admin-user",
+              status: "completed",
+              week: 1,
+              weekKey: "s1-w1",
+            },
+          ],
+          currentWeek: 2,
+          lastSimulatedWeekKey: "s1-w1",
+          matchResults: [matchResult({ matchId: "game-1" })],
+          weekStatus: "season_complete",
+        }),
+        memberships,
+        now: NOW,
+        teams,
+      }),
+    ).toThrow(OnlineLeagueWeekSimulationError);
+    expect(() =>
+      prepareOnlineLeagueWeekSimulation({
+        actorUserId: "admin-user",
+        draftState: { completedAt: NOW, currentTeamId: "", draftOrder: [], leagueId: "league-1", pickNumber: 1, round: 1, startedAt: NOW, status: "completed" },
+        expectedSeason: 1,
+        expectedWeek: 2,
+        league: league({
+          completedWeeks: [
+            {
+              completedAt: NOW,
+              nextSeason: 1,
+              nextWeek: 2,
+              resultMatchIds: ["game-1"],
+              season: 1,
+              simulatedByUserId: "admin-user",
+              status: "completed",
+              week: 1,
+              weekKey: "s1-w1",
+            },
+          ],
+          currentWeek: 2,
+          lastSimulatedWeekKey: "s1-w1",
+          matchResults: [matchResult({ matchId: "game-1" })],
+          weekStatus: "season_complete",
+        }),
+        memberships,
+        now: NOW,
+        teams,
+      }),
+    ).toThrow(/Saison ist abgeschlossen/);
+  });
+
   it("allows the next week after prior completed results advanced the cursor", () => {
     const prepared = prepareOnlineLeagueWeekSimulation({
       actorUserId: "admin-user",

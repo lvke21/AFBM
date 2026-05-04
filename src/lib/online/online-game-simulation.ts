@@ -5,6 +5,7 @@ import {
 
 import type {
   OnlineContractPlayer,
+  OnlineDepthChartEntry,
   OnlineLeague,
   OnlineMatchResult,
 } from "./online-league-types";
@@ -56,24 +57,129 @@ type OnlineSimulationTeam = MinimalMatchTeam & {
   warnings: string[];
 };
 
+const ONLINE_SIMULATION_REQUIRED_STARTER_POSITIONS = ["QB"] as const;
+const MISSING_REQUIRED_STARTER_PENALTY = 8;
+
 function normalizePositiveInteger(value: unknown, fallback: number) {
   return typeof value === "number" && Number.isFinite(value) && value >= 1
     ? Math.floor(value)
     : fallback;
 }
 
-function getActiveRosterRating(roster: OnlineContractPlayer[] | undefined) {
+function clampRating(value: number) {
+  return Math.min(100, Math.max(0, Math.round(value)));
+}
+
+function getAverageActiveRosterRating(roster: OnlineContractPlayer[]) {
+  return Math.round(roster.reduce((sum, player) => sum + player.overall, 0) / roster.length);
+}
+
+function addWeightedPlayerRating(
+  aggregate: { total: number; weight: number },
+  player: OnlineContractPlayer | undefined,
+  weight: number,
+) {
+  if (!player) {
+    return;
+  }
+
+  aggregate.total += player.overall * weight;
+  aggregate.weight += weight;
+}
+
+function getDepthChartWeightedRosterRating(
+  activePlayers: OnlineContractPlayer[],
+  depthChart: OnlineDepthChartEntry[] | undefined,
+) {
+  if (!depthChart || depthChart.length === 0) {
+    return getAverageActiveRosterRating(activePlayers);
+  }
+
+  const activePlayersById = new Map(activePlayers.map((player) => [player.playerId, player]));
+  const weighted = { total: 0, weight: 0 };
+  const usedPlayerIds = new Set<string>();
+
+  for (const entry of depthChart) {
+    const starter = activePlayersById.get(entry.starterPlayerId);
+
+    if (starter) {
+      addWeightedPlayerRating(weighted, starter, 2.5);
+      usedPlayerIds.add(starter.playerId);
+    }
+
+    for (const backupPlayerId of entry.backupPlayerIds) {
+      const backup = activePlayersById.get(backupPlayerId);
+
+      if (backup) {
+        addWeightedPlayerRating(weighted, backup, 0.75);
+        usedPlayerIds.add(backup.playerId);
+      }
+    }
+  }
+
+  for (const player of activePlayers) {
+    if (!usedPlayerIds.has(player.playerId)) {
+      addWeightedPlayerRating(weighted, player, 0.35);
+    }
+  }
+
+  return weighted.weight > 0
+    ? Math.round(weighted.total / weighted.weight)
+    : getAverageActiveRosterRating(activePlayers);
+}
+
+function getMissingRequiredStarterPositions(
+  activePlayers: OnlineContractPlayer[],
+  depthChart: OnlineDepthChartEntry[] | undefined,
+) {
+  const activePlayersById = new Map(activePlayers.map((player) => [player.playerId, player]));
+  const activePositions = new Set(activePlayers.map((player) => player.position));
+
+  return ONLINE_SIMULATION_REQUIRED_STARTER_POSITIONS.filter((position) => {
+    if (!activePositions.has(position)) {
+      return true;
+    }
+
+    if (!depthChart || depthChart.length === 0) {
+      return false;
+    }
+
+    const starterEntry = depthChart.find((entry) => entry.position === position);
+    const starter = starterEntry ? activePlayersById.get(starterEntry.starterPlayerId) : null;
+
+    return starter?.position !== position;
+  });
+}
+
+function getActiveRosterRating(
+  roster: OnlineContractPlayer[] | undefined,
+  depthChart: OnlineDepthChartEntry[] | undefined,
+) {
   const activePlayers = (roster ?? []).filter(
     (player) => player.status === "active" && Number.isFinite(player.overall),
   );
 
   if (activePlayers.length === 0) {
-    return null;
+    return {
+      rating: null,
+      warnings: [],
+    };
   }
 
-  return Math.round(
-    activePlayers.reduce((sum, player) => sum + player.overall, 0) / activePlayers.length,
+  const missingRequiredStarterPositions = getMissingRequiredStarterPositions(
+    activePlayers,
+    depthChart,
   );
+  const penalty = missingRequiredStarterPositions.length * MISSING_REQUIRED_STARTER_PENALTY;
+  const baseRating = getDepthChartWeightedRosterRating(activePlayers, depthChart);
+
+  return {
+    rating: clampRating(baseRating - penalty),
+    warnings: missingRequiredStarterPositions.map(
+      (position) =>
+        `Team-Staerke erhaelt -${MISSING_REQUIRED_STARTER_PENALTY}, weil kein aktiver ${position}-Starter gesetzt ist.`,
+    ),
+  };
 }
 
 export function adaptOnlineTeamToSimulationTeam(
@@ -87,10 +193,10 @@ export function adaptOnlineTeamToSimulationTeam(
     return null;
   }
 
-  const rosterRating = getActiveRosterRating(user?.contractRoster);
-  const warnings: string[] = [];
+  const rosterRating = getActiveRosterRating(user?.contractRoster, user?.depthChart);
+  const warnings: string[] = [...rosterRating.warnings];
 
-  if (rosterRating === null) {
+  if (rosterRating.rating === null) {
     warnings.push(
       `Team ${teamId} nutzt Rating-Fallback 70, weil kein aktives Online-Roster vorhanden ist.`,
     );
@@ -99,7 +205,7 @@ export function adaptOnlineTeamToSimulationTeam(
   return {
     id: team?.id ?? user?.teamId ?? teamId,
     name: user?.teamDisplayName ?? user?.teamName ?? team?.name ?? teamId,
-    rating: rosterRating ?? 70,
+    rating: rosterRating.rating ?? 70,
     warnings,
   };
 }

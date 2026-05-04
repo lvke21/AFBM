@@ -9,6 +9,7 @@ export type AppShellContext = {
     id: string;
     year: number;
     phase: string;
+    phaseLabel?: string;
     week: number;
   } | null;
   managerTeam: {

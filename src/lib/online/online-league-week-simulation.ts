@@ -727,8 +727,14 @@ export function buildOnlineLeagueTeamRecords(
   }
 
   const streaks = new Map<string, { count: number; type: "L" | "T" | "W" }>();
+  const countedMatchIds = new Set<string>();
 
   for (const result of league.matchResults ?? []) {
+    if (countedMatchIds.has(result.matchId)) {
+      continue;
+    }
+    countedMatchIds.add(result.matchId);
+
     const home = records.get(result.homeTeamId);
     const away = records.get(result.awayTeamId);
 

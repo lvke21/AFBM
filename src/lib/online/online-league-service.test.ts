@@ -988,6 +988,76 @@ describe("online-league-service", () => {
     expect(duplicateClickAttempt?.completedWeeks).toEqual(simulated?.completedWeeks);
   });
 
+  it("moves to a stable season_complete week state after the final scheduled week", () => {
+    const storage = new MemoryStorage();
+    const league = createOnlineLeague({ name: "Season Complete League", maxUsers: 2 }, storage);
+
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-1", username: "Coach_1234" },
+      BERLIN_WOLVES,
+      storage,
+    );
+    joinOnlineLeague(
+      league.id,
+      { userId: "user-2", username: "Coach_5678" },
+      ZURICH_FORGE,
+      storage,
+    );
+    completeFantasyDraftForTest(league.id, storage);
+
+    const draftCompleteLeague = getOnlineLeagueById(league.id, storage)!;
+    const homeUser = draftCompleteLeague.users[0]!;
+    const awayUser = draftCompleteLeague.users[1]!;
+    saveOnlineLeague(
+      {
+        ...draftCompleteLeague,
+        currentSeason: 1,
+        currentWeek: 1,
+        schedule: [
+          {
+            awayTeamName: awayUser.teamName,
+            homeTeamName: homeUser.teamName,
+            id: "season-final-game",
+            week: 1,
+          },
+        ],
+      },
+      storage,
+    );
+    setAllOnlineLeagueUsersReady(league.id, storage);
+
+    const simulated = simulateOnlineLeagueWeek(league.id, storage, {
+      simulatedByUserId: "admin-season-end",
+    });
+
+    expect(simulated?.currentWeek).toBe(2);
+    expect(simulated?.weekStatus).toBe("season_complete");
+    expect(simulated?.matchResults?.length).toBeGreaterThan(0);
+    expect(simulated?.standings?.length).toBeGreaterThan(0);
+    expect(simulated?.users.every((user) => !user.readyForWeek && !user.readyAt)).toBe(true);
+    expect(simulated?.completedWeeks?.[0]).toMatchObject({
+      nextSeason: 1,
+      nextWeek: 2,
+      status: "completed",
+      week: 1,
+      weekKey: "s1-w1",
+    });
+
+    expect(() => setOnlineLeagueUserReady(league.id, "user-1", storage)).toThrow(
+      "Die Saison ist abgeschlossen. Offseason kommt bald.",
+    );
+    const duplicateSimulation = simulateOnlineLeagueWeek(league.id, storage, {
+      simulatedByUserId: "admin-season-end",
+    });
+    const reloaded = getOnlineLeagueById(league.id, storage);
+
+    expect(duplicateSimulation?.matchResults).toEqual(simulated?.matchResults);
+    expect(reloaded?.weekStatus).toBe("season_complete");
+    expect(reloaded?.matchResults).toEqual(simulated?.matchResults);
+    expect(reloaded?.standings).toEqual(simulated?.standings);
+  });
+
   it("keeps parallel week simulation requests from writing duplicate results", async () => {
     const storage = new MemoryStorage();
     const league = createOnlineLeague(

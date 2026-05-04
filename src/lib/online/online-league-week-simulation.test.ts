@@ -363,6 +363,7 @@ describe("online league week simulation model", () => {
           week: 1,
         },
       ],
+      weekStatus: "season_complete",
     });
 
     const state = normalizeOnlineLeagueWeekSimulationState(completedSeasonLeague);
@@ -373,6 +374,7 @@ describe("online league week simulation model", () => {
       phase: "season_complete",
       seasonComplete: true,
     });
+    expect(state.completion.hasConflicts).toBe(false);
     expect(state.reasons).toContain(
       "Die Saison ist abgeschlossen; Woche 2 liegt nach der letzten geplanten Woche 1.",
     );
@@ -709,6 +711,77 @@ describe("online league week simulation model", () => {
       wins: 0,
     });
   });
+
+  it("builds cumulative standings across weeks without counting duplicate result ids", () => {
+    const weekOne = {
+      awayScore: 17,
+      awayStats: {
+        firstDowns: 12,
+        passingYards: 180,
+        rushingYards: 90,
+        totalYards: 270,
+        turnovers: 1,
+      },
+      awayTeamId: "basel",
+      awayTeamName: "Basel Rhinos",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      homeScore: 24,
+      homeStats: {
+        firstDowns: 18,
+        passingYards: 220,
+        rushingYards: 110,
+        totalYards: 330,
+        turnovers: 0,
+      },
+      homeTeamId: "zurich",
+      homeTeamName: "Zurich Guardians",
+      matchId: "game-1",
+      season: 1,
+      simulatedAt: "2026-01-01T00:00:00.000Z",
+      simulatedByUserId: "admin",
+      status: "completed" as const,
+      tiebreakerApplied: false,
+      week: 1,
+      winnerTeamId: "zurich",
+      winnerTeamName: "Zurich Guardians",
+    };
+    const records = buildOnlineLeagueTeamRecords(
+      league({
+        matchResults: [
+          weekOne,
+          weekOne,
+          {
+            ...weekOne,
+            awayScore: 21,
+            homeScore: 14,
+            matchId: "game-2",
+            simulatedAt: "2026-01-08T00:00:00.000Z",
+            week: 2,
+            winnerTeamId: "basel",
+            winnerTeamName: "Basel Rhinos",
+          },
+        ],
+      }),
+    );
+
+    expect(records.find((record) => record.teamId === "zurich")).toMatchObject({
+      gamesPlayed: 2,
+      losses: 1,
+      pointDifferential: 0,
+      pointsAgainst: 38,
+      pointsFor: 38,
+      wins: 1,
+    });
+    expect(records.find((record) => record.teamId === "basel")).toMatchObject({
+      gamesPlayed: 2,
+      losses: 1,
+      pointDifferential: 0,
+      pointsAgainst: 38,
+      pointsFor: 38,
+      wins: 1,
+    });
+  });
+
 
   it("omits undefined optional record fields before Firestore persistence", () => {
     const records = buildOnlineLeagueTeamRecords(league());

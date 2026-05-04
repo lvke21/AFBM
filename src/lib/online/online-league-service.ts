@@ -6839,7 +6839,7 @@ function buildSimulatedOnlineLeague(input: {
     currentWeek: nextWeek,
     currentSeason: nextSeason,
     status: seasonComplete ? "waiting" as const : input.league.status,
-    weekStatus: seasonComplete ? "completed" as const : "pre_week" as const,
+    weekStatus: seasonComplete ? "season_complete" as const : "pre_week" as const,
     lastSimulatedWeekKey: input.weekKey,
     matchResults: nextMatchResults,
     standings: buildOnlineLeagueTeamRecords(standingsLeague, input.now),

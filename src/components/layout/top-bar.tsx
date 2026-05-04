@@ -1,4 +1,5 @@
 import Link from "next/link";
+import React from "react";
 
 import type { AppShellContext } from "./navigation-model";
 
@@ -19,7 +20,8 @@ export function TopBar({ context }: TopBarProps) {
           </span>
           {context.currentSeason ? (
             <span>
-              {context.currentSeason.year} · {context.currentSeason.phase} · Woche{" "}
+              {context.currentSeason.year} ·{" "}
+              {context.currentSeason.phaseLabel ?? context.currentSeason.phase} · Woche{" "}
               {context.currentSeason.week}
             </span>
           ) : null}

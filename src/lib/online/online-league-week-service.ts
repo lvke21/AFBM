@@ -235,6 +235,16 @@ export function getOnlineLeagueReadyChangeState(
     };
   }
 
+  if (league.weekStatus === "season_complete") {
+    return {
+      allowed: false,
+      currentSeason,
+      currentWeek,
+      reason: "Die Saison ist abgeschlossen. Offseason kommt bald.",
+      weekKey,
+    };
+  }
+
   const weekPlayabilityBlockReason = getReadyWeekPlayabilityBlockReason(league, currentWeek);
 
   if (weekPlayabilityBlockReason) {

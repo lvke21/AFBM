@@ -8,6 +8,7 @@ import type { AppShellContext } from "@/components/layout/navigation-model";
 import {
   normalizeOnlineCoreLifecycle,
   type OnlineCoreLifecycleState,
+  type OnlineCoreLifecyclePhase,
 } from "@/lib/online/online-league-lifecycle";
 import type { OnlineLeague } from "@/lib/online/online-league-types";
 
@@ -28,6 +29,39 @@ function getDraftStatusFromLifecycle(lifecycle: OnlineCoreLifecycleState | null)
   return lifecycle.draftStatus === "not_started" || lifecycle.draftStatus === "missing"
     ? "not_started"
     : "completed";
+}
+
+function getOnlineShellLifecycleLabel(phase: OnlineCoreLifecyclePhase) {
+  switch (phase) {
+    case "blockedConflict":
+      return "Statuskonflikt";
+    case "draftActive":
+      return "Draft läuft";
+    case "draftPending":
+      return "Draft vorbereitet";
+    case "joining":
+      return "Liga-Beitritt";
+    case "noLeague":
+      return "Keine Liga";
+    case "noTeam":
+      return "Kein Team";
+    case "readyComplete":
+      return "Simulation bereit";
+    case "readyOpen":
+      return "Woche offen";
+    case "resultsAvailable":
+      return "Ergebnisse verfügbar";
+    case "rosterInvalid":
+      return "Kader prüfen";
+    case "seasonComplete":
+      return "Saison abgeschlossen";
+    case "simulating":
+      return "Simulation läuft";
+    case "waitingForOthers":
+      return "Wartet auf Manager";
+    case "weekCompleted":
+      return "Woche abgeschlossen";
+  }
 }
 
 function getTeamRecordLabel(league: OnlineLeague | null, teamId: string) {
@@ -112,6 +146,7 @@ export function OnlineLeagueAppShell({
           id: `online-season-${league.currentSeason}`,
           year: league.currentSeason ?? 1,
           phase: lifecycle.phase,
+          phaseLabel: getOnlineShellLifecycleLabel(lifecycle.phase),
           week: lifecycle.currentWeek ?? league.currentWeek,
         }
       : null,

@@ -613,7 +613,11 @@ function validatePlayableState(input: {
     throw new Error(`league.status=${input.league.status ?? "missing"} is not active.`);
   }
 
-  if (input.league.weekStatus === "simulating" || input.league.weekStatus === "completed") {
+  if (
+    input.league.weekStatus === "simulating" ||
+    input.league.weekStatus === "completed" ||
+    input.league.weekStatus === "season_complete"
+  ) {
     throw new Error(`league.weekStatus=${input.league.weekStatus} does not allow player Ready.`);
   }
 

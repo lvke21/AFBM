@@ -20,7 +20,12 @@ export type OnlineRole = "admin" | "gm";
 export type OnlineMembershipStatus = "active" | "inactive" | "removed";
 export type OnlineTeamAssignmentStatus = "available" | "assigned" | "vacant" | "ai";
 export type FirestoreOnlineLeagueStatus = "lobby" | "active" | "completed" | "archived";
-export type FirestoreOnlineWeekStatus = "pre_week" | "ready" | "simulating" | "completed";
+export type FirestoreOnlineWeekStatus =
+  | "pre_week"
+  | "ready"
+  | "simulating"
+  | "completed"
+  | "season_complete";
 
 export type OnlineAuthenticatedUser = OnlineUser & {
   displayName: string;

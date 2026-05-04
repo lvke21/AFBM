@@ -127,6 +127,8 @@ export function OnlineLeagueFirstSteps({
   pendingAction: string | null;
   onReadyForWeek: (ready: boolean) => void;
 }) {
+  const showReadyButton = detailState.lifecyclePhase !== "seasonComplete";
+
   return (
     <section
       aria-labelledby="first-steps-title"
@@ -224,27 +226,29 @@ export function OnlineLeagueFirstSteps({
             </div>
           </div>
           <div className="grid gap-2 lg:min-w-48">
-            <button
-              type="button"
-              disabled={
-                !detailState.ownTeamName ||
-                pendingAction !== null ||
-                Boolean(detailState.readyActionDisabledReason)
-              }
-              onClick={() => onReadyForWeek(!detailState.currentUserReady)}
-              aria-busy={pendingAction === "ready"}
-              className={`w-fit rounded-lg border px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/5 disabled:text-slate-400 ${
-                detailState.currentUserReady
-                  ? "border-amber-100/35 bg-amber-200/12 text-amber-50 hover:bg-amber-200/18"
-                  : "border-emerald-100/35 bg-emerald-200/18 text-emerald-50 hover:bg-emerald-200/24"
-              }`}
-            >
-              {pendingAction === "ready"
-                ? "Speichert..."
-                : detailState.currentUserReady
-                  ? "Bereit zurücknehmen"
-                  : `Bereit für ${detailState.currentWeekLabel}`}
-            </button>
+            {showReadyButton ? (
+              <button
+                type="button"
+                disabled={
+                  !detailState.ownTeamName ||
+                  pendingAction !== null ||
+                  Boolean(detailState.readyActionDisabledReason)
+                }
+                onClick={() => onReadyForWeek(!detailState.currentUserReady)}
+                aria-busy={pendingAction === "ready"}
+                className={`w-fit rounded-lg border px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/5 disabled:text-slate-400 ${
+                  detailState.currentUserReady
+                    ? "border-amber-100/35 bg-amber-200/12 text-amber-50 hover:bg-amber-200/18"
+                    : "border-emerald-100/35 bg-emerald-200/18 text-emerald-50 hover:bg-emerald-200/24"
+                }`}
+              >
+                {pendingAction === "ready"
+                  ? "Speichert..."
+                  : detailState.currentUserReady
+                    ? "Bereit zurücknehmen"
+                    : `Bereit für ${detailState.currentWeekLabel}`}
+              </button>
+            ) : null}
             <p className="text-sm font-semibold text-emerald-50/80">
               {detailState.readyActionDisabledReason ?? detailState.nextActionLabel}
             </p>
@@ -306,7 +310,10 @@ export function OnlineLeagueWeekFlowSection({
   detailState: FoundOnlineLeagueDetailState;
 }) {
   return (
-    <section id="week-loop" className="mt-8 rounded-lg border border-sky-200/20 bg-[#07111d]/80 p-5">
+    <section
+      id="week-loop"
+      className="mt-8 scroll-mt-24 rounded-lg border border-sky-200/20 bg-[#07111d]/80 p-5"
+    >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">
@@ -317,6 +324,9 @@ export function OnlineLeagueWeekFlowSection({
           </h2>
           <p className="mt-3 w-fit rounded-full border border-sky-100/25 bg-sky-200/10 px-3 py-1 text-sm font-semibold text-sky-50">
             {detailState.weekFlow.phaseLabel}
+          </p>
+          <p className="mt-3 text-sm font-semibold text-slate-300">
+            {detailState.weekFlow.nextWeekLabel} · {detailState.weekFlow.lastScheduledWeekLabel}
           </p>
         </div>
 
@@ -379,23 +389,40 @@ export function OnlineLeagueWeekFlowSection({
         </p>
       </div>
 
-      {detailState.recentResults.length > 0 ? (
+      {detailState.resultSummary.results.length > 0 ? (
         <div className="mt-4 rounded-lg border border-emerald-200/20 bg-emerald-300/10 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-100">
-            Letzte Ergebnisse
+            Ergebnisse {detailState.resultSummary.weekLabel ? `· ${detailState.resultSummary.weekLabel}` : ""}
           </p>
           <div className="mt-3 grid gap-2 lg:grid-cols-2">
-            {detailState.recentResults.map((result) => (
+            {detailState.resultSummary.results.map((result) => (
               <p
                 key={result.matchId}
-                className="rounded-lg border border-white/10 bg-[#07111d]/70 px-3 py-2 text-sm font-semibold text-emerald-50"
+                className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
+                  result.isCurrentUserTeamInvolved
+                    ? "border-emerald-100/35 bg-emerald-200/15 text-emerald-50"
+                    : "border-white/10 bg-[#07111d]/70 text-emerald-50"
+                }`}
               >
                 {result.label}
+                <span className="mt-1 block text-xs text-emerald-100/75">
+                  {result.winnerLabel}
+                  {result.isCurrentUserTeamInvolved ? " · Dein Spiel" : ""}
+                </span>
               </p>
             ))}
           </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="mt-4 rounded-lg border border-dashed border-white/15 bg-white/5 px-4 py-3">
+          <p className="text-sm font-semibold text-white">
+            {detailState.resultSummary.emptyTitle}
+          </p>
+          <p className="mt-1 text-sm leading-6 text-slate-300">
+            {detailState.resultSummary.emptyMessage}
+          </p>
+        </div>
+      )}
 
       {detailState.weekFlow.showStartWeekButton ? (
         <div className="mt-5 rounded-lg border border-sky-200/25 bg-sky-300/10 px-4 py-3">

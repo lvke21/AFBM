@@ -47,6 +47,7 @@ import {
   LeagueStatusPanel,
   LoadingState,
   PlayerActionsPanel,
+  PrimaryActionPanel,
   ReadyStatePanel,
   TeamOverviewCard,
 } from "./online-league-dashboard-panels";
@@ -157,6 +158,30 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
       );
     }
   }, [currentUser?.userId, league]);
+
+  useEffect(() => {
+    if (detailState.status !== "found") {
+      return;
+    }
+
+    const hash = window.location.hash.replace(/^#/, "");
+    const scrollableAnchors = new Set(["depth-chart", "league", "roster", "team", "week-loop"]);
+
+    if (!scrollableAnchors.has(hash)) {
+      return;
+    }
+
+    const scrollToHashTarget = () => {
+      document.getElementById(hash)?.scrollIntoView({ block: "start" });
+    };
+    const frameId = window.requestAnimationFrame(scrollToHashTarget);
+    const timeoutId = window.setTimeout(scrollToHashTarget, 80);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [detailState.status, league?.updatedAt, league?.currentWeek, league?.users.length]);
 
   async function handleReadyForWeek(ready: boolean) {
     if (!currentUser || pendingAction) {
@@ -577,6 +602,11 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
   return (
     <section className="w-full rounded-lg border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/30 sm:p-6">
       <LeagueHeader detailState={detailState} />
+      <PrimaryActionPanel
+        detailState={detailState}
+        pendingAction={pendingAction}
+        onReadyForWeek={handleReadyForWeek}
+      />
       <ReadyStatePanel
         detailState={detailState}
         actionFeedback={actionFeedback}
@@ -589,7 +619,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
       <AdminControlsPanel />
 
       <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-        <div id="team">
+        <div id="team" className="scroll-mt-24">
           <TeamOverviewCard
             detailState={detailState}
             isFirebaseMvpMode={isFirebaseMvpMode}
@@ -603,7 +633,7 @@ export function OnlineLeaguePlaceholder({ leagueId }: { leagueId: string }) {
         <LeagueStatusPanel detailState={detailState} />
       </div>
 
-      <div id="roster">
+      <div id="roster" className="scroll-mt-24">
         <PlayerActionsPanel detailState={detailState} />
       </div>
 
